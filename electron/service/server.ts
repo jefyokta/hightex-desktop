@@ -1,0 +1,70 @@
+import Store from "electron-store";
+import { Logger } from "./logger";
+import path from "path";
+import { app } from "electron";
+
+const store = new Store();
+
+export class Server {
+  static setServerUrl(url: string) {
+    const normalized = url.endsWith("/") ? url : url + "/";
+    store.set("server.url", normalized);
+  }
+
+  private static getServerUrl(): string {
+    const url = store.get("server.url") as string | undefined;
+    return url || "https://hightex.okta/api/";
+  }
+  static async request<T = any>(
+    endpoint: string,
+    options: RequestInit = {},
+    context?: string,
+  ): Promise<T> {
+    const token = store.get("session.token") as string | undefined;
+
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      ...((options.headers as Record<string, string>) || {}),
+    };
+
+    if (token) {
+      headers.authorization = `Bearer ${token}`;
+    }
+
+    const url = this.buildUrl(endpoint);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "Request failed");
+        const error = new Error(`HTTP ${response.status}: ${errText}`);
+
+        this.log(error, context || endpoint);
+        throw error;
+      }
+
+      const text = await response.text();
+      return text ? JSON.parse(text) : ({} as T);
+    } catch (error) {
+      this.log(error, context || endpoint);
+      throw error;
+    }
+  }
+
+  private static buildUrl(endpoint: string): string {
+    const base = this.getServerUrl();
+    return `${base}${endpoint.replace(/^\/+/, "")}`;
+  }
+
+  private static log(error: any, context: string) {
+    Logger.write(error, context, this.getLogFile());
+  }
+
+  private static getLogFile(): string {
+    return path.join(app.getPath("userData"), "hightex-server.log");
+  }
+}

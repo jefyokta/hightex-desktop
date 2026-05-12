@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HighTex</title>
+
+    <style>
+      .no-drag {
+        -webkit-app-region: no-drag;
+      }
+      .drag-bar {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
+        /* height: 30px;  */
+        -webkit-app-region: drag;
+        z-index: 9999;
+      }
+
+      #root {
+        height: 100%;
+        width: 100%;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        -webkit-app-region: no-drag;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

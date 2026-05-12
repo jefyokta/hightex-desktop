@@ -1,0 +1,52 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#F8FAFC"/>
+
+  <!-- soft frame -->
+  <rect x="56" y="56" width="400" height="400" rx="80"
+        fill="none" stroke="#E2E8F0" stroke-width="2"/>
+
+  <!-- H vertical (dark) -->
+  <path d="
+    M160 120
+    V392
+    H210
+    V290
+    H300
+    V392
+    H350
+    V120
+    H300
+    V250
+    H210
+    V120
+    Z"
+    fill="#1F2937"/>
+<path d="M240 240 H210 V300 H210 V1500" fill="white"></path>
+  <!-- inner cut H -->
+  <path d="
+    M230 250
+    H300
+    V290
+    H230
+    Z"
+    fill="#6B8F71"/>
+
+  <!-- T (FIXED: extended left + better balance) -->
+  <path d="
+    M280 150
+    H430
+    V190
+    H380
+    V392
+    H340
+    V190
+    H280
+    Z"
+    fill="#6B8F71"/>
+
+  <!-- subtle highlight separation (not full white block) -->
+    <rect x="260" y="190" width="150" height="10" fill="white" opacity="1"/>
+
+</svg>
