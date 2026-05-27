@@ -1,0 +1,11 @@
+{
+  "id": "reference",
+  "name": "Reference Validator",
+  "version": "1.0.0",
+  "entry": "index.js",
+  "type": "esm",
+  "description": "Validates reference consistency for images and tables in documents.",
+  "author": "HighTex Core",
+  "hash": "3e8507fe961c894c4ccb82a1a401adea1a05047666e3a70f1639dd5681db4832",
+  "signature": "CgDY/hbsxD9r6+Ow4TEryax+dk5Hqh65EMNnTlsITSh/70zUJx0cVwCl4BM0Lgk53zoIMxHf4jtJ5yKTe+ZhvdYz6yMSQ5cIuGwqBghyuEKfIyIG2hJSILrndMeLxnAIcBfiPIByfEgISrUwsqTeKCDNzuGLHSntbQSpe77/+i9RE47nlOgkLZ7fS+F8DHhWyln+5PXYIjUlCuf4CWo6zcjHX0Ca3zt+1T5YhSJeL3fxSGMcJ/38ZRX2jEXw852SjnJy4vsQFcLo8m5K3yLYf2iZ6R3/nBalwBVDBZdSo159SvudZRd15fq4Ge8JoATzI+0tV/k+Pw1Ddtm/AUn79A=="
+}

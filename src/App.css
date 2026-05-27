@@ -2,6 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+.toasta li {
+  display: flex;
+  justify-content: space-between;
+}
+.toasta li [data-content] {
+  @apply flex-1 px-2;
+}
 
 @custom-variant dark (&:is(.dark *));
 

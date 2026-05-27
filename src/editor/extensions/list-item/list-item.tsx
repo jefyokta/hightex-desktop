@@ -45,22 +45,28 @@ export const ListItemComponent: React.FC<NodeViewProps> = ({
   return (
     <NodeViewWrapper as="li" className="relative group overflow-visible">
       <div
-        className={`absolute -left-25 ${isCursorInside ? "flex" : "hidden"} h-6 justify-center space-x-1 items-center bg-gray-100 p-1 rounded-sm text-xs z-10`}
+        className={`absolute -left-25 ${
+          isCursorInside ? "flex" : "hidden"
+        } h-6 justify-center space-x-1 items-center p-1 rounded-sm text-xs z-10
+      bg-neutral-100 text-neutral-700
+      dark:bg-neutral-800 dark:text-neutral-200`}
       >
         <button
-          className="text-xs  w-4 h-4 cursor-pointer flex items-center justify-center"
+          className="text-xs w-4 h-4 cursor-pointer flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded"
           onClick={lift}
         >
           <CornerUpLeft size={10} />
         </button>
+
         <button
-          className="text-xs  w-4 h-4 cursor-pointer flex items-center justify-center"
+          className="text-xs w-4 h-4 cursor-pointer flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded"
           onClick={sink}
           disabled={!editor.can().sinkListItem("listItem")}
         >
           <CornerUpRight size={10} />
         </button>
       </div>
+
       <NodeViewContent />
     </NodeViewWrapper>
   );

@@ -7,8 +7,6 @@ declare global {
     pos: number;
     chapterId: string;
     numbering: string;
-
-  
   }
   interface HeadingGraph extends Graph {
     level: number;
@@ -18,8 +16,7 @@ declare global {
     imgSrc: string;
   }
 
-  interface TableGraph extends Graph {
-  }
+  interface TableGraph extends Graph {}
   interface ChapterGraphData {
     headings: HeadingGraph[];
     images: ImageGraph[];

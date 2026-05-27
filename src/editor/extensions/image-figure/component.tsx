@@ -1,15 +1,10 @@
 import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { useEffect } from "react";
 import { Quote, Trash } from "lucide-react";
 import { NodeActionButton } from "@/editor/components/node-action-button";
-export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
-  useEffect(() => {
-    // EventBus.emit(`${node.type.name}:${node.attrs.id}`);
-  }, [node.attrs.id, node.type.name]);
 
+export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
   const copy = () => {
     if (typeof window === "undefined") return;
-
     window.navigator.clipboard.writeText(`@imageFigure[${node.attrs.id}]`);
   };
 
@@ -27,6 +22,8 @@ export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
         deleteNode();
       },
       label: "Delete",
+      className:
+        "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 data-[selected='true']:bg-red-50 data-[selected='true']:dark:bg-red-950/50",
     },
   ];
 
@@ -35,7 +32,7 @@ export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
       as="figure"
       data-type="imageFigure"
       id={node.attrs.id}
-      className="relative w-full group "
+      className="relative w-full group"
       dragabble="true"
       data-copy={`@imageFigure[${node.attrs.id}]`}
     >
@@ -44,7 +41,7 @@ export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
         label="Figure Image"
         items={items}
       />
-      <NodeViewContent className="w-full  h-auto pointer-events-none-content  group-hover:border group-hover:border-blue-600 group-hover:rounded" />
+      <NodeViewContent className="w-full h-auto pointer-events-none-content group-hover:border group-hover:border-blue-600 group-hover:rounded" />
     </NodeViewWrapper>
   );
 };

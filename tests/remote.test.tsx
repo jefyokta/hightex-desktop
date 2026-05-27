@@ -1,0 +1,38 @@
+import { expect, test, vi } from "bun:test";
+import { renderToString } from "react-dom/server";
+
+vi.mock("../src/editor/storage/hightex-db.ts", () => ({
+  HighTexDB: {
+    getInstance: () => ({
+      documents: { toArray: async () => [] },
+      cite: { toArray: async () => [] },
+    }),
+  },
+}));
+
+vi.mock("../src/editor/storage/index.ts", () => ({
+  Storage: class {
+    static instance = null;
+  },
+}));
+
+vi.mock("../src/hooks/use-user", () => ({
+  useUser: () => ({ user: false }),
+}));
+
+vi.mock("../src/context/auth-modal-context", () => ({
+  useAuthModal: () => ({ openLogin: () => {} }),
+}));
+
+vi.mock("../src/hooks/use-online", () => ({
+  useOnline: () => true,
+}));
+
+import { RemoteDocuments } from "../src/pages/remote";
+
+test("remote dashboard renders login prompt when user is not authenticated", () => {
+  const html = renderToString(<RemoteDocuments />);
+
+  expect(html).toContain("Login Required");
+  expect(html).toContain("Connect your cloud workspace");
+});

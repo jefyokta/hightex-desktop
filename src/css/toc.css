@@ -1,0 +1,86 @@
+#toc {
+  font-size: 12pt;
+  line-height: 1.8;
+}
+
+.toc-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+
+  text-decoration: none;
+  color: inherit;
+
+  padding: 1px 0;
+  margin-top: 1em !important;
+
+  break-inside: auto;
+}
+
+.toc-row.sub {
+  margin-top: 0.5em !important;
+  padding-left: 2.5em;
+}
+
+.toc-row.subsub {
+  margin-top: 0.5em !important;
+  padding-left: 5.5em;
+}
+
+.toc-number {
+  width: 2.5em;
+  font-weight: bold;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.toc-row.sub .toc-number {
+  width: 3em;
+  font-weight: normal;
+}
+
+.toc-row.subsub .toc-number {
+  width: 3.5em;
+  font-weight: normal;
+}
+
+.toc-inner {
+  display: block;
+  min-width: 0;
+}
+
+.toc-text {
+  display: inline;
+  font-weight: bold;
+}
+
+.toc-row.sub .toc-text,
+.toc-row.subsub .toc-text {
+  font-weight: normal;
+}
+
+.toc-dots {
+  display: inline;
+  letter-spacing: 0.3em;
+  color: #111;
+  margin-left: 4px;
+}
+
+.toc-page {
+  font-weight: bold;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 2em;
+  padding-left: 4px;
+  align-self: end;
+}
+
+.sub .toc-page,
+.subsub .toc-page {
+  font-weight: normal;
+}
+
+.toc-row:not(.sub):not(.subsub) {
+  margin-top: 0.5em;
+}

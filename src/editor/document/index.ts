@@ -3,6 +3,9 @@ import { HighTexDB } from "../storage/hightex-db";
 import { Chapter } from "../chapter";
 import { DocumentNotFound } from "../../exception/document-not-found";
 import { Manager } from "../manager";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { CategoryEmpty } from "@/exception/categories-empty";
+import { DocumentBroken } from "@/exception/documet-broken";
 
 export class Document {
   static current?: Chapter;
@@ -34,6 +37,8 @@ export class Document {
 
   async warm() {
     try {
+      Document.instance = this;
+
       this.doc = await this.get();
       this.scheme = await this.loadSchemeFromExternal();
 
@@ -41,13 +46,14 @@ export class Document {
 
       await Promise.all(
         this.chapters.map(async (c) => {
+          if (!(await c.query.isCreated())) {
+            await c.query.create();
+          }
           await c.warm();
-          await c.graph.sync();
+          // await c.graph.sync();
         }),
       );
       this.ready = true;
-      Document.instance = this;
-
       Manager.app.dispatch("document:warmed", { document: this });
 
       return this;
@@ -100,8 +106,14 @@ export class Document {
     const categories = await window.hightex.categories();
 
     const doc = this.getDocument();
+    if (categories.length == 0) {
+      throw new CategoryEmpty();
+    }
 
     const category = categories.find((c) => c.id.toString() === doc.category);
+    if (!category) {
+      throw new DocumentBroken(this.id);
+    }
 
     return category?.chapters;
   }
@@ -109,7 +121,7 @@ export class Document {
   private buildChaptersFromScheme(): Chapter[] {
     if (!this.scheme) return [];
 
-    const chapters: Chapter[] = [];
+    const chapters: Chapter[] = this.getDefaultChapter();
 
     for (const c of this.scheme) {
       chapters.push(
@@ -142,5 +154,42 @@ export class Document {
   static setCurrentChapter(chapter: Chapter) {
     this.current = chapter;
     Chapter.setInstance(chapter);
+  }
+
+  private getDefaultChapter() {
+    return [
+      new Chapter({
+        documentId: this.id,
+        chapter: "foreword",
+        isolated: true,
+      }).setTitle("KATA PENGANTAR"),
+
+      new Chapter({
+        documentId: this.id,
+        chapter: "presentation",
+        isolated: true,
+      }).setTitle("LEMBAR PERSEMBAHAN"),
+      new Chapter({
+        documentId: this.id,
+        chapter: "abstract",
+        isolated: true,
+      }).setTitle("ABSTRAK"),
+      new Chapter({
+        documentId: this.id,
+        chapter: "abstract-en",
+        isolated: true,
+      }).setTitle("ABSTRACT"),
+    ];
+  }
+
+  destroy() {
+    Document.current = undefined;
+    Document.instance = undefined;
+    this.ready = false;
+  }
+  async save() {
+    if (!this.doc) throw new Error("Document not loaded");
+
+    await this.table.put(this.doc);
   }
 }

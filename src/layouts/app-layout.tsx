@@ -5,9 +5,11 @@ import { isMac } from "@/utils/is-mac";
 import { useEffect, useState } from "react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { EventBus } from "@/event/event-bus";
+import { Manager } from "@/editor/manager";
 
 export const AppLayout = () => {
   const [recent, setRecent] = useState<HighTexDocument[]>([]);
+
   useEffect(() => {
     const fillRecent = async () => {
       const docs = await HighTexDB.getInstance()
@@ -22,22 +24,26 @@ export const AppLayout = () => {
         ),
       );
     };
+
     fillRecent();
 
-    return EventBus.on("document:updated", async () => {
+    return Manager.app.on("document:updated", async () => {
       await fillRecent();
     });
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 text-gray-900">
+    <div className="h-screen flex flex-col bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors">
       <Navbar />
+
       <div className="flex flex-1 min-h-0">
         <Sidebar recent={recent} />
-        <div className={`flex-1 overflow-hidden pb-5 pr-5 ${!isMac && "pt-5"}`}>
-          <div className="h-full flex bg-white  border-l rounded-2xl py-5 border-gray-100 text-gray-900">
-            <div className="w-full h-full flex flex-col p-1  overflow-hidden">
-              {/* <Header /> */}
+
+        <div
+          className={`flex-1 overflow-hidden pb-5 pr-5 ${!isMac ? "pt-5" : ""}`}
+        >
+          <div className="h-full flex bg-white dark:bg-neutral-950  rounded-2xl py-5 text-neutral-900 dark:text-neutral-100 transition-colors">
+            <div className="w-full h-full flex flex-col p-1 overflow-hidden">
               <Outlet />
             </div>
           </div>

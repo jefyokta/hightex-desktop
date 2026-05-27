@@ -107,3 +107,63 @@ function CiteNode({ node }: { node: JSONContent }) {
     </cite>
   );
 }
+
+export async function renderNodeToText(nodes: JSONContent[]): Promise<string> {
+  if (!nodes || nodes.length === 0) return "";
+
+  const parts = await Promise.all(
+    nodes.map(async (node) => {
+      if (!node) return "";
+
+      if (node.type === "text") {
+        return renderTextToString(node);
+      }
+
+      if (node.type === "cite") {
+        const key = node.attrs?.cite;
+        const citeA = node.attrs?.citeA;
+
+        const res = await HighTexDB.getInstance().cite.get(key);
+        if (!res) return "";
+
+        const c = new CiteUtils(res.bib).setId(res.key);
+
+        return citeA ? c.toCiteA() : c.toCite();
+      }
+
+      const content = node.content;
+
+      if (!content || !Array.isArray(content)) {
+        return "";
+      }
+
+      return await renderNodeToText(content);
+    }),
+  );
+
+  return parts.join("");
+}
+
+function renderTextToString(node: JSONContent): string {
+  let content = node.text || "";
+
+  const marks = node.marks || [];
+
+  for (const mark of marks) {
+    switch (mark.type) {
+      case "italic":
+        content = `${content}`;
+        break;
+
+      case "underline":
+        content = `${content}`;
+        break;
+
+      case "strike":
+        content = `${content}`;
+        break;
+    }
+  }
+
+  return content;
+}

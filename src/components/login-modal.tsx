@@ -1,6 +1,7 @@
 import { Modal } from "./modal";
 import { useAuthModal } from "./../context/auth-modal-context";
 import { useState } from "react";
+import { Input } from "./ui/input";
 
 export const LoginModal = () => {
   const { loginOpen, closeLogin } = useAuthModal();
@@ -21,18 +22,18 @@ export const LoginModal = () => {
       <div className="w-95 p-6 space-y-5">
         <div>
           <div className="text-lg font-semibold">Welcome back</div>
-          <div className="text-xs text-gray-400">Sign in to continue</div>
+          <div className="text-xs text-neutral-400">Sign in to continue</div>
         </div>
 
         <div className="space-y-3">
-          <input
-            className="w-full px-3 py-2 rounded-xl bg-gray-50 text-sm"
+          <Input
+            className="w-full "
             placeholder="Email"
             onChange={(e) => setEmail(e.target.value)}
           />
 
-          <input
-            className="w-full px-3 py-2 rounded-xl bg-gray-50 text-sm"
+          <Input
+            className="w-full "
             placeholder="Password"
             type="password"
             onChange={(e) => setPassword(e.target.value)}
@@ -41,7 +42,7 @@ export const LoginModal = () => {
 
         <button
           onClick={login}
-          className="w-full py-2 rounded-xl bg-gray-900 text-white text-sm"
+          className="w-full py-2 rounded-xl bg-neutral-900 text-white text-sm"
         >
           Sign in
         </button>

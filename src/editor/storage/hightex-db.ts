@@ -1,4 +1,6 @@
+import { defaulBib } from "@/data/default-bib";
 import Dexie, { Table } from "dexie";
+import { Manager } from "../manager";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -17,28 +19,24 @@ export class HighTexDB extends Dexie {
       cite: "key, documentId",
       chapterGraphs: "id",
     });
+    this.cite.bulkPut(defaulBib);
   }
 
   static getInstance() {
     if (!this.instance) {
       this.instance = new HighTexDB();
-      this.instance.cite.put({
-        key: "okta2026pengembangan",
-        bib: `@article{okta2026pengembangan,
-  author  = {{Jepi Okta Mipa}},
-  title   = {Pengembangan Editor Penulisan Tugas Akhir Mahasiswa Program Studi Sistem Informasi Berbasis Web Menggunakan Extreme Programming},
-  journal = {Universitas Islam Negeri Sultan Syarif Kasim Riau Repository},
-  year    = {2026},
-  url     = {https://repository.uin-suska.ac.id/93006/},
-  pdf     = {http://repository.uin-suska.ac.id/93006/1/ta-tanpa-hasil%20-%20JEPI%20OKTA%20MIPA%20SISTEM%20INFORMASI.pdf}
-}
-`,
-      });
     }
     return this.instance;
   }
 
   static async getDocuments() {
     return await this.getInstance().documents.toArray();
+  }
+
+  async updateDocument(document: HighTexDocument) {
+    await this.documents.put(document);
+    const fresh = await this.documents.get(document.id);
+
+    Manager.app.dispatch("document:updated", { document: fresh! });
   }
 }

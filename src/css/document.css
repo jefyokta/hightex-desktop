@@ -1,0 +1,609 @@
+/* pge */
+
+@page introduction {
+  @bottom-center {
+    content: page;
+  }
+
+  margin: 30mm 30mm 40mm 30mm;
+}
+
+@page {
+  size: A4;
+}
+
+@page cover {
+  @bottom-center {
+    content: none;
+  }
+  margin: 30mm 30mm 40mm 30mm;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+}
+
+@page chapters {
+  @bottom-right {
+    content: page;
+  }
+
+  margin: 30mm 30mm 40mm 40mm;
+}
+
+@page attachment {
+  @bottom-right {
+    content: page;
+  }
+
+  margin-top: 30mm;
+  margin-right: 30mm;
+  margin-bottom: 40mm;
+  margin-left: 40mm;
+}
+
+@page biblio {
+  margin: 30mm 30mm 40mm 40mm;
+}
+
+.attachment {
+  page: attachment;
+}
+
+/* .attachment h1 {} */
+figure {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+figure[data-type="imageFigure"],
+div > img,
+img {
+  break-inside: avoid !important;
+}
+.introduction {
+  page: introduction;
+  counter-reset: page 2;
+}
+.spacer {
+  height: 7pt;
+  width: 100%;
+}
+
+.listed {
+  page: introduction;
+}
+
+.cover {
+  page: cover;
+}
+
+.content {
+  page: chapters;
+  counter-reset: page 1;
+}
+
+.biblio {
+  page: biblio;
+}
+
+p,
+li,
+span,
+strong,
+em,
+cite {
+  break-inside: auto;
+}
+/* docs */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.introduction:has(#toc) li {
+  list-style: none;
+}
+.content a {
+  text-decoration: none;
+  color: black;
+}
+col {
+  min-width: 25px;
+}
+
+.content h1 {
+  font-size: 14pt;
+  font-weight: 700;
+  text-align: center;
+  counter-reset: h2-counter fig-counter caption-counter;
+  counter-increment: h1-counter;
+  margin-bottom: 10pt;
+  margin-top: 10pt;
+}
+.content h1:not(:first-of-type) {
+  page-break-before: always !important;
+  break-before: page;
+}
+
+.content pre {
+  background: black;
+  border-radius: 0.5rem;
+  color: white;
+  font-family: "JetBrainsMono", monospace;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+}
+
+.content code {
+  background: none;
+  color: inherit;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.content > :last-child {
+  padding-bottom: 4px;
+}
+
+.content h1::before {
+  content: "BAB " attr(data-numbering) "\A";
+  font-weight: bold;
+  white-space: pre-line;
+}
+
+.content h2 {
+  font-size: 12pt;
+  font-weight: 600;
+  margin-bottom: 4pt;
+  display: list-item;
+  list-style: none;
+  counter-increment: h2-counter;
+  counter-reset: h3-counter;
+}
+
+.content table,
+.attachment table {
+  max-width: 100% !important;
+  border-bottom: 1px solid black;
+  border-collapse: collapse;
+}
+
+.content table td,
+table th {
+  padding-right: 0.2em;
+}
+
+td[colspan] {
+  border-right: none;
+}
+
+.content figure,
+.attachment figure {
+  padding-top: 7pt !important;
+  padding-bottom: 7pt !important;
+}
+
+.content li {
+  padding-left: 6pt;
+}
+
+.content h4 {
+  margin-left: 1.27cm;
+  font-weight: normal;
+}
+
+.content p {
+  white-space: break-spaces;
+}
+
+.content figure[data-type="figureTable"] > figcaption,
+.attachment figure[data-type="figureTable"] > figcaption {
+  width: 14cm !important;
+  text-align: center;
+  padding-bottom: 7pt;
+}
+
+.new-page {
+  page-break-before: always !important;
+  break-before: page !important;
+  -webkit-column-break-before: always;
+  /* break-before: always !important; */
+}
+figure[data-type="figureTable"] {
+  break-inside: auto !important;
+}
+
+.content figure[data-type="figureTable"] > figcaption:not(.continueing),
+.attachment figure[data-type="figureTable"] > figcaption:not(.continueing) {
+  width: 14cm !important;
+  text-align: center;
+  counter-increment: caption-counter;
+  padding-bottom: 7pt;
+}
+figcaption.continueing::after {
+  content: " (Lanjutan...)";
+}
+
+.content figure[data-type="figureTable"] > figcaption::before,
+.attachment figure[data-type="figureTable"] > figcaption::before {
+  content: "Tabel " attr(data-numbering) " ";
+  font-weight: bold;
+}
+
+.cover {
+  text-align: center;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.content figure[data-type="imageFigure"],
+.attachment figure[data-type="imageFigure"] {
+  text-align: center;
+  align-items: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.content figure[data-type="figureTable"],
+.attachment figure[data-type="figureTable"] {
+  display: block;
+  text-align: center;
+  font-size: 10pt;
+  max-width: 100%;
+}
+
+figure[data-type="figureTable"] > table {
+  margin-inline: auto;
+}
+
+.content figcaption {
+  font-size: 12pt;
+}
+
+.content td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.content th,
+.content td {
+  text-align: left;
+  /* min-width: 100%; */
+}
+
+.content td > div {
+  width: 100%;
+}
+
+.content h2::before {
+  content: attr(data-numbering);
+  font-weight: bold;
+}
+
+.content h3::before {
+  content: attr(data-numbering) ". ";
+  font-weight: bold;
+}
+
+.content h3 {
+  font-size: 12pt;
+  font-weight: 600;
+  margin-bottom: 3pt;
+  display: list-item;
+  list-style: none;
+  counter-increment: h3-counter;
+}
+
+.content figure[data-type="imageFigure"] > figcaption,
+.attachment figure[data-type="imageFigure"] > figcaption {
+  counter-increment: fig-counter;
+  padding-top: 5pt;
+}
+
+/* .content figure[data-type="imageFigure"] {
+         break-inside: avoid !important;
+         page-break-inside: avoid;
+         margin-bottom: -5pt;
+     } */
+
+.content figure[data-type="imageFigure"] > figcaption::before,
+.attachment figure[data-type="imageFigure"] > figcaption::before {
+  content: "Gambar " attr(data-numbering) " ";
+  font-weight: bold;
+}
+
+.content > p {
+  text-indent: 1.27cm;
+  margin-top: 0;
+  padding-bottom: 0.5em;
+  text-align: justify;
+}
+.content > [data-chapter-id] > p {
+  text-indent: 1.27cm;
+  margin-top: 0;
+  padding-bottom: 0.5em;
+  text-align: justify;
+}
+
+.content p {
+  max-width: 14cm;
+  text-align: justify;
+  /* hyphens: auto !important;
+         hyphenate-limit-chars: 3 3 3; */
+
+  overflow-wrap: break-word;
+}
+
+.content {
+  max-width: 14cm !important;
+}
+
+.foreword {
+  width: 100% !important;
+}
+
+.content li p,
+.foreword li p,
+.presentation li p {
+  text-indent: 0;
+}
+
+.content ol,
+.foreword ol,
+.presentation ol {
+  list-style-position: outside;
+  list-style-type: decimal;
+  margin-left: 2.5em;
+}
+
+.content ul,
+.foreword ul,
+.presentation ul {
+  list-style-type: disc;
+  margin-left: 2.5em;
+}
+
+.content {
+  width: 14cm !important;
+  font-family: "Times New Roman", serif;
+  line-height: 1.5;
+  /* overflow-y: hidden; */
+  box-sizing: border-box;
+  page-break-after: always;
+  hyphens: auto;
+  font-size: 12pt;
+  position: relative;
+  counter-reset: eq-counter;
+}
+
+.content cite {
+  font-style: normal;
+}
+
+.content h1 {
+  position: relative;
+}
+
+.content ol,
+.foreword ol,
+.presentation ol {
+  list-style-type: decimal !important;
+}
+
+.foreword ol li::marker {
+  content: counter(list-item) ". ";
+}
+
+.content ol ol {
+  list-style-type: lower-alpha;
+}
+
+.content ol ol ol {
+  list-style-type: decimal;
+}
+
+.content ol ol ol li::marker {
+  content: counter(list-item) ") ";
+}
+
+.content ol ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+.content ol ol ol ol li::marker {
+  content: counter(list-item, lower-alpha) ") ";
+}
+
+.csl-bib-body {
+  margin: 2rem 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.csl-entry {
+  margin-bottom: 0.5rem;
+  text-indent: -1.5rem;
+  padding-left: 1.5rem;
+}
+
+[data-csl-entry-id] {
+  text-align: justify;
+}
+
+.content-head {
+  page-break-before: always;
+  font-size: 14pt;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10pt;
+  margin-top: 10pt;
+}
+
+.first-content-head {
+  font-size: 14pt;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10pt;
+  margin-top: 10pt;
+}
+
+.link-number-pra {
+  font-weight: bold;
+}
+
+.keywords {
+  font-weight: normal;
+  text-align: left;
+  font-size: 10pt;
+  line-height: 12pt;
+}
+
+.keywords :not(b) {
+  font-weight: normal;
+}
+
+.abstract-id p,
+.abstract-en p {
+  text-align: justify;
+  font-size: 10pt;
+  line-height: 12pt;
+}
+
+.abstract-en p {
+  font-style: italic;
+}
+
+a[href="#abstract-en"] span {
+  font-style: italic;
+}
+
+.chapter {
+  font-size: 14pt;
+  text-align: center;
+  margin-bottom: 16pt;
+}
+
+.page-break {
+  page-break-after: always;
+}
+
+.paragraph {
+  text-indent: 1.27cm;
+  text-align: justify;
+  margin-bottom: 0.5em;
+}
+
+figure[data-type="imageFigure"],
+div > img,
+img,
+figure[data-type="imageFigure"],
+figure[data-type="imageFigure"] figcaption {
+  break-inside: auto !important;
+}
+
+.broken {
+  border: 1px solid red;
+}
+
+.foreword p,
+.presentation p {
+  text-indent: 1.27cm;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  text-align: justify;
+}
+
+td.center p,
+th.center p {
+  text-align: center !important;
+}
+
+td.left p,
+th.left p {
+  text-align: left !important;
+}
+
+td.right p,
+th.right p {
+  text-align: right !important;
+}
+
+thead tr:first-child {
+  border-top: 1px solid black !important;
+}
+
+thead tr:last-child {
+  border-bottom: 1px solid black !important;
+}
+
+[data-align-last-split-element="justify"] {
+  text-align-last: left !important;
+}
+
+.h-after::before {
+  content: "" !important;
+}
+
+.content .equation::before {
+  content: "(" counter(eq-counter) ")";
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.content div:has(.equation) {
+  gap: 0.75rem;
+  counter-increment: eq-counter;
+}
+
+cite {
+  font-style: normal;
+}
+
+.preview .pagedjs_page {
+  border: 1px solid rgb(175, 175, 175) !important;
+}
+
+.indicator .pagedjs_page_content {
+  /* max-width: 14cm; */
+  outline: 1px solid red;
+}
+
+#root {
+  height: 100%;
+}
+.attachment h1 {
+  font-size: 14pt;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10pt;
+  margin-top: 10pt;
+}
+.attachment h1:not(:first-of-type):not(#attachment) {
+  break-before: always;
+}
+
+.attachment h1::before {
+  content: "LAMPIRAN " attr(data-numbering) "\A";
+  font-weight: bold;
+  white-space: pre-line;
+}
+/* for single prvewier only */
+.attachment-chapter {
+  counter-reset: h1-counter 0 !important;
+}
+.page,
+.attachment-chapter h1::before {
+  content: "LAMPIRAN " counter(h1-counter, upper-alpha) "\A" !important;
+}
+.static-chapter h1::before {
+  content: "" !important;
+}
+.static-chapter h1 {
+  text-transform: uppercase;
+}

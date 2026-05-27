@@ -1,0 +1,14 @@
+{
+  "data": {
+    "players": [
+      {
+        "name": "alwi",
+        "hp": 100
+      },
+      {
+        "name": "jefy",
+        "hp": 100
+      }
+    ]
+  }
+}

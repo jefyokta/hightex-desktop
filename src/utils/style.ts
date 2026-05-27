@@ -50,6 +50,7 @@ ${listStyle}
   box-sizing: border-box;
   position: relative;
   page-break-after: always;
+  counter-reset: h1-counter var(--start-counter,0)
 }
 
 .page .tiptap > p {
@@ -231,6 +232,7 @@ ${baseStyle}
   content: "BAB " counter(h1-counter) "\\A";
   white-space: pre-line;
 }
+
 
 .page h2 {
   font-size: 12pt;

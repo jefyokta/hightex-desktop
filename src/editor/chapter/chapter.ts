@@ -55,7 +55,7 @@ export class Chapter {
         chapterId: version
           ? `${documentId}.${chapterName}.${version}`
           : `${documentId}.${chapterName}`,
-        document: new Document(documentId, version),
+        document: Document.instance ?? new Document(documentId, version),
         isolated,
       };
     }
@@ -66,7 +66,7 @@ export class Chapter {
 
       return {
         chapterId,
-        document: new Document(docId, version),
+        document: Document.instance ?? new Document(docId, version),
       };
     }
 
@@ -78,7 +78,7 @@ export class Chapter {
       chapterId: version
         ? `${documentId}.${chapterName}.${version}`
         : `${documentId}.${chapterName}`,
-      document: new Document(documentId, version),
+      document: Document.instance ?? new Document(documentId, version),
     };
   }
   getId() {
@@ -92,6 +92,9 @@ export class Chapter {
   getChapter() {
     return this.chapterId.split(".")[1];
   }
+  get siblings() {
+    return this.document.chapters.filter((c) => c.getId() !== this.getId());
+  }
 
   getVersion() {
     return this.chapterId.split(".")[2] || null;
@@ -100,26 +103,76 @@ export class Chapter {
   async getContent() {
     return await this.query.getContent();
   }
+  private filterContent(content: JSONContent[]): JSONContent[] {
+    let result = [...content];
 
-  async setContent(content: JSONContent[]) {
-    await Storage.instance.setChapter({
-      id: this.chapterId,
-      content,
+    const firstNode = result[0];
+    const isFirstNodeH1 =
+      firstNode?.type === "heading" && firstNode?.attrs?.level === 1;
+
+    if (!isFirstNodeH1) {
+      result.unshift({
+        type: "heading",
+        attrs: { level: 1 },
+        content: [{ type: "text", text: this.title }],
+      });
+    }
+
+    return result.map((node, index) => {
+      if (index > 0 && node.type === "heading" && node.attrs?.level === 1) {
+        return {
+          ...node,
+          attrs: { ...node.attrs, level: 2 },
+        };
+      }
+      return node;
     });
-    this.graph.extract(content);
-    Manager.app.dispatch("chapter:update", { chapterId: this.chapterId });
   }
 
-  get siblings(): Chapter[] {
-    return this.document.chapters.filter((c) => c.getId() == this.getId());
+  async setContent(content: JSONContent[] | JSONContent) {
+    const c = Array.isArray(content) ? content : content?.content || [];
+    const cleanContent = this.query.isAttachmentChapter()
+      ? c
+      : this.filterContent(c);
+
+    await Storage.instance.setChapter({
+      id: this.chapterId,
+      content: cleanContent,
+    });
+
+    this.graph.extract(cleanContent);
+
+    Manager.app.dispatch("chapter:update", {
+      chapterId: this.chapterId,
+      chapter: this,
+    });
   }
 
   async warm() {
     this.title = (await this.query.getChapterTitle()) || "";
-    // await this.document.warm();
+
     await this.graph.sync();
 
-    return this
+    return this;
+  }
+  getNumber() {
+    const num = Number(this.getChapter());
+    if (Number.isNaN(num)) {
+      return;
+    }
+    return num - 1;
+  }
+  getHtmlClass() {
+    if (this.query.isAttachmentChapter()) {
+      return "attachment-chapter";
+    }
+    if (this.query.isStaticChapter()) {
+      if (this.getChapter() == "abstract-en") {
+        return "static-chapter abstract";
+      }
+      return "static-chapter";
+    }
+    return "ch";
   }
 
   setTitle(title: string) {
@@ -134,5 +187,20 @@ export class Chapter {
       chapter: chapter,
     });
     useChapterStore.getState().setChapter(chapter);
+  }
+
+  createHeading() {
+    return {
+      type: "heading",
+      attrs: {
+        level: 1,
+      },
+      content: [
+        {
+          type: "text",
+          text: this.title,
+        },
+      ],
+    };
   }
 }

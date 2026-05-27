@@ -1,3 +1,4 @@
+import { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../storage/hightex-db";
 import { Chapter } from "./chapter";
 
@@ -10,6 +11,16 @@ export class ChapterQuery {
     foreword: "kata pengantar",
     presentation: "lembar persembahan",
   };
+  async isCreated() {
+    return await HighTexDB.getInstance().chapters.get(this.chapter.getId());
+  }
+
+  async create() {
+    return await HighTexDB.getInstance().chapters.put({
+      id: this.chapter.getId(),
+      content: [],
+    });
+  }
 
   isStaticChapter() {
     return this.chapter.getChapter() in this.staticChapterMap;
@@ -23,14 +34,28 @@ export class ChapterQuery {
       this.chapter.getDocumentId(),
     );
   }
+  isNormalChapter() {
+    return !this.isStaticChapter() && !this.isAttachmentChapter();
+  }
 
-  async getContent() {
-    return (await HighTexDB.getInstance().chapters.get(this.chapter.getId()))
-      ?.content;
+  async getContent(): Promise<JSONContent[]> {
+    const exists = await HighTexDB.getInstance().chapters.get(
+      this.chapter.getId(),
+    );
+    if (!exists) {
+      return [this.chapter.createHeading()];
+    }
+    if (!exists.content.length) {
+      return [this.chapter.createHeading()];
+    }
+    return exists.content;
   }
 
   async getChapterTitle() {
     const chapter = this.chapter.getChapter();
+    if (this.isAttachmentChapter()) {
+      return "Lampiran".toUpperCase();
+    }
 
     if (this.isStaticChapter()) {
       return this.staticChapterMap[chapter];

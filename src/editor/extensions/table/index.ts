@@ -85,7 +85,7 @@ const CustomTableHeader = TableHeader.extend({
         parseHTML: (element) => element.style.textAlign || "left",
         renderHTML: (attributes) => ({
           style: `text-align: ${getJustifyContent(attributes.align)};`,
-          class: attributes.align,
+          class: `${attributes.align} dark:border-white!`,
         }),
       },
     };
@@ -105,6 +105,8 @@ const CustomTable = Table.extend({
       ...this.parent?.(),
     };
   },
+}).configure({
+  resizable: true,
 });
 const CustomTableRow = TableRow.extend({});
 

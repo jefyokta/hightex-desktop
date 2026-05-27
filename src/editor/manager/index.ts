@@ -1,4 +1,4 @@
-import { ApplicationError } from "../../exception/application-error";
+import { ApplicationError } from "../../exception/interfaces/application-error";
 import { events } from "../event";
 import { HighTexDB } from "../storage/hightex-db";
 
@@ -117,5 +117,25 @@ export class Manager {
       .primaryKeys();
 
     await db.chapters.bulkDelete(keys as string[]);
+  }
+  static element() {
+    const el = document.getElementById("page");
+    return el;
+  }
+
+  static scrollTo(id: string) {
+    const parent = document.getElementById("main-scroll");
+    const el = document.getElementById(id);
+    if (!el || !parent) {
+      return;
+    }
+
+    const rect = el.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+
+    parent.scrollTo({
+      top: rect.top - parentRect.top + parent.scrollTop - 70,
+      behavior: "smooth",
+    });
   }
 }

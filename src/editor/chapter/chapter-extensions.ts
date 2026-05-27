@@ -11,14 +11,22 @@ import { Image } from "../extensions/image";
 import { ImageFigure } from "../extensions/image-figure";
 import { FigureCaption } from "../extensions/figure-caption";
 import { Ref } from "../extensions/ref";
+import { CustomTableRow, TableCell, TableHeader } from "../extensions/table";
+import { FigureTable } from "../extensions/figure-table";
+import { MathBlock, MathInline } from "../extensions/math";
+import { NodeShortcut } from "../extensions/node-shortcut";
+import { Table, TableKit } from "@tiptap/extension-table";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
 
   get() {
-    const isNonChapter = ["abstract", "abstract-en"].includes(
-      this.chapter.getChapter(),
-    );
+    const isNonChapter = [
+      "abstract",
+      "abstract-en",
+      "presentation",
+      "foreword",
+    ].includes(this.chapter.getChapter());
 
     if (isNonChapter) {
       return this.getNonChapter();
@@ -34,11 +42,14 @@ export class ChapterExtensions {
       Heading.configure({
         levels: [1, 2, 3, 4],
       }),
-
-      ForceHeading.configure({
-        title: this.chapter.title,
-        marks: [],
-      }),
+      ...(this.chapter.query.isNormalChapter()
+        ? [
+            ForceHeading.configure({
+              title: this.chapter.title,
+              marks: [],
+            }),
+          ]
+        : []),
       ListItem,
       Paragraph,
       Cite,
@@ -46,10 +57,26 @@ export class ChapterExtensions {
       ImageFigure,
       FigureCaption,
       Ref,
+      FigureTable,
+      CustomTableRow,
+      TableCell,
+      TableHeader,
+      TableKit.configure({
+        tableCell: false,
+        tableHeader: false,
+        tableRow: false,
+        table: false,
+      }),
+      Table.extend({
+        isolating: true,
+      }).configure({ resizable: true }),
+      MathInline,
+      MathBlock,
+      NodeShortcut,
     ];
   }
 
   private getNonChapter() {
-    return [];
+    return [StarterKit];
   }
 }

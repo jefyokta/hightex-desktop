@@ -5,9 +5,9 @@ export class EventBus {
     this.target.dispatchEvent(new CustomEvent(type, { detail: payload }));
   }
 
-  static on<T = any>(type: string, cb: (payload: T) => void) {
-    const handler = (e: Event) => {
-      cb((e as CustomEvent<T>).detail);
+  static on<T = any>(type: string, cb: (payload: T) => void | Promise<void>) {
+    const handler = async (e: Event) => {
+      await cb((e as CustomEvent<T>).detail);
     };
 
     this.target.addEventListener(type, handler);

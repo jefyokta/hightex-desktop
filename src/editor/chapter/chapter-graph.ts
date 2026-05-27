@@ -12,7 +12,6 @@ export class ChapterGraph {
 
   constructor(private chapter: Chapter) {}
 
-
   extract(content: JSONContent | JSONContent[]) {
     const result = this.extractFromContent({
       content,
@@ -23,7 +22,6 @@ export class ChapterGraph {
 
     return result;
   }
-
 
   async sync() {
     const content = await this.chapter.getContent();
@@ -38,7 +36,6 @@ export class ChapterGraph {
     return data;
   }
 
-
   async syncSingle(content: JSONContent | JSONContent[]) {
     const data = this.extract(content);
 
@@ -49,7 +46,6 @@ export class ChapterGraph {
 
     return data;
   }
-
 
   async warm() {
     const stored = await HighTexDB.getInstance().chapterGraphs.get(
@@ -63,7 +59,6 @@ export class ChapterGraph {
 
     return await this.sync();
   }
-
 
   private extractFromContent({
     content,
@@ -82,9 +77,9 @@ export class ChapterGraph {
       image: 0,
       table: 0,
       heading: {
-        h1:0,
-        h2:0,
-        h3:0
+        h1: 0,
+        h2: 0,
+        h3: 0,
       },
     };
 
@@ -95,6 +90,9 @@ export class ChapterGraph {
     this.walk(nodes, { graph, counter, chapter });
 
     return graph;
+  }
+  async getHeadings() {
+    return (await this.sync()).headings;
   }
 
   private walk(nodes: JSONContent[], ctx: WalkContext) {
@@ -111,10 +109,10 @@ export class ChapterGraph {
     const chapterName = ctx.chapter.getChapter();
 
     if (node.type === "heading") {
-      if (!ctx.chapter.query.isAttachmentChapter() && node.attrs?.level ==1) {
-        return        
+      if (!ctx.chapter.query.isAttachmentChapter() && node.attrs?.level == 1) {
+        return;
       }
-      this.resolveHeadingCounter(ctx.counter.heading,node.attrs?.level || 1)
+      this.resolveHeadingCounter(ctx.counter.heading, node.attrs?.level || 1);
 
       ctx.graph.headings.push({
         id: node.attrs?.id || "",
@@ -122,7 +120,18 @@ export class ChapterGraph {
         text: node.content ?? [],
         pos: 0,
         chapterId: ctx.chapter.getId(),
-        numbering:""
+        numbering: (() => {
+          const { h1, h2, h3 } = ctx.counter.heading;
+          let H1 = ctx.chapter.query.isAttachmentChapter()
+            ? h1
+            : ctx.chapter.getChapter();
+
+          if (node.attrs?.level === 1) return `${H1}`;
+          if (node.attrs?.level === 2) return `${H1}.${h2}`;
+          if (node.attrs?.level === 3) return `${H1}.${h2}.${h3}`;
+
+          return `${h1}`;
+        })(),
       });
     }
 
@@ -134,10 +143,9 @@ export class ChapterGraph {
         imgSrc: this.findImageSrc(node),
         pos: ctx.counter.image,
         text: this.extractCaption(node),
-        numbering:
-          !ctx.chapter.query.isAttachmentChapter()
-            ? `${chapterName}.${ctx.counter.image}`
-            : `${Counter.getAlpha(ctx.counter.heading.h1)}.${ctx.counter.image}`,
+        numbering: !ctx.chapter.query.isAttachmentChapter()
+          ? `${chapterName}.${ctx.counter.image}`
+          : `${Counter.getAlpha(ctx.counter.heading.h1)}.${ctx.counter.image}`,
         chapterId: ctx.chapter.getId(),
       });
     }
@@ -149,10 +157,9 @@ export class ChapterGraph {
         id: node.attrs?.id || "",
         pos: ctx.counter.table,
         text: this.extractCaption(node),
-        numbering:
-         !ctx.chapter.query.isAttachmentChapter()
-            ? `${chapterName}.${ctx.counter.table + 1}`
-            : `${Counter.getAlpha(ctx.counter.heading.h1)}.${ctx.counter.table + 1}`,
+        numbering: !ctx.chapter.query.isAttachmentChapter()
+          ? `${chapterName}.${ctx.counter.table}`
+          : `${Counter.getAlpha(ctx.counter.heading.h1)}.${ctx.counter.table}`,
         chapterId: ctx.chapter.getId(),
       });
     }
@@ -179,19 +186,25 @@ export class ChapterGraph {
     return "";
   }
 
-  private resolveHeadingCounter(hCounter:WalkContext['counter']['heading'],level:number){
-    if (level == 1) {
-      hCounter.h1++
-      hCounter.h2 = 0;
-      return      
+  private resolveHeadingCounter(
+    h: WalkContext["counter"]["heading"],
+    level: number,
+  ) {
+    if (level === 1) {
+      h.h1++;
+      h.h2 = 0;
+      h.h3 = 0;
+      return;
     }
-    if (level == 2) {
-      hCounter.h2 ++
-      hCounter.h3 =0      
+
+    if (level === 2) {
+      h.h2++;
+      h.h3 = 0;
+      return;
     }
-    if (level == 3) {
-      hCounter.h3++
-      
+
+    if (level === 3) {
+      h.h3++;
     }
   }
 }

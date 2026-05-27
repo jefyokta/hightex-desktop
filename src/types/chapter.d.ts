@@ -11,9 +11,9 @@ declare global {
       image: number;
       table: number;
       heading: {
-        h1:number,
-        h2:number
-        h3:number
+        h1: number;
+        h2: number;
+        h3: number;
       };
     };
     chapter: Chapter;

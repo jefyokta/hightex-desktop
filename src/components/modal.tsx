@@ -29,7 +29,7 @@ export const Modal = ({
         className="absolute inset-0 bg-black/10 backdrop-blur-sm"
       />
 
-      <div className="relative z-10 bg-white rounded-2xl p-3 shadow">
+      <div className="relative z-10 bg-background border rounded-2xl p-3 shadow">
         <div className="w-full justify-end flex">
           <button>
             <X size={15} onClick={onClose}></X>

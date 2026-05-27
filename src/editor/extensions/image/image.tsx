@@ -3,6 +3,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ImageIsInFigure } from "@/exception/image-is-in-figure";
 import { base64ToPngBlob } from "@/utils/is-base-64";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { GalleryThumbnails, Images, Trash, X } from "lucide-react";
@@ -23,6 +24,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
   const resizing = useRef(false);
   const isBase64 = (src: string) =>
     /^data:image\/(png|jpg|jpeg);base64,/.test(src);
+
   useEffect(() => {
     if (src) {
       queueMicrotask(() => {
@@ -44,15 +46,13 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
   const deleteImage = () => {
     setSrc(null);
   };
+
   const copy = async (base64: string) => {
     const blob = base64ToPngBlob(base64);
     try {
       await navigator.clipboard.write([
         new ClipboardItem({ "image/png": blob }),
       ]);
-      // toast.success("Copied", {
-      //     position: "bottom-right"
-      // })
     } catch (err) {
       console.log(err);
     }
@@ -81,8 +81,6 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
     document.addEventListener("mouseup", onMouseUp);
   };
 
-  // const { addWarning } = useWarning()
-
   const toFigure = () => {
     if (node.type.name !== "image") {
       return;
@@ -94,14 +92,10 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
     const resolved = editor.state.doc.resolve(pos);
     const parent = resolved.node(resolved.depth);
     if (parent.type.name == "imageFigure") {
-      // addWarning({ message: "Image already inside the figure!", elementId: uniqId() })
-      return;
+      throw new ImageIsInFigure();
     }
 
-    //if node.parent.type.name == 'imageFigure' returj
     const image = node.copy();
-    // node.replace(getPos,)
-
     const caption = editor.schema.nodes.figcaption.create(null, []);
     const figure = editor.schema.nodes.imageFigure.create(null, [
       image,
@@ -120,23 +114,21 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
             src={src}
             alt=""
             style={{ width: width }}
-            className={`h-auto  `}
-            onError={(e) => {
-              // e.currentTarget.onerror = null;
+            className="h-auto"
+            onError={() => {
               setSrc(null);
-              // e.currentTarget.src = "/images/placeholder.png";
             }}
             onLoad={() => {}}
           />
           <span
-            className="absolute  top-1/2 right-0  cursor-ew-resize bg-blue-100 w-1.5 h-6 rounded-sm hidden group-hover:block"
+            className="absolute top-1/2 right-0 cursor-ew-resize bg-blue-100 dark:bg-blue-900/50 w-1.5 h-6 rounded-sm hidden group-hover:block"
             onMouseDown={startResize}
           />
           <div className="absolute top-2 left-2 z-50 hidden group-hover:flex space-x-2">
             <Tooltip>
               <TooltipTrigger>
                 <div
-                  className="cursor-pointer bg-slate-200 hover:bg-slate-400 rounded py-1 px-1"
+                  className="cursor-pointer bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shadow-sm rounded py-1 px-1"
                   onClick={async () => {
                     await copy(src);
                   }}
@@ -149,7 +141,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
             <Tooltip>
               <TooltipTrigger>
                 <div
-                  className="cursor-pointer bg-slate-200 hover:bg-slate-400  rounded py-1 px-1"
+                  className="cursor-pointer bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shadow-sm rounded py-1 px-1"
                   onClick={() => toFigure()}
                 >
                   <GalleryThumbnails className="w-4 h-4" />
@@ -160,7 +152,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
             <Tooltip>
               <TooltipTrigger>
                 <div
-                  className="cursor-pointer bg-red-300 hover:bg-red-400 rounded py-1 px-1"
+                  className="cursor-pointer bg-red-100 hover:bg-red-200 dark:bg-red-950/40 dark:hover:bg-red-950/80 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-sm rounded py-1 px-1"
                   onClick={deleteImage}
                 >
                   <Trash className="w-4 h-4" />
@@ -171,7 +163,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
             <Tooltip>
               <TooltipTrigger>
                 <div
-                  className="cursor-pointer bg-red-700 hover:bg-red-800 text-white rounded py-1 px-1"
+                  className="cursor-pointer bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white border border-red-700 dark:border-red-800 shadow-sm rounded py-1 px-1"
                   onClick={() => deleteNode()}
                 >
                   <X className="w-4 h-4" />
@@ -183,17 +175,19 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
         </>
       ) : (
         <div className="relative">
-          <Tooltip>
-            <TooltipTrigger>
-              <div
-                className="cursor-pointer bg-slate-200 hover:bg-slate-400 rounded py-1 px-1"
-                onClick={() => deleteNode()}
-              >
-                <X className="w-4 h-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>delete node</TooltipContent>
-          </Tooltip>
+          <div className="absolute top-2 right-2 z-50">
+            <Tooltip>
+              <TooltipTrigger>
+                <div
+                  className="cursor-pointer bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shadow-sm rounded py-1 px-1"
+                  onClick={() => deleteNode()}
+                >
+                  <X className="w-4 h-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>delete node</TooltipContent>
+            </Tooltip>
+          </div>
 
           <ImageInput onSelect={setSrc} />
         </div>
@@ -241,14 +235,14 @@ const ImageInput: React.FC<{ onSelect: (src: string) => void }> = ({
   };
 
   return (
-    <div className="border relative border-dashed border-gray-400  flex justify-center flex-col items-center rounded text-sm text-gray-500">
+    <div className="border border-dashed border-neutral-300 dark:border-neutral-700 flex justify-center flex-col items-center rounded text-sm text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900/50 w-72 h-40 p-4 relative">
       <input
         type="file"
         accept="image/*"
         onChange={handleChange}
-        className="h-10 opacity-0 w-full text-center cursor-pointer"
+        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
       />
-      <p className=" absolute text-center">Upload image</p>
+      <p className="pointer-events-none">Upload image</p>
     </div>
   );
 };

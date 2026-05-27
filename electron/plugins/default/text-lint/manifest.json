@@ -1,0 +1,11 @@
+{
+  "id": "text-lint",
+  "name": "Basic Text Lint",
+  "version": "1.0.0",
+  "entry": "index.js",
+  "type": "esm",
+  "description": "Basic paragraph linting rules like spacing, punctuation, and capitalization.",
+  "author": "HighTex Core",
+  "hash": "43ea411ae314eff82977fb1a6725ea31fd289ecba917d7ac743176bc9e1fe066",
+  "signature": "x/GyzSxpGQShsoPAFvdQ4uMA5R8eQwuaEmOjrmYq8TJd3U8wUMteZWFoMPt2x7G/Yv03Szc3I191j69DSoJLoX1crM7WXhGMPxTV2jS7PAoI0t3j79Tv0FHmmKZhm4jiTx0Kl/LxV9fVX+kqgLm0eu7Bc50r7ji+khlzNcb6K03nVu6K+YDOpJy9nml5631Fhmj5DsPyjIWWqgR2bldeI4lKE2Z6BFindTG6L/yz6am8ocfVOkfx/MKblEXQHNuUfymxsCzHEUkNSzstqSb8esUqJcLkF3+C9VrTAdTetNpBT4gjtbRVtjHz7GAjnH+5tmlaP6+RcRIKyf4EksFq/w=="
+}

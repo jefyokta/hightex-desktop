@@ -1,4 +1,4 @@
-import { MathBlock } from "./math-inline";
-import { MathInlne } from "./math-block";
+import { MathBlock } from "./math-block";
+import { MathInline } from "./math-inline";
 
-export { MathBlock, MathInlne };
+export { MathBlock, MathInline };

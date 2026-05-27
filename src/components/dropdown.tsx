@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 
 type DropdownProps = {
@@ -6,6 +7,7 @@ type DropdownProps = {
   align?: "left" | "right";
   zIndex?: number;
   width?: number | string;
+  className?: string;
 };
 type ItemProps = {
   children: React.ReactNode;
@@ -18,6 +20,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   align = "left",
   zIndex = 50,
   width = 160,
+  className = "",
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -34,14 +37,14 @@ export const Dropdown: React.FC<DropdownProps> = ({
   }, []);
 
   return (
-    <div className="relative inline-block" ref={ref}>
+    <div className={cn("relative inline-block")} ref={ref}>
       <div onClick={() => setOpen((prev) => !prev)} className="cursor-pointer">
         {trigger}
       </div>
 
       {open && (
         <div
-          className={`absolute mt-2 rounded-xl overflow-hidden bg-white shadow-lg border border-slate-100 ${
+          className={`absolute mt-2 rounded-xl ${className} overflow-hidden bg-background shadow-lg border  ${
             align === "right" ? "right-0" : "left-0"
           }`}
           style={{
@@ -66,7 +69,7 @@ export const DropdownItem: React.FC<ItemProps> = ({
         if (disabled) return;
         onClick && onClick();
       }}
-      className="w-full cursor-pointer text-left px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+      className="w-full cursor-pointer text-left px-3 py-2 rounded-lg text-sm text-neutral-700 p-2 transition disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {children}
     </div>

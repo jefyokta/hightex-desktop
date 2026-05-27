@@ -21,7 +21,7 @@ declare namespace NodeJS {
   }
 }
 
-// Used in Renderer process, expose in `preload.ts`
+// Used in Renderer process, expose in `preload/index.ts`
 interface Window {
   ipcRenderer: import("electron").IpcRenderer;
 }

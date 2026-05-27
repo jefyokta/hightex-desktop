@@ -1,23 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { HighTexDB } from "../editor/storage/hightex-db";
 import {
   Eye,
   Trash,
-  Folder,
-  Database,
-  CloudOff,
   FilePlus2,
   GitMerge,
   ChevronDown,
   File,
   Cloud,
   Plus,
+  HardDriveDownload,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/use-user";
 import { useAuthModal } from "../context/auth-modal-context";
 import { Dropdown, DropdownItem } from "../components/dropdown";
-import { EventBus } from "../event/event-bus";
+import { Manager } from "@/editor/manager";
+import { importHighTexPackage } from "@/utils/import-hightex";
+import { saveHighTexPackage } from "@/utils/export-hightex";
+import { toast } from "sonner";
+import { truncate } from "@/utils/truncate";
 
 export const Dashboard = () => {
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
@@ -46,6 +48,7 @@ export const Dashboard = () => {
   const createDocument = async () => {
     const categories = await window.hightex.categories();
     const defaultCategory = categories[0];
+
     const doc: HighTexDocument = {
       id: crypto.randomUUID(),
       title: "Untitled Document",
@@ -56,14 +59,28 @@ export const Dashboard = () => {
         consentDate: new Date(),
         validityDate: new Date(),
         statementDate: new Date(),
-        leader: "",
-        member1: "",
-        member2: "",
+        leader: "Angraini, S.Kom., M.Eng., Ph.D",
+        member_1: "Zarnelly, S.Kom., M.Sc",
+        member_2: "Anofrizen, S.Kom., M.Kom",
       },
     };
 
     setDocuments((prev) => [doc, ...prev]);
     await db.documents.put(doc);
+  };
+
+  const importFromFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const id = toast.loading("Importing");
+    try {
+      const importedDocument = await importHighTexPackage(file);
+      setDocuments((prev) => [importedDocument, ...prev]);
+      toast.success(`${truncate(importedDocument.title)} added`);
+    } finally {
+      toast.dismiss(id);
+      event.target.value = "";
+    }
   };
 
   const renameDocument = async (id: string, title: string) => {
@@ -72,78 +89,74 @@ export const Dashboard = () => {
     setDocuments((prev) =>
       prev.map((d) => (d.id === id ? { ...d, title } : d)),
     );
-
-    await db.documents.update(id, { title });
-    EventBus.emit("document:updated", { fromRenderer: true });
+    const doc = await db.documents.get(id);
+    if (!doc) return;
+    await db.updateDocument({ ...doc, title });
   };
 
   const deleteDocument = async (id: string) => {
     setDocuments((prev) => prev.filter((d) => d.id !== id));
+    await Manager.deleteDocument(id);
+  };
 
-    await db.documents.delete(id);
+  const exportDocument = async (id: string, title: string) => {
+    const fileName = `${truncate(title || id, 30)}.hightex`;
+    const toastId = toast.loading("Exporting HighTex package...");
+
+    try {
+      const result = await saveHighTexPackage(id, fileName);
+      if (result.canceled) {
+        toast.dismiss(toastId);
+        return;
+      }
+
+      toast.success("Export successful", { id: toastId });
+    } catch (err) {
+      console.error("Export failed", err);
+      toast.error("Export failed", { id: toastId });
+    }
   };
 
   if (loading) return <Loading />;
 
   return (
-    <div className="flex-1 p-6 flex flex-col min-h-0">
-      <>
-        <Stats documents={documents} />
+    <div className="flex-1 p-6 max-w-3xl mx-auto overflow-auto relative w-full space-y-6">
+      {/* <Stats documents={documents} /> */}
 
-        <DocumentList
-          documents={documents}
-          onRename={renameDocument}
-          onDelete={deleteDocument}
-          onCreate={createDocument}
-        />
-      </>
-    </div>
-  );
-};
-
-const Stats = ({ documents }: { documents: HighTexDocument[] }) => {
-  return (
-    <div className="grid grid-cols-3 gap-3 h-20 mb-6">
-      <Stat
-        icon={<Database size={14} />}
-        label="Documents"
-        value={documents.length}
+      <DocumentList
+        documents={documents}
+        onRename={renameDocument}
+        onDelete={deleteDocument}
+        onCreate={createDocument}
+        onImport={importFromFile}
+        onExport={exportDocument}
       />
-
-      <Stat icon={<CloudOff size={14} />} label="Mode" value="Local First" />
-
-      <Stat icon={<Folder size={14} />} label="Engine" value="HighTex v1" />
     </div>
   );
 };
 
-const Stat = ({ icon, label, value }: any) => {
-  return (
-    <div className="bg-gray-50 rounded-xl p-3">
-      <div className="flex items-center gap-1 text-[11px] text-gray-400">
-        {icon}
-        {label}
-      </div>
-
-      <div className="text-sm font-medium mt-1">{value}</div>
-    </div>
-  );
-};
-
-const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
+const DocumentList = ({
+  documents,
+  onRename,
+  onDelete,
+  onCreate,
+  onImport,
+  onExport,
+}: any) => {
   return (
     <div className="flex flex-col h-full min-h-0 rounded-xl">
-      <div className="flex h-16 items-start justify-between px-4 py-4 ">
+      <div className="flex  items-start justify-between px-4 py-4">
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <h1 className="text-2xl font-semibold tracking-tight">
             Your Documents
-          </div>
+          </h1>
 
-          <div className="text-xs text-gray-400 mt-0.5">
+          <p className="mt-1 text-sm text-muted-foreground">
             Local workspace stored in your device
-          </div>
+          </p>
         </div>
-        <div className="flex items-center  text-xs  rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition">
+
+        <div className="relative flex items-center text-xs rounded-lg bg-neutral-900 dark:bg-neutral-800 text-white hover:bg-neutral-800 dark:hover:bg-neutral-700 transition">
           <button
             onClick={onCreate}
             className="flex items-center gap-1 ps-3 pe-1 py-1.5"
@@ -151,20 +164,25 @@ const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
             <FilePlus2 size={14} />
             New
           </button>
+
           <Dropdown
             align="right"
             width={"max-content"}
             trigger={
-              <button className="flex items-center justify-center px-2 py-1.5 rounded-lg hover:bg-black/10 transition">
+              <button className="flex items-center justify-center px-2 py-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition">
                 <ChevronDown size={14} />
               </button>
             }
           >
-            <div className="p-1 text-xs">
-              <DropdownItem>
-                <div className="flex items-center gap-2 px-1 py-1 rounded-md hover:bg-slate-100 transition">
-                  <Plus size={14} className="text-slate-600" />
-                  <span className="font-light text-slate-700">
+            <div className="p-1 text-xs bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
+              <DropdownItem onClick={onCreate}>
+                <div className="flex items-center gap-2 px-1 py-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+                  <Plus
+                    size={14}
+                    className="text-neutral-600 dark:text-neutral-400"
+                  />
+
+                  <span className="font-light text-neutral-700 dark:text-neutral-200">
                     Create Empty
                   </span>
                 </div>
@@ -173,16 +191,20 @@ const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
               <DropdownItem>
                 <label
                   htmlFor="hightex:file"
-                  className="flex items-center gap-2 px-1 py-1 rounded-md hover:bg-slate-100 transition cursor-pointer"
+                  className="flex items-center gap-2 px-1 py-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition cursor-pointer"
                 >
-                  <File size={14} className="text-slate-600" />
-                  <span className="font-light text-slate-700">
+                  <File
+                    size={14}
+                    className="text-neutral-600 dark:text-neutral-400"
+                  />
+
+                  <span className="font-light text-neutral-700 dark:text-neutral-200">
                     Import from file
                   </span>
                 </label>
 
                 <input
-                  onChange={(e) => console.log(e.target.files)}
+                  onChange={onImport}
                   type="file"
                   id="hightex:file"
                   className="hidden"
@@ -190,11 +212,16 @@ const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
                 />
               </DropdownItem>
 
-              <div className="my-1 h-px bg-slate-200" />
+              <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-800" />
+
               <DropdownItem>
-                <div className="flex items-center gap-2 px-1 py-1 rounded-md hover:bg-slate-100 transition">
-                  <Cloud size={14} className="text-slate-600" />
-                  <span className="font-light text-slate-700">
+                <div className="flex items-center gap-2 px-1 py-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
+                  <Cloud
+                    size={14}
+                    className="text-neutral-600 dark:text-neutral-400"
+                  />
+
+                  <span className="font-light text-neutral-700 dark:text-neutral-200">
                     Import from Cloud
                   </span>
                 </div>
@@ -204,9 +231,9 @@ const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
         </div>
       </div>
 
-      <div className="flex-1 bg-gray-50 overflow-y-auto rounded-2xl min-h-0">
+      <div className="flex-1 bg-neutral-50 p-2 dark:bg-neutral-900/50 overflow-y-auto rounded-2xl min-h-0 border border-transparent dark:border-neutral-800">
         {documents.length === 0 ? (
-          <div className="p-6 text-xs text-gray-400">
+          <div className="p-6 text-xs text-neutral-400 dark:text-neutral-500">
             No documents yet. Create your first document to start writing.
           </div>
         ) : (
@@ -216,6 +243,7 @@ const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
               doc={doc}
               onRename={onRename}
               onDelete={onDelete}
+              onExport={onExport}
             />
           ))
         )}
@@ -223,8 +251,7 @@ const DocumentList = ({ documents, onRename, onDelete, onCreate }: any) => {
     </div>
   );
 };
-
-const Row = ({ doc, onRename, onDelete }: any) => {
+const Row = ({ doc, onRename, onDelete, onExport }: any) => {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(doc.title);
 
@@ -232,94 +259,126 @@ const Row = ({ doc, onRename, onDelete }: any) => {
   const navigate = useNavigate();
   const { user } = useUser();
   const { openLogin } = useAuthModal();
+
   useEffect(() => {
     (async () => {
       const categories = await window.hightex.categories();
 
-      const cat = categories.find((c) => {
-        return doc.category == c.id;
-      });
-      if (cat) {
-        setCategory(cat.name);
-      }
+      const cat = categories.find((c) => doc.category == c.id);
+
+      if (cat) setCategory(cat.name);
     })();
   }, []);
 
+  const updatedAt = doc.updatedAt
+    ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
   return (
-    <div className="group flex items-center  justify-between px-4 py-3 hover:bg-gray-100">
-      <div className="flex-1">
-        {editing ? (
-          <input
-            autoFocus
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => {
-              onRename(doc.id, value);
-              setEditing(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
+    <div className="group flex items-center justify-between rounded-xl border border-transparent px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          <File size={16} className="text-neutral-500 dark:text-neutral-400" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          {editing ? (
+            <input
+              autoFocus
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onBlur={() => {
                 onRename(doc.id, value);
                 setEditing(false);
-              }
-              if (e.key === "Escape") {
-                setValue(doc.title);
-                setEditing(false);
-              }
-            }}
-            className="text-sm font-medium outline-none bg-transparent w-full"
-          />
-        ) : (
-          <div
-            onDoubleClick={() => setEditing(true)}
-            className="text-sm font-medium"
-          >
-            {doc.title}
-          </div>
-        )}
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onRename(doc.id, value);
+                  setEditing(false);
+                }
+              }}
+              className="w-full bg-transparent text-sm font-medium outline-none text-neutral-900 dark:text-neutral-100"
+            />
+          ) : (
+            <div
+              onDoubleClick={() => setEditing(true)}
+              className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100 cursor-text"
+            >
+              {doc.title}
+            </div>
+          )}
 
-        <div className="text-xs text-gray-400">{category || "-"}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
+            <span className="rounded-md border border-neutral-200 dark:border-neutral-800 px-1.5 py-0.5 text-neutral-500 dark:text-neutral-400">
+              {category || "-"}
+            </span>
+
+            {updatedAt && (
+              <>
+                <span className="text-neutral-300 dark:text-neutral-600">
+                  •
+                </span>
+
+                <span className="text-neutral-400 dark:text-neutral-500">
+                  Updated {updatedAt}
+                </span>
+              </>
+            )}
+
+            <span className="text-neutral-300 dark:text-neutral-600">•</span>
+
+            <span className="tabular-nums text-neutral-400 dark:text-neutral-500">
+              {doc.id.slice(0, 6)}
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         <button
-          className="p-1 rounded-md ov hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
           onClick={() => {
-            if (!user) {
-              openLogin();
-              return;
-            }
+            if (!user) return openLogin();
+
             alert("merge");
           }}
         >
           <GitMerge size={14} className="text-green-500" />
         </button>
+
         <button
-          className="p-1 rounded-md hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition"
-          onClick={() => {
-            navigate(`/document/${doc.id}`);
-          }}
+          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+          onClick={() => onExport?.(doc.id, doc.title)}
         >
-          <Eye size={14} className="text-gray-500" />
+          <HardDriveDownload
+            size={14}
+            className="text-neutral-500 dark:text-neutral-300"
+          />
+        </button>
+
+        <button
+          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+          onClick={() => navigate(`/document/${doc.id}`)}
+        >
+          <Eye size={14} className="text-neutral-500 dark:text-neutral-300" />
         </button>
 
         <button
           onClick={() => onDelete(doc.id)}
-          className="p-1 rounded-md hover:bg-red-50 opacity-0 group-hover:opacity-100 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"
         >
-          <Trash size={14} className="text-gray-400 hover:text-red-500" />
+          <Trash size={14} className="text-neutral-400 hover:text-red-500" />
         </button>
-
-        <div className="text-[11px] text-gray-300 w-10 text-right tabular-nums">
-          {doc.id.slice(0, 6)}
-        </div>
       </div>
     </div>
   );
 };
-
 const Loading = () => (
-  <div className="h-screen flex items-center justify-center text-sm text-gray-400">
+  <div className="h-screen flex items-center justify-center text-sm text-neutral-400">
     Loading HighTex...
   </div>
 );

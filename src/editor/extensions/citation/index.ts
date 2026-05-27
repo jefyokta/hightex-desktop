@@ -1,14 +1,13 @@
-import { Node } from "@tiptap/core";
+import { Editor, Node, Range } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import Suggestion, {
-  SuggestionKeyDownProps,
-  SuggestionProps,
-} from "@tiptap/suggestion";
+import Suggestion from "@tiptap/suggestion";
 import { bibToObject, CiteUtils } from "bibtex.js";
 import { Citation } from "./citation";
 
 import { HighTexDB } from "../../storage/hightex-db";
+import { CitePaste } from "@/editor/plugins/cite-paste";
+import { createRenderer, RendererItem } from "../utilites";
 
 type CiteOptions = {
   cite: string;
@@ -78,7 +77,7 @@ export const Cite = Node.create<CiteOptions>({
 
   addProseMirrorPlugins() {
     return [
-      Suggestion<CiteUtils, CiteUtils>({
+      Suggestion<RendererItem>({
         char: "@",
         pluginKey: new PluginKey("citation-suggestion"),
 
@@ -95,7 +94,29 @@ export const Cite = Node.create<CiteOptions>({
             .filter((c) => {
               const title = c.getTitle() as string;
               return title.toLowerCase().includes(query.toLowerCase());
-            });
+            })
+            .map(
+              (c) =>
+                ({
+                  label: c.getTitle(),
+                  onClick: (range: Range) => {
+                    this.editor
+                      .chain()
+                      .focus()
+                      .deleteRange(range)
+                      .insertContent({
+                        type: "cite",
+                        attrs: {
+                          citeA: false,
+                          cite: c.getId(),
+                        },
+                      })
+                      .run();
+                  },
+                  subLabel: c.toCite(),
+                  keywords: ["test", "test2"],
+                }) satisfies RendererItem,
+            );
         },
 
         command({ editor, range, props }) {
@@ -113,11 +134,18 @@ export const Cite = Node.create<CiteOptions>({
             .run();
         },
 
-        render: () => createRenderer({ citeA: false }),
+        render: () =>
+          createRenderer({
+            onSelect: (item, range) => item.onClick(range),
+            header: {
+              title: "Cite",
+              subtitle: "Choose to insert a cite",
+            },
+          }),
         editor: this.editor,
       }),
 
-      Suggestion<CiteUtils, CiteUtils>({
+      Suggestion<RendererItem>({
         char: "#",
         pluginKey: new PluginKey("citation-a-suggestion"),
 
@@ -134,7 +162,29 @@ export const Cite = Node.create<CiteOptions>({
             .filter((c) => {
               const title = c.getTitle() as string;
               return title.toLowerCase().includes(query.toLowerCase());
-            });
+            })
+            .map(
+              (c) =>
+                ({
+                  label: c.getTitle(),
+                  onClick: (range: Range) => {
+                    this.editor
+                      .chain()
+                      .focus()
+                      .deleteRange(range)
+                      .insertContent({
+                        type: "cite",
+                        attrs: {
+                          citeA: true,
+                          cite: c.getId(),
+                        },
+                      })
+                      .run();
+                  },
+                  subLabel: c.toCiteA(),
+                  keywords: ["test", "test2"],
+                }) satisfies RendererItem,
+            );
         },
 
         command({ editor, range, props }) {
@@ -152,199 +202,17 @@ export const Cite = Node.create<CiteOptions>({
             .run();
         },
 
-        render: () => createRenderer({ citeA: true }),
+        render: () =>
+          createRenderer({
+            onSelect: (item, range) => item.onClick(range),
+            header: {
+              title: "Cite A",
+              subtitle: "Choose to insert a cite",
+            },
+          }),
         editor: this.editor,
       }),
+      CitePaste,
     ];
   },
 });
-
-const createRenderer = ({ citeA }: { citeA: boolean }) => {
-  let container: HTMLDivElement;
-  let header: HTMLHeadingElement;
-  let list: HTMLUListElement;
-  let selectedIndex = 0;
-  let items: any[] = [];
-
-  const updateSelection = () => {
-    const children = Array.from(list.children) as HTMLElement[];
-
-    children.forEach((el, i) => {
-      el.classList.toggle("bg-neutral-100", i === selectedIndex);
-    });
-
-    children[selectedIndex]?.scrollIntoView({
-      block: "nearest",
-    });
-  };
-
-  const selectItem = (props: any) => {
-    const item = items[selectedIndex];
-    if (!item) return;
-    props.command(item);
-  };
-
-  const renderer = {
-    onStart: (props: SuggestionProps) => {
-      container = document.createElement("div");
-      container.classList.add(
-        "bg-white",
-        "rounded-xl",
-        "border",
-        "shadow",
-        "absolute",
-        "w-96",
-        "max-h-56",
-        "overflow-y-auto",
-        "pb-5",
-      );
-      container.style.zIndex = "9999";
-
-      const inner = document.createElement("div");
-      inner.classList.add("w-full", "h-full", "relative");
-
-      header = document.createElement("div");
-      header.classList.add(
-        "font-bold",
-        "mb-2",
-        "text-sm",
-        "sticky",
-        "top-0",
-        "bg-white",
-        "p-3",
-        "border-b",
-      );
-      header.textContent = citeA ? "Cite Author" : "Cite";
-
-      list = document.createElement("ul");
-      list.classList.add("space-y-3", "w-full", "px-3");
-
-      inner.append(header, list);
-      container.append(inner);
-
-      const rect = props.clientRect?.();
-      if (rect) {
-        container.style.left = `${rect.left}px`;
-        container.style.top = `${rect.bottom + window.scrollY}px`;
-      }
-
-      document.body.appendChild(container);
-      renderer.onUpdate(props);
-    },
-
-    onUpdate: (props: any) => {
-      items = props.items;
-      selectedIndex = 0;
-
-      const rect = props.clientRect?.();
-      if (rect) {
-        container.style.left = `${rect.left}px`;
-        container.style.top = `${rect.bottom + window.scrollY}px`;
-      }
-
-      list.innerHTML = "";
-
-      items.forEach((item: any, i: number) => {
-        const li = createList({
-          cite: item,
-          command: props.command,
-          citeA,
-        });
-
-        li.tabIndex = -1;
-        li.classList.add(
-          "transition-colors",
-          i === selectedIndex ? "bg-neutral-100" : "hover:bg-neutral-100",
-        );
-
-        li.onmousedown = (e) => {
-          e.preventDefault();
-          selectedIndex = i;
-          updateSelection();
-          props.command(item);
-        };
-
-        list.appendChild(li);
-      });
-
-      updateSelection();
-    },
-
-    onKeyDown: (props: SuggestionKeyDownProps) => {
-      if (!items.length) return false;
-
-      const { event } = props;
-
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        selectedIndex = (selectedIndex + 1) % items.length;
-        updateSelection();
-        return true;
-      }
-
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-        updateSelection();
-        return true;
-      }
-
-      if (event.key === "Enter" || event.key === "Tab") {
-        event.preventDefault();
-        selectItem(props);
-        return true;
-      }
-
-      if (event.key === "Escape") {
-        container?.remove();
-        return true;
-      }
-
-      return false;
-    },
-
-    onExit: () => {
-      items = [];
-      container?.remove();
-    },
-  };
-
-  return renderer;
-};
-
-type ListItemProps = {
-  cite: CiteUtils;
-  command: (props: any) => void;
-  citeA?: boolean;
-};
-
-const createList = ({ cite, command, citeA }: ListItemProps): HTMLLIElement => {
-  const li = document.createElement("li");
-  const titleEl = document.createElement("p");
-
-  titleEl.classList.add("truncate", "max-w-full");
-  const authorEl = document.createElement("p");
-
-  titleEl.textContent = cite.getTitle();
-  authorEl.textContent = citeA ? cite.toCiteA() : cite.toCite();
-
-  authorEl.classList.add("text-xs", "text-gray-500");
-  titleEl.classList.add("font-medium");
-
-  li.classList.add(
-    "text-sm",
-    "px-2",
-    "py-1",
-    "cursor-pointer",
-    "hover:bg-gray-100",
-    "rounded",
-  );
-
-  li.onclick = () => {
-    command(cite);
-  };
-
-  li.append(titleEl, authorEl);
-
-  return li;
-};

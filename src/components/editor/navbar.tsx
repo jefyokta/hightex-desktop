@@ -1,6 +1,7 @@
 import {
   ArrowLeftIcon,
   Bold,
+  DownloadCloudIcon,
   GitBranch,
   Heading2,
   Heading3,
@@ -14,8 +15,8 @@ import {
   ScanText,
   Sigma,
   Strikethrough,
-  Subscript,
-  Superscript,
+  // Subscript,
+  // Superscript,
   Table,
   Underline,
   Undo2,
@@ -23,19 +24,29 @@ import {
 
 import React, { PropsWithChildren } from "react";
 import { Dropdown, DropdownItem } from "../dropdown";
-import { useNavigate, useParams } from "react-router-dom";
-import { EditorParams } from "../../types/params/editor";
+import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
+import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
+import { Document } from "@/editor/document";
+import { toast } from "sonner";
 
 export const NavBar: React.FC = () => {
-  // const { id, version } = useParams<EditorParams>()
   const { editor } = useCurrentEditor();
   const nav = useNavigate();
+  const { setOpen, setContent } = useExpandableSidebar();
 
   if (!editor) return null;
 
   return (
-    <div className="sticky top-0 z-50 max-w-max mx-auto bg-white/80 backdrop-blur border-b rounded-xl border-slate-200">
+    <div
+      className="
+      sticky top-0 z-50 max-w-max mx-auto
+      bg-white/80 dark:bg-neutral-900/70
+      backdrop-blur
+      border-b border-neutral-200 dark:border-neutral-800
+      rounded-xl
+    "
+    >
       <div className="flex justify-center">
         <div className="flex items-center gap-2 px-3 py-2 overflow-x-auto whitespace-nowrap max-w-full">
           <ButtonGroup>
@@ -112,15 +123,11 @@ export const NavBar: React.FC = () => {
             <ButtonGroup>
               <Button
                 icon={Table}
-                onClick={() =>
-                  editor.chain().focus().insertTable({ rows: 3, cols: 3 }).run()
-                }
+                onClick={() => editor.chain().focus().addFigureTable()}
               />
               <Button
                 icon={Image}
-                onClick={() => {
-                  editor.chain().focus().addFigureImage("");
-                }}
+                onClick={() => editor.chain().focus().addFigureImage("")}
               />
             </ButtonGroup>
 
@@ -132,21 +139,48 @@ export const NavBar: React.FC = () => {
 
               <Button
                 icon={Quote}
-                onClick={() =>
-                  editor
-                    .chain()
-                    .focus()
-                    .insertContent({
-                      type: "cite",
-                      attrs: { cite: "okta2026pengembangan" },
-                    })
-                    .run()
-                }
+                onClick={() => {
+                  setContent("citation");
+                  setOpen(true);
+                }}
               />
             </ButtonGroup>
 
             <ButtonGroup>
-              <Button icon={ScanText} />
+              <Button
+                icon={ScanText}
+                onClick={() => {
+                  setContent("scanner");
+                  setOpen(true);
+                }}
+              />
+              <Button
+                icon={DownloadCloudIcon}
+                onClick={async () => {
+                  const toastId = toast.loading("Preparing PDF export...");
+                  const unsubscribe = window.hightex.onPdfProgress((update) => {
+                    toast(update.status, { id: toastId });
+                  });
+
+                  try {
+                    const result = await window.ipcRenderer.invoke(
+                      "hightex:pdf",
+                      Document.instance?.id,
+                    );
+
+                    if (!result) {
+                      toast.dismiss(toastId);
+                      return;
+                    }
+
+                    toast.success(`Saved ${result.filename}`, { id: toastId });
+                  } catch (error) {
+                    toast.error("Error while exporting PDF", { id: toastId });
+                  } finally {
+                    unsubscribe();
+                  }
+                }}
+              />
             </ButtonGroup>
           </div>
 
@@ -159,14 +193,19 @@ export const NavBar: React.FC = () => {
   );
 };
 
-const ButtonGroup: React.FC<
-  PropsWithChildren & {
-    className?: string;
-  }
-> = ({ children, className }) => {
+const ButtonGroup: React.FC<PropsWithChildren & { className?: string }> = ({
+  children,
+  className,
+}) => {
   return (
     <div
-      className={`flex items-center gap-0 bg-gray-100  rounded-lg  overflow-hidden ${className ? className : ""}`}
+      className={`
+        flex items-center gap-0
+        bg-neutral-100 dark:bg-neutral-800
+        rounded-lg
+        overflow-hidden
+        ${className ?? ""}
+      `}
     >
       {children}
     </div>
@@ -194,9 +233,18 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
       onClick={onClick}
       title={title}
       disabled={disabled}
-      className={`flex items-center justify-center w-8 h-8 p-1 rounded-md ${handleHover && "hover:bg-gray-200"} transition  disabled:opacity-40 disabled:cursor-not-allowed`}
+      className={`
+        flex items-center justify-center
+        w-8 h-8 p-1 rounded-md
+        transition
+        disabled:opacity-40 disabled:cursor-not-allowed
+
+        text-neutral-700 dark:text-neutral-200
+
+        ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
+      `}
     >
-      <Icon className="w-3 h-3 text-slate-700" />
+      <Icon className="w-3 h-3" />
       {children}
     </button>
   );

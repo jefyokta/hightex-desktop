@@ -1,47 +1,55 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import { Manager } from "../editor/manager";
 
 type ErrorItem = {
+  id: string;
   error: unknown;
   timestamp: number;
 };
 
 type ErrorContextValue = {
-  error: ErrorItem | null;
-  clear: () => void;
+  errors: ErrorItem[];
+  clear: (id?: string) => void;
+  clearAll: () => void;
 };
 
-const ErrorContext = createContext<ErrorContextValue | null>(null);
+export const ErrorContext = createContext<ErrorContextValue | null>(null);
 
 export function ErrorProvider({ children }: { children: React.ReactNode }) {
-  const [error, setError] = useState<ErrorItem | null>(null);
+  const [errors, setErrors] = useState<ErrorItem[]>([]);
 
   useEffect(() => {
     return Manager.app.onError((payload) => {
-      console.log(payload);
+      const newError: ErrorItem = {
+        id: crypto.randomUUID?.() ?? String(Date.now()),
+        error: payload.error,
+        timestamp: Date.now(),
+      };
+
+      setErrors((prev) => [newError, ...prev]);
     });
   }, []);
 
   const value = useMemo(() => {
     return {
-      error,
-      clear() {
-        setError(null);
+      errors,
+
+      clear(id?: string) {
+        if (!id) {
+          setErrors([]);
+          return;
+        }
+
+        setErrors((prev) => prev.filter((e) => e.id !== id));
+      },
+
+      clearAll() {
+        setErrors([]);
       },
     };
-  }, [error]);
+  }, [errors]);
 
   return (
     <ErrorContext.Provider value={value}>{children}</ErrorContext.Provider>
   );
-}
-
-export function useError() {
-  const ctx = useContext(ErrorContext);
-
-  if (!ctx) {
-    throw new Error("useError must be used inside ErrorProvider");
-  }
-
-  return ctx;
 }

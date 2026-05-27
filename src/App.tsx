@@ -1,55 +1,59 @@
-import "./App.css";
-import { Routes, Route, HashRouter } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
+
+import { MainLayout } from "./layouts/main-layout";
+import { AppLayout } from "./layouts/app-layout";
+import { EditorLayout } from "./layouts/editor-layout";
+import { PrintLayout } from "./layouts/print-layout";
+
 import { Splash } from "./pages/splash";
 import { Dashboard } from "./pages/local";
-import { Editor } from "./pages/editor";
-import { AppLayout } from "./layouts/app-layout";
 import { RemoteDocuments } from "./pages/remote";
-import { AuthModalProvider } from "./context/auth-modal-context";
-import { LoginModal } from "./components/login-modal";
-import { UserProvider } from "./context/user-context";
-import { LogoutModalProvider } from "./context/logout-modal-context";
 import { Citation } from "./pages/citation";
-import { EditorLayout } from "./layouts/editor-layout";
-import { ErrorProvider } from "./context/error-context";
-import { TooltipProvider } from "./components/ui/tooltip";
-
+import { Settings } from "./pages/settings";
+import { Editor } from "./pages/editor";
+import { FullDocument } from "./components/printable";
+import { Single } from "./components/printable/single";
+//@ts-ignore
+import { plugins } from "citation-js";
+// import { Print } from "./pages/print";
+import xml from "@/assets/locales-id-ID.xml?raw";
+const config = plugins.config.get("@csl");
+config.locales.add("id-ID", xml);
 function App() {
+  // console.log(lang)
+
   return (
-    <TooltipProvider>
-      <ErrorProvider>
-        <UserProvider>
-          <AuthModalProvider>
-            <LogoutModalProvider>
-              <HashRouter>
-                <Routes>
-                  <Route path="/" element={<Splash />} />
-                  <Route element={<AppLayout />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route
-                      path="/dashboard/projects/cloud"
-                      element={<RemoteDocuments />}
-                    />
-                    <Route
-                      path="/dashboard/projects/local"
-                      element={<Dashboard />}
-                    />
-                    <Route path="/dashboard/citation" element={<Citation />} />
-                  </Route>
-                  <Route element={<EditorLayout />}>
-                    <Route
-                      path="/document/:id/:chapter?/:version?"
-                      element={<Editor />}
-                    />
-                  </Route>
-                </Routes>
-              </HashRouter>
-            </LogoutModalProvider>
-            <LoginModal />
-          </AuthModalProvider>
-        </UserProvider>
-      </ErrorProvider>
-    </TooltipProvider>
+    <HashRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Splash />} />
+
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard/projects/cloud"
+              element={<RemoteDocuments />}
+            />
+            <Route path="/dashboard/projects/local" element={<Dashboard />} />
+            <Route path="/dashboard/citation" element={<Citation />} />
+            <Route path="/dashboard/splitter" element={<>comming soon</>} />
+
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+
+          <Route element={<EditorLayout />}>
+            <Route
+              path="/document/:id/:chapter?/:version?"
+              element={<Editor />}
+            />
+          </Route>
+        </Route>
+        <Route element={<PrintLayout />}>
+          <Route path="/document/:id/print" element={<FullDocument />} />
+          <Route path="/print/:chapterId" element={<Single />} />
+        </Route>
+      </Routes>
+    </HashRouter>
   );
 }
 

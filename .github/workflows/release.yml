@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  keygen:
+    runs-on: ubuntu-latest
+
+    outputs:
+      public_key_generated: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate public key
+        run: node scripts/generate-public-key.js
+        env:
+          PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
+
+      - name: Upload public key
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-key
+          path: public.key
+
+  build:
+    needs: keygen
+
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install deps
+        run: bun install
+
+      - name: Download public key
+        uses: actions/download-artifact@v4
+        with:
+          name: public-key
+
+      - name: Move public key to app
+        run: |
+          mkdir -p dist
+          cp public.key dist/public.key
+
+      - name: Build mac
+        if: matrix.os == 'macos-latest'
+        run: bun run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Build win
+        if: matrix.os == 'windows-latest'
+        run: bun run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Build linux
+        if: matrix.os == 'ubuntu-latest'
+        run: bun run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: |
+            dist/**
+            dist-electron/**
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all builds
+        uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            **/*.exe
+            **/*.dmg
+            **/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

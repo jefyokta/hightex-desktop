@@ -1,6 +1,7 @@
 import { Node, ReactNodeViewRenderer } from "@tiptap/react";
 import { RefComponent } from "./component";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { SlashSuggestion } from "@/editor/plugins/slash-suggestion";
 
 export const Ref = Node.create({
   name: "refComponent",
@@ -82,7 +83,6 @@ export const Ref = Node.create({
               const node = nodeType.create({
                 ref: type,
                 link: id,
-                //   label:FigureCache.getLabel(id,type as "imageFigure") || false
               });
               tr.insert(tr.selection.from, node);
               lastIndex = pasteRegex.lastIndex;
@@ -101,8 +101,7 @@ export const Ref = Node.create({
           },
         },
       }),
-      //   RefPlugin,
-      // attachmentSuggestion(this.editor)
+      SlashSuggestion(this.editor),
     ];
   },
 });

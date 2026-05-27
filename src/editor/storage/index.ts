@@ -1,8 +1,17 @@
+import { CiteUtils } from "bibtex.js";
 import { HighTexDB } from "./hightex-db";
 
 export class Storage {
   private db = HighTexDB.getInstance();
-  public static instance = new Storage();
+  private static _instance: Storage | null = null;
+
+  public static get instance() {
+    if (!Storage._instance) {
+      Storage._instance = new Storage();
+    }
+
+    return Storage._instance;
+  }
 
   async setChapter(chapter: HighTexChapter) {
     return await this.db.transaction(
@@ -40,5 +49,10 @@ export class Storage {
 
   async setCite(cite: CiteRecord) {
     return this.db.cite.put(cite);
+  }
+  async getCites() {
+    return (await this.db.cite.toArray()).map((c) =>
+      new CiteUtils(c.bib).setId(c.key),
+    );
   }
 }

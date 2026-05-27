@@ -15,18 +15,18 @@ export const UUID = Node.create({
 export function UUIDAttributes(prefix?: string) {
   return {
     id: {
-      default: `${prefix ? prefix + ":" : ""}${uniqId()}`,
+      default: `${prefix ? prefix + "-" : ""}${uniqId()}`,
 
       parseHTML(element: HTMLElement) {
         return (
           element.getAttribute("id") ||
-          `${prefix ? prefix + ":" : ""}${uniqId()}`
+          `${prefix ? prefix + "-" : ""}${uniqId()}`
         );
       },
 
       renderHTML(attributes: any) {
         return {
-          id: attributes.id || `${prefix ? prefix + ":" : ""}${uniqId()}`,
+          id: attributes.id || `${prefix ? prefix + "-" : ""}${uniqId()}`,
         };
       },
 

@@ -9,22 +9,24 @@ import { Document } from "@/editor/document";
 import { Manager } from "@/editor/manager";
 
 import { NodeNotFound } from "@/exception/node-not-found";
+import { useParams } from "@/hooks/use-params";
 
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
-  const type = node.attrs.type || "imageFigure";
+  const type = node.attrs.ref || "imageFigure";
 
   const reference = node.attrs.link;
 
   return (
     <NodeViewWrapper
-      className="
-                ref-component
+      className="ref-component
                 inline
                 hover:bg-blue-200
+                dark:hover:text-black
                 rounded-sm
                 cursor-pointer
             "
@@ -46,12 +48,14 @@ type RefProps = {
 };
 const ImageRef = ({ reference }: RefProps) => {
   const [image, setImage] = useState<ImageGraph>();
+  const nav = useNavigate();
+  const { setParams } = useParams();
 
   useEffect(() => {
     const resolveImage = async (doc: Document) => {
       const img = (await doc.getImages()).find((i) => {
-        console.log(i)
-        return i.id === reference});
+        return i.id === reference;
+      });
 
       if (!img) {
         throw new NodeNotFound("Missing Image Figure!", "Image Figure");
@@ -69,11 +73,13 @@ const ImageRef = ({ reference }: RefProps) => {
       await resolveImage(document);
     });
     const offChapter = Manager.app.on("chapter:update", async () => {
-      await resolveImage(Document.instance!)
+      await resolveImage(Document.instance!);
+    });
 
-    })
-
-    return () => { off(); offChapter() };
+    return () => {
+      off();
+      offChapter();
+    };
   }, [reference]);
 
   return (
@@ -83,7 +89,15 @@ const ImageRef = ({ reference }: RefProps) => {
           <a
             data-ref={reference}
             onClick={() => {
-              document.getElementById(reference || "")?.scrollIntoView({ behavior: "smooth" })
+              if (image?.chapterId == Document.current?.getId()) {
+                Manager.scrollTo(reference!);
+                return;
+              }
+              setParams([reference]);
+
+              nav(
+                `/document/${image?.chapterId.replace(".", "/")}?target=${reference}`,
+              );
             }}
             data-href={
               image
@@ -92,8 +106,6 @@ const ImageRef = ({ reference }: RefProps) => {
             }
           >
             {image ? `Gambar ${image.numbering}` : "Loading"}
-
-
           </a>
         }
       />
@@ -111,5 +123,61 @@ const ImageRef = ({ reference }: RefProps) => {
   );
 };
 const TableRef = ({ reference }: RefProps) => {
-  return <span data-ref={reference}>Table Ref</span>;
+  const [table, setTable] = useState<TableGraph>();
+  const nav = useNavigate();
+  const { setParams } = useParams();
+
+  useEffect(() => {
+    const resolveTable = async (doc: Document) => {
+      const tab = (await doc.getTables()).find((i) => {
+        return i.id === reference;
+      });
+
+      if (!tab) {
+        throw new NodeNotFound("Missing Image Figure!", "Image Figure");
+      }
+
+      setTable(tab);
+    };
+
+    const doc = Document.instance;
+    if (doc?.ready) {
+      resolveTable(doc);
+    }
+
+    const off = Manager.app.on("document:warmed", async ({ document }) => {
+      await resolveTable(document);
+    });
+    const offChapter = Manager.app.on("chapter:update", async () => {
+      await resolveTable(Document.instance!);
+    });
+
+    return () => {
+      off();
+      offChapter();
+    };
+  }, [reference]);
+
+  return (
+    <PreviewCard>
+      <PreviewCardTrigger
+        onClick={(e) => {
+          e.preventDefault();
+          if (table?.chapterId == Document.current?.getId()) {
+            Manager.scrollTo(reference!);
+            return;
+          }
+          setParams([reference]);
+          nav(`/document/${table?.chapterId.replace(".", "/")}`);
+        }}
+        render={<span>Tabel {table?.numbering}</span>}
+      ></PreviewCardTrigger>
+      <PreviewCardPanel>
+        <div>
+          <span>Table {table?.numbering} </span>
+          <TextRenderer texts={table?.text || []}></TextRenderer>
+        </div>
+      </PreviewCardPanel>
+    </PreviewCard>
+  );
 };

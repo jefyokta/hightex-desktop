@@ -62,4 +62,7 @@ export const FigureTable = Figure.extend({
   addNodeView() {
     return ReactNodeViewRenderer(FigureTableComponent);
   },
+  addProseMirrorPlugins() {
+    return [];
+  },
 });

@@ -1,4 +1,4 @@
-import { ApplicationError } from "./application-error";
+import { ApplicationError } from "./interfaces/application-error";
 
 export class NodeNotFound extends ApplicationError {
   constructor(

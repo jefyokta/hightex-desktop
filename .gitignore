@@ -23,3 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 dist-electron/
+.env
+#dev key
+*.key
+genereate-keys.ts
+
+src/editor/extensions/ai
+src/editor/plugins/ai-suggestion.ts
+
+scheme/
