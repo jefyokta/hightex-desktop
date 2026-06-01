@@ -7,6 +7,7 @@ import { TextRenderer } from "@/components/editor/text-renderer";
 
 import { Document } from "@/editor/document";
 import { Manager } from "@/editor/manager";
+import { HighTexDB } from "@/editor/storage/hightex-db";
 
 import { NodeNotFound } from "@/exception/node-not-found";
 import { useParams } from "@/hooks/use-params";
@@ -47,80 +48,156 @@ type RefProps = {
   reference?: string;
 };
 const ImageRef = ({ reference }: RefProps) => {
-  const [image, setImage] = useState<ImageGraph>();
-  const nav = useNavigate();
-  const { setParams } = useParams();
+    const [image, setImage] = useState<ImageGraph>();
+    const [src, setSrc] = useState<string>();
 
-  useEffect(() => {
-    const resolveImage = async (doc: Document) => {
-      const img = (await doc.getImages()).find((i) => {
-        return i.id === reference;
-      });
+    const nav = useNavigate();
+    const { setParams } = useParams();
 
-      if (!img) {
-        throw new NodeNotFound("Missing Image Figure!", "Image Figure");
-      }
+    useEffect(() => {
+        let mounted = true;
+        let objectUrl: string | null;
 
-      setImage(img);
-    };
+        const resolveImage = async (doc: Document) => {
+            try {
+                const img = (await doc.getImages()).find(
+                    (i) => i.id === reference,
+                );
 
-    const doc = Document.instance;
-    if (doc?.ready) {
-      resolveImage(doc);
-    }
+                if (!img) {
+                    throw new NodeNotFound(
+                        "Missing Image Figure!",
+                        "Image Figure",
+                    );
+                }
 
-    const off = Manager.app.on("document:warmed", async ({ document }) => {
-      await resolveImage(document);
-    });
-    const offChapter = Manager.app.on("chapter:update", async () => {
-      await resolveImage(Document.instance!);
-    });
+                if (!mounted) return;
 
-    return () => {
-      off();
-      offChapter();
-    };
-  }, [reference]);
+                setImage(img);
 
-  return (
-    <PreviewCard>
-      <PreviewCardTrigger
-        render={
-          <a
-            data-ref={reference}
-            onClick={() => {
-              if (image?.chapterId == Document.current?.getId()) {
-                Manager.scrollTo(reference!);
-                return;
-              }
-              setParams([reference]);
+                if (!img.imgSrc) {
+                    setSrc(undefined);
+                    return;
+                }
 
-              nav(
-                `/document/${image?.chapterId.replace(".", "/")}?target=${reference}`,
-              );
-            }}
-            data-href={
-              image
-                ? `/document/${image.chapterId.replace(".", "/")}?target=${reference}`
-                : ""
+                if (img.imgSrc.startsWith("data:")) {
+                    setSrc(img.imgSrc);
+                    return;
+                }
+
+                const url = await HighTexDB
+                    .getInstance()
+                    .getBlobUrl(img.imgSrc);
+
+                if (!mounted) {
+                    if (url?.startsWith("blob:")) {
+                        URL.revokeObjectURL(url);
+                    }
+                    return;
+                }
+
+                objectUrl = url;
+
+                setSrc(url ?? undefined);
+            } catch (err) {
+                console.error(err);
             }
-          >
-            {image ? `Gambar ${image.numbering}` : "Loading"}
-          </a>
-        }
-      />
+        };
 
-      <PreviewCardPanel>
-        <div className="flex flex-col gap-2">
-          <img src={image?.imgSrc} className="aspect-auto rounded-2xl" />
-          <div className="text-xs text-center">
-            <span>{`Gambar ${image?.numbering} `}</span>
-            <TextRenderer texts={image?.text ?? []} />
-          </div>
-        </div>
-      </PreviewCardPanel>
-    </PreviewCard>
-  );
+        const doc = Document.instance;
+
+        if (doc?.ready) {
+            void resolveImage(doc);
+        }
+
+        const offDocument = Manager.app.on(
+            "document:warmed",
+            ({ document }) => {
+                void resolveImage(document);
+            },
+        );
+
+        const offChapter = Manager.app.on(
+            "chapter:update",
+            () => {
+                if (Document.instance) {
+                    void resolveImage(Document.instance);
+                }
+            },
+        );
+
+        return () => {
+            mounted = false;
+
+            offDocument();
+            offChapter();
+
+            if (objectUrl?.startsWith("blob:")) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [reference]);
+
+    const href = image
+        ? `/document/${image.chapterId.replace(".", "/")}?target=${reference}`
+        : "";
+
+    return (
+        <PreviewCard>
+            <PreviewCardTrigger
+                render={
+                    <a
+                        data-ref={reference}
+                        data-href={href}
+                        onClick={() => {
+                            if (!image) return;
+
+                            if (
+                                image.chapterId ===
+                                Document.current?.getId()
+                            ) {
+                                Manager.scrollTo(reference!);
+                                return;
+                            }
+
+                            setParams([reference]);
+
+                            nav(href);
+                        }}
+                    >
+                        {image
+                            ? `Gambar ${image.numbering}`
+                            : "Loading"}
+                    </a>
+                }
+            />
+
+            <PreviewCardPanel>
+                <div className="flex flex-col gap-2">
+                    {src && (
+                        <img
+                            src={src}
+                            alt={`Gambar ${image?.numbering}`}
+                            className="aspect-auto rounded-2xl"
+                            loading="lazy"
+                        />
+                    )}
+
+                    <div className="text-xs text-center">
+                        <span>
+                            {image
+                                ? `Gambar ${image.numbering} `
+                                : ""}
+                        </span>
+
+                        <TextRenderer
+                            texts={image?.text ?? []}
+                        />
+                    </div>
+                </div>
+            </PreviewCardPanel>
+        </PreviewCard>
+    );
 };
 const TableRef = ({ reference }: RefProps) => {
   const [table, setTable] = useState<TableGraph>();

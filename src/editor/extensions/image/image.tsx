@@ -3,11 +3,27 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { HighTexDB } from "@/editor/storage/hightex-db";
+import { convertImage } from "@/utils/images-to-webp";
 import { ImageIsInFigure } from "@/exception/image-is-in-figure";
-import { base64ToPngBlob } from "@/utils/is-base-64";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { GalleryThumbnails, Images, Trash, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { GalleryThumbnails, Images, Loader2, Trash, X } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as RMouseEvent,
+  type ChangeEvent,
+} from "react";
+import { Document } from "@/editor/document";
+import { ImageConvertError } from "@/exception/image-convert";
+
+type LoadState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; blobUrl: string }
+  | { status: "error"; message: string };
 
 export const ImageComponent: React.FC<NodeViewProps> = ({
   node,
@@ -16,233 +32,304 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
   getPos,
   editor,
 }) => {
-  const [src, setSrc] = useState<string | null>(node.attrs.src || null);
-  const [width, setWidth] = useState<number>(
-    parseInt(node.attrs.width || "200"),
-  );
+  const dbId = node.attrs["src"] as string | null;
+  const initWidth = (node.attrs["width"] as number) ?? 400;
+
+  const [load, setLoad] = useState<LoadState>({ status: "idle" });
+  const [width, setWidth] = useState<number>(initWidth);
+
   const imgRef = useRef<HTMLImageElement>(null);
   const resizing = useRef(false);
-  const isBase64 = (src: string) =>
-    /^data:image\/(png|jpg|jpeg);base64,/.test(src);
+  const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (src) {
-      queueMicrotask(() => {
-        if (isBase64(src)) {
-          updateAttributes({ src });
-        } else {
-          updateAttributes({ src: null });
-        }
-      });
+    if (dbId === null) {
+      setLoad({ status: "idle" });
+      return;
     }
-  }, [src]);
+
+    let cancelled = false;
+    setLoad({ status: "loading" });
+
+    const db = HighTexDB.getInstance();
+    const documentId = Document.instance!.id;
+    const resolve = async () => {
+      if (dbId.startsWith("data:")) {
+        const newId = await convertImage(dbId, documentId);
+        if (cancelled) return;
+
+        updateAttributes({ src: newId });
+        return;
+      }
+
+      const url = await db.getBlobUrl(dbId);
+      if (cancelled) return;
+      if (url === null) {
+        setLoad({ status: "error", message: `Image not found (id: ${dbId})` });
+        return;
+      }
+      if (blobUrlRef.current !== null) URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = url;
+      setLoad({ status: "ready", blobUrl: url });
+    };
+
+    resolve().catch((err: unknown) => {
+      if (!cancelled) setLoad({ status: "error", message: String(err) });
+    });
+
+    return () => {
+      cancelled = true;
+      if (blobUrlRef.current !== null) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, [dbId, editor, updateAttributes]);
 
   useEffect(() => {
-    requestAnimationFrame(() => {
-      updateAttributes({ width: width.toString() });
-    });
-  }, [width]);
+    const id = requestAnimationFrame(() => updateAttributes({ width }));
+    return () => cancelAnimationFrame(id);
+  }, [width, updateAttributes]);
 
-  const deleteImage = () => {
-    setSrc(null);
-  };
+  const handleDelete = useCallback(async () => {
+    if (dbId !== null) await HighTexDB.getInstance().deleteImageById(dbId);
+    deleteNode();
+  }, [dbId, deleteNode]);
 
-  const copy = async (base64: string) => {
-    const blob = base64ToPngBlob(base64);
+  const handleCopy = useCallback(async () => {
+    if (load.status !== "ready") return;
     try {
+      const res = await fetch(load.blobUrl);
+      const blob = await res.blob();
       await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }),
+        new ClipboardItem({ [blob.type]: blob }),
       ]);
     } catch (err) {
-      console.log(err);
+      console.error("[ImageComponent] copy failed", err);
     }
-  };
+  }, [load]);
 
-  const startResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    resizing.current = true;
-    const startX = e.clientX;
-    const startWidth = imgRef.current?.offsetWidth || width;
+  const startResize = useCallback(
+    (e: RMouseEvent) => {
+      e.preventDefault();
+      resizing.current = true;
+      const startX = e.clientX;
+      const startWidth = imgRef.current?.offsetWidth ?? width;
 
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      if (!resizing.current) return;
-      const delta = moveEvent.clientX - startX;
-      const newWidth = Math.max(50, startWidth + delta);
-      setWidth(newWidth);
-    };
+      const onMove = (mv: MouseEvent) => {
+        if (!resizing.current) return;
+        setWidth(Math.max(50, startWidth + mv.clientX - startX));
+      };
+      const onUp = () => {
+        resizing.current = false;
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    },
+    [width],
+  );
 
-    const onMouseUp = () => {
-      resizing.current = false;
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  };
-
-  const toFigure = () => {
-    if (node.type.name !== "image") {
-      return;
-    }
+  const toFigure = useCallback(() => {
+    if (node.type.name !== "image") return;
     const pos = getPos();
-    if (!pos) {
-      return;
-    }
+    if (pos === undefined) return;
     const resolved = editor.state.doc.resolve(pos);
     const parent = resolved.node(resolved.depth);
-    if (parent.type.name == "imageFigure") {
-      throw new ImageIsInFigure();
-    }
+    if (parent.type.name === "imageFigure") throw new ImageIsInFigure();
+    const caption = editor.schema.nodes["figcaption"]?.create(null, []);
+    const figure = editor.schema.nodes["imageFigure"]?.create(
+      null,
+      caption ? [node.copy(node.content), caption] : [node.copy(node.content)],
+    );
+    if (figure === undefined) return;
+    editor.view.dispatch(
+      editor.state.tr.replaceWith(pos, pos + node.nodeSize, figure),
+    );
+  }, [node, getPos, editor]);
 
-    const image = node.copy();
-    const caption = editor.schema.nodes.figcaption.create(null, []);
-    const figure = editor.schema.nodes.imageFigure.create(null, [
-      image,
-      caption,
-    ]);
-    const tr = editor.state.tr.replaceWith(pos, pos + node.nodeSize, figure);
-    editor.view.dispatch(tr);
-  };
+  const handleUpload = useCallback(
+    async (file: File) => {
+      const documentId: string = Document.instance!.id;
+      try {
+        const id = await convertImage(file, documentId);
+        updateAttributes({ src: id });
+      } catch (err) {
+        if (err instanceof ImageConvertError) {
+          setLoad({ status: "error", message: err.message });
+        }
+      }
+    },
+    [editor, updateAttributes],
+  );
 
   return (
     <NodeViewWrapper className="relative group flex justify-center">
-      {src ? (
-        <>
-          <img
-            ref={imgRef}
-            src={src}
-            alt=""
-            style={{ width: width }}
-            className="h-auto"
-            onError={() => {
-              setSrc(null);
-            }}
-            onLoad={() => {}}
-          />
-          <span
-            className="absolute top-1/2 right-0 cursor-ew-resize bg-blue-100 dark:bg-blue-900/50 w-1.5 h-6 rounded-sm hidden group-hover:block"
-            onMouseDown={startResize}
-          />
-          <div className="absolute top-2 left-2 z-50 hidden group-hover:flex space-x-2">
-            <Tooltip>
-              <TooltipTrigger>
-                <div
-                  className="cursor-pointer bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shadow-sm rounded py-1 px-1"
-                  onClick={async () => {
-                    await copy(src);
-                  }}
-                >
-                  <Images className="w-4 h-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>copy</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger>
-                <div
-                  className="cursor-pointer bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shadow-sm rounded py-1 px-1"
-                  onClick={() => toFigure()}
-                >
-                  <GalleryThumbnails className="w-4 h-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>to Figure</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger>
-                <div
-                  className="cursor-pointer bg-red-100 hover:bg-red-200 dark:bg-red-950/40 dark:hover:bg-red-950/80 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-sm rounded py-1 px-1"
-                  onClick={deleteImage}
-                >
-                  <Trash className="w-4 h-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>delete image</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger>
-                <div
-                  className="cursor-pointer bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white border border-red-700 dark:border-red-800 shadow-sm rounded py-1 px-1"
-                  onClick={() => deleteNode()}
-                >
-                  <X className="w-4 h-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>delete node</TooltipContent>
-            </Tooltip>
-          </div>
-        </>
+      {load.status === "ready" ? (
+        <ReadyView
+          blobUrl={load.blobUrl}
+          width={width}
+          imgRef={imgRef}
+          onStartResize={startResize}
+          onCopy={handleCopy}
+          onToFigure={toFigure}
+          onDeleteImage={handleDelete}
+          onDeleteNode={deleteNode}
+        />
+      ) : load.status === "loading" ? (
+        <LoadingView width={width} />
+      ) : load.status === "error" ? (
+        <ErrorView message={load.message} onDeleteNode={deleteNode} />
       ) : (
-        <div className="relative">
-          <div className="absolute top-2 right-2 z-50">
-            <Tooltip>
-              <TooltipTrigger>
-                <div
-                  className="cursor-pointer bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border border-neutral-300 dark:border-neutral-700 shadow-sm rounded py-1 px-1"
-                  onClick={() => deleteNode()}
-                >
-                  <X className="w-4 h-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>delete node</TooltipContent>
-            </Tooltip>
-          </div>
-
-          <ImageInput onSelect={setSrc} />
-        </div>
+        <UploadView onSelect={handleUpload} onDeleteNode={deleteNode} />
       )}
     </NodeViewWrapper>
   );
 };
 
-const ImageInput: React.FC<{ onSelect: (src: string) => void }> = ({
-  onSelect,
-}) => {
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const file = await resizeImage(f);
+interface ReadyViewProps {
+  blobUrl: string;
+  width: number;
+  imgRef: React.RefObject<HTMLImageElement>;
+  onStartResize: (e: RMouseEvent) => void;
+  onCopy: () => void;
+  onToFigure: () => void;
+  onDeleteImage: () => void;
+  onDeleteNode: () => void;
+}
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      onSelect(base64);
-    };
-    reader.readAsDataURL(file);
-  };
+const ReadyView: React.FC<ReadyViewProps> = ({
+  blobUrl,
+  width,
+  imgRef,
+  onStartResize,
+  onCopy,
+  onToFigure,
+  onDeleteImage,
+  onDeleteNode,
+}) => (
+  <>
+    <img
+      ref={imgRef}
+      src={blobUrl}
+      alt=""
+      style={{ width }}
+      className="h-auto"
+    />
+    <span
+      className="absolute top-1/2 right-0 cursor-ew-resize bg-blue-100 dark:bg-blue-900/50 w-1.5 h-6 rounded-sm hidden group-hover:block"
+      onMouseDown={onStartResize}
+    />
+    <div className="absolute top-2 left-2 z-50 hidden group-hover:flex space-x-2">
+      <IconBtn tooltip="Copy image" onClick={onCopy}>
+        <Images className="w-4 h-4" />
+      </IconBtn>
+      <IconBtn tooltip="Wrap in figure" onClick={onToFigure}>
+        <GalleryThumbnails className="w-4 h-4" />
+      </IconBtn>
+      <IconBtn
+        tooltip="Delete image"
+        variant="danger-soft"
+        onClick={onDeleteImage}
+      >
+        <Trash className="w-4 h-4" />
+      </IconBtn>
+      <IconBtn tooltip="Remove node" variant="danger" onClick={onDeleteNode}>
+        <X className="w-4 h-4" />
+      </IconBtn>
+    </div>
+  </>
+);
 
-  const resizeImage = async (file: File): Promise<File> => {
-    const maxSize = 2 * 1000 * 1000;
-    if (file.size <= maxSize) return file;
+const LoadingView: React.FC<{ width: number }> = ({ width }) => (
+  <div
+    className="flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded"
+    style={{ width, height: Math.round(width * 0.6) }}
+  >
+    <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
+  </div>
+);
 
-    const ratio = Math.sqrt(maxSize / file.size);
+const ErrorView: React.FC<{ message: string; onDeleteNode: () => void }> = ({
+  message,
+  onDeleteNode,
+}) => (
+  <div className="relative border border-dashed border-red-300 dark:border-red-800 rounded bg-red-50 dark:bg-red-950/20 w-72 h-24 flex flex-col items-center justify-center text-sm text-red-500 dark:text-red-400 p-4 gap-1">
+    <span className="text-xs font-mono text-center break-all">{message}</span>
+    <div className="absolute top-2 right-2">
+      <IconBtn tooltip="Remove node" variant="danger" onClick={onDeleteNode}>
+        <X className="w-4 h-4" />
+      </IconBtn>
+    </div>
+  </div>
+);
 
-    const img = await createImageBitmap(file);
-    const canvas = document.createElement("canvas");
+interface UploadViewProps {
+  onSelect: (file: File) => void;
+  onDeleteNode: () => void;
+}
 
-    canvas.width = img.width * ratio;
-    canvas.height = img.height * ratio;
-
-    const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.85),
-    );
-
-    return new File([blob], file.name, { type: "image/jpeg" });
+const UploadView: React.FC<UploadViewProps> = ({ onSelect, onDeleteNode }) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file !== undefined) onSelect(file);
   };
 
   return (
-    <div className="border border-dashed border-neutral-300 dark:border-neutral-700 flex justify-center flex-col items-center rounded text-sm text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900/50 w-72 h-40 p-4 relative">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleChange}
-        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-      />
-      <p className="pointer-events-none">Upload image</p>
+    <div className="relative">
+      <div className="absolute top-2 right-2 z-50">
+        <IconBtn tooltip="Remove node" variant="danger" onClick={onDeleteNode}>
+          <X className="w-4 h-4" />
+        </IconBtn>
+      </div>
+      <label className="border border-dashed border-neutral-300 dark:border-neutral-700 flex flex-col justify-center items-center rounded text-sm text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900/50 w-72 h-40 p-4 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors">
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={handleChange}
+        />
+        <span>Click or drop image</span>
+      </label>
     </div>
   );
 };
+
+type BtnVariant = "default" | "danger-soft" | "danger";
+
+const VARIANT_CLS: Record<BtnVariant, string> = {
+  default:
+    "bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-900 dark:text-neutral-100 border-neutral-300 dark:border-neutral-700",
+  "danger-soft":
+    "bg-red-100 hover:bg-red-200 dark:bg-red-950/40 dark:hover:bg-red-950/80 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50",
+  danger:
+    "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white border-red-700 dark:border-red-800",
+};
+
+interface IconBtnProps {
+  tooltip: string;
+  onClick: () => void;
+  variant?: BtnVariant;
+  children: React.ReactNode;
+}
+
+const IconBtn: React.FC<IconBtnProps> = ({
+  tooltip,
+  onClick,
+  variant = "default",
+  children,
+}) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`cursor-pointer border shadow-sm rounded py-1 px-1 ${VARIANT_CLS[variant]}`}
+      >
+        {children}
+      </button>
+    </TooltipTrigger>
+    <TooltipContent>{tooltip}</TooltipContent>
+  </Tooltip>
+);

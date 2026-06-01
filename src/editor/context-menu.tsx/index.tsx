@@ -33,8 +33,6 @@ export const getContextMenuItems = (editor: Editor): ContextMenuAction[] => {
   ];
 };
 
-//buat logic lain disini per items
-//ex:
 const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
   if (editor.isActive("tableCell") || editor.isActive("tableRow")) {
     return [

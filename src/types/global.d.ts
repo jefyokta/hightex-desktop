@@ -95,12 +95,12 @@ declare global {
     ): Promise<ZoteroItem[]>;
     exportBibtex(host: string, port: number, itemKey: string): Promise<string>;
   }
-type ExportPayload = {
-  title?: string;
-  author?: string;
-  chapters?: { chapter: number; page: number }[];
-  hasWm?: boolean;
-}
+  type ExportPayload = {
+    title?: string;
+    author?: string;
+    chapters?: { chapter: number; page: number }[];
+    hasWm?: boolean;
+  };
   interface PluginScannerAPI {
     paragraph(
       pluginId: string,
@@ -132,9 +132,13 @@ type ExportPayload = {
       document(): Promise<{ document: HighTexDocument }>;
       prefetch(): Promise<void>;
       onPrefetchProgress(cb: (data: any) => void): void;
-      onPdfProgress(cb: (data: { status: string; progress?: number }) => void): () => void;
+      onPdfProgress(
+        cb: (data: { status: string; progress?: number }) => void,
+      ): () => void;
       categories(): Promise<Category[]>;
       profile(): Promise<DocumentProfile>;
+      onOpenFile(cb: (file: string) => void): () => void;
+      readFile(filePath: string): Promise<NonSharedBuffer>;
     };
 
     config: ConfigAPI;
@@ -142,6 +146,9 @@ type ExportPayload = {
 
     plugin: { scanner: PluginScannerAPI };
     //cmn ada di frame yach
+    /**
+     * @deprecated
+     */
     inFrame: boolean;
     current: Chapter;
     cites: CiteRecord[];

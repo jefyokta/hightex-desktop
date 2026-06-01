@@ -1,4 +1,9 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import {
+  //  HashRouter,
+  Routes,
+  Route,
+  BrowserRouter,
+} from "react-router-dom";
 
 import { MainLayout } from "./layouts/main-layout";
 import { AppLayout } from "./layouts/app-layout";
@@ -23,7 +28,7 @@ function App() {
   // console.log(lang)
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Splash />} />
@@ -53,7 +58,7 @@ function App() {
           <Route path="/print/:chapterId" element={<Single />} />
         </Route>
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 

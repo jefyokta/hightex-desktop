@@ -9,15 +9,16 @@ declare global {
 export default class ChapterListener {
   private chapterNum = 0;
   stack: { chapter: number; page: number }[] = [];
-  static instance:ChapterListener;
+  static instance: ChapterListener;
   constructor() {
     window._chapters = false;
-    ChapterListener.instance =this;
+    ChapterListener.instance = this;
   }
   afterPageLayout(pageEl: HTMLElement, page: Page, _breakToken: BreakToken) {
     const content = pageEl.querySelector(".content");
     if (!content) return;
-    if (!content.querySelector("h1") || content.querySelector("#biblio")) return;
+    if (!content.querySelector("h1") || content.querySelector("#biblio"))
+      return;
     this.chapterNum++;
     const obj = {
       chapter: this.chapterNum,
@@ -25,8 +26,5 @@ export default class ChapterListener {
     };
     this.stack.push(obj);
   }
-  afterRendered() {
-    
-    
-  }
+  afterRendered() {}
 }

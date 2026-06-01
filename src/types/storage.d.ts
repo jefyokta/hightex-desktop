@@ -2,6 +2,10 @@ import { JSONContent } from "@tiptap/core";
 export {};
 
 declare global {
+  interface HighTexFileMeta {
+    filePath: string;
+    lastUpdated: number;
+  }
   interface Keywords {
     indonesian: string[];
     english: string[];
@@ -46,6 +50,7 @@ declare global {
     keywords: Keywords;
     config: HighTexConfig;
     updatedAt?: Date;
+    file?: HighTexFileMeta;
   }
 
   interface CiteRecord {
@@ -60,5 +65,12 @@ declare global {
       images: ImageGraph[];
       tables: TableGraph[];
     };
+  }
+
+  interface ImageRecord {
+    id: string;
+    blob: Blob;
+    documentId: string;
+    createdAt: number;
   }
 }

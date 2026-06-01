@@ -3,7 +3,6 @@ import { HighTexDB } from "../storage/hightex-db";
 import { Chapter } from "../chapter";
 import { DocumentNotFound } from "../../exception/document-not-found";
 import { Manager } from "../manager";
-import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { DocumentBroken } from "@/exception/documet-broken";
 

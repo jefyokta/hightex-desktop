@@ -6,14 +6,12 @@ import { PDFDocument } from "pdf-lib";
 
 import { Application } from "../main/application";
 
-;
-
 export class PDFService {
   private window: BrowserWindow | null = null;
 
   private createWindow() {
     this.window = new BrowserWindow({
-    //   show: false,
+      //   show: false,
       width: 1280,
       height: 2000,
       backgroundColor: "#fff",
@@ -90,7 +88,7 @@ export class PDFService {
 
     try {
       const url = Application.instance.resolveRendererUrl(
-        `/document/${docId}/print`,
+        `document/${docId}/print`,
       );
 
       progress?.("Loading print view...", 20);
@@ -98,13 +96,16 @@ export class PDFService {
 
       await new Promise<void>((resolve, reject) => {
         win.webContents.once("did-finish-load", () => resolve());
-        win.webContents.once("did-fail-load", (_event, errorCode, errorDescription, validatedURL) => {
-          reject(
-            new Error(
-              `Print view failed to load: ${errorDescription} (${errorCode}) ${validatedURL}`,
-            ),
-          );
-        });
+        win.webContents.once(
+          "did-fail-load",
+          (_event, errorCode, errorDescription, validatedURL) => {
+            reject(
+              new Error(
+                `Print view failed to load: ${errorDescription} (${errorCode}) ${validatedURL}`,
+              ),
+            );
+          },
+        );
 
         win.loadURL(url).catch(reject);
       });
@@ -150,8 +151,7 @@ export class PDFService {
       );
 
       return await pdf.save();
-    }
-     finally {
+    } finally {
       if (this.window && !this.window.isDestroyed()) {
         this.window.destroy();
       }

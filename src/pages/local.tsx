@@ -145,7 +145,7 @@ const DocumentList = ({
 }: any) => {
   return (
     <div className="flex flex-col h-full min-h-0 rounded-xl">
-      <div className="flex  items-start justify-between px-4 py-4">
+      <div className="flex h-16 mb-4 items-start justify-between px-4 py-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Your Documents

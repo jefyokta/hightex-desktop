@@ -82,6 +82,7 @@ export class AttachmentBuilder {
 
     while (current) {
       let prev = current.previousElementSibling;
+      console.log("looping....");
 
       while (prev) {
         if (prev.matches("h1")) {

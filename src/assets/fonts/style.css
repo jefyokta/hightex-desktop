@@ -1,9 +1,9 @@
 @font-face {
   font-family: "Times New Roman";
   src:
-    url("https://hightex.okta/fonts/TimesNewRomanPS-BoldItalicMT.woff2")
+    url("./TimesNewRomanPS-BoldItalicMT.woff2")
       format("woff2"),
-    url("https://hightex.okta/fonts/Times New Roman Bold Italic.ttf")
+    url("./Times New Roman Bold Italic.ttf")
       format("truetype");
   font-weight: 700;
   font-style: italic;
@@ -12,9 +12,9 @@
 @font-face {
   font-family: "Times New Roman";
   src:
-    url("https://hightex.okta/fonts/TimesNewRomanPS-BoldMT.woff2")
+    url("./TimesNewRomanPS-BoldMT.woff2")
       format("woff2"),
-    url("https://hightex.okta/fonts/Times New Roman Bold.ttf")
+    url("./Times New Roman Bold.ttf")
       format("truetype");
   font-weight: 700;
   font-style: normal;
@@ -23,8 +23,8 @@
 @font-face {
   font-family: "Times New Roman";
   src:
-    url("https://hightex.okta/fonts/TimesNewRomanPSMT.woff2") format("woff2"),
-    url("https://hightex.okta/fonts/Times New Roman.ttf") format("truetype");
+    url("./TimesNewRomanPSMT.woff2") format("woff2"),
+    url("./Times New Roman.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
 }
@@ -32,9 +32,9 @@
 @font-face {
   font-family: "Times New Roman";
   src:
-    url("https://hightex.okta/fonts/TimesNewRomanPS-ItalicMT.woff2")
+    url("./TimesNewRomanPS-ItalicMT.woff2")
       format("woff2"),
-    url("https://hightex.okta/fonts/Times New Roman Italic.ttf")
+    url("./Times New Roman Italic.ttf")
       format("truetype");
   font-weight: 400;
   font-style: italic;

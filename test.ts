@@ -1,3 +1,4 @@
+//@ts-ignore
 import Cite, { plugins } from "citation-js";
 import fs from "fs";
 import path from "path";
@@ -39,3 +40,13 @@ const outputIndonesia = dataUji.format("bibtex", {
   format: "text",
 });
 console.log(outputIndonesia);
+
+const System = {
+  print: {
+    out(...args: any) {
+      console.log(...args);
+    },
+  },
+};
+
+System.print.out("Hello World");

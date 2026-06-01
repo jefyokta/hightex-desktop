@@ -2,6 +2,7 @@ import { ParsedItalic } from "@/utils/parse-italic";
 import { usePrintable } from "@/hooks/use-printable";
 import { formatDate } from "@/utils/date";
 import { format } from "date-fns";
+import React from "react";
 
 const getOrdinalSuffix = (dayStr: string) => {
   const day = parseInt(dayStr, 10);
@@ -115,21 +116,14 @@ export const AbstractIndonesian = () => {
       <div
         className="abstract-id"
         style={{ textAlign: "justify", fontSize: "12pt", lineHeight: "1.5" }}
-      >
-        {/* {abstractEn && (
-                    <div dangerouslySetInnerHTML={{ __html: abstractEn }} />
-                )} */}
-        {/* {keywords?.english && (
-                    <p style={{ marginTop: '1em' }}>
-                        <b>Keywords: </b>
-                        <span dangerouslySetInnerHTML={{ __html: keywords.english }} />
-                    </p>
-                )} */}
-      </div>
+      ></div>
       <p style={{ marginTop: "1em" }}>
         <b>Kata Kunci: </b>{" "}
         {keywords.indonesian.map((k, i) => (
-          <ParsedItalic key={i} text={k} />
+          <React.Fragment key={i}>
+            <ParsedItalic text={k} />
+            {i !== keywords.english.length - 1 && ", "}
+          </React.Fragment>
         ))}
       </p>
     </section>
@@ -267,7 +261,10 @@ export const AbstractEnglish = () => {
       <p style={{ marginTop: "1em" }}>
         <b>Keywords: </b>{" "}
         {keywords.english.map((k, i) => (
-          <span key={i}>{k}</span>
+          <span key={i}>
+            {k}
+            {i !== keywords.english.length - 1 && ", "}
+          </span>
         ))}
       </p>
     </section>

@@ -11,6 +11,7 @@ import { LogoutModalProvider } from "@/context/logout-modal-context";
 import { LoginModal } from "@/components/login-modal";
 import { ErrorSlave } from "@/slaves/error";
 import { Toaster } from "sonner";
+import { OpenFileSlave } from "@/slaves/open-file";
 
 const applyTheme = (theme: "light" | "dark" | "system") => {
   const root = document.documentElement;
@@ -48,6 +49,7 @@ export const MainLayout = () => {
 
   return (
     <ErrorProvider>
+      <OpenFileSlave />
       <ErrorSlave />
       <TooltipProvider>
         <UserProvider>

@@ -3,8 +3,6 @@ import { Counter } from "tjsn-parser";
 export class PageNumberResolver {
   private counter = 1;
 
-  private counterIntro = 0;
-
   resolve() {
     this.resolvePageContent();
     // this.resolvePageIntro()

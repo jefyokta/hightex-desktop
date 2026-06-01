@@ -20,6 +20,10 @@ export class HighTexHandler {
       }
     });
 
+    ipcMain.handle("hightex:readFile", async (_ev, filePath: string) => {
+      return await fs.promises.readFile(filePath);
+    });
+
     ipcMain.handle("hightex:pdf", async (event, id: string) => {
       if (!id) {
         throw new Error("Document id is required for PDF export.");
@@ -38,7 +42,9 @@ export class HighTexHandler {
       } catch (error) {
         LoggerService.write(error, "hightex:pdf");
         progress("PDF export failed", 0);
-        throw error instanceof Error ? error : new Error("Unable to export PDF.");
+        throw error instanceof Error
+          ? error
+          : new Error("Unable to export PDF.");
       }
     });
 

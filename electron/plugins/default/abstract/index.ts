@@ -1,7 +1,7 @@
-//@ts-ignore
 const storage: {
   abstract?: { words: string[]; errorAdded: boolean };
   "abstract-en"?: { words: string[]; errorAdded: boolean };
+  //@ts-ignore
 } = (db as any) ? db : {};
 if (!storage.abstract) {
   storage.abstract = { words: [], errorAdded: false };

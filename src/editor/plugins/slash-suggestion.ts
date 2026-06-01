@@ -34,7 +34,7 @@ const commands: SlashCommand[] = [
             const numbering = (image.numbering || "").toLowerCase();
 
             const textMatch = (image.text || [])
-              .map((n) => "")
+              .map((_n) => "")
               .join(" ")
               .toLowerCase();
 
@@ -84,7 +84,7 @@ const commands: SlashCommand[] = [
             const numbering = (table.numbering || "").toLowerCase();
 
             const textMatch = (table.text || [])
-              .map((n) => "")
+              .map((_n) => "")
               .join(" ")
               .toLowerCase();
 

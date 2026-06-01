@@ -212,8 +212,8 @@ export const Preview = () => {
           key={frameKey}
           src={
             scope === "current"
-              ? `/#/print/${Document.current!.getId()}`
-              : `#/document/${Document.instance!.id}/print`
+              ? `/print/${Document.current!.getId()}`
+              : `/document/${Document.instance!.id}/print`
           }
           ref={frameRef}
           onLoad={async () => {

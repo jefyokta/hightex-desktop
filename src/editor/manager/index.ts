@@ -90,33 +90,9 @@ export class Manager {
     return fn(...args);
   }
 
-  static async deleteDocument(documentId: string, version?: string) {
+  static async deleteDocument(documentId: string, _version?: string) {
     const db = HighTexDB.getInstance();
-
-    const prefix = `${documentId}.`;
-
-    if (!version) {
-      await db.documents.delete(documentId);
-
-      const keys = await db.chapters
-        .where("id")
-        .between(prefix, prefix + "\uffff")
-        .primaryKeys();
-
-      await db.chapters.bulkDelete(keys as string[]);
-
-      return;
-    }
-
-    const keys = await db.chapters
-      .where("id")
-      .between(prefix, prefix + "\uffff")
-      .filter((chapter) => {
-        return chapter.id.endsWith(`.${version}`);
-      })
-      .primaryKeys();
-
-    await db.chapters.bulkDelete(keys as string[]);
+    await db.deleteDocument(documentId);
   }
   static element() {
     const el = document.getElementById("page");

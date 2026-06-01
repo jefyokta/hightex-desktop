@@ -51,7 +51,9 @@ contextBridge.exposeInMainWorld("hightex", {
   onPrefetchProgress: (cb: (data: any) => void) => {
     progressCallback = cb;
   },
-  onPdfProgress: (cb: (data: { status: string; progress?: number }) => void) => {
+  onPdfProgress: (
+    cb: (data: { status: string; progress?: number }) => void,
+  ) => {
     const handler = (_: any, data: { status: string; progress?: number }) => {
       cb(data);
     };
@@ -74,6 +76,15 @@ contextBridge.exposeInMainWorld("hightex", {
   profile: async () => {
     return await ipcRenderer.invoke("hightex:profile");
   },
+  onOpenFile(cb) {
+    const listenr = (_: any, path: string) => {
+      cb(path);
+    };
+    ipcRenderer.on("file:open", listenr);
+    return () => ipcRenderer.removeListener("file:open", listenr);
+  },
+  readFile: (filePath: string) =>
+    ipcRenderer.invoke("hightex:readFile", filePath),
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
   user: () => {

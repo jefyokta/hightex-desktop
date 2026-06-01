@@ -1,7 +1,10 @@
+// application.ts
+
 import fs from "fs";
 import { app, BrowserWindow, Menu, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+
 import { ConfigHandler } from "../handlers/config-handler";
 import { ProfileHandler } from "../handlers/profile-handlers";
 import { SessionHandler } from "../handlers/session-handlers";
@@ -13,20 +16,28 @@ import { KeyManagerService } from "../service/key-manager-service";
 import { DefaultPluginsBootstrapper } from "../plugins/plugin-default-boostraper";
 import { ZoteroHandler } from "../handlers/zotero-handler";
 
+import { LocalServer } from "../server";
+import { FileOpenManager } from "../service/file-open-service";
+
 export class Application {
   private win: BrowserWindow | null = null;
 
+  private server: LocalServer | null = null;
+  private fileOpen?: FileOpenManager;
+
   private readonly __dirname = path.dirname(fileURLToPath(import.meta.url));
+
   static instance: Application;
 
   constructor() {
     Application.instance = this;
   }
+
   private get appRoot() {
     return this.resolveAppRoot();
   }
 
-  get rendererDist() {
+  public get rendererDist() {
     return path.join(this.appRoot, "dist");
   }
 
@@ -59,7 +70,9 @@ export class Application {
   ];
 
   public bootstrap() {
-    app.on("window-all-closed", () => {
+    app.on("window-all-closed", async () => {
+      await this.server?.stop();
+
       if (process.platform !== "darwin") {
         app.quit();
         this.win = null;
@@ -73,8 +86,12 @@ export class Application {
         this.createWindow();
       }
     });
-
-    app.on("open-file", () => {});
+    this.fileOpen = new FileOpenManager((filePath) => {
+      console.log("open %s", filePath);
+      this.win?.webContents.send("file:open", filePath);
+      this.win?.focus();
+    });
+    this.fileOpen.bootstrap(app);
 
     app.whenReady().then(() => this.onReady());
   }
@@ -83,6 +100,7 @@ export class Application {
     const found = this.preloadCandidates.find((candidate) =>
       fs.existsSync(candidate),
     );
+
     if (!found) {
       throw new Error(
         "Unable to find preload entry. Checked: " +
@@ -93,7 +111,7 @@ export class Application {
     return found;
   }
 
-  private createWindow() {
+  private async createWindow() {
     const publicPath = process.env.VITE_DEV_SERVER_URL
       ? this.publicRoot
       : this.rendererDist;
@@ -101,11 +119,21 @@ export class Application {
     this.win = new BrowserWindow({
       width: 1200,
       height: 800,
+
       titleBarStyle: process.platform === "darwin" ? "hiddenInset" : undefined,
-      ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
+
+      ...(process.platform !== "darwin"
+        ? {
+            titleBarOverlay: true,
+          }
+        : {}),
+
       icon: path.join(publicPath, "electron-vite.svg"),
+
       webPreferences: {
         preload: this.preloadEntry,
+        contextIsolation: true,
+        // sandbox: false,
       },
     });
 
@@ -129,53 +157,79 @@ export class Application {
     });
 
     if (process.env.VITE_DEV_SERVER_URL) {
-      this.win.loadURL(process.env.VITE_DEV_SERVER_URL);
-    } else {
-      this.win.loadFile(path.join(this.rendererDist, "index.html"));
+      await this.win.loadURL(process.env.VITE_DEV_SERVER_URL);
+
+      return;
     }
+
+    this.server = new LocalServer(this.rendererDist);
+
+    await this.server.start();
+
+    await this.win.loadURL(this.server.url);
   }
 
-  private onReady() {
+  private async onReady() {
     KeyManagerService.ensure();
+
     DefaultPluginsBootstrapper.installAll();
+
     PluginManager.loadAll();
-    // console.log(PluginManager.plugins);
-    this.createWindow();
-    this.registerContextMenu();
+
     this.registerHandlers();
+    await this.createWindow();
+
+    this.registerContextMenu();
+    this.fileOpen?.flush();
   }
 
   private registerContextMenu() {
     this.win?.webContents.on("context-menu", (_event, params) => {
       const menu = new Menu();
+
       menu.append(
         new MenuItem({
           label: "Inspect Element",
+
           click: () => {
             this.win!.webContents.inspectElement(params.x, params.y);
           },
         }),
       );
-      menu.popup({ window: this.win! });
+
+      menu.popup({
+        window: this.win!,
+      });
     });
   }
 
   private registerHandlers() {
     ConfigHandler.register();
+
     SessionHandler.register();
+
     ProfileHandler.register();
+
     HighTexHandler.register();
+
     PluginHandler.register();
+
     PluginScannerHandler.register();
+
     ZoteroHandler.register();
   }
+
   public resolveRendererUrl(route = "/") {
-    const normalized = route.startsWith("/") ? route : `/${route}`;
+    const normalized = route;
 
     if (process.env.VITE_DEV_SERVER_URL) {
-      return `${process.env.VITE_DEV_SERVER_URL}/#${normalized}`;
+      return `${process.env.VITE_DEV_SERVER_URL}${normalized}`;
     }
 
-    return `file://${path.join(this.rendererDist, "index.html")}#${normalized}`;
+    if (!this.server) {
+      throw new Error("Renderer server has not started yet");
+    }
+
+    return `${this.server.url}/${normalized}`;
   }
 }

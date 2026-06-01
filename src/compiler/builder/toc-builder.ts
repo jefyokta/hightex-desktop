@@ -35,7 +35,7 @@ export class TocBuilder {
 
     const text = document.createElement("span");
     text.classList.add("toc-text");
-    text.textContent = heading.textContent ?? "";
+    text.textContent = (heading.textContent ?? "").trim();
 
     const dots = document.createElement("span");
     dots.classList.add("toc-dots");
@@ -82,7 +82,7 @@ export class TocBuilder {
     return wrapper;
   }
 
-  static assignPageNumbers() {
+  static async assignPageNumbers() {
     const rows = document.querySelectorAll<HTMLAnchorElement>("a.toc-row");
 
     rows.forEach((row) => {
@@ -112,44 +112,54 @@ export class TocBuilder {
       if (pagedHeading) {
         const pagedPage = pagedHeading.closest<HTMLElement>(".pagedjs_page");
 
-        pageEl.textContent =
-          pagedPage?.querySelector(".hasContent")?.textContent ?? "";
+        pageEl.textContent = (
+          pagedPage?.querySelector(".hasContent")?.textContent ?? ""
+        ).trim();
       }
     });
-
-    document.fonts.ready.then(() => {
-      requestAnimationFrame(() => TocBuilder.fillLeaders());
-    });
+    await TocBuilder.fillLeaders();
   }
 
-  private static fillLeaders() {
-    document
-      .querySelectorAll<HTMLElement>(".toc-row.sub , .toc-row.subsub")
-      .forEach((row) => {
-        const text = row.querySelector<HTMLElement>(".toc-text");
-        const dots = row.querySelector<HTMLElement>(".toc-dots");
-        const page = row.querySelector<HTMLElement>(".toc-page");
-        if (!text || !dots || !page) return;
+  static fillLeaders(): Promise<void> {
+    return new Promise((resolve) => {
+      const run = () => {
+        document
+          .querySelectorAll<HTMLElement>(".toc-row.sub, .toc-row.subsub")
+          .forEach((row) => {
+            const text = row.querySelector<HTMLElement>(".toc-text");
+            const dots = row.querySelector<HTMLElement>(".toc-dots");
+            const page = row.querySelector<HTMLElement>(".toc-page");
+            if (!text || !dots || !page) return;
 
-        dots.textContent = "";
+            dots.textContent = "";
 
-        const textRects = text.getClientRects();
-        if (!textRects.length) return;
+            const textRects = text.getClientRects();
+            if (!textRects.length) return;
 
-        const lastLine = textRects[textRects.length - 1];
-        const pageRect = page.getBoundingClientRect();
-        const available = pageRect.left - lastLine.right - 6;
+            const lastLine = textRects[textRects.length - 1];
+            const pageRect = page.getBoundingClientRect();
+            const available = pageRect.left - lastLine.right - 6;
 
-        if (available <= 4) return;
+            if (available <= 4) return;
 
-        dots.textContent = ".";
-        const dotW = dots.getBoundingClientRect().width;
-        dots.textContent = "";
+            dots.textContent = ".";
+            const dotW = dots.getBoundingClientRect().width;
+            dots.textContent = "";
 
-        if (dotW > 0) {
-          const n = Math.floor(available / dotW);
-          if (n > 0) dots.textContent = ".".repeat(n);
-        }
-      });
+            const n = Math.floor(available / dotW);
+            if (n > 0) dots.textContent = ".".repeat(n);
+          });
+
+        resolve();
+      };
+
+      if (document.fonts?.ready) {
+        document.fonts.ready.then(() => {
+          requestAnimationFrame(() => requestAnimationFrame(run));
+        });
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(run));
+      }
+    });
   }
 }

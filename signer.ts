@@ -31,6 +31,6 @@ export function signDefaultPlugin(pluginDir: string, privateKey: string) {
 
   fs.writeFileSync(manifestPath, JSON.stringify(signedManifest, null, 2));
 }
-signDefaultPlugin("electron/plugins/default/reference", PRIVATE_KEY);
+signDefaultPlugin("electron/plugins/default/reference", PRIVATE_KEY!);
 
-signDefaultPlugin("electron/plugins/default/text-lint", PRIVATE_KEY);
+signDefaultPlugin("electron/plugins/default/text-lint", PRIVATE_KEY!);

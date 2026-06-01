@@ -1,4 +1,4 @@
-import { Editor, Node, Range } from "@tiptap/core";
+import { Node, Range } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import Suggestion from "@tiptap/suggestion";

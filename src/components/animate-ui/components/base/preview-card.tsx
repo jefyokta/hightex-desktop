@@ -1,5 +1,3 @@
-import * as React from "react";
-
 import {
   PreviewCard as PreviewCardPrimitive,
   PreviewCardTrigger as PreviewCardTriggerPrimitive,

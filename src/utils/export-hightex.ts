@@ -37,6 +37,10 @@ export async function exportHighTexDocument(documentId: string) {
     const file = `data/${buildEntryName(chapter.id)}.json`;
     return { file, id: buildEntryName(chapter.id) };
   });
+  structureChapters.push({
+    file: "data/reference.json",
+    id: "reference",
+  });
 
   const manifest = {
     format: "hightex",
@@ -88,8 +92,8 @@ export async function exportHighTexDocument(documentId: string) {
   };
 
   const entries: Record<string, Uint8Array> = {
-    "manifest.json": strToU8(JSON.stringify(manifest, null, 2)),
-    "document.json": strToU8(JSON.stringify(documentJson, null, 2)),
+    "manifest.json": strToU8(JSON.stringify(manifest)),
+    "document.json": strToU8(JSON.stringify(documentJson)),
     "meta/export.json": strToU8(
       JSON.stringify(
         {
@@ -104,8 +108,13 @@ export async function exportHighTexDocument(documentId: string) {
 
   for (const chapter of chapters) {
     const entryName = `data/${buildEntryName(chapter.id)}.json`;
-    entries[entryName] = strToU8(JSON.stringify(chapter.content, null, 2));
+    entries[entryName] = strToU8(JSON.stringify(chapter.content));
   }
+  const bib: Record<string, string> = {};
+  (await HighTexDB.getInstance().cite.toArray()).forEach((k) => {
+    bib[k.key] = k.bib;
+  });
+  entries["data/reference.json"] = strToU8(JSON.stringify(bib));
 
   try {
     return zipSync(entries, { level: 9 });

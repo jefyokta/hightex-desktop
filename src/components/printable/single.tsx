@@ -7,7 +7,7 @@ import BaseHandler from "@/compiler/handlers/basehandler";
 import { Engine } from "@/compiler/engine";
 import { Chapter } from "@/editor/chapter";
 import { cn } from "@/lib/utils";
-import { FrameManager } from "@/frame/manager";
+// import { FrameManager } from "@/frame/manager";
 // import { BreakHandler } from "@/compiler/handlers/break-handler";
 
 Paged.registerHandlers(BaseHandler);
@@ -58,6 +58,7 @@ export const Single = () => {
       })
       .run()
       .then(async (engine) => {
+        console.log("memek")
         await engine.createPaged();
       });
 

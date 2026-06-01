@@ -427,6 +427,7 @@ function HighlightItem<T extends React.ElementType>({
   React.useImperativeHandle(ref, () => localRef.current as HTMLDivElement);
 
   const refCallback = React.useCallback((node: HTMLElement | null) => {
+    //@ts-ignore
     localRef.current = node as HTMLDivElement;
   }, []);
 

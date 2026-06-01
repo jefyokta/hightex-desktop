@@ -4,7 +4,6 @@ import { Navbar } from "@/components/navbar";
 import { isMac } from "@/utils/is-mac";
 import { useEffect, useState } from "react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { EventBus } from "@/event/event-bus";
 import { Manager } from "@/editor/manager";
 
 export const AppLayout = () => {

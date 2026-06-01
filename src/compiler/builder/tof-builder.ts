@@ -64,7 +64,7 @@ export class TOFBuilder {
 
     const text = document.createElement("span");
     text.classList.add("toc-text");
-    text.textContent = caption.textContent ?? "";
+    text.textContent = (caption.textContent ?? "").trim();
 
     const dots = document.createElement("span");
     dots.classList.add("toc-dots");
@@ -105,8 +105,9 @@ export class TOFBuilder {
 
       if (pagedCaption) {
         const pagedPage = pagedCaption.closest<HTMLElement>(".pagedjs_page");
-        pageEl.textContent =
-          pagedPage?.querySelector(".hasContent")?.textContent ?? "";
+        pageEl.textContent = (
+          pagedPage?.querySelector(".hasContent")?.textContent ?? ""
+        ).trim();
       }
     });
 

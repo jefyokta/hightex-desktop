@@ -5,12 +5,6 @@ export const Foreword = () => {
   const { document, profile } = usePrintable();
   if (!document) return null;
 
-  const today = new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
-
   return (
     <section className="introduction new-page page-break">
       <h1 className="pra-title chapter" id="foreword">

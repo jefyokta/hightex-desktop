@@ -1,46 +1,92 @@
-// @see - https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.hightex.app",
-  "asar": true,
   "productName": "HighTex",
+  "asar": true,
+
   "directories": {
     "output": "release/${version}"
   },
+
   "files": [
     "dist",
     "dist-electron"
   ],
+
   "mac": {
-    "target": [
-      "dmg"
-    ],
+    "target": ["dmg"],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
-    "icon":"dist/hightex.icns"
+    "icon": "dist/hightex.icns",
+
+    "fileAssociations": [
+      {
+        "ext": "hightex",
+        "name": "HighTex Document",
+        "role": "Editor"
+      },
+      {
+        "ext": "ht",
+        "name": "HighTex Document (Short)",
+        "role": "Editor"
+      },
+      {
+        "ext": "htx",
+        "name": "HighTex Package",
+        "role": "Editor"
+      }
+    ]
   },
+
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": [
-          "x64"
-        ]
+        "arch": ["x64"]
       }
     ],
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}",
-     icon":"dist/hightex.ico"
+    "icon": "dist/hightex.ico",
 
+    "fileAssociations": [
+      {
+        "ext": "hightex",
+        "name": "HighTex Document"
+      },
+      {
+        "ext": "ht",
+        "name": "HighTex Document (Short)"
+      },
+      {
+        "ext": "htx",
+        "name": "HighTex Package"
+      }
+    ]
   },
+
+  "linux": {
+    "target": ["AppImage"],
+    "artifactName": "${productName}-Linux-${version}.${ext}",
+
+    "fileAssociations": [
+      {
+        "ext": "hightex",
+        "name": "HighTex Document"
+      },
+      {
+        "ext": "ht",
+        "name": "HighTex Document (Short)"
+      },
+      {
+        "ext": "htx",
+        "name": "HighTex Package"
+      }
+    ]
+  },
+
   "nsis": {
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
-  },
-  "linux": {
-    "target": [
-      "AppImage"
-    ],
-    "artifactName": "${productName}-Linux-${version}.${ext}"
   }
 }

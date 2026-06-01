@@ -9,6 +9,7 @@ import { TocBuilder } from "../builder/toc-builder";
 import { PageNumberResolver } from "../resolver/page-number-resolver";
 import { TOFBuilder } from "../builder/tof-builder";
 import ChapterListener from "../handlers/chapter-listener";
+import { ImageQueue } from "../queues/image-queue";
 
 type EngineMode = "single" | "full";
 
@@ -106,12 +107,15 @@ export class Engine {
     if (!this.config?.parser) {
       throw new Error("Parser config not initialized");
     }
+        console.log("memeks")
+
     await this.pipeline.run().catch(console.log);
 
     return this;
   }
 
   async createPaged() {
+    console.log("creating pages..")
     if (!this.root) throw new Error("Engine root not mounted");
 
     const content = this.config.paged?.content;
@@ -125,45 +129,52 @@ export class Engine {
     const wrapper = document.createElement("div");
     wrapper.innerHTML = content.innerHTML;
 
-    let cssText = "";
-    Array.from(document.styleSheets).forEach((sheet) => {
-      try {
-        Array.from(sheet.cssRules).forEach((r) => {
-          cssText += r.cssText + "\n";
-        });
-      } catch {}
-    });
+    // let cssText = "";
+    // Array.from(document.styleSheets).forEach((sheet) => {
+    //   try {
+    //     Array.from(sheet.cssRules).forEach((r) => {
+    //       cssText += r.cssText + "\n";
+    //     });
+    //   } catch {}
+    // });
     const fragment = document.createDocumentFragment();
 
     fragment.append(wrapper);
 
-    const styleEl = document.createElement("style");
-    styleEl.textContent = cssText;
+    // const styleEl = document.createElement("style");
+    // styleEl.textContent = cssText;
 
     const chunker = await new Paged.Previewer({ auto: false })
       .preview(fragment, undefined, renderTo)
-      .then((c) => {
+      .then(async (c) => {
         new PageNumberResolver().resolve();
         this.root.remove();
-        TOFBuilder.assignPageNumbers();
-        TocBuilder.assignPageNumbers();
+        if (this.parser.mode == "full") {
+          TOFBuilder.assignPageNumbers();
+          await TocBuilder.assignPageNumbers();
+        }
         return c;
       });
-    const shouldInteractive = window.inFrame ? true : false;
-    if (shouldInteractive) await new Interactable().resolve(this);
+    if (this.isInFrame()) await new Interactable().resolve(this);
     await this.finishCallback(this);
     document.dispatchEvent(
       new CustomEvent("page:rendered", { detail: { engine: this } }),
     );
 
     FrameManager.sendMessage("page:rendered", { totalPages: chunker.total });
- 
+
     this.dispathToMainProcess();
+      for (const obj of ImageQueue.objectUrls) {
+      URL.revokeObjectURL(obj);
+    }
     return chunker;
   }
 
   destroy() {
     this.finishCallback = () => {};
+  }
+  isInFrame() {
+    return window.parent && window.parent !== window;
   }
 
   private dispathToMainProcess() {
@@ -180,9 +191,14 @@ export class Engine {
     (window as any).__hightexExportPayload = payload;
 
     try {
-      window.ipcRenderer.send(`page:payload:${this.parser.document.id}`, payload);
+      window.ipcRenderer.send(
+        `page:payload:${this.parser.document.id}`,
+        payload,
+      );
     } catch (error) {
       console.error("Unable to send export payload to main process", error);
     }
+
+ 
   }
 }

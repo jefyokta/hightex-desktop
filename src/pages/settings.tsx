@@ -28,6 +28,9 @@ import {
   TooltipTrigger,
   TooltipPanel,
 } from "@/components/animate-ui/components/base/tooltip";
+import { toast } from "sonner";
+import { cleanUnused } from "@/utils/clean-unused-data";
+import { HighTexDB } from "@/editor/storage/hightex-db";
 
 export const Settings = () => {
   const [config, setConfig] = useState<ConfigShape | null>(null);
@@ -328,7 +331,35 @@ export const Settings = () => {
             label="Clear Cache"
             description="Remove temporary stored data"
             action="Clear"
-            onClick={async () => await window.config.reset()}
+            onClick={async () => {
+              const id = toast.loading("Resetting config...");
+
+              try {
+                await window.config.reset();
+
+                toast.loading("Cleaning unused data...", {
+                  id,
+                });
+
+                const result = await cleanUnused();
+
+                toast.success(
+                  result.deleted
+                    ? `Cleanup completed. ${result.deleted} unused chapters deleted`
+                    : "Cleanup completed. No unused chapters found",
+                  {
+                    id,
+                  },
+                );
+              } catch (error) {
+                toast.error(
+                  error instanceof Error ? error.message : "Cleanup failed",
+                  {
+                    id,
+                  },
+                );
+              }
+            }}
           />
 
           <Separator />
@@ -337,7 +368,43 @@ export const Settings = () => {
             label="Clear Data"
             description="Delete all of your documents"
             action="Clear"
-            onClick={() => {}}
+            onClick={async () => {
+              const confirmed = confirm(
+                "Are you sure you want to delete all documents?",
+              );
+
+              if (!confirmed) return;
+
+              const id = toast.loading("Deleting documents...");
+
+              try {
+                const docs = await HighTexDB.getDocuments();
+
+                let deleted = 0;
+
+                for (const doc of docs) {
+                  toast.loading(
+                    `Deleting ${deleted + 1}/${docs.length}: ${doc.title || doc.id}`,
+                    { id },
+                  );
+
+                  await HighTexDB.getInstance().deleteDocument(doc.id);
+
+                  deleted++;
+                }
+
+                toast.success(`${deleted} documents deleted successfully`, {
+                  id,
+                });
+              } catch (error) {
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to delete documents",
+                  { id },
+                );
+              }
+            }}
           />
         </CardContent>
       </Card>
@@ -406,7 +473,6 @@ const ProfileSection = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // LOAD PROFILE
   useEffect(() => {
     let mounted = true;
 

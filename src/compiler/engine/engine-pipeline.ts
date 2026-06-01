@@ -8,12 +8,14 @@ import { Resolver } from "../resolver/resolver";
 import { HeadingResolver } from "../resolver/heading-resolver";
 import { CaptionResolver } from "../resolver/caption-resolver";
 import { TreeResolver } from "../resolver/tree-resolver";
+import { KatexResolver } from "../resolver/katex-resolver";
 
 export class EnginePipeline {
   private engine: Engine;
 
   private steps: Resolver[] = [
     new ParserResolver(),
+    new KatexResolver(),
     new HeadingResolver(),
     new CaptionResolver(),
     new CitationResolver(),
