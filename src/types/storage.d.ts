@@ -51,6 +51,7 @@ declare global {
     config: HighTexConfig;
     updatedAt?: Date;
     file?: HighTexFileMeta;
+    min?:boolean
   }
 
   interface CiteRecord {

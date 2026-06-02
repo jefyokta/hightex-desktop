@@ -100,6 +100,7 @@ declare global {
     author?: string;
     chapters?: { chapter: number; page: number }[];
     hasWm?: boolean;
+    keywords?:string[]
   };
   interface PluginScannerAPI {
     paragraph(

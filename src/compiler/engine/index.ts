@@ -22,11 +22,6 @@ export type ParserContext<T extends EngineMode = EngineMode> =
     : {
         mode: "full";
         document: Document;
-        biblio?: HTMLElement;
-        abstractEn?: HTMLElement;
-        abstractId?: HTMLElement;
-        foreword?: HTMLElement;
-        presentation?: HTMLElement;
       };
 
 export type EngineConfig = {
@@ -35,6 +30,7 @@ export type EngineConfig = {
     content?: HTMLElement;
     renderTo?: HTMLElement;
   };
+  profile?:DocumentProfile
 };
 
 export class Engine {
@@ -163,6 +159,7 @@ export class Engine {
 
     FrameManager.sendMessage("page:rendered", { totalPages: chunker.total });
 
+
     this.dispathToMainProcess();
       for (const obj of ImageQueue.objectUrls) {
       URL.revokeObjectURL(obj);
@@ -178,7 +175,7 @@ export class Engine {
   }
 
   private dispathToMainProcess() {
-    if (this.parser.mode == "single" || window.inFrame) {
+    if (this.parser.mode == "single" || this.isInFrame()) {
       return;
     }
 
@@ -186,6 +183,9 @@ export class Engine {
     const payload: ExportPayload = {
       chapters: stack,
       title: this.parser.document.getDocument().title,
+      author:this.config.profile?.name,
+      keywords:this.parser.document.getDocument().keywords.indonesian.map(k=>k.replace("_",""))
+    
     };
 
     (window as any).__hightexExportPayload = payload;

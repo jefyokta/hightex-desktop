@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { BrowserWindow, ipcMain, dialog } from "electron";
+import { BrowserWindow, ipcMain, dialog} from "electron";
 import { PDFDocument } from "pdf-lib";
 
 import { Application } from "../main/application";
@@ -11,13 +11,12 @@ export class PDFService {
 
   private createWindow() {
     this.window = new BrowserWindow({
-      //   show: false,
+      show: false,
       width: 1280,
       height: 2000,
       backgroundColor: "#fff",
       webPreferences: {
         preload: Application.instance.preloadEntry,
-        // sandbox: false,
         contextIsolation: true,
       },
     });
@@ -29,10 +28,7 @@ export class PDFService {
     return `page:payload:${docId}`;
   }
 
-  private waitForExport(
-    docId: string,
-    win: BrowserWindow,
-  ): Promise<ExportPayload> {
+  private waitForExport(docId: string, win: BrowserWindow): Promise<ExportPayload> {
     const channel = this.channel(docId);
     const renderedChannel = `page:rendered:${docId}`;
 
@@ -62,28 +58,17 @@ export class PDFService {
 
           cleanup();
 
-          if (payload) {
-            resolve(payload as ExportPayload);
-            return;
-          }
-
-          reject(
-            new Error(
-              `Render completed but no export payload available for docId: ${docId}`,
-            ),
-          );
-        } catch (error) {
+          if (payload) resolve(payload as ExportPayload);
+          else reject(new Error(`No export payload for docId: ${docId}`));
+        } catch (err) {
           cleanup();
-          reject(error);
+          reject(err);
         }
       });
     });
   }
 
-  async generate(
-    docId: string,
-    progress?: (status: string, value?: number) => void,
-  ) {
+  async generate(docId: string, progress?: (s: string, v?: number) => void) {
     const win = this.createWindow();
 
     try {
@@ -92,27 +77,49 @@ export class PDFService {
       );
 
       progress?.("Loading print view...", 20);
+
       const exportPayloadPromise = this.waitForExport(docId, win);
 
       await new Promise<void>((resolve, reject) => {
         win.webContents.once("did-finish-load", () => resolve());
-        win.webContents.once(
-          "did-fail-load",
-          (_event, errorCode, errorDescription, validatedURL) => {
-            reject(
-              new Error(
-                `Print view failed to load: ${errorDescription} (${errorCode}) ${validatedURL}`,
-              ),
-            );
-          },
-        );
+        win.webContents.once("did-fail-load", (_e, code, desc, url) => {
+          reject(new Error(`Print failed: ${desc} (${code}) ${url}`));
+        });
 
         win.loadURL(url).catch(reject);
       });
 
       progress?.("Rendering document...", 40);
+
       const exportPayload = await exportPayloadPromise;
-      progress?.("Generating PDF...", 65);
+
+      await win.webContents.executeJavaScript(`
+        document.title = ${JSON.stringify(exportPayload.title ?? "Untitled")};
+
+        const metaAuthor = document.createElement("meta");
+        metaAuthor.name = "author";
+        metaAuthor.content = ${JSON.stringify(exportPayload.author ?? "HighTeX")};
+        document.head.appendChild(metaAuthor);
+
+        const metaSubject = document.createElement("meta");
+        metaSubject.name = "subject";
+        metaSubject.content = JSON.stringify({
+          producer: "HighTeX",
+          docId: ${JSON.stringify(docId)},
+          chapters: ${JSON.stringify(exportPayload.chapters ?? [])},
+          hasWm: ${JSON.stringify(exportPayload.hasWm ?? false)}
+        });
+        document.head.appendChild(metaSubject);
+
+        window.__hightex_meta = {
+          producer: "HighTeX",
+          docId: ${JSON.stringify(docId)},
+          chapters: ${JSON.stringify(exportPayload.chapters ?? [])},
+          hasWm: ${JSON.stringify(exportPayload.hasWm ?? false)}
+        };
+      `);
+
+      progress?.("Generating PDF...", 70);
 
       const pdfBuffer = await win.webContents.printToPDF({
         printBackground: true,
@@ -126,31 +133,37 @@ export class PDFService {
         },
       });
 
-      const pdf = await PDFDocument.load(pdfBuffer);
+      progress?.("Applying metadata (safe mode)...", 85);
 
-      if (exportPayload.author) {
-        pdf.setAuthor(exportPayload.author);
-      }
+      const pdfDoc = await PDFDocument.load(pdfBuffer, {
+        ignoreEncryption: true,
+      });
 
-      pdf.setCreator("HighTeX");
-      pdf.setProducer("HighTeX");
+      const safeTitle = exportPayload.title?.replace(/<[^>]*>/g, "") ?? "Untitled";
 
-      if (exportPayload.title) {
-        pdf.setTitle(exportPayload.title.replace(/<[^>]*>/g, ""));
-      }
+      pdfDoc.setTitle(safeTitle);
+      pdfDoc.setAuthor(exportPayload.author ?? "HighTeX");
 
-      pdf.attach(
-        new TextEncoder().encode(
-          JSON.stringify({
-            chapters: exportPayload.chapters ?? [],
-            hasWm: exportPayload.hasWm ?? false,
-          }),
-        ),
-        "meta-data.json",
-        { mimeType: "application/json" },
+      pdfDoc.setSubject(
+        JSON.stringify({
+          producer: "HighTeX",
+          docId,
+          chapters: exportPayload.chapters ?? [],
+          hasWm: exportPayload.hasWm ?? false,
+        }),
       );
 
-      return await pdf.save();
+      pdfDoc.setCreator("HighTeX");
+      pdfDoc.setProducer("HighTeX");
+      pdfDoc.setKeywords(exportPayload.keywords || [])
+      pdfDoc.setCreationDate( new Date);
+      
+
+      progress?.("Finalizing...", 95);
+
+      const finalPdf = await pdfDoc.save();
+
+      return finalPdf;
     } finally {
       if (this.window && !this.window.isDestroyed()) {
         this.window.destroy();
@@ -161,7 +174,7 @@ export class PDFService {
 
   async exportPDF(
     docId: string,
-    progress?: (status: string, value?: number) => void,
+    progress?: (s: string, v?: number) => void,
   ) {
     const result = await dialog.showSaveDialog({
       title: "Export PDF",
@@ -173,7 +186,8 @@ export class PDFService {
 
     const buffer = await this.generate(docId, progress);
 
-    progress?.("Saving PDF file...", 95);
+    progress?.("Saving PDF file...", 100);
+
     await fs.writeFile(result.filePath, buffer);
 
     return {

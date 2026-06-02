@@ -32,7 +32,6 @@ export const FullDocument = () => {
     ) {
       return;
     }
-
     Engine.getInstance()
       .mount(parserRef.current)
       .withConfig({
@@ -44,6 +43,7 @@ export const FullDocument = () => {
           renderTo: renderRef.current!,
           content: sourceRef.current,
         },
+        profile
       })
       .interactable()
       .whenPagesCreated(() => {
