@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { BrowserWindow, ipcMain, dialog} from "electron";
+import { BrowserWindow, ipcMain, dialog } from "electron";
 import { PDFDocument } from "pdf-lib";
 
 import { Application } from "../main/application";
@@ -28,7 +28,10 @@ export class PDFService {
     return `page:payload:${docId}`;
   }
 
-  private waitForExport(docId: string, win: BrowserWindow): Promise<ExportPayload> {
+  private waitForExport(
+    docId: string,
+    win: BrowserWindow,
+  ): Promise<ExportPayload> {
     const channel = this.channel(docId);
     const renderedChannel = `page:rendered:${docId}`;
 
@@ -139,7 +142,8 @@ export class PDFService {
         ignoreEncryption: true,
       });
 
-      const safeTitle = exportPayload.title?.replace(/<[^>]*>/g, "") ?? "Untitled";
+      const safeTitle =
+        exportPayload.title?.replace(/<[^>]*>/g, "") ?? "Untitled";
 
       pdfDoc.setTitle(safeTitle);
       pdfDoc.setAuthor(exportPayload.author ?? "HighTeX");
@@ -155,9 +159,8 @@ export class PDFService {
 
       pdfDoc.setCreator("HighTeX");
       pdfDoc.setProducer("HighTeX");
-      pdfDoc.setKeywords(exportPayload.keywords || [])
-      pdfDoc.setCreationDate( new Date);
-      
+      pdfDoc.setKeywords(exportPayload.keywords || []);
+      pdfDoc.setCreationDate(new Date());
 
       progress?.("Finalizing...", 95);
 
@@ -172,10 +175,7 @@ export class PDFService {
     }
   }
 
-  async exportPDF(
-    docId: string,
-    progress?: (s: string, v?: number) => void,
-  ) {
+  async exportPDF(docId: string, progress?: (s: string, v?: number) => void) {
     const result = await dialog.showSaveDialog({
       title: "Export PDF",
       defaultPath: `document-${docId}.pdf`,

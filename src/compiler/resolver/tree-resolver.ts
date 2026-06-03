@@ -7,7 +7,7 @@ export class TreeResolver implements Resolver {
   async resolve(engine: Engine): Promise<any> {
     return new Promise((res) => {
       if (engine.config.parser.mode == "single") {
-        res(1)
+        res(1);
         return;
       }
       const parent = engine.root.parentElement!;

@@ -21,7 +21,7 @@ export class ParserResolver implements Resolver {
       root.classList.add(chapter.getHtmlClass() || "");
       if (!content) return;
       parser.render(content, root);
-      await this.resolveImages(root)
+      await this.resolveImages(root);
       return;
     }
     if (ctx.mode === "full") {
@@ -48,8 +48,8 @@ export class ParserResolver implements Resolver {
       if (att) {
         parent?.append(att);
       }
-      await this.resolveImages(root)
-    
+      await this.resolveImages(root);
+
       return;
     }
   }
@@ -57,24 +57,24 @@ export class ParserResolver implements Resolver {
   createWrapper() {
     return document.createElement("section");
   }
-  async resolveImages(root:HTMLElement){
-      const imgs = Array.from(root.querySelectorAll("img"));
+  async resolveImages(root: HTMLElement) {
+    const imgs = Array.from(root.querySelectorAll("img"));
 
-      for (const img of imgs) {
-        if (img.src.startsWith("data:image/")) {
-          console.warn("image still using base64")
-          continue
-        };
-        const n = img.src.split("/");
-        const s = n[n.length - 1];
-
-        const blob = await HighTexDB.getInstance().getBlob(s);
-        if (blob) {
-          const src = URL.createObjectURL(blob);
-          ImageQueue.objectUrls.push(src);
-
-          img.src = src;
-        }
+    for (const img of imgs) {
+      if (img.src.startsWith("data:image/")) {
+        console.warn("image still using base64");
+        continue;
       }
+      const n = img.src.split("/");
+      const s = n[n.length - 1];
+
+      const blob = await HighTexDB.getInstance().getBlob(s);
+      if (blob) {
+        const src = URL.createObjectURL(blob);
+        ImageQueue.objectUrls.push(src);
+
+        img.src = src;
+      }
+    }
   }
 }

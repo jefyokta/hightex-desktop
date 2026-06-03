@@ -50,7 +50,7 @@ export class HighTexDB extends Dexie {
       .toArray();
 
     const chapterIds = chapters.map((c) => c.id);
-    await this.images.where("documentId").equals(documentId).delete()
+    await this.images.where("documentId").equals(documentId).delete();
     await Promise.all([
       this.chapters.bulkDelete(chapterIds),
       this.deleteChapterGraphs(chapterIds),

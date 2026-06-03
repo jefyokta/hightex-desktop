@@ -30,7 +30,7 @@ export type EngineConfig = {
     content?: HTMLElement;
     renderTo?: HTMLElement;
   };
-  profile?:DocumentProfile
+  profile?: DocumentProfile;
 };
 
 export class Engine {
@@ -103,7 +103,7 @@ export class Engine {
     if (!this.config?.parser) {
       throw new Error("Parser config not initialized");
     }
-        console.log("memeks")
+    console.log("memeks");
 
     await this.pipeline.run().catch(console.log);
 
@@ -111,7 +111,7 @@ export class Engine {
   }
 
   async createPaged() {
-    console.log("creating pages..")
+    console.log("creating pages..");
     if (!this.root) throw new Error("Engine root not mounted");
 
     const content = this.config.paged?.content;
@@ -159,9 +159,8 @@ export class Engine {
 
     FrameManager.sendMessage("page:rendered", { totalPages: chunker.total });
 
-
     this.dispathToMainProcess();
-      for (const obj of ImageQueue.objectUrls) {
+    for (const obj of ImageQueue.objectUrls) {
       URL.revokeObjectURL(obj);
     }
     return chunker;
@@ -183,9 +182,10 @@ export class Engine {
     const payload: ExportPayload = {
       chapters: stack,
       title: this.parser.document.getDocument().title,
-      author:this.config.profile?.name,
-      keywords:this.parser.document.getDocument().keywords.indonesian.map(k=>k.replace("_",""))
-    
+      author: this.config.profile?.name,
+      keywords: this.parser.document
+        .getDocument()
+        .keywords.indonesian.map((k) => k.replace("_", "")),
     };
 
     (window as any).__hightexExportPayload = payload;
@@ -198,7 +198,5 @@ export class Engine {
     } catch (error) {
       console.error("Unable to send export payload to main process", error);
     }
-
- 
   }
 }

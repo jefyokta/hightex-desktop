@@ -39,7 +39,7 @@ export const AbstractIndonesian = () => {
         }}
         className="pra-title"
       >
-        {title}
+        <ParsedItalic text={title} />
       </h1>
 
       <div

@@ -58,7 +58,7 @@ export const Single = () => {
       })
       .run()
       .then(async (engine) => {
-        console.log("memek")
+        console.log("memek");
         await engine.createPaged();
       });
 

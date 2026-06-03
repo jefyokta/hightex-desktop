@@ -48,156 +48,132 @@ type RefProps = {
   reference?: string;
 };
 const ImageRef = ({ reference }: RefProps) => {
-    const [image, setImage] = useState<ImageGraph>();
-    const [src, setSrc] = useState<string>();
+  const [image, setImage] = useState<ImageGraph>();
+  const [src, setSrc] = useState<string>();
 
-    const nav = useNavigate();
-    const { setParams } = useParams();
+  const nav = useNavigate();
+  const { setParams } = useParams();
 
-    useEffect(() => {
-        let mounted = true;
-        let objectUrl: string | null;
+  useEffect(() => {
+    let mounted = true;
+    let objectUrl: string | null;
 
-        const resolveImage = async (doc: Document) => {
-            try {
-                const img = (await doc.getImages()).find(
-                    (i) => i.id === reference,
-                );
+    const resolveImage = async (doc: Document) => {
+      try {
+        const img = (await doc.getImages()).find((i) => i.id === reference);
 
-                if (!img) {
-                    throw new NodeNotFound(
-                        "Missing Image Figure!",
-                        "Image Figure",
-                    );
-                }
-
-                if (!mounted) return;
-
-                setImage(img);
-
-                if (!img.imgSrc) {
-                    setSrc(undefined);
-                    return;
-                }
-
-                if (img.imgSrc.startsWith("data:")) {
-                    setSrc(img.imgSrc);
-                    return;
-                }
-
-                const url = await HighTexDB
-                    .getInstance()
-                    .getBlobUrl(img.imgSrc);
-
-                if (!mounted) {
-                    if (url?.startsWith("blob:")) {
-                        URL.revokeObjectURL(url);
-                    }
-                    return;
-                }
-
-                objectUrl = url;
-
-                setSrc(url ?? undefined);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        const doc = Document.instance;
-
-        if (doc?.ready) {
-            void resolveImage(doc);
+        if (!img) {
+          throw new NodeNotFound("Missing Image Figure!", "Image Figure");
         }
 
-        const offDocument = Manager.app.on(
-            "document:warmed",
-            ({ document }) => {
-                void resolveImage(document);
-            },
-        );
+        if (!mounted) return;
 
-        const offChapter = Manager.app.on(
-            "chapter:update",
-            () => {
-                if (Document.instance) {
-                    void resolveImage(Document.instance);
-                }
-            },
-        );
+        setImage(img);
 
-        return () => {
-            mounted = false;
+        if (!img.imgSrc) {
+          setSrc(undefined);
+          return;
+        }
 
-            offDocument();
-            offChapter();
+        if (img.imgSrc.startsWith("data:")) {
+          setSrc(img.imgSrc);
+          return;
+        }
 
-            if (objectUrl?.startsWith("blob:")) {
-                URL.revokeObjectURL(objectUrl);
-            }
-        };
-    }, [reference]);
+        const url = await HighTexDB.getInstance().getBlobUrl(img.imgSrc);
 
-    const href = image
-        ? `/document/${image.chapterId.replace(".", "/")}?target=${reference}`
-        : "";
+        if (!mounted) {
+          if (url?.startsWith("blob:")) {
+            URL.revokeObjectURL(url);
+          }
+          return;
+        }
 
-    return (
-        <PreviewCard>
-            <PreviewCardTrigger
-                render={
-                    <a
-                        data-ref={reference}
-                        data-href={href}
-                        onClick={() => {
-                            if (!image) return;
+        objectUrl = url;
 
-                            if (
-                                image.chapterId ===
-                                Document.current?.getId()
-                            ) {
-                                Manager.scrollTo(reference!);
-                                return;
-                            }
+        setSrc(url ?? undefined);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-                            setParams([reference]);
+    const doc = Document.instance;
 
-                            nav(href);
-                        }}
-                    >
-                        {image
-                            ? `Gambar ${image.numbering}`
-                            : "Loading"}
-                    </a>
-                }
+    if (doc?.ready) {
+      void resolveImage(doc);
+    }
+
+    const offDocument = Manager.app.on("document:warmed", ({ document }) => {
+      void resolveImage(document);
+    });
+
+    const offChapter = Manager.app.on("chapter:update", () => {
+      if (Document.instance) {
+        void resolveImage(Document.instance);
+      }
+    });
+
+    return () => {
+      mounted = false;
+
+      offDocument();
+      offChapter();
+
+      if (objectUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [reference]);
+
+  const href = image
+    ? `/document/${image.chapterId.replace(".", "/")}?target=${reference}`
+    : "";
+
+  return (
+    <PreviewCard>
+      <PreviewCardTrigger
+        render={
+          <a
+            data-ref={reference}
+            data-href={href}
+            onClick={() => {
+              if (!image) return;
+
+              if (image.chapterId === Document.current?.getId()) {
+                Manager.scrollTo(reference!);
+                return;
+              }
+
+              setParams([reference]);
+
+              nav(href);
+            }}
+          >
+            {image ? `Gambar ${image.numbering}` : "Loading"}
+          </a>
+        }
+      />
+
+      <PreviewCardPanel>
+        <div className="flex flex-col gap-2">
+          {src && (
+            <img
+              src={src}
+              alt={`Gambar ${image?.numbering}`}
+              className="aspect-auto rounded-2xl"
+              loading="lazy"
             />
+          )}
 
-            <PreviewCardPanel>
-                <div className="flex flex-col gap-2">
-                    {src && (
-                        <img
-                            src={src}
-                            alt={`Gambar ${image?.numbering}`}
-                            className="aspect-auto rounded-2xl"
-                            loading="lazy"
-                        />
-                    )}
+          <div className="text-xs text-center">
+            <span>{image ? `Gambar ${image.numbering} ` : ""}</span>
 
-                    <div className="text-xs text-center">
-                        <span>
-                            {image
-                                ? `Gambar ${image.numbering} `
-                                : ""}
-                        </span>
-
-                        <TextRenderer
-                            texts={image?.text ?? []}
-                        />
-                    </div>
-                </div>
-            </PreviewCardPanel>
-        </PreviewCard>
-    );
+            <TextRenderer texts={image?.text ?? []} />
+          </div>
+        </div>
+      </PreviewCardPanel>
+    </PreviewCard>
+  );
 };
 const TableRef = ({ reference }: RefProps) => {
   const [table, setTable] = useState<TableGraph>();

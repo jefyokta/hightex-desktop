@@ -43,7 +43,7 @@ export const FullDocument = () => {
           renderTo: renderRef.current!,
           content: sourceRef.current,
         },
-        profile
+        profile,
       })
       .interactable()
       .whenPagesCreated(() => {
