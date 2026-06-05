@@ -195,6 +195,7 @@ const EditorComponent = () => {
     },
 
     onContentError: (props) => {
+      console.log(props)
       throw new EditorContentError(props.editor);
     },
 

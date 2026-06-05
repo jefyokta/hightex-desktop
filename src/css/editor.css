@@ -11,7 +11,13 @@ figcaption {
 .page h4 {
   margin-left: 1.27cm;
 }
-
+.node-grid *{
+  border: 0 !important;
+}
+.node-grid {
+  display: block !important;
+  font-size: 12pt !important;
+}
 .page h1 {
   font-size: 14pt;
   font-weight: 700;

@@ -180,7 +180,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
       ) : load.status === "loading" ? (
         <LoadingView width={width} />
       ) : load.status === "error" ? (
-        <ErrorView message={load.message} onDeleteNode={deleteNode} />
+        <UploadView onSelect={handleUpload} onDeleteNode={deleteNode} />
       ) : (
         <UploadView onSelect={handleUpload} onDeleteNode={deleteNode} />
       )}
@@ -244,24 +244,10 @@ const ReadyView: React.FC<ReadyViewProps> = ({
 
 const LoadingView: React.FC<{ width: number }> = ({ width }) => (
   <div
-    className="flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded"
-    style={{ width, height: Math.round(width * 0.6) }}
+    className="flex items-center justify-center w-full bg-neutral-100 dark:bg-neutral-800 rounded"
+    style={{ height: Math.round(width * 0.6) }}
   >
     <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
-  </div>
-);
-
-const ErrorView: React.FC<{ message: string; onDeleteNode: () => void }> = ({
-  message,
-  onDeleteNode,
-}) => (
-  <div className="relative border border-dashed border-red-300 dark:border-red-800 rounded bg-red-50 dark:bg-red-950/20 w-72 h-24 flex flex-col items-center justify-center text-sm text-red-500 dark:text-red-400 p-4 gap-1">
-    <span className="text-xs font-mono text-center break-all">{message}</span>
-    <div className="absolute top-2 right-2">
-      <IconBtn tooltip="Remove node" variant="danger" onClick={onDeleteNode}>
-        <X className="w-4 h-4" />
-      </IconBtn>
-    </div>
   </div>
 );
 

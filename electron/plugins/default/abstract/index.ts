@@ -11,7 +11,7 @@ if (!storage["abstract-en"]) {
 }
 
 export default {
-  id: "",
+  id: "abstract",
   version: "1.0.0",
   scanner: {
     onNode(node, ctx) {

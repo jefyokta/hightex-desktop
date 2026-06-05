@@ -6,21 +6,18 @@ import { Engine } from "../engine";
 import { Resolver } from "./resolver";
 
 export class StaticChapterResolver implements Resolver {
-
   private builders = [
-    new AbstractENBuilder,
-    new AbstractIDBuilder,
-    new ForewordBuilder,
-    new PresentationBuilder
-
-  ]
+    new AbstractENBuilder(),
+    new AbstractIDBuilder(),
+    new ForewordBuilder(),
+    new PresentationBuilder(),
+  ];
   async resolve(engine: Engine) {
     if (engine.config.parser.mode == "single") {
       return;
     }
-    for(const builder of this.builders){
-      await builder.build(engine.config.parser.document)
+    for (const builder of this.builders) {
+      await builder.build(engine.config.parser.document);
     }
-
   }
 }

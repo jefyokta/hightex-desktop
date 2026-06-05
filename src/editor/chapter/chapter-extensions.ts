@@ -16,6 +16,7 @@ import { FigureTable } from "../extensions/figure-table";
 import { MathBlock, MathInline } from "../extensions/math";
 import { NodeShortcut } from "../extensions/node-shortcut";
 import { Table, TableKit } from "@tiptap/extension-table";
+import { Grid, GridCell, GridRow } from "../extensions/grid";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -73,6 +74,10 @@ export class ChapterExtensions {
       MathInline,
       MathBlock,
       NodeShortcut,
+      Grid,
+      GridCell,
+      GridRow
+
     ];
   }
 

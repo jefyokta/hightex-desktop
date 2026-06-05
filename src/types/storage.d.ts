@@ -26,6 +26,7 @@ declare global {
       title: string;
     }[];
     id: number;
+    min?:boolean
   }
   interface Mentor extends User {
     role: "primary" | "secondary";

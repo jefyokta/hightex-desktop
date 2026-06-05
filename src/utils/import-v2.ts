@@ -6,10 +6,8 @@ import { HighTexImportError } from "@/exception/hightex-import";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
 
-
-
 export class HighTexImporter {
-  public context!: ImportContextV1;
+  public context!: ImportContext;
 
   static async create(file: File) {
     const importer = new HighTexImporter();
@@ -23,7 +21,7 @@ export class HighTexImporter {
 
     const manifest = this.findManifest(entries);
 
-    const documentId = manifest.document?.id ?? crypto.randomUUID();
+    const documentId = manifest?.document?.id || "";
 
     const db = HighTexDB.getInstance();
     const doc = await db.documents.get(documentId);
@@ -62,13 +60,13 @@ export class HighTexImporter {
       const document = await this.createDocument();
 
       await this.importChapters(document.id);
+      await this.importReferences();
+      await this.importImages(document.id);
 
       await Storage.instance.setDocument(document);
 
       const doc = new Document(document.id);
-
       await doc.warm();
-
       doc.destroy();
 
       return document;
@@ -88,73 +86,88 @@ export class HighTexImporter {
 
     const remoteCategories = await window.hightex.categories();
 
+    const categoryId = manifest.document?.category;
+
     const category =
-      remoteCategories.find(
-        (item) => item.name === manifest.document?.category?.name,
-      ) ?? remoteCategories[0];
+      remoteCategories.find((item) => item.id.toString() === categoryId) ??
+      remoteCategories[0];
 
     return {
       id: this.actualDocumentId,
       category: category?.id.toString() ?? "0",
-      title: manifest.document?.title?.main ?? "Imported Document",
-      altTitle: manifest.document?.title?.alt ?? "",
+      title: manifest.document?.title?.id ?? "Imported Document",
+      altTitle: manifest.document?.title?.en ?? "",
       keywords: normalizeKeywords(manifest.document?.keywords),
       config: {},
       updatedAt: new Date(),
-    };
+    } satisfies Omit<HighTexDocument, "file">;
   }
 
   async importChapters(documentId: string) {
-    const chapters = this.manifest.structure?.chapters ?? [];
+    const keys = Object.keys(this.entries);
 
-    for (const chapterMeta of chapters) {
-      await this.importChapter(documentId, chapterMeta);
+    const chapterKeys = keys.filter((k) => k.startsWith("files/chapters/"));
+
+    for (const key of chapterKeys) {
+      const entry = this.entries[key];
+      if (!entry) continue;
+
+      const fileName = key.split("/").pop() ?? key;
+      const chapterName = mapFileToChapterName(
+        fileName.replace(/\.json$/i, ""),
+      );
+
+      const content = normalizeChapterContent(JSON.parse(strFromU8(entry)));
+
+      const chapterId = `${documentId}.${chapterName}`;
+
+      await this.context.db.chapters.put({ id: chapterId, content });
     }
   }
 
-  async importChapter(
-    documentId: string,
-    chapterMeta: {
-      file: string;
-      id: string;
-    },
-  ) {
-    const chapterEntry = findZipEntry(this.entries, chapterMeta.file);
+  async importReferences() {
+    const entry = findZipEntry(this.entries, "files/assets/references.json");
+    if (!entry) return;
 
-    if (!chapterEntry) return;
+    const refs = JSON.parse(strFromU8(entry));
 
-    const chapterName = mapFileToChapterName(chapterMeta.file);
+    await this.context.db.cite.bulkPut(convertReferenceToCollection(refs));
+  }
 
-    if (chapterName === "reference") {
-      const refs = JSON.parse(strFromU8(chapterEntry));
-
-      await this.context.db.cite.bulkPut(convertReferenceToCollection(refs));
-
-      return;
-    }
-
-    if (chapterName === "config" || chapterName === "document") {
-      return;
-    }
-
-    const content = normalizeChapterContent(
-      JSON.parse(strFromU8(chapterEntry)),
+  async importImages(documentId: string) {
+    const keys = Object.keys(this.entries).filter(
+      (k) => k.endsWith(".webp") && k.includes("files/assets/images/"),
     );
 
-    const chapterId = `${documentId}.${chapterName}`;
+    for (const key of keys) {
+      const entry = this.entries[key];
+      if (!entry) continue;
 
-    await this.context.db.chapters.put({
-      id: chapterId,
-      content,
-    });
+      const fileName = key.split("/").pop() ?? key;
+      const id = fileName.replace(/\.webp$/i, "");
+
+      const blob = new Blob([entry.slice().buffer], { type: "image/webp" });
+
+      const record: ImageRecord = {
+        id,
+        blob,
+        documentId,
+        createdAt: Date.now(),
+      };
+
+      try {
+        await this.context.db.images.add(record);
+      } catch (e) {
+        // if exists, replace
+        await this.context.db.images.put(record);
+      }
+    }
   }
 
   getConfig() {
-    const configEntry = findZipEntry(this.entries, "config.json");
+    const configEntry = findZipEntry(this.entries, "files/config.json");
 
-    if (!configEntry) {
-      return {};
-    }
+    if (!configEntry) return {};
 
     const raw = JSON.parse(strFromU8(configEntry));
 
@@ -179,20 +192,24 @@ export class HighTexImporter {
       );
     }
 
-    return JSON.parse(strFromU8(entries[manifestEntryKey])) as HighTexManifest;
+    return JSON.parse(
+      strFromU8(entries[manifestEntryKey]),
+    ) as HighTexManifestV2;
   }
 }
 
-export async function importHighTexPackage(file: File) {
+export async function importHighTexV2Package(file: File) {
   const importer = await HighTexImporter.create(file);
 
   return importer.import();
 }
 
-const normalizeKeywords = (keywords: any): Keywords => {
+const normalizeKeywords = (
+  keywords: HighTexManifestV2["document"]["keywords"],
+): Keywords => {
   return {
-    indonesian: Array.isArray(keywords?.indonesian) ? keywords.indonesian : [],
-    english: Array.isArray(keywords?.english) ? keywords.english : [],
+    indonesian: Array.isArray(keywords?.id) ? keywords.id : [],
+    english: Array.isArray(keywords?.en) ? keywords.en : [],
   };
 };
 
@@ -201,7 +218,7 @@ const normalizeChapterContent = (value: any): JSONContent[] => {
     return value;
   }
 
-  if (value && Array.isArray(value.content)) {
+  if (value && Array.isArray(value?.content)) {
     return value.content;
   }
 
@@ -221,11 +238,7 @@ const parseDateField = (value: unknown): Date | undefined => {
 };
 
 const mapFileToChapterName = (filePath: string) => {
-  const fileName =
-    filePath
-      .split("/")
-      .pop()
-      ?.replace(/\.json$/i, "") ?? "";
+  const fileName = filePath.split("/").pop() ?? "";
 
   const map: Record<string, string> = {
     id: "abstract",

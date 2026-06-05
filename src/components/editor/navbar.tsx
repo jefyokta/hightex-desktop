@@ -2,7 +2,6 @@ import {
   ArrowLeftIcon,
   Bold,
   DownloadCloudIcon,
-  GitBranch,
   Heading2,
   Heading3,
   Heading4,
@@ -123,7 +122,12 @@ export const NavBar: React.FC = () => {
             <ButtonGroup>
               <Button
                 icon={Table}
-                onClick={() => editor.chain().focus().addFigureTable()}
+                onClick={() => editor.chain()?.focus().insertContent({
+                  type: "grid", content: [
+                    { type: "gridRow", content: [{ type: "gridCell", content: [{ type: "paragraph", content: [{type:"text",text:"a cell"}] }] }] },
+                    { type: "gridRow", content: [{ type: "gridCell", content: [{ type: "paragraph", content: [{type:"text",text:"a cell"}] }] }] },
+                  ]
+                }).run()}
               />
               <Button
                 icon={Image}
@@ -183,10 +187,6 @@ export const NavBar: React.FC = () => {
               />
             </ButtonGroup>
           </div>
-
-          <ButtonGroup>
-            <Button icon={GitBranch} />
-          </ButtonGroup>
         </div>
       </div>
     </div>

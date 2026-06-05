@@ -29,7 +29,7 @@ import {
   TooltipPanel,
 } from "@/components/animate-ui/components/base/tooltip";
 import { toast } from "sonner";
-import { cleanUnused } from "@/utils/clean-unused-data";
+import { cleanUnusedProgress } from "@/utils/clean-unused-data";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 
 export const Settings = () => {
@@ -341,16 +341,35 @@ export const Settings = () => {
                   id,
                 });
 
-                const result = await cleanUnused();
-
-                toast.success(
-                  result.deleted
-                    ? `Cleanup completed. ${result.deleted} unused chapters deleted`
-                    : "Cleanup completed. No unused chapters found",
-                  {
-                    id,
-                  },
-                );
+                try {
+                  // use async iterator to show progress
+                  for await (const ev of cleanUnusedProgress()) {
+                    if (ev.type === "start") {
+                      toast.loading(
+                        `Cleaning: 0/${ev.totals.chapters} chapters, 0/${ev.totals.images} images`,
+                        { id },
+                      );
+                    } else if (ev.type === "chapter") {
+                      toast.loading(
+                        `Deleting chapters: ${ev.index}/${ev.total}`,
+                        { id },
+                      );
+                    } else if (ev.type === "image") {
+                      toast.loading(
+                        `Deleting images: ${ev.index}/${ev.total}`,
+                        { id },
+                      );
+                    } else if (ev.type === "done") {
+                      toast.success(
+                        `Cleanup completed. ${ev.deletedChapters} chapters and ${ev.deletedImages} images deleted`,
+                        { id },
+                      );
+                    }
+                  }
+                } catch (err) {
+                  // fallback: show generic message
+                  toast.error("Cleanup failed", { id });
+                }
               } catch (error) {
                 toast.error(
                   error instanceof Error ? error.message : "Cleanup failed",

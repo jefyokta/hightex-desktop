@@ -31,4 +31,3 @@ genereate-keys.ts
 src/editor/extensions/ai
 src/editor/plugins/ai-suggestion.ts
 
-scheme/
