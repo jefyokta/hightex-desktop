@@ -41,8 +41,8 @@ export const AppLayout = () => {
         <div
           className={`flex-1 overflow-hidden pb-5 pr-5 ${!isMac ? "pt-5" : ""}`}
         >
-          <div className="h-full flex bg-white dark:bg-neutral-950  rounded-2xl py-5 text-neutral-900 dark:text-neutral-100 transition-colors">
-            <div className="w-full h-full flex flex-col p-1 overflow-hidden">
+          <div className="h-full flex bg-white dark:bg-neutral-950 rounded-2xl py-5 text-neutral-900 dark:text-neutral-100 transition-colors">
+            <div className="flex-1 p-6 max-w-3xl mx-auto overflow-auto relative w-full space-y-6">
               <Outlet />
             </div>
           </div>

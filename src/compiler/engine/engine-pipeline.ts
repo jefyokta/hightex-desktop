@@ -10,6 +10,7 @@ import { CaptionResolver } from "../resolver/caption-resolver";
 import { TreeResolver } from "../resolver/tree-resolver";
 import { KatexResolver } from "../resolver/katex-resolver";
 import { StaticChapterResolver } from "../resolver/static-chapter-resolver";
+import { CodeBlockResolver } from "../resolver/code-block-resolver";
 
 export class EnginePipeline {
   private engine: Engine;
@@ -17,6 +18,7 @@ export class EnginePipeline {
   private steps: Resolver[] = [
     new ParserResolver(),
     new StaticChapterResolver(),
+    new CodeBlockResolver(),
     new KatexResolver(),
     new HeadingResolver(),
     new CaptionResolver(),

@@ -28,6 +28,7 @@ import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { Document } from "@/editor/document";
 import { toast } from "sonner";
+import { createFigureTable } from "@/editor/utils/create-figure-table";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -122,12 +123,91 @@ export const NavBar: React.FC = () => {
             <ButtonGroup>
               <Button
                 icon={Table}
-                onClick={() => editor.chain()?.focus().insertContent({
-                  type: "grid", content: [
-                    { type: "gridRow", content: [{ type: "gridCell", content: [{ type: "paragraph", content: [{type:"text",text:"a cell"}] }] }] },
-                    { type: "gridRow", content: [{ type: "gridCell", content: [{ type: "paragraph", content: [{type:"text",text:"a cell"}] }] }] },
-                  ]
-                }).run()}
+                onClick={() =>
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent({
+                      type: "grid",
+                      content: [
+                        {
+                          type: "gridRow",
+                          content: [
+                            {
+                              type: "gridCell",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "a cell" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "gridCell",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "a cell" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "gridCell",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "a cell" }],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                        {
+                          type: "gridRow",
+                          content: [
+                            {
+                              type: "gridCell",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "a cell" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "gridCell",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "a cell" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "gridCell",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "a cell" }],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    })
+                    .run()
+                }
+              />
+              <Button
+                icon={Table}
+                onClick={() =>
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent(createFigureTable())
+                    .run()
+                }
               />
               <Button
                 icon={Image}

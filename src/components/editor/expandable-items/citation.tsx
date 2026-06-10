@@ -9,6 +9,7 @@ import { TabHeader } from "./components/tab-header";
 
 import { CiteUtils } from "bibtex.js";
 import { Dropdown } from "@/components/dropdown";
+import { HighTexDB } from "@/editor/storage/hightex-db";
 
 type CopyType = "cite-a" | "cite";
 
@@ -24,7 +25,7 @@ export const Citation = () => {
       try {
         setLoading(true);
 
-        const data = await Storage.instance.getCites();
+        const data = await HighTexDB.getInstance().getCites();
 
         setCites(data);
       } finally {

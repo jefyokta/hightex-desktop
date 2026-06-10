@@ -3,14 +3,12 @@ import { Dropdown, DropdownItem } from "../dropdown";
 import { Row } from "./rows";
 import { ChangeEvent } from "react";
 interface Props {
-    documents:HighTexDocument[],
-    onRename: (id: string, title: string)=>Promise<void>,
-    onDelete:(id: string)=>Promise<void>,
-    onExport:(id: string,format?: ContentFormat)=>Promise<void>,
-    onImport:(event: ChangeEvent<HTMLInputElement>)=>Promise<void>,
-    onCreate:()=>Promise<void>
-
- 
+  documents: HighTexDocument[];
+  onRename: (id: string, title: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  onExport: (id: string, format?: ContentFormat) => Promise<void>;
+  onImport: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  onCreate: () => Promise<void>;
 }
 export const DocumentList = ({
   documents,

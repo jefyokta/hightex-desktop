@@ -51,11 +51,21 @@ img {
 .attachment {
   page: attachment;
 }
+pre code * {
+  white-space: pre !important;
+}
 
 /* .attachment h1 {} */
 figure {
   break-inside: avoid !important;
   page-break-inside: avoid !important;
+}
+.node-grid * {
+  border: 0 !important;
+}
+.node-grid {
+  display: block !important;
+  font-size: 12pt !important;
 }
 
 figure[data-type="imageFigure"],

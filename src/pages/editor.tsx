@@ -18,7 +18,7 @@ import { Document } from "@/editor/document";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
 import { FrameManager } from "@/frame/manager";
 import { ContextMenuPopup } from "@/components/context-menu";
-import { getContextMenuItems } from "@/editor/context-menu.tsx";
+import { getContextMenuItems } from "@/editor/context-menu";
 import { openContextMenu } from "@/hooks/use-context-menu";
 import { Eye, TrashIcon } from "lucide-react";
 import { FrameNotOpened } from "@/exception/frame-not-opened";
@@ -195,7 +195,7 @@ const EditorComponent = () => {
     },
 
     onContentError: (props) => {
-      console.log(props)
+      console.log(props);
       throw new EditorContentError(props.editor);
     },
 
@@ -239,28 +239,10 @@ const ZoomUI = ({
           : "opacity-0 translate-y-3 pointer-events-none"
       }`}
     >
-      <div
-        className="
-          flex items-center gap-2
-          bg-white/90 dark:bg-neutral-900/90
-          backdrop-blur-xl
-          border border-neutral-200 dark:border-neutral-800
-          shadow-xl shadow-black/5 dark:shadow-black/30
-          rounded-2xl
-          px-3 py-2
-          transition-colors duration-300
-        "
-      >
+      <div className="flex items-center gap-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 shadow-xl shadow-black/5 dark:shadow-black/30 rounded-2xl px-3 py-2 transition-colors duration-300">
         <button
           onClick={onZoomOut}
-          className="
-            text-sm
-            px-2.5 py-1
-            rounded-lg
-            text-neutral-700 dark:text-neutral-300
-            hover:bg-neutral-100 dark:hover:bg-neutral-800
-            transition-colors
-          "
+          className="text-sm px-2.5 py-1 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
           −
         </button>
@@ -271,14 +253,7 @@ const ZoomUI = ({
 
         <button
           onClick={onZoomIn}
-          className="
-            text-sm
-            px-2.5 py-1
-            rounded-lg
-            text-neutral-700 dark:text-neutral-300
-            hover:bg-neutral-100 dark:hover:bg-neutral-800
-            transition-colors
-          "
+          className="text-sm px-2.5 py-1 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
           +
         </button>

@@ -6,6 +6,7 @@ import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { DocumentProfileService } from "../service/document-profile-service";
 import { PDFService } from "../service/pdf-service";
+import { CategoryService } from "../service/category-service";
 
 export class HighTexHandler {
   private static store = new Store();
@@ -79,18 +80,7 @@ export class HighTexHandler {
     });
 
     ipcMain.handle("hightex:categories", async () => {
-      try {
-        const cached = this.store.get("hightex.categories");
-        if (cached) return cached;
-
-        const res = await ServerService.request("/categories");
-
-        this.store.set("hightex.categories", res);
-        return res;
-      } catch (err) {
-        LoggerService.write(err, "hightex:categories");
-        return [];
-      }
+      return await CategoryService.getAll();
     });
 
     ipcMain.handle("dialog:select-folder", async () => {

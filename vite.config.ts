@@ -14,6 +14,18 @@ export default defineConfig({
       main: {
         // Shortcut of `build.lib.entry`.
         entry: "electron/main/index.ts",
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ["bufferutil", "utf-8-validate"],
+            },
+          },
+          resolve:{
+            alias:{
+              "@main":path.resolve(__dirname,"./electron")
+            }
+          }
+        },
       },
       preload: {
         // Shortcut of `build.rollupOptions.input`.
@@ -35,7 +47,6 @@ export default defineConfig({
     alias: {
       dexie: path.resolve(__dirname, "node_modules/dexie"),
       "@": path.resolve(__dirname, "./src"),
-      "@main": path.resolve(__dirname, "./electron"),
     },
   },
 });

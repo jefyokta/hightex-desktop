@@ -98,18 +98,16 @@ export const RemoteDocuments = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 p-6 max-w-3xl mx-auto overflow-auto relative w-full">
-        <div className="rounded-3xl bg-neutral-50 dark:bg-neutral-900 p-6 border border-neutral-100 dark:border-neutral-800 shadow-sm">
-          <div className="text-sm text-neutral-400 dark:text-neutral-500 animate-pulse">
-            Loading remote workspace...
-          </div>
+      <div className="rounded-3xl bg-neutral-50 dark:bg-neutral-900 p-6 border border-neutral-100 dark:border-neutral-800 shadow-sm">
+        <div className="text-sm text-neutral-400 dark:text-neutral-500 animate-pulse">
+          Loading remote workspace...
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 p-6 max-w-3xl mx-auto overflow-auto relative w-full space-y-6">
+    <>
       <div>
         <h1 className="text-xl font-semibold text-foreground">
           Remote Documents
@@ -167,7 +165,7 @@ export const RemoteDocuments = () => {
           }}
         />
       )}
-    </div>
+    </>
   );
 };
 const Stats = ({ online, document }: any) => {

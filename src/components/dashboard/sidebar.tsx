@@ -2,6 +2,7 @@ import {
   Cloud,
   FileText,
   Folder,
+  LucideScreenShare,
   Quote,
   Settings,
   SplitSquareVerticalIcon,
@@ -128,6 +129,11 @@ export const Sidebar = ({ recent = [] }: Props) => {
               "/dashboard/splitter",
               <SplitSquareVerticalIcon size={14} />,
               "Splitter",
+            )}
+            {navItem(
+              "/dashboard/present",
+              <LucideScreenShare size={14} />,
+              "Present",
             )}
           </div>
         </div>

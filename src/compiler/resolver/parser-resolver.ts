@@ -72,7 +72,8 @@ export class ParserResolver implements Resolver {
       if (blob) {
         const src = URL.createObjectURL(blob);
         ImageQueue.objectUrls.push(src);
-
+        const id = img.src.split("/").pop();
+        img.setAttribute("data-img-id", id ?? "");
         img.src = src;
       }
     }

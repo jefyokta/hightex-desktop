@@ -30,7 +30,81 @@ export const getContextMenuItems = (editor: Editor): ContextMenuAction[] => {
     ...FigureTableContextMenuItems(editor),
     ...MathContextMenuItems(editor),
     ...BlockquoteContextMenuItems(editor),
+    ...GridContextMenuItems(editor),
   ];
+};
+const GridContextMenuItems = (editor: Editor) => {
+  if (editor.isActive("gridCell") || editor.isActive("gridRow")) {
+    return [
+      {
+        label: "Split cell",
+        icon: <Split className="h-4 w-4" />,
+        onClick: () => editor.commands.splitCell(),
+        disabled: !editor.can().splitCell(),
+      },
+      {
+        label: "Align Left",
+        icon: <AlignLeft />,
+        onClick: () => editor.commands.setCellAlignmentLeft(),
+      },
+      {
+        label: "Align Center",
+        icon: <AlignCenter />,
+        onClick: () => editor.commands.setCellAlignmentCenter(),
+      },
+      {
+        label: "Align Right",
+        icon: <AlignRight />,
+        onClick: () => editor.commands.setCellAlignmentRight(),
+      },
+      {
+        label: "Merge cells",
+        icon: <Merge className="h-4 w-4" />,
+        onClick: () => editor.commands.mergeCells(),
+        disabled: !editor.can().mergeCells(),
+      },
+      {
+        label: "Add row after",
+        icon: <Plus className="h-4 w-4" />,
+        onClick: () => editor.chain().addRowAfter().run(),
+      },
+      {
+        label: "Add column after",
+        icon: <Plus className="h-4 w-4" />,
+        onClick: () => editor.chain().addColumnAfter().run(),
+      },
+      {
+        label: "Delete row",
+        danger: true,
+        icon: <Grid2x2X className="h-4 w-4" />,
+        onClick: () => editor.commands.deleteRow(),
+      },
+      {
+        label: "Delete column",
+        danger: true,
+        icon: <Grid2x2X className="h-4 w-4" />,
+        onClick: () => editor.commands.deleteColumn(),
+      },
+      {
+        label: "Delete grid",
+        danger: true,
+        icon: <Grid2x2X className="h-4 w-4" />,
+        onClick: () => editor.commands.deleteNode("grid"),
+      },
+    ];
+  }
+  if (editor.isActive("grid")) {
+    return [
+      {
+        label: "Delete grid",
+        danger: true,
+        icon: <Grid2x2X className="h-4 w-4" />,
+        onClick: () => editor.commands.deleteNode("grid"),
+      },
+    ];
+  }
+
+  return [];
 };
 
 const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
@@ -177,7 +251,7 @@ const FigureTableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
         label: "Delete figure table",
         icon: <Trash2 className="h-4 w-4" />,
         danger: true,
-        onClick: () => editor.commands.deleteFigureTable(),
+        onClick: () => editor.commands.deleteNode("figureTable"),
       },
     ];
   }

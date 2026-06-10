@@ -62,16 +62,7 @@ contextBridge.exposeInMainWorld("hightex", {
     return () => ipcRenderer.removeListener("hightex:pdf:progress", handler);
   },
   categories: async () => {
-    const r: false | any = await ipcRenderer.invoke("hightex:categories");
-    if (!r) {
-      return [];
-    }
-    const { data } = JSON.parse(r) as { data: RawCategory[] };
-    let tmp: Category[] = [];
-    data.forEach((d) => {
-      tmp.push({ name: d.name, chapters: JSON.parse(d.chapters), id: d.id });
-    });
-    return tmp;
+    return await ipcRenderer.invoke("hightex:categories");
   },
   profile: async () => {
     return await ipcRenderer.invoke("hightex:profile");
@@ -185,3 +176,23 @@ contextBridge.exposeInMainWorld("profile", {
     return ipcRenderer.invoke("profile:reset");
   },
 } satisfies Window["profile"]);
+
+contextBridge.exposeInMainWorld("sharing", {
+  start(payload) {
+    return ipcRenderer.invoke("sharing:start", payload);
+  },
+  info() {
+    return ipcRenderer.invoke("sharing:info");
+  },
+  stop() {
+    return ipcRenderer.invoke("sharing:stop");
+  },
+  html(docId: string) {
+    return ipcRenderer.invoke("sharing:html", docId);
+  },
+ async getSnapshot() {
+
+  return ipcRenderer.invoke("sharing:getSnapshot")
+    
+  },
+} satisfies SharingAPI);

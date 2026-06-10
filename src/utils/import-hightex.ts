@@ -6,8 +6,6 @@ import { HighTexImportError } from "@/exception/hightex-import";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
 
-
-
 export class HighTexImporter {
   public context!: ImportContextV1;
 

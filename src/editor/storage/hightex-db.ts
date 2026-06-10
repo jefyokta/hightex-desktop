@@ -1,6 +1,7 @@
 import { defaulBib } from "@/data/default-bib";
 import Dexie, { Table } from "dexie";
 import { Manager } from "../manager";
+import { CiteUtils } from "bibtex.js";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -82,5 +83,11 @@ export class HighTexDB extends Dexie {
     const validGraphs = graphs.filter((g) => g !== undefined);
 
     await Promise.all(validGraphs.map((g) => this.chapterGraphs.delete(g.id)));
+  }
+
+  async getCites() {
+    return (await this.cite.toArray()).map((c) => {
+      return new CiteUtils(c.bib).setId(c.key);
+    });
   }
 }

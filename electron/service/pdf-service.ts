@@ -71,6 +71,43 @@ export class PDFService {
     });
   }
 
+  async generateHtml(docId: string): Promise<{html:string,css:string}> {
+    const win = this.createWindow();
+
+    try {
+      const url = Application.instance.resolveRendererUrl(
+        `document/${docId}/print`,
+      );
+
+      const exportPayloadPromise = this.waitForExport(docId, win);
+
+      await new Promise<void>((resolve, reject) => {
+        win.webContents.once("did-finish-load", () => resolve());
+        win.webContents.once("did-fail-load", (_e, code, desc, url) => {
+          reject(new Error(`Print failed: ${desc} (${code}) ${url}`));
+        });
+        win.loadURL(url).catch(reject);
+      });
+
+      await exportPayloadPromise;
+
+      const snapshot = await win.webContents.executeJavaScript(`
+  (() => {
+    const html = document.querySelector('.pagedjs_pages')?.outerHTML ?? "";
+
+    const css = Array.from(document.querySelectorAll('style'))
+      .map(s => s.innerHTML)
+      .join("\\n");
+
+    return { html, css };
+  })()
+  `, true);
+
+      return snapshot as {html:string,css:string};
+    } finally {
+      if (!win.isDestroyed()) win.destroy();
+    }
+  }
   async generate(docId: string, progress?: (s: string, v?: number) => void) {
     const win = this.createWindow();
 
@@ -83,44 +120,22 @@ export class PDFService {
 
       const exportPayloadPromise = this.waitForExport(docId, win);
 
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>(async (resolve, reject) => {
         win.webContents.once("did-finish-load", () => resolve());
         win.webContents.once("did-fail-load", (_e, code, desc, url) => {
           reject(new Error(`Print failed: ${desc} (${code}) ${url}`));
         });
 
         win.loadURL(url).catch(reject);
+        await win.webContents.executeJavaScript(`
+          window.sharingMode = true;
+          
+          `);
       });
 
       progress?.("Rendering document...", 40);
 
       const exportPayload = await exportPayloadPromise;
-
-      await win.webContents.executeJavaScript(`
-        document.title = ${JSON.stringify(exportPayload.title ?? "Untitled")};
-
-        const metaAuthor = document.createElement("meta");
-        metaAuthor.name = "author";
-        metaAuthor.content = ${JSON.stringify(exportPayload.author ?? "HighTeX")};
-        document.head.appendChild(metaAuthor);
-
-        const metaSubject = document.createElement("meta");
-        metaSubject.name = "subject";
-        metaSubject.content = JSON.stringify({
-          producer: "HighTeX",
-          docId: ${JSON.stringify(docId)},
-          chapters: ${JSON.stringify(exportPayload.chapters ?? [])},
-          hasWm: ${JSON.stringify(exportPayload.hasWm ?? false)}
-        });
-        document.head.appendChild(metaSubject);
-
-        window.__hightex_meta = {
-          producer: "HighTeX",
-          docId: ${JSON.stringify(docId)},
-          chapters: ${JSON.stringify(exportPayload.chapters ?? [])},
-          hasWm: ${JSON.stringify(exportPayload.hasWm ?? false)}
-        };
-      `);
 
       progress?.("Generating PDF...", 70);
 
@@ -136,7 +151,7 @@ export class PDFService {
         },
       });
 
-      progress?.("Applying metadata (safe mode)...", 85);
+      progress?.("Applying metadata...", 85);
 
       const pdfDoc = await PDFDocument.load(pdfBuffer, {
         ignoreEncryption: true,

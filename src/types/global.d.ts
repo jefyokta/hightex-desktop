@@ -146,6 +146,7 @@ declare global {
     zotero: ZoteroAPI;
 
     plugin: { scanner: PluginScannerAPI };
+    sharing: SharingAPI;
     //cmn ada di frame yach
     /**
      * @deprecated
@@ -157,5 +158,15 @@ declare global {
     dialog: {
       selectFolder(): Promise<string | undefined>;
     };
+  }
+
+  interface SharingAPI {
+    stop(): Promisevoid<void>;
+    start(
+      payload: SharingPayload,
+    ): Promise<Omit<SharingInformation, "document">>;
+    info(): Promise<SharingInformation | undefined>;
+    html(id: string): Promise<Snapshot>;
+    getSnapshot():Promise<Snapshot>
   }
 }

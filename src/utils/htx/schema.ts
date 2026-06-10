@@ -21,8 +21,9 @@ export class Schema<TVersion extends SchemaVersion> {
 
   get reader(): TVersion extends 1 ? V1Reader : V2Reader {
     if (this._reader) return this._reader;
-    if (!this.file)  throw new ApplicationError("Cannot using reader without assign file");
-    
+    if (!this.file)
+      throw new ApplicationError("Cannot using reader without assign file");
+
     this._reader = SchemaReader.createReader(this.version, this.file);
     return this.reader;
   }

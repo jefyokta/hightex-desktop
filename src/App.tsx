@@ -22,6 +22,10 @@ import { Single } from "./components/printable/single";
 import { plugins } from "citation-js";
 // import { Print } from "./pages/print";
 import xml from "@/assets/locales-id-ID.xml?raw";
+import { Present } from "./pages/sharing";
+import { SharingLayout } from "./layouts/sharing-layout";
+import { SharingGuest } from "./pages/sharing-guest";
+import { SharingHost } from "./pages/sharing-host";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
@@ -39,6 +43,8 @@ function App() {
               path="/dashboard/projects/cloud"
               element={<RemoteDocuments />}
             />
+
+            <Route path="/dashboard/present" element={<Present />} />
             <Route path="/dashboard/projects/local" element={<Dashboard />} />
             <Route path="/dashboard/citation" element={<Citation />} />
             <Route path="/dashboard/splitter" element={<>comming soon</>} />
@@ -56,6 +62,10 @@ function App() {
         <Route element={<PrintLayout />}>
           <Route path="/document/:id/print" element={<FullDocument />} />
           <Route path="/print/:chapterId" element={<Single />} />
+        </Route>
+        <Route element={<SharingLayout />}>
+          <Route path="/share/:host/:port/:code" element={<SharingGuest />} />
+          <Route path="/shared" element={<SharingHost />} />
         </Route>
       </Routes>
     </BrowserRouter>

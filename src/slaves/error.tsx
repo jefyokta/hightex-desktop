@@ -8,6 +8,7 @@ import { useError } from "@/hooks/use-error";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
 
 export const ErrorSlave: React.FC = () => {
   const { errors, clear } = useError();
@@ -21,6 +22,11 @@ export const ErrorSlave: React.FC = () => {
     const err = latestError.error;
 
     if (!(err instanceof ApplicationError)) {
+      // console.log("error",err)
+      if (err === null) {
+        console.log("tf are you throwing error as null");
+        return;
+      }
       throw err;
     }
 
@@ -41,6 +47,11 @@ export const ErrorSlave: React.FC = () => {
       clear(latestError.id);
       go("/dashboard/");
       return;
+    }
+    if (err instanceof ShouldNotifiedWithNativeComponent) {
+
+      err.showNotification()
+      return
     }
   }, [latestError]);
 

@@ -17,6 +17,8 @@ import { MathBlock, MathInline } from "../extensions/math";
 import { NodeShortcut } from "../extensions/node-shortcut";
 import { Table, TableKit } from "@tiptap/extension-table";
 import { Grid, GridCell, GridRow } from "../extensions/grid";
+import { CustomCodeBlock } from "../extensions/code-block";
+import { Dots } from "../extensions/dots";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -38,6 +40,7 @@ export class ChapterExtensions {
         heading: false,
         listItem: false,
         paragraph: false,
+        codeBlock: false,
       }),
 
       Heading.configure({
@@ -76,8 +79,9 @@ export class ChapterExtensions {
       NodeShortcut,
       Grid,
       GridCell,
-      GridRow
-
+      GridRow,
+      CustomCodeBlock,
+      Dots
     ];
   }
 

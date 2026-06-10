@@ -1,15 +1,15 @@
 export {};
 
 declare global {
-  type HighTexFileExt = 
-  /**
-   * dynamic content
-   */
-  "hightex" |
-  /** json content */
-  "ht" |
-  /** ht content */
-  "htx";
+  type HighTexFileExt =
+    /**
+     * dynamic content
+     */
+    | "hightex"
+    /** json content */
+    | "ht"
+    /** ht content */
+    | "htx";
   interface ExportOptions {
     format: ContentFormat;
     ext: HighTexFileExt;
@@ -60,7 +60,7 @@ declare global {
       excluded?: string[];
     };
   }
-  
+
   type ImportContextV1 = {
     file: File;
     buffer: ArrayBuffer;

@@ -124,22 +124,8 @@ export class Engine {
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = content.innerHTML;
-
-    // let cssText = "";
-    // Array.from(document.styleSheets).forEach((sheet) => {
-    //   try {
-    //     Array.from(sheet.cssRules).forEach((r) => {
-    //       cssText += r.cssText + "\n";
-    //     });
-    //   } catch {}
-    // });
     const fragment = document.createDocumentFragment();
-
     fragment.append(wrapper);
-
-    // const styleEl = document.createElement("style");
-    // styleEl.textContent = cssText;
-
     const chunker = await new Paged.Previewer({ auto: false })
       .preview(fragment, undefined, renderTo)
       .then(async (c) => {

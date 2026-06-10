@@ -10,13 +10,12 @@ export class SchemaWritter {
   private chapterPath = "files/chapters";
   private contentFormat: ContentFormat = "json";
 
-  
   private entries: Record<string, Uint8Array<ArrayBufferLike>> = {};
-  constructor(){
-    this.entries['meta/export.json'] = this.jsonToU8({
-            exported_by: "HighTex Engine",
-            timestamp: new Date().toISOString()
-          })
+  constructor() {
+    this.entries["meta/export.json"] = this.jsonToU8({
+      exported_by: "HighTex Engine",
+      timestamp: new Date().toISOString(),
+    });
   }
   setContentFormat(format: ContentFormat) {
     this.contentFormat = format;
@@ -34,15 +33,14 @@ export class SchemaWritter {
     this.entries["manifest.json"] = this.jsonToU8(manifest);
   }
 
-  putConfig(conf:HighTexDocument['config']){
-    this.entries["files/config.json"] = this.jsonToU8(conf)
+  putConfig(conf: HighTexDocument["config"]) {
+    this.entries["files/config.json"] = this.jsonToU8(conf);
   }
-  putReference(cites:CiteRecord[]){
-
-    const tmp :Record<string,string>= {}
-    cites.forEach(c=>{
-      tmp[c.key] =c.bib
-    })
+  putReference(cites: CiteRecord[]) {
+    const tmp: Record<string, string> = {};
+    cites.forEach((c) => {
+      tmp[c.key] = c.bib;
+    });
     this.entries["files/assets/references.json"] = this.jsonToU8(tmp);
   }
 
@@ -57,10 +55,7 @@ export class SchemaWritter {
     return this.jsonToU8(json);
   }
 
-  getEntries(){
-    return this.entries
+  getEntries() {
+    return this.entries;
   }
-
-
-
 }

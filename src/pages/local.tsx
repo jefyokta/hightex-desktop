@@ -91,17 +91,12 @@ export const Dashboard = () => {
     await Manager.deleteDocument(id);
   };
 
-  const exportDocument = async (
-    id: string,
-    format: ContentFormat = 'json'
-  ) => {
-
+  const exportDocument = async (id: string, format: ContentFormat = "json") => {
     const toastId = toast.loading(`Exporting HighTex  package...`);
     const exporter = new Exporter(id, {
       format,
-      ext: "hightex"
-
-    })
+      ext: "hightex",
+    });
 
     try {
       const result = await exporter.export();
@@ -119,23 +114,19 @@ export const Dashboard = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="flex-1 p-6 max-w-3xl mx-auto overflow-auto relative w-full space-y-6">
-      <DocumentList
-        documents={documents}
-        onRename={renameDocument}
-        onDelete={deleteDocument}
-        onCreate={createDocument}
-        onImport={importFromFile}
-        onExport={exportDocument}
-      />
-    </div>
+    <DocumentList
+      documents={documents}
+      onRename={renameDocument}
+      onDelete={deleteDocument}
+      onCreate={createDocument}
+      onImport={importFromFile}
+      onExport={exportDocument}
+    />
   );
 };
 
-
-
 const Loading = () => (
-  <div className="h-screen flex items-center justify-center text-sm text-neutral-400">
+  <div className="flex items-center justify-center text-sm text-neutral-400">
     Loading HighTex...
   </div>
 );

@@ -16,8 +16,9 @@ import { KeyManagerService } from "../service/key-manager-service";
 import { DefaultPluginsBootstrapper } from "../plugins/plugin-default-boostraper";
 import { ZoteroHandler } from "../handlers/zotero-handler";
 
-import { LocalServer } from "../server";
+import { LocalServer } from "../server/local-server";
 import { FileOpenManager } from "../service/file-open-service";
+import { SharingHandler } from "../handlers/sharing-handler";
 
 export class Application {
   private win: BrowserWindow | null = null;
@@ -217,6 +218,7 @@ export class Application {
     PluginScannerHandler.register();
 
     ZoteroHandler.register();
+    SharingHandler.register();
   }
 
   public resolveRendererUrl(route = "/") {

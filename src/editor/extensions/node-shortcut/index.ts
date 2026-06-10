@@ -4,6 +4,7 @@ import { PluginKey } from "@tiptap/pm/state";
 import { Extension, Range } from "@tiptap/react";
 import Suggestion, { SuggestionOptions } from "@tiptap/suggestion";
 import { createRenderer } from "../utilites";
+import { createFigureTable } from "@/editor/utils/create-figure-table";
 type NSItems = {
   label: string;
   onClick: (range: Range) => any;
@@ -32,29 +33,13 @@ export const NodeShortcut = Extension.create({
                   .chain()
                   .focus()
                   .deleteRange(range)
-                  .insertContent({
-                    type: "figureTable",
-                    attrs: {
-                      id: uniqId(),
-                    },
-                    content: [
-                      {
-                        type: "figcaption",
-                        content: [
-                          {
-                            type: "text",
-                            text: table.caption || "table caption",
-                          },
-                        ],
-                      },
-                      createTable(
-                        this.editor.schema,
-                        table.rows,
-                        table.cols,
-                        true,
-                      ).toJSON(),
-                    ],
-                  })
+                  .insertContent(
+                    createFigureTable(
+                      table.rows,
+                      table.cols,
+                      table.caption || "Tabel Caption",
+                    ),
+                  )
                   .run();
               },
             });
