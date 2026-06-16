@@ -1,18 +1,18 @@
-import Store from "electron-store";
 import { ServerService } from "./server-service";
 import { LoggerService } from "./logger-service";
-export class CategoryService {
-  private static store = new Store();
+import { HasStorage } from "./concerns/has-storage";
+export class CategoryService extends HasStorage<string>{
+  protected storageName: string = 'hightex.categories';
 
   static async getAll(): Promise<Category[]> {
     try {
-      const cached = this.store.get<any, string>("hightex.categories");
+      console.log(this.instance().getStorage().get())
+      const cached =this.instance().getStorage().get() || ""
       try {
         return this.normilize(cached);
       } catch (e) {}
       const res = await ServerService.request("/categories");
 
-      this.store.set("hightex.categories", res);
       return this.normilize(res);
     } catch (err) {
       LoggerService.write(err, "hightex:categories");

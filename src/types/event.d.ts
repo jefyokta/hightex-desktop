@@ -21,7 +21,10 @@ declare global {
     document: HighTexDocument;
   }
   interface ChapterCommitEvent extends ChapterEvent {}
-
+  interface VarUpdated {
+    name:string,
+    value:String
+  }
   interface AppEvents {
     "chapter:update": ChapterUpdateEvent;
     "chapter:created": ChapterCreatedEvent;
@@ -29,6 +32,7 @@ declare global {
     "image:update": ImageUpdateEvent;
     "chapter:commit": ChapterCommitEvent;
     "document:updated": DocumentUpdatedEvent;
+    "var:updated":VarUpdated
   }
 }
 

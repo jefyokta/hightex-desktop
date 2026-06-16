@@ -1,5 +1,6 @@
 import { ipcMain, BrowserWindow } from "electron";
 import { ConfigService } from "../service/config-service";
+import { VariableService } from "@main/service/variable-service";
 
 export class ConfigHandler {
   private static broadcastConfig() {
@@ -33,5 +34,9 @@ export class ConfigHandler {
     ipcMain.handle("config:key", (_event, key) => {
       return ConfigService.getKey(key);
     });
+
+    ipcMain.handle("var:all",()=>{
+      return VariableService.all()
+    })
   }
 }

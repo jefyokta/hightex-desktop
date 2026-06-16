@@ -16,6 +16,14 @@ declare global {
     email: string;
     advisors: Mentor[];
   }
+
+  interface Variable{
+    documentId:string
+    name:string
+    value:string
+  }
+
+ 
   interface RawCategory extends Category {
     chapters: string;
   }
