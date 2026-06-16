@@ -10,42 +10,40 @@ import { createElementFromUrl } from "@/utils/create-element-from-url";
 
 export const PrintLayout = () => {
   useEffect(() => {
-
     let els: HTMLElement[] = [];
 
     let mounted = true;
-
 
     const cleaning = () => {
       document.querySelectorAll("style").forEach((el) => el.remove());
       document
         .querySelectorAll('link[rel="stylesheet"]')
         .forEach((el) => el.remove());
-    }
+    };
     const cleanup = () => {
-      mounted = false
+      mounted = false;
       for (const el of els) {
-        el.remove()
+        el.remove();
       }
-
-    }
+    };
     (async () => {
-      cleaning()
+      cleaning();
       if (!mounted) return;
       for (const url of [fontCss, katexCSS, css, tocCss, codeCss]) {
-        const el = await createElementFromUrl(url)
+        const el = await createElementFromUrl(url);
         if (el) {
-          els.push(el)
+          els.push(el);
         }
       }
 
-      console.log(els.map(e => e.nodeName))
+      console.log(els.map((e) => e.nodeName));
 
-      document.head.append(...els)
-    })()
+      document.head.append(...els);
+    })();
 
-    return () => { cleanup() }
-
+    return () => {
+      cleanup();
+    };
   }, []);
 
   return (

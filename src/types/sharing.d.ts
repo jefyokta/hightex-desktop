@@ -40,15 +40,23 @@ declare global {
 
   type SharingSession<T extends SharingType = SharingType> =
     SharingSessionMap[T];
-
+  type InvitationJson = {
+    ip: string;
+    bssid: string;
+    ssid: string;
+    host: string;
+    sharingId: string;
+    code?: string;
+  };
   interface SharingPayload {
     images: SerialableImageRecord[];
-    snapshot: Snapshot
+    snapshot: Snapshot;
     type: SharingType;
     document: HighTexDocument;
   }
   interface Snapshot {
-    html:string,css:string
+    html: string;
+    css: string;
   }
   type SelectionAnchor = {
     offset: number;
@@ -64,35 +72,125 @@ declare global {
   interface InvitationGuest {
     role: SharingGuestRole;
     code: string;
+    _code?: string;
   }
+
+  type SharingParticipantRole = SharingGuestRole | "host" | "anonymous";
+
+  interface SharingIdentity {
+    id: string;
+    name: string;
+    role: SharingParticipantRole;
+    canComment: boolean;
+    invitationCode?: string;
+  }
+
+  interface SharingParticipant extends SharingIdentity {
+    connected: boolean;
+  }
+
   interface SharingInformation {
     document: Omit<HighTexDocument, "category"> & { category?: Category };
     host: string;
     port: string;
+    hostToken: string;
     guest: InvitationGuest[];
     type: SharingType;
+    publicInvitation: string;
   }
-  type WSMessage = CommentMessage | PingMessage| InfoMessage |LookUpMessage;
-  type InfoMessage ={
-    type:"info",
-    payload:{role:string}
 
-}
+  type WSMessage<TSender extends Sender = "client"> =
+    | CommentMessage<TSender>
+    | PingMessage
+    | InfoMessage
+    | LookUpMessage<TSender>
+    | PongMessage
+    | ErrorMessage
+    | RenameMessage
+    | GuestsMessage
+    | SharingInfo;
 
-  type CommentMessage = {
-      type: "comment";
-      payload: SelectionData | SelectionData & {role:SharingGuestRole};
-    }
+  type Sender = "server" | "client";
+  type SharingInfo = {
+    type: "sharingInfo";
+    payload: {
+      document: SharingInformation["document"];
+      type: SharingType;
+    };
+  };
+  type InfoMessage = {
+    type: "info";
+    payload: SharingIdentity;
+  };
 
-  type PingMessage= {
-      type: "ping";
-      payload: { ts: number };
-    }
-  type LookUpMessage = {
-    type:"lookup",
-    payload:{
-      page:number|string,
-      role?:string,
-    }
-  }
+  type BaseSelectionPayload = SelectionPayload & {
+    text: string;
+  };
+
+  type CommentServerExtra = {
+    role: SharingParticipantRole;
+    name?: string;
+    participantId?: string;
+    invitationCode?: string;
+  };
+
+  type CommentServerMessage = BaseSelectionPayload & CommentServerExtra;
+
+  type CommentClientMessage = BaseSelectionPayload;
+
+  type CommentMessage<TSender extends Sender = "client"> = {
+    type: "comment";
+    payload: TSender extends "server"
+      ? CommentServerMessage
+      : CommentClientMessage;
+  };
+
+  type PingMessage = {
+    type: "ping";
+    payload: { ts: number };
+  };
+
+  type LookUpMessageServer = {
+    page: number | string;
+    role: SharingParticipantRole;
+    name: string;
+    participantId?: string;
+  };
+
+  type LookUpMessageClient = {
+    page: number | string;
+  };
+  type LookUpMessage<TSender extends Sender = "client"> = {
+    type: "lookup";
+    payload: TSender extends "server"
+      ? LookUpMessageServer
+      : LookUpMessageClient;
+  };
+  type PongMessage = {
+    type: "pong";
+    payload: {
+      ts: number;
+    };
+  };
+  type ErrorMessage = {
+    type: "error";
+    payload: any;
+  };
+
+  type RenameMessage = {
+    type: "rename";
+    payload: {
+      name: string;
+    };
+  };
+  type GuestsMessage = {
+    type: "guests";
+    payload: {
+      guests: SharingParticipant[];
+      /**
+       * @deprecated use guests
+       */
+      guest?: SharingParticipant[];
+    };
+  };
 }

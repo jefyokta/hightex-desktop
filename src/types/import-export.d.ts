@@ -16,7 +16,10 @@ declare global {
   }
   type ContentFormat = "ht" | "json";
   type SchemaVersion = 1 | 2;
-  interface HighTexManifestV2 {
+  interface BaseManifest {
+    schema_version: SchemaVersion;
+  }
+  interface HighTexManifestV2 extends BaseManifest {
     format: ContentFormat;
     schema_version: 2;
     document: {
@@ -38,7 +41,7 @@ declare global {
   };
 
   //soon will be removed
-  interface HighTexManifest {
+  interface HighTexManifest extends BaseManifest {
     document: {
       id: string;
       title: {

@@ -1,6 +1,3 @@
-"use client";
-
-import * as React from "react";
 import { motion, type HTMLMotionProps } from "motion/react";
 
 import {
@@ -24,6 +21,7 @@ function Button({
   const Component = asChild ? Slot : motion.button;
 
   return (
+    //@ts-ignore
     <Component
       whileTap={{ scale: tapScale }}
       whileHover={{ scale: hoverScale }}

@@ -104,7 +104,7 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
       >
         <img
           src={logo}
-          data-static-image='logo-uin'
+          data-static-image="logo-uin"
           alt="uin-suska"
           style={{
             width: "5.2cm",

@@ -4,7 +4,6 @@ import { Copy, Search, Check, BookMarked, ChevronDown } from "lucide-react";
 //@ts-ignore
 import Cite from "citation-js";
 
-import { Storage } from "@/editor/storage";
 import { TabHeader } from "./components/tab-header";
 
 import { CiteUtils } from "bibtex.js";

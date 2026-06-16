@@ -5,6 +5,7 @@ import { BrowserWindow, ipcMain, dialog } from "electron";
 import { PDFDocument } from "pdf-lib";
 
 import { Application } from "../main/application";
+import { LoggerService } from "./logger-service";
 
 export class PDFService {
   private window: BrowserWindow | null = null;
@@ -71,7 +72,7 @@ export class PDFService {
     });
   }
 
-  async generateHtml(docId: string): Promise<{html:string,css:string}> {
+  async generateHtml(docId: string): Promise<{ html: string; css: string }> {
     const win = this.createWindow();
 
     try {
@@ -91,7 +92,8 @@ export class PDFService {
 
       await exportPayloadPromise;
 
-      const snapshot = await win.webContents.executeJavaScript(`
+      const snapshot = await win.webContents.executeJavaScript(
+        `
   (() => {
     const html = document.querySelector('.pagedjs_pages')?.outerHTML ?? "";
 
@@ -101,9 +103,14 @@ export class PDFService {
 
     return { html, css };
   })()
-  `, true);
+  `,
+        true,
+      );
 
-      return snapshot as {html:string,css:string};
+      return snapshot as { html: string; css: string };
+    } catch (e) {
+      LoggerService.write(e, "generate:html");
+      throw e;
     } finally {
       if (!win.isDestroyed()) win.destroy();
     }

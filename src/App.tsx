@@ -36,7 +36,11 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Splash />} />
-
+          <Route element={<SharingLayout />}>
+            <Route path="/share/:host/:port" element={<SharingGuest />} />
+            <Route path="/share/:host/:port/:code" element={<SharingGuest />} />
+            <Route path="/shared" element={<SharingHost />} />
+          </Route>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route
@@ -62,10 +66,6 @@ function App() {
         <Route element={<PrintLayout />}>
           <Route path="/document/:id/print" element={<FullDocument />} />
           <Route path="/print/:chapterId" element={<Single />} />
-        </Route>
-        <Route element={<SharingLayout />}>
-          <Route path="/share/:host/:port/:code" element={<SharingGuest />} />
-          <Route path="/shared" element={<SharingHost />} />
         </Route>
       </Routes>
     </BrowserRouter>

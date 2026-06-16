@@ -49,9 +49,8 @@ export const ErrorSlave: React.FC = () => {
       return;
     }
     if (err instanceof ShouldNotifiedWithNativeComponent) {
-
-      err.showNotification()
-      return
+      err.showNotification();
+      return;
     }
   }, [latestError]);
 

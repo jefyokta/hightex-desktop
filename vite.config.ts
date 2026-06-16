@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "./",
+  base: "/",
   plugins: [
     react(),
 
@@ -17,14 +17,14 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ["bufferutil", "utf-8-validate"],
+              external: ["bufferutil", "utf-8-validate", "better-sqlite3"],
             },
           },
-          resolve:{
-            alias:{
-              "@main":path.resolve(__dirname,"./electron")
-            }
-          }
+          resolve: {
+            alias: {
+              "@main": path.resolve(__dirname, "./electron"),
+            },
+          },
         },
       },
       preload: {

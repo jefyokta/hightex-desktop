@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -13,6 +10,22 @@ import {
 } from "@/components/ui/select";
 import { CopyButton } from "@/components/animate-ui/components/buttons/copy";
 import { useNavigate } from "react-router-dom";
+import { sharingTypeLabel } from "@/utils/sharing-labels";
+import { RoleBadge } from "@/components/sharing/role-bage";
+import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { connectToHost } from "@/utils/sharing";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { toast } from "sonner";
 
 const sharingType: { type: SharingType; name: string }[] = [
   {
@@ -39,6 +52,8 @@ export const Present = () => {
 
   const [initialized, setInitialized] = useState(false);
 
+  const [invitation, setInvitation] = useState("");
+  const nav = useNavigate();
   useEffect(() => {
     let mounted = true;
 
@@ -109,12 +124,54 @@ export const Present = () => {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border p-6">
-        <h1 className="text-2xl font-semibold">Presentation Planner</h1>
+      <div className="rounded-3xl border p-6 flex justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Presentation Planner</h1>
 
-        <p className="text-sm text-muted-foreground mt-2">
-          Let them judge your document!
-        </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Let them judge your document!
+          </p>
+        </div>
+        <div>
+          <Dialog>
+            <DialogTrigger className={cn(buttonVariants({ size: "sm" }))}>
+              Join
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Join a sharing Session</DialogTitle>
+                <DialogDescription>
+                  Drop that weirdly text from your host.
+                </DialogDescription>
+              </DialogHeader>
+              <Input
+                value={invitation}
+                onChange={(e) => setInvitation(e.target.value)}
+                placeholder="invitation code"
+              ></Input>
+              <Button
+                onClick={async () => {
+                  const id = toast.loading("Loading");
+                  try {
+                    const inv = await connectToHost(invitation);
+
+                    nav(`/share/${inv.ip}/${inv.port}/${inv.code ?? ""}`);
+                  } catch (error) {
+                    throw new ShouldNotified({
+                      description: String(error),
+                      message: "Failed to join sharing",
+                    });
+                  } finally {
+                    toast.dismiss(id);
+                    setInvitation("");
+                  }
+                }}
+              >
+                Join
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {docs.length === 0 ? (
@@ -158,18 +215,23 @@ const ShareDocument = ({
       setLoading(true);
 
       const snapshot = await window.sharing.html(document.id);
-      const imgs = (await HighTexDB.getInstance().images.toArray())
-      const images = await Promise.all(imgs.map(async ({ id, blob }) => {
-        const buffer = new Uint8Array(await blob.arrayBuffer())
-        return { id, buffer } satisfies SerialableImageRecord
-      }))
+      const imgs = await HighTexDB.getInstance().images.toArray();
+      const images = await Promise.all(
+        imgs.map(async ({ id, blob }) => {
+          const buffer = new Uint8Array(await blob.arrayBuffer());
+          return { id, buffer } satisfies SerialableImageRecord;
+        }),
+      );
 
-      await window.sharing.start({
+      const res = await window.sharing.start({
         type,
         snapshot,
         images,
         document,
       });
+      if ("message" in res) {
+        throw new ShouldNotifiedWithNativeComponent(res.message);
+      }
 
       const info = await window.sharing.info();
 
@@ -222,7 +284,8 @@ const SharingInfo = ({
   session: SharingInformation;
   onClose(): void;
 }) => {
-  const go = useNavigate()
+  const go = useNavigate();
+
   return (
     <div className="rounded-xl border p-5 space-y-4">
       <div className="flex items-center justify-between">
@@ -233,23 +296,25 @@ const SharingInfo = ({
             {session.document.title}
           </p>
         </div>
-
-        <Button variant="destructive" size="sm" onClick={onClose}>
-          Stop
-        </Button>
-        <Button size="sm" onClick={() => {
-          return go("/shared")
-        }}>
-          Go
-        </Button>
+        <div className="space-x-1">
+          <Button variant="destructive" size="sm" onClick={() => onClose()}>
+            Stop
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              return go("/shared");
+            }}
+          >
+            Go
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border p-3">
           <div className="text-xs text-muted-foreground">Session Type</div>
 
-          <div className="font-medium capitalize">
-            {session.type.replace(/([A-Z])/g, " $1")}
-          </div>
+          <div className="font-medium">{sharingTypeLabel(session.type)}</div>
         </div>
 
         <div className="rounded-lg border p-3">
@@ -267,15 +332,10 @@ const SharingInfo = ({
             key={guest.code}
             className="flex items-center justify-between rounded border p-2"
           >
-            <Badge variant="secondary" className="capitalize">
-              {guest.role.replace("_", " ")}
-            </Badge>
+            <RoleBadge role={guest.role} />
             <div className="flex items-center space-x-2">
               <code className="text-xs">{guest.code}</code>
-              <CopyButton
-                content={`${session.host}/?code=${guest.code}`}
-                size={"xxs"}
-              />
+              <CopyButton content={guest._code!} size={"xxs"} />
             </div>
           </div>
         ))}

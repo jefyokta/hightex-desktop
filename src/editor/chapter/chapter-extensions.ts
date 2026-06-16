@@ -81,7 +81,7 @@ export class ChapterExtensions {
       GridCell,
       GridRow,
       CustomCodeBlock,
-      Dots
+      Dots,
     ];
   }
 

@@ -76,7 +76,7 @@ declare global {
     createdAt: number;
   }
 
-  type SerialableImageRecord = Pick<ImageRecord,'id'> & {
+  type SerialableImageRecord = Pick<ImageRecord, "id"> & {
     buffer: Uint8Array;
   };
 }

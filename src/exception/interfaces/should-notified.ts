@@ -6,27 +6,42 @@ export type NotificationErrorLevel = "warning" | "error";
 export class ShouldNotified<
   TLevel extends NotificationErrorLevel = "warning",
 > extends ApplicationError {
-  readonly level: TLevel = "warning" as TLevel;
-  readonly message: string;
-  readonly description: string;
-  readonly id: string;
+  readonly level: TLevel;
+  readonly message!: string;
+  readonly description!: string;
+  readonly id!: string;
   readonly action?: React.ReactNode;
 
-  constructor({
-    message,
-    description,
-    action,
-    id,
-  }: {
+  constructor(desc: string, action?: React.ReactNode, id?: string);
+  constructor(options: {
     message: string;
     description: string;
     action?: React.ReactNode;
     id?: string;
-  }) {
-    super(message);
-    this.message = message;
-    this.description = description;
-    this.id = id || uniqId();
-    this.action = action;
+  });
+  constructor(optOrDesc: any, action?: any, id?: any) {
+    let msg = "";
+    let desc = "";
+    let act = action;
+    let finalId = id;
+
+    if (typeof optOrDesc === "object" && optOrDesc !== null) {
+      msg = optOrDesc.message;
+      desc = optOrDesc.description;
+      act = optOrDesc.action;
+      finalId = optOrDesc.id;
+    } else {
+      desc = optOrDesc;
+      msg = "Something Went Wrong";
+    }
+
+    super(msg);
+
+    this.message = msg;
+    this.description = desc;
+    this.action = act;
+    this.id = finalId || uniqId();
+
+    this.level = "warning" as TLevel;
   }
 }

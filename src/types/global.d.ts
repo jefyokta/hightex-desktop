@@ -158,15 +158,30 @@ declare global {
     dialog: {
       selectFolder(): Promise<string | undefined>;
     };
+    confirm: (msg: string) => Promise<boolean>;
+    alert: (msg: string) => Promise<void>;
   }
 
   interface SharingAPI {
     stop(): Promisevoid<void>;
     start(
       payload: SharingPayload,
-    ): Promise<Omit<SharingInformation, "document">>;
+    ): Promise<
+      Omit<SharingInformation, "document"> | { message: string; name: string }
+    >;
     info(): Promise<SharingInformation | undefined>;
     html(id: string): Promise<Snapshot>;
-    getSnapshot():Promise<Snapshot>
+    getSnapshot(): Promise<Snapshot>;
+    wifi: {
+      current(): Promise<WifiInformation | null>;
+      connect(
+        ssid: string,
+        pass: string,
+      ): Promise<{
+        changed: boolean;
+        network: WifiInformation;
+      }>;
+      scan(): Promise<WifiInformation[]>;
+    };
   }
 }

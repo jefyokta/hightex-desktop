@@ -1,88 +1,82 @@
 import { ContextMenuResolver } from "@/compiler/resolver/context-menu-resolver";
 import { SelectionResolver } from "@/compiler/resolver/selection-resolver";
 import { SharingException } from "@/exception/sharing-exception";
+import { useFrameContext } from "@/hooks/use-frame";
 import { useSharing } from "@/hooks/use-sharing";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export const SharingHost = () => {
-    const { connectHost, } = useSharing();
+  const { connectHost, send } = useSharing();
+  const { iframeRef, setHtml } = useFrameContext();
 
-    const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    let disposed = false;
 
-    useEffect(() => {
-        let disposed = false;
+    (async () => {
+      try {
+        const info = await window.sharing.info();
+        if (disposed) return;
 
-        (async () => {
-            try {
-                const info = await window.sharing.info();
+        if (!info) {
+          throw new SharingException("You are not sharing any document");
+        }
 
-                if (disposed) return;
+        await connectHost(info.port, info.hostToken);
+        if (disposed) return;
 
-                if (!info) {
-                    throw new SharingException(
-                        "You are not sharing any document"
-                    );
-                }
+        const snapshot = await window.sharing.getSnapshot();
+        if (disposed) return;
 
-                await connectHost(info.port);
+        const doc = new DOMParser().parseFromString(snapshot.html, "text/html");
 
-                if (disposed) return;
+        const imgs = doc.querySelectorAll<HTMLImageElement>("img[data-img-id]");
+        await Promise.all(
+          Array.from(imgs).map(async (img) => {
+            const id = img.dataset.imgId;
+            if (!id) return;
+            const res = await fetch(
+              `http://127.0.0.1:${info.port}/share/image/${id}?token=${encodeURIComponent(info.hostToken)}`,
+            );
+            const blob = await res.blob();
+            img.src = URL.createObjectURL(blob);
+          }),
+        );
 
-                const snapshot = await window.sharing.getSnapshot();
+        if (disposed) return;
 
-                if (disposed) return;
-                const style = document.createElement("style")
-                style.innerHTML = snapshot.css
-                document.head.append(style)
-                ref.current?.replaceChildren();
+        const styleEl = doc.createElement("style");
+        styleEl.textContent = snapshot.css;
+        doc.head.appendChild(styleEl);
 
-                if (ref.current) {
-                    ref.current.innerHTML = snapshot.html;
-                    ref.current.style.paddingBottom = "432px";
-                }
+        await setHtml(doc.documentElement.outerHTML);
 
-                const imgs =
-                    document.querySelectorAll<HTMLImageElement>("img[data-img-id]");
+        if (disposed) return;
 
-                await Promise.all(
-                    Array.from(imgs).map(async (img) => {
-                        const id = img.dataset.imgId;
-                        if (!id) return;
+        const iframe = iframeRef.current!;
 
-                        const res = await fetch(
-                            `http://127.0.0.1:${info.port}/share/image/${id}`
-                        );
+        new ContextMenuResolver(
+          send,
+          undefined,
+          iframe.contentDocument!.body as any,
+        ).resolve();
 
-                        const blob = await res.blob();
-                        const url = URL.createObjectURL(blob);
+        await new SelectionResolver(
+          iframe.contentDocument!.body as any,
+          iframe.contentDocument!,
+        ).resolve();
 
-                        img.src = url;
+        document.dispatchEvent(new CustomEvent("shadow:rendered"));
+      } catch (e) {
+        if (e instanceof SharingException) throw e;
+        if (e instanceof Error) throw new SharingException(e.message);
+        if (typeof e === "string") throw new SharingException(e);
+      }
+    })();
 
-                        new ContextMenuResolver().resolve()
-                        await new SelectionResolver().resolve()
-                    })
-                ).catch(() => { });
-            } catch (e) {
-                if (e instanceof SharingException) {
-                    throw e
-                }
-                if (e instanceof Error) {
-                    throw new SharingException(e.message)
-                }
-                if (typeof e == 'string') {
-                    throw new SharingException(e)
+    return () => {
+      disposed = true;
+    };
+  }, [connectHost, send, setHtml, iframeRef]);
 
-                }
-            }
-        })();
-
-        return () => {
-            disposed = true;
-        };
-    }, [connectHost]);
-
-
-    return <>
-        <div ref={ref} className=" mx-auto" />
-    </>
+  return null;
 };

@@ -1,10 +1,7 @@
-import { useSharing } from "@/hooks/use-sharing"
+import { useSharing } from "@/hooks/use-sharing";
 
 export const SharingSlave = () => {
+  const {} = useSharing();
 
-
-    const { } = useSharing()
-
-
-    return null;
-}
+  return null;
+};

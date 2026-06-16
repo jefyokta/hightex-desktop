@@ -12,6 +12,8 @@ import { LoginModal } from "@/components/login-modal";
 import { ErrorSlave } from "@/slaves/error";
 import { Toaster } from "sonner";
 import { OpenFileSlave } from "@/slaves/open-file";
+import { ConfirmProvider } from "@/context/confrim-context";
+import { AskProvider } from "@/context/ask-context";
 
 const applyTheme = (theme: "light" | "dark" | "system") => {
   const root = document.documentElement;
@@ -49,26 +51,27 @@ export const MainLayout = () => {
 
   return (
     <ErrorProvider>
-      <OpenFileSlave />
-      <ErrorSlave />
-      <TooltipProvider>
-        <UserProvider>
-          <AuthModalProvider>
-            <LogoutModalProvider>
-              <LoginModal />
-              <Outlet />
-            </LogoutModalProvider>
-          </AuthModalProvider>
-        </UserProvider>
-        <Toaster
-          // richColors
-          position="bottom-right"
-          theme={window.config.get()?.theme || "system"}
-          className="flex justify-between toasta"
-          // duration={Infinity}
-          // richColors
-        />
-      </TooltipProvider>
+      <ConfirmProvider>
+        <AskProvider>
+          <OpenFileSlave />
+          <ErrorSlave />
+          <TooltipProvider>
+            <UserProvider>
+              <AuthModalProvider>
+                <LogoutModalProvider>
+                  <LoginModal />
+                  <Outlet />
+                </LogoutModalProvider>
+              </AuthModalProvider>
+            </UserProvider>
+            <Toaster
+              position="bottom-right"
+              theme={window.config.get()?.theme || "system"}
+              className="flex justify-between toasta"
+            />
+          </TooltipProvider>
+        </AskProvider>
+      </ConfirmProvider>
     </ErrorProvider>
   );
 };

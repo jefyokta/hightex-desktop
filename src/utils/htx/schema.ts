@@ -1,31 +1,27 @@
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { SchemaWritter } from "./schema/schema-writter";
 import { SchemaReader } from "./schema/schema-reader";
-import { V1Reader } from "./schema/v1-reader";
-import { V2Reader } from "./schema/v2-reader";
 
-export class Schema<TVersion extends SchemaVersion> {
+export class Schema<TVersion extends SchemaVersion = 2> {
   public readonly writter: SchemaWritter;
-  private file?: File;
-  private _reader?: TVersion extends 1 ? V1Reader : V2Reader;
+  public readonly reader?: SchemaReader;
   constructor(
     private version: TVersion,
     private format: ContentFormat = "json",
+    readOption?: {
+      file: File;
+      manifest: BaseManifest;
+    },
   ) {
     this.writter = new SchemaWritter();
+    if (readOption) {
+      this.reader = new SchemaReader(
+        version,
+        readOption.file,
+        readOption.manifest as any,
+      );
+    }
     this.writter.setContentFormat(this.format);
-  }
-  setFile(file: File) {
-    this.file = file;
-  }
-
-  get reader(): TVersion extends 1 ? V1Reader : V2Reader {
-    if (this._reader) return this._reader;
-    if (!this.file)
-      throw new ApplicationError("Cannot using reader without assign file");
-
-    this._reader = SchemaReader.createReader(this.version, this.file);
-    return this.reader;
   }
   createManifest(
     doc: HighTexDocument,

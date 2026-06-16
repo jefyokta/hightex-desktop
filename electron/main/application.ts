@@ -1,7 +1,5 @@
-// application.ts
-
 import fs from "fs";
-import { app, BrowserWindow, Menu, MenuItem } from "electron";
+import { app, BrowserWindow,  Menu, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -19,6 +17,8 @@ import { ZoteroHandler } from "../handlers/zotero-handler";
 import { LocalServer } from "../server/local-server";
 import { FileOpenManager } from "../service/file-open-service";
 import { SharingHandler } from "../handlers/sharing-handler";
+import { DatabaseBootstraper } from "@main/database/core/bootstrapper";
+import { NetworkService } from "@main/service/network-service";
 
 export class Application {
   private win: BrowserWindow | null = null;
@@ -88,7 +88,6 @@ export class Application {
       }
     });
     this.fileOpen = new FileOpenManager((filePath) => {
-      console.log("open %s", filePath);
       this.win?.webContents.send("file:open", filePath);
       this.win?.focus();
     });
@@ -174,9 +173,9 @@ export class Application {
     KeyManagerService.ensure();
 
     DefaultPluginsBootstrapper.installAll();
-
+    new DatabaseBootstraper().tap();
     PluginManager.loadAll();
-
+    NetworkService.tap();
     this.registerHandlers();
     await this.createWindow();
 

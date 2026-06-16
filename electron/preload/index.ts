@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   // You can expose other APTs you need here.
   // ...
 });
+
 let progressCallback: ((data: any) => void) | null = null;
 let cachedConfigPromise: Promise<any> | null = null;
 let cachedConfig: any = null;
@@ -39,6 +40,7 @@ const loadConfig = async () => {
 };
 
 loadConfig();
+
 contextBridge.exposeInMainWorld("hightex", {
   // compile() {},
   document: () => {
@@ -190,9 +192,18 @@ contextBridge.exposeInMainWorld("sharing", {
   html(docId: string) {
     return ipcRenderer.invoke("sharing:html", docId);
   },
- async getSnapshot() {
-
-  return ipcRenderer.invoke("sharing:getSnapshot")
-    
+  async getSnapshot() {
+    return ipcRenderer.invoke("sharing:getSnapshot");
+  },
+  wifi: {
+    async connect(s, p) {
+      return await ipcRenderer.invoke("sharing:wifi.connect", s, p);
+    },
+    async current() {
+      return await ipcRenderer.invoke("sharing:wifi.current");
+    },
+    async scan() {
+      return await ipcRenderer.invoke("sharing:wifi");
+    },
   },
 } satisfies SharingAPI);

@@ -1,5 +1,7 @@
 type SelectionData = null | SelectionPayload;
 
+export const SHARING_SELECTION_CHANGE_EVENT = "selection:change";
+
 export class SelectionResolver {
   private static _instance: SelectionResolver | null = null;
   public selectionData: SelectionData = null;
@@ -8,53 +10,70 @@ export class SelectionResolver {
     return this._instance;
   }
 
-  constructor() {
+  constructor(
+    root: HTMLElement,
+    private document: Document,
+  ) {
+    this.wrapper = root;
     SelectionResolver._instance = this;
   }
 
   private listener?: () => void;
-  private wrapper?: Element;
+  private wrapper?: ParentNode & Node;
 
   async resolve(): Promise<void> {
     if (this.listener) return;
 
-    this.wrapper = document.body;
-
     this.listener = () => this.handleSelectionChange();
 
-    document.addEventListener("mouseup", this.listener);
+    this.wrapper?.addEventListener("mouseup", this.listener);
+    this.wrapper?.addEventListener("keyup", this.listener);
   }
 
   destroy(): void {
     if (!this.listener) return;
-    document.removeEventListener("mouseup", this.listener);
+    this.wrapper?.removeEventListener("mouseup", this.listener);
+    this.wrapper?.removeEventListener("keyup", this.listener);
     this.listener = undefined;
-    this.selectionData = null;
+    this.setSelectionData(null);
   }
 
   private handleSelectionChange(): void {
-    this.selectionData = null;
-
-    const selection = document.getSelection();
-    if (!selection || selection.rangeCount === 0 || selection.isCollapsed)
+    const selection = this.getSelection();
+    console.log(selection);
+    if (!selection || selection.rangeCount === 0) {
+      this.setSelectionData(null);
       return;
+    }
 
     const range = selection.getRangeAt(0);
-    if (!this.wrapper) return;
+    if (!this.wrapper) {
+      this.setSelectionData(null);
+      return;
+    }
 
-    if (!this.wrapper.contains(range.commonAncestorContainer)) return;
+    if (!this.wrapper.contains(range.commonAncestorContainer)) {
+      this.setSelectionData(null);
+      return;
+    }
 
     const { startContainer, startOffset, endContainer, endOffset } = range;
 
     const startUUIDEl = this.getClosestUUIDElement(startContainer);
     const endUUIDEl = this.getClosestUUIDElement(endContainer);
 
-    if (!startUUIDEl || !endUUIDEl) return;
+    if (!startUUIDEl || !endUUIDEl) {
+      this.setSelectionData(null);
+      return;
+    }
 
     const startUUID = this.getCanonicalUUID(startUUIDEl);
     const endUUID = this.getCanonicalUUID(endUUIDEl);
 
-    if (!startUUID || !endUUID) return;
+    if (!startUUID || !endUUID) {
+      this.setSelectionData(null);
+      return;
+    }
 
     const logicalStartOffset = this.getLogicalOffset(
       startUUIDEl,
@@ -66,16 +85,26 @@ export class SelectionResolver {
       endContainer,
       endOffset,
     );
-
     const spanningUUIDs = this.getSpanningUUIDs(range);
 
-    this.selectionData = {
+    this.setSelectionData({
       start: { uuid: startUUID, offset: logicalStartOffset },
       end: { uuid: endUUID, offset: logicalEndOffset },
       spanningUUIDs,
       text: range.toString(),
-    };
-    console.log(this.selectionData);
+    });
+  }
+  private getSelection(): Selection | null {
+    return this.document.getSelection();
+  }
+
+  private setSelectionData(selectionData: SelectionData): void {
+    this.selectionData = selectionData;
+    window.parent.document.dispatchEvent(
+      new CustomEvent<SelectionData>(SHARING_SELECTION_CHANGE_EVENT, {
+        detail: selectionData,
+      }),
+    );
   }
 
   private getClosestUUIDElement(node: Node): HTMLElement | null {

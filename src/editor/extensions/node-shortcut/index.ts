@@ -1,5 +1,4 @@
 import { uniqId } from "@/utils/uniq-id";
-import { createTable } from "@tiptap/extension-table";
 import { PluginKey } from "@tiptap/pm/state";
 import { Extension, Range } from "@tiptap/react";
 import Suggestion, { SuggestionOptions } from "@tiptap/suggestion";

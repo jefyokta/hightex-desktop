@@ -1,3 +1,4 @@
+import { MainProcessError } from "@/exception/interfaces/main-process-error";
 import { ApplicationError } from "../../exception/interfaces/application-error";
 import { events } from "../event";
 import { HighTexDB } from "../storage/hightex-db";
@@ -49,7 +50,9 @@ class App {
         name: typeof err,
       };
     };
-
+    const onMainError = (_: any, e: any) => {
+      callback(normalize(new MainProcessError(e)));
+    };
     const onError = (event: ErrorEvent) => {
       if (event.error instanceof ApplicationError) {
         event.preventDefault();
@@ -65,6 +68,9 @@ class App {
 
       callback(normalize(event.reason));
     };
+    if ("ipcRenderer" in window) {
+      window.ipcRenderer.on("error", onMainError);
+    }
 
     window.addEventListener("error", onError);
 
@@ -72,6 +78,9 @@ class App {
 
     return () => {
       window.removeEventListener("error", onError);
+      if ("ipcRenderer" in window) {
+        window.ipcRenderer.off("error", onMainError);
+      }
 
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
     };

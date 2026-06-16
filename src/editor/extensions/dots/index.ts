@@ -1,75 +1,75 @@
 import { InputRule, mergeAttributes, Node } from "@tiptap/core";
 
 export const Dots = Node.create({
-    name: "dots",
+  name: "dots",
 
-    group: "inline",
-    inline: true,
+  group: "inline",
+  inline: true,
 
-    atom: true,
-    selectable: false,
+  atom: true,
+  selectable: false,
 
-    addAttributes() {
-        return {};
-    },
+  addAttributes() {
+    return {};
+  },
 
-    parseHTML() {
-        return [
-            {
-                tag: "span[data-dots]",
-            },
-        ];
-    },
+  parseHTML() {
+    return [
+      {
+        tag: "span[data-dots]",
+      },
+    ];
+  },
 
-    renderHTML({ HTMLAttributes }) {
-        return [
-            "span",
-            mergeAttributes(
-                {
-                    "data-dots": "",
-                    contenteditable: "false",
-                },
-                HTMLAttributes
-            ),
-            "..."
-        ];
-    },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "span",
+      mergeAttributes(
+        {
+          "data-dots": "",
+          contenteditable: "false",
+        },
+        HTMLAttributes,
+      ),
+      "...",
+    ];
+  },
 
-    renderText() {
-        return "...";
-    },
+  renderText() {
+    return "...";
+  },
 
-    addInputRules() {
-        return [
-            new InputRule({
-                find: /\.\.\.$/,
-                handler: ({ range, commands }) => {
-                    commands.deleteRange(range);
+  addInputRules() {
+    return [
+      new InputRule({
+        find: /\.\.\.$/,
+        handler: ({ range, commands }) => {
+          commands.deleteRange(range);
 
-                    commands.insertContentAt(range.from, {
-                        type: this.name,
-                    });
-                },
-            }),
-        ];
-    },
+          commands.insertContentAt(range.from, {
+            type: this.name,
+          });
+        },
+      }),
+    ];
+  },
 
-    addCommands() {
-        return {
-            insertDots:
-                () =>
-                ({ commands }) =>
-                    commands.insertContent({
-                        type: this.name,
-                    }),
-        };
-    },
+  addCommands() {
+    return {
+      insertDots:
+        () =>
+        ({ commands }) =>
+          commands.insertContent({
+            type: this.name,
+          }),
+    };
+  },
 });
 
 declare module "@tiptap/core" {
-    interface Commands<ReturnType> {
-        dots: {
-            insertDots: () => ReturnType;
-        };
-    }
+  interface Commands<ReturnType> {
+    dots: {
+      insertDots: () => ReturnType;
+    };
+  }
 }
