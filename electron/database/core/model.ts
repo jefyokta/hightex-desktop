@@ -9,7 +9,7 @@ import { Update } from "../builder/update";
 import { QueryBuilder } from "../builder/query-builder";
 import { Unkown } from "../builder/unknown";
 
-      const grammar = new Grammar();
+const grammar = new Grammar();
 
 export abstract class Model<
   T extends Record<string, any>,
@@ -24,9 +24,6 @@ export abstract class Model<
   protected primaryKeyType: "INTEGER" | "TEXT" = "INTEGER";
   protected attribute: T = {} as T;
 
-  protected bindings: any[] = [];
-  protected wheres: string[] = [];
-  protected orderClause: string = "";
 
   private _select = new Select(this);
   private _insert = new Insert(this);
@@ -37,12 +34,7 @@ export abstract class Model<
 
   protected relations: Relations = {};
 
-  private get currentBuilder() {
-    if (!this._currentBuilder) {
-      this._currentBuilder = new Select(this);
-    }
-    return this._currentBuilder;
-  }
+
   public set<K extends keyof T>(field: K, value: T[K]): this {
     this.attribute[field] = value;
     return this;
@@ -53,7 +45,7 @@ export abstract class Model<
 
   with(
     relationName: keyof typeof this.relations,
-    callback?: (builder: QueryBuilder) => void,
+    callback?: (builder: Select) => void,
   ) {
     const relation = this.relations[relationName];
     //@ts-ignore
@@ -66,7 +58,12 @@ export abstract class Model<
       relationSelect = new Select(relation.model);
       callback(relationSelect);
     }
-    throw new Error("lom siap");
+    if(relationSelect){
+      joined.import(relationSelect)
+    }
+    return joined
+
+    // throw new Error("lom siap");
   }
 
   protected mutate<K extends keyof T>(key: K, callback: (val: T[K]) => any) {
@@ -83,20 +80,23 @@ export abstract class Model<
   public update(data: Partial<T>) {
     this._update.import(this._currentBuilder);
     this._update.set(data);
-    return this.connection
+    const result = this.connection
       .prepare(String(this._update))
       .run(this._update.getBindings()).changes;
+      this.resetQuery()
+      return result
   }
 
-  public toString(): string {
-    const fields = Object.keys(this.schema).join(", ");
-    return `[Model: ${this.constructor.name}] { table: "${this.tableName}", primaryKey: "${String(this.primaryKey())}" (${this.primaryKeyType}), fields: [id, ${fields}, createdAt] }`;
-  }
 
   protected resetQuery() {
-    this.wheres = [];
-    this.bindings = [];
-    this.orderClause = "";
+    this._select = new Select(this)
+    this._currentBuilder = new Unkown(this);
+    this._update = new Update(this)
+    this._insert = new Insert(this)
+    this._delete = new Delete(this)
+    // this.wheres = [];
+    // this.bindings = [];
+    // this.orderClause = "";
   }
 
   readonly boot = (): void => {
@@ -112,9 +112,11 @@ export abstract class Model<
 
   public create(
     data: Omit<T, "id" | "createdAt"> & { id?: string | number },
-  ): Database.RunResult {
+  ) {
     const insert = this._insert.values(data);
-    return this.connection.prepare(String(insert)).run(insert.getBindings());
+    const result =this.connection.prepare(String(insert)).run(insert.getBindings());
+    this.resetQuery()
+    return result.lastInsertRowid
   }
 
   protected parseRowFields(row: any): T {
@@ -171,26 +173,30 @@ export abstract class Model<
     if (typeof value === "boolean") {
       value = value ? 1 : 0;
     }
-    this.currentBuilder.where(String(col), operator as Operator, value);
-    this.wheres.push(`${String(col)} ${operator} ?`);
-    this.bindings.push(value);
+    this._currentBuilder.where(String(col), operator as Operator, value);
+    // this.wheres.push(`${String(col)} ${operator} ?`);
+    // this.bindings.push(value);
     return this;
   }
 
   public orderBy(col: keyof T, direction: "ASC" | "DESC" = "DESC"): this {
-    this.orderClause = ` ORDER BY ${String(col)} ${direction}`;
+    // this.orderClause = ` ORDER BY ${String(col)} ${direction}`;
+    this._select.orderBy(String(col),direction)
     return this;
   }
 
   public get(): T[] {
     if (!(this._currentBuilder instanceof Select)) {
-      return [];
+      const select =  new Select(this)
+       select.import(this._currentBuilder)
+       this._currentBuilder = select
+
     }
     const sql = String(this._currentBuilder);
 
     const rows = this.connection
       .prepare(sql)
-      .all(this.currentBuilder.getBindings());
+      .all(this._currentBuilder.getBindings());
     this.resetQuery();
     return rows.map((row) => this.parseRowFields(row));
   }
@@ -208,12 +214,7 @@ export abstract class Model<
     return undefined;
   }
 
-  public all(col = ["*"]): T[] {
-    const rows = this.connection
-      .prepare(this._select.select(...col).getQuery())
-      .all();
-    return rows.map((row) => this.parseRowFields(row));
-  }
+
 
   public find(id: number | string): T | undefined {
     const pk = String(this.primaryKey());
@@ -221,17 +222,29 @@ export abstract class Model<
     const row = this.connection
       .prepare(String(select))
       .get(...select.getBindings());
+    this.resetQuery()
     return row ? this.parseRowFields(row) : undefined;
   }
 
   public static query<M extends Model<any>>(this: new () => M): M {
     return new this();
   }
+  static all<M extends Model<any>>(this: new () => M,col = ["*"]){
+    const instance = new this()
+    instance._select.select(...col)
+    const result =  instance.connection.prepare(instance._select.toString()).all(...instance._select.getBindings())
+    //@ts-ignore
+   const rows = result.map(e=>instance.parseRowFields(e)) as ReturnType<M['parseRowFields']>[]
+
+   return rows 
+  }
 
   delete() {
     const _delete = this._delete.import(this._currentBuilder);
-    return this.connection
+    const res = this.connection
       .prepare(String(_delete))
       .run(..._delete.getBindings()).changes;
+    this.resetQuery()
+    return res > 0
   }
 }

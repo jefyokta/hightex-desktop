@@ -22,6 +22,8 @@ test("transefer wheres and bindings",()=>{
 
 })
 
+
+
 test("merged wheres and bindings",()=>{
      const unknownBuilder = new Unkown(model)
     unknownBuilder.where("id",1)

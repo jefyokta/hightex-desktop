@@ -1,14 +1,10 @@
 import { QueryBuilder } from "./query-builder";
 
 export class Insert extends QueryBuilder {
-  protected _table: string;
   private _rows: Record<string, unknown>[] = [];
   private _onConflict?: ConflictStrategy;
 
-  constructor(source: string | Queryable) {
-    super();
-    this._table = typeof source === "string" ? source : source.getTableName();
-  }
+
 
   values(data: Record<string, unknown>): this {
     this._rows.push(data);

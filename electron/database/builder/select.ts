@@ -2,7 +2,6 @@ import { Model } from "../core/model";
 import { QueryBuilder } from "./query-builder";
 
 export class Select extends QueryBuilder {
-  protected _table: string;
   private _columns: string[] = ["*"];
   private _joins: JoinClause[] = [];
   private _orders: OrderClause[] = [];
@@ -13,11 +12,7 @@ export class Select extends QueryBuilder {
   private _distinct = false;
   private _model!: Model<any>;
 
-  constructor(source: Queryable, columns?: string[]) {
-    super();
-    this._table = source.getTableName();
-    if (columns) this._columns = columns;
-  }
+
 
   select(...columns: (string | ColAlias)[]): this {
     this._columns = columns.map((e) => {

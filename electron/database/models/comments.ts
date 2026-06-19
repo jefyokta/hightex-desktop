@@ -1,6 +1,5 @@
 import { Model } from "../core/model";
 import { table } from "./../core/schema";
-
 export class Comment extends Model<CommentEntity> {
   protected primaryKeyType = "TEXT" as const;
   protected schema = {
@@ -14,3 +13,4 @@ export class Comment extends Model<CommentEntity> {
 
 
 }
+

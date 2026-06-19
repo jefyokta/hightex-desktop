@@ -1,13 +1,9 @@
 import { QueryBuilder } from "./query-builder";
 
 export class Update extends QueryBuilder {
-  protected _table: string;
   private _data: Record<string, unknown> = {};
 
-  constructor(source:  Queryable) {
-    super();
-    this._table = typeof source === "string" ? source : source.getTableName();
-  }
+
 
   set(data: Record<string, unknown>): this {
     Object.assign(this._data, data);

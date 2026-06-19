@@ -2,7 +2,9 @@ export abstract class QueryBuilder {
   protected _wheres: WhereClause[] = [];
   protected _bindings: unknown[] = [];
   protected _table:string=''
-
+  constructor(model:Queryable){
+    this._table = model.getTableName()
+  }
   where(col: string, value: unknown): this;
   where(column: string, operator: Operator, value?: unknown): this;
   where(...args: any[]): this {
@@ -24,7 +26,7 @@ export abstract class QueryBuilder {
     return this;
   }
   private col(col:string){
-    return `${this._table}.${col}`
+    return col.includes(".") ? col : `${this._table}.${col}`;
   }
 
   orWhere(col: string, value: unknown): this;
@@ -105,8 +107,6 @@ export abstract class QueryBuilder {
 
   import(builder: QueryBuilder) {
     this._wheres.push(...builder._wheres);
-    this._bindings.push(...builder._bindings);
-
     return this;
   }
 }
