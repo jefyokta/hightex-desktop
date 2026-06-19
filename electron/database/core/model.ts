@@ -32,7 +32,7 @@ export abstract class Model<
   private _insert = new Insert(this);
   private _delete = new Delete(this);
   private _update = new Update(this);
-  private _currentBuilder: QueryBuilder = new Unkown();
+  private _currentBuilder: QueryBuilder = new Unkown(this);
   protected columnMutator: Partial<{ [K in keyof T]: (val: T[K]) => any }> = {};
 
   protected relations: Relations = {};

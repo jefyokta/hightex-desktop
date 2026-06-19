@@ -93,6 +93,7 @@ export abstract class QueryBuilder {
 
   getBindings(): unknown[] {
     this.toString();
+    this._wheres =[]
     return [...this._bindings];
   }
 
