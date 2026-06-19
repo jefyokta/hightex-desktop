@@ -40,7 +40,6 @@ export class SelectionResolver {
 
   private handleSelectionChange(): void {
     const selection = this.getSelection();
-    console.log(selection);
     if (!selection || selection.rangeCount === 0) {
       this.setSelectionData(null);
       return;

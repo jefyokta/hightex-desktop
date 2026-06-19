@@ -8,7 +8,7 @@ class Storage<T> {
   }
 
   get(): T | undefined {
-    return this.store.get(this.name) as T |undefined;
+    return this.store.get(this.name) as T | undefined;
   }
 
   set(value: T) {
@@ -22,8 +22,6 @@ class Storage<T> {
   delete() {
     this.store.delete(this.name);
   }
-
-
 }
 
 export abstract class HasStorage<T = any> {
@@ -37,14 +35,10 @@ export abstract class HasStorage<T = any> {
     }
     return this._storage;
   }
-  protected getStorage():Storage<T>{
-    return new Storage(this.storageName)
+  protected getStorage(): Storage<T> {
+    return new Storage(this.storageName);
   }
- static instance<T extends HasStorage<any>>(this: new () => T): T {
+  static instance<T extends HasStorage<any>>(this: new () => T): T {
     return new this();
   }
-
-  
-
-
 }

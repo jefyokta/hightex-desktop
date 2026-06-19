@@ -4,12 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  FileText,
   MessageCircle,
   Send,
   UsersRound,
   ArrowLeft,
   LogOut,
+  Eye,
 } from "lucide-react";
 import { useSharing } from "@/hooks/use-sharing";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -142,7 +142,7 @@ export const ExpandableSharingSidebar = () => {
                     key={i}
                     className="flex gap-2 items-center text-muted-foreground"
                   >
-                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <Eye className="h-3.5 w-3.5 shrink-0" />
                     <p className="text-[11px]">
                       <Tooltip>
                         <TooltipTrigger>

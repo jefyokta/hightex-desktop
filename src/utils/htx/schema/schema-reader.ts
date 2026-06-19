@@ -5,7 +5,6 @@ import { V2Reader } from "./v2-reader";
 import { V1Reader } from "./v1-reader";
 
 export class SchemaReader<TVersion extends SchemaVersion = any> {
-  // Use a cleaner mapped conditional type for the reader
   private _reader: TVersion extends 1 ? V1Reader : V2Reader;
 
   get reader() {
@@ -17,8 +16,7 @@ export class SchemaReader<TVersion extends SchemaVersion = any> {
     file: File,
     manifest: TVersion extends 1 ? HighTexManifest : HighTexManifestV2,
   ) {
-    // We explicitly cast the result because TypeScript struggles with
-    // dynamic lookups matching complex conditional types perfectly.
+
     const readerMap = SchemaReader.readers(file, manifest);
     this._reader = readerMap[version] as TVersion extends 1
       ? V1Reader
@@ -49,7 +47,6 @@ export class SchemaReader<TVersion extends SchemaVersion = any> {
     return (await this.getManifestFile(file)).schema_version;
   }
 
-  // Changed manifest type to BaseManifest to accept either version cleanly
   private static readers(file: File, manifest: BaseManifest) {
     return {
       1: new V1Reader(file, manifest as HighTexManifest),

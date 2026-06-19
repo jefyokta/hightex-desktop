@@ -9,7 +9,7 @@ export class HighTexDB extends Dexie {
   cite!: Table<CiteRecord, string>;
   chapterGraphs!: Table<ChapterGraph, string>;
   images!: Table<ImageRecord, string>;
-  variables!:Table<Variable,string>
+  variables!: Table<Variable, string>;
 
   private static instance?: HighTexDB;
 
@@ -22,7 +22,7 @@ export class HighTexDB extends Dexie {
       cite: "key, documentId",
       chapterGraphs: "id",
       images: "id, documentId",
-      variables:"name, documentId",
+      variables: "name, documentId",
     });
     this.cite.bulkPut(defaulBib);
   }
@@ -97,17 +97,16 @@ export class HighTexDB extends Dexie {
     return await this.variables
       .where("documentId")
       .anyOf([documentId, "global"])
-      .toArray()
+      .toArray();
   }
 
   async getVar(name: string, documentId = "global") {
-    const v = await this.variables.get([name, documentId])
-    return v?.value
+    const v = await this.variables.get([name, documentId]);
+    return v?.value;
   }
 
-  async getGlobalVars(){
-
-    return await this.variables.where("documentId").equals("global").toArray()
+  async getGlobalVars() {
+    return await this.variables.where("documentId").equals("global").toArray();
   }
   async setVar(
     name: string,
@@ -118,6 +117,6 @@ export class HighTexDB extends Dexie {
       name,
       value,
       documentId,
-    })
+    });
   }
 }

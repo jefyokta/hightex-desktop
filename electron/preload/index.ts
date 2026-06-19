@@ -41,7 +41,6 @@ const loadConfig = async () => {
 
 loadConfig();
 
-
 contextBridge.exposeInMainWorld("hightex", {
   // compile() {},
   document: () => {

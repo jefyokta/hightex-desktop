@@ -128,12 +128,13 @@ declare global {
   };
 
   type CommentServerExtra = {
+    id: string;
     role: SharingParticipantRole;
     name?: string;
     participantId?: string;
     invitationCode?: string;
   };
-
+  //ignore selectionpayload
   type CommentServerMessage = BaseSelectionPayload & CommentServerExtra;
 
   type CommentClientMessage = BaseSelectionPayload;

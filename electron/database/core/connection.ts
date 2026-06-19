@@ -5,7 +5,11 @@ export class Connection {
   private static db: DB;
   static get() {
     if (!this.db) {
-      this.db = new Database(path.join(app.getPath("userData"), "hightex.db"));
+      this.db = new Database(
+        path.join(
+          // __dirname,
+          app.getPath("userData"),
+         "hightex.db"));
     }
     return this.db;
   }

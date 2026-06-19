@@ -1,5 +1,5 @@
 import fs from "fs";
-import { app, BrowserWindow,  Menu, MenuItem } from "electron";
+import { app, BrowserWindow, Menu, MenuItem } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 

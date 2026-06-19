@@ -11,12 +11,12 @@ import {
   toIdentity,
   AnonymousState,
 } from "./utils";
-import { Comments } from "@main/database/models/comments";
+import { Comment } from "@main/database/models/comments";
 import { GuestMessage } from "./events/on-guest-message";
 import { NetworkService } from "@main/service/network-service";
 import { NetworkException } from "@main/exception/network-exception";
 import { AnonMessage } from "./events/on-anon-message";
-
+import { randomUUID } from "node:crypto";
 export class SharingServer {
   private server: http.Server | null = null;
   private wss: WebSocketServer | null = null;
@@ -163,6 +163,9 @@ export class SharingServer {
         this.attach(ws, client);
       });
     });
+    this.wss.addListener("error",(e)=>{
+      console.error(e)
+    })
 
     await new Promise<void>((resolve) => {
       this.server!.listen(0, "0.0.0.0", () => {
@@ -194,8 +197,9 @@ export class SharingServer {
   }
 
   onComment(comment: IncomingComment): void {
-    this.commentHistory.push(comment);
-    Comments.query().create({
+    const id = randomUUID();
+    this.commentHistory.push({ ...comment, id });
+    Comment.query().create({
       text: comment.text,
       data: {
         start: comment.start,
@@ -204,14 +208,14 @@ export class SharingServer {
       } satisfies Omit<SelectionPayload, "text">,
       documentId: this.doc.id,
       type: this.sessionId,
-      id: randomCode(),
+      id,
       role: comment.role,
       participantId: comment.participantId,
     });
     const msg = JSON.stringify({
       type: "comment",
-      payload: comment,
-    } satisfies WSMessage);
+      payload: { ...comment, id },
+    } satisfies WSMessage<"server">);
     for (const ws of this.connections) {
       ws.send(msg);
     }

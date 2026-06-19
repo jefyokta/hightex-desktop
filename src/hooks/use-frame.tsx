@@ -1,3 +1,4 @@
+import { createCommentClass } from "@/utils/custom-element/comment";
 import {
   useEffect,
   useRef,
@@ -52,6 +53,19 @@ export const useFrame = () => {
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, []);
+
+  useEffect(() => {
+    if (!frameDoc) return;
+
+    const win = frameDoc.defaultView;
+    if (!win) return;
+
+    if (!win.customElements.get("ht-comment")) {
+      const Comment = createCommentClass(frameDoc);
+
+      win.customElements.define("ht-comment", Comment);
+    }
+  }, [frameDoc]);
 
   const send = useCallback((type: string, payload?: unknown) => {
     iframeRef.current?.contentWindow?.postMessage({ type, payload }, "*");

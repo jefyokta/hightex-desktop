@@ -11,8 +11,8 @@ export function initials(name: string): string {
     .slice(0, 2);
 }
 
-export function getRoot(): Document | null {
-  const host = document.querySelector("iframe")?.contentDocument || null;
+export function getRoot(): Document {
+  const host = document.querySelector("iframe")?.contentDocument || document;
   return host;
 }
 
@@ -24,7 +24,7 @@ export function scrollToUuid(uuid: string): void {
 
 export function scrollToPage(page: number): void {
   getRoot()
-    ?.querySelector(`[data-page-number="${page}"]`)
+    .querySelector(`[data-page-number="${page}"]`)
     ?.scrollIntoView({ behavior: "smooth" });
 }
 
@@ -36,51 +36,21 @@ export function resolveSelectionText({
   end: SelectionAnchor;
 }): string {
   const root = getRoot();
-  if (!root) return "";
+  if (!root) return "-";
 
-  const all = Array.from(root.querySelectorAll<HTMLElement>("[data-uuid]"));
-  const startIndex = all.findIndex(
-    (el) => el.getAttribute("data-uuid") === start.uuid,
-  );
-  const endIndex = all.findIndex(
-    (el) => el.getAttribute("data-uuid") === end.uuid,
-  );
-
-  if (startIndex === -1 || endIndex === -1) return "";
-
-  const forward = startIndex <= endIndex;
-  const slice = forward
-    ? all.slice(startIndex, endIndex + 1)
-    : all.slice(endIndex, startIndex + 1).reverse();
-
-  let result = "";
-
-  for (let i = 0; i < slice.length; i++) {
-    const el = slice[i];
-    const uuid = el.getAttribute("data-uuid");
-    if (!uuid) continue;
-
-    const text = el.textContent ?? "";
-
-    if (i === 0 && uuid === start.uuid) {
-      const from = Math.min(start.offset, text.length);
-      if (slice.length === 1 && start.uuid === end.uuid) {
-        result += text.slice(from, Math.min(end.offset, text.length));
-        return truncate(result, 100);
-      }
-      result += text.slice(from);
-      continue;
-    }
-
-    if (i === slice.length - 1 && uuid === end.uuid) {
-      result += text.slice(0, Math.min(end.offset, text.length));
-      break;
-    }
-
-    result += text;
-  }
-
-  return truncate(result, 100);
+  const s = resolveOffset(start.uuid, start.offset);
+  const e = resolveOffset(end.uuid, end.offset);
+  if (!s || !e) return "";
+  const range = root.createRange();
+  range.setStart(s.node, s.offset);
+  range.setEnd(e.node, e.offset);
+  const text =
+    e.node == s.node
+      ? range.toString()
+      : getTextNodesInRange(range)
+          .map((t) => t.textContent)
+          .join("");
+  return truncate(text, 100);
 }
 
 export const getNearestPageNum = (
@@ -148,7 +118,7 @@ export const connectToHost = async (invdCode: string) => {
   const confirmed = await confirm("want to join to host network " + ssid + "?");
   if (!confirmed) throw new Error("Canceled");
 
-  const pass = await ask(`password for ${ssid}`);
+  const pass = await ask(`password for ${ssid}`, true);
   if (typeof pass == "undefined") throw new Error("Canceled");
   const connetion = await window.sharing.wifi.connect(ssid, pass);
   if (!connetion.changed) throw new Error("Failed to connect");
@@ -162,3 +132,113 @@ const checkForHostServer = async (host: string, sharingId: string) => {
     .catch((_e) => "kotnoleodnaisrghayudsagmanungkubninsiresponenya");
   if (res !== sharingId) throw new Error("Invalid server host");
 };
+
+const createCommentWrapper = (comm: CommentServerMessage) => {
+  const document = getRoot();
+  const comment = document.createElement("ht-comment") as CommentElement;
+  comment.addComment(comm);
+  comment.style.background = getRandomColor(comm.id);
+
+  return comment;
+};
+
+export const createMarker = (payload: CommentServerMessage) => {
+  const root = getRoot();
+  const { start, end } = payload;
+  const st = resolveOffset(start.uuid, start.offset);
+  const en = resolveOffset(end.uuid, end.offset);
+  if (!st || !en) return;
+  const range = root!.createRange();
+  range.setStart(st.node, st.offset);
+  range.setEnd(en.node, en.offset);
+
+  if (st.node == en.node) {
+    const span = createCommentWrapper(payload);
+    span.addComment(payload);
+    range.surroundContents(span);
+    return;
+  }
+  const textNodes = getTextNodesInRange(range);
+
+  for (const node of textNodes) {
+    const full = node.textContent || "";
+
+    const nodeRange = root.createRange();
+
+    const start = node === range.startContainer ? range.startOffset : 0;
+
+    const end = node === range.endContainer ? range.endOffset : full.length;
+
+    if (start >= end) continue;
+
+    nodeRange.setStart(node, start);
+    nodeRange.setEnd(node, end);
+
+    const span = createCommentWrapper(payload);
+
+    const frag = nodeRange.extractContents();
+    span.addComment(payload);
+    span.appendChild(frag);
+
+    nodeRange.insertNode(span);
+  }
+};
+
+function resolveOffset(uuid: string, offset: number) {
+  const els = Array.from(getRoot().querySelectorAll(`[data-uuid="${uuid}"]`));
+
+  let current = 0;
+
+  for (const el of els) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+
+    let node: Text | null;
+
+    while ((node = walker.nextNode() as Text | null)) {
+      const len = node.data.length;
+
+      if (offset <= current + len) {
+        return {
+          node,
+          offset: offset - current,
+        };
+      }
+
+      current += len;
+    }
+  }
+
+  return null;
+}
+
+function getTextNodesInRange(range: Range) {
+  const nodes: Text[] = [];
+
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+  );
+
+  let node: Text | null;
+
+  while ((node = walker.nextNode() as Text | null)) {
+    if (
+      range.intersectsNode(node) &&
+      node.parentElement?.closest("[data-uuid]")
+    ) {
+      nodes.push(node);
+    }
+  }
+
+  return nodes;
+}
+
+function getRandomColor(seed?: string) {
+  const hash = seed
+    ? [...seed].reduce((a, c) => a + c.charCodeAt(0), 0)
+    : Math.random() * 360;
+
+  const hue = hash % 360;
+
+  return `hsl(${hue}, 85%, 75%)`;
+}

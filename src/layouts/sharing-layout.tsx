@@ -4,6 +4,7 @@ import { ExpandableSharingSidebar } from "@/components/sharing/expandable-sideba
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useFrame, FrameContext } from "@/hooks/use-frame";
+
 export const SharingLayout = () => {
   const { iframeRef, frameDoc, setHtml, FramePortal } = useFrame();
 

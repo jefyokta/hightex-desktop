@@ -37,10 +37,9 @@ export const Variable = Node.create({
       nodeInputRule({
         find: /\\([a-zA-Z][a-zA-Z0-9_]*)$/,
         type: this.type,
-        getAttributes (match){
-
-            console.log(match);
-            return {name: match[1]}
+        getAttributes(match) {
+          console.log(match);
+          return { name: match[1] };
         },
       }),
     ];

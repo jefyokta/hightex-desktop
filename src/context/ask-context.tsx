@@ -25,7 +25,9 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
   const [resolver, setResolver] = useState<
     ((value: string | undefined) => void) | null
   >(null);
-  const [rejector, setRejector] = useState<((err:ActionCanceled) => void) | null>(null);
+  const [rejector, setRejector] = useState<
+    ((err: ActionCanceled) => void) | null
+  >(null);
 
   useEffect(() => {
     registerAsk((options) => {
@@ -33,17 +35,16 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
         setOptions(options);
         setValue(options.defaultValue ?? "");
         setResolver(() => resolve);
-        setRejector(() => reject)
+        setRejector(() => reject);
         setOpen(true);
       });
     });
   }, []);
 
   const close = (result: string | undefined) => {
-    if (typeof result == 'undefined') {
-      rejector?.(new ActionCanceled(options?.title))
+    if (typeof result == "undefined") {
+      rejector?.(new ActionCanceled(options?.title));
     } else {
-
       resolver?.(result);
     }
 
@@ -51,7 +52,7 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
     setValue("");
     setOptions(null);
     setResolver(null);
-    setRejector(null)
+    setRejector(null);
   };
 
   return (
@@ -68,14 +69,15 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
           <DialogHeader>
             <DialogTitle className="max-w-[80%]">{options?.title}</DialogTitle>
 
-            {options?.desc && (
-              <DialogDescription>{options.desc}</DialogDescription>
-            )}
+            <DialogDescription>
+              {options?.desc || "Please fill to continue"}
+            </DialogDescription>
           </DialogHeader>
 
           <Input
             autoFocus
             value={value}
+            type={options?.hidden ? "password" : "text"}
             placeholder={options?.placeholder}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => {

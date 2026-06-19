@@ -3,5 +3,9 @@
   {
     "type": "sqlite",
     "path": "/Users/jefyokta/Library/Application Support/hightex-desktop/hightex.db"
+  },
+   {
+    "type": "sqlite",
+    "path": "/Users/jefyokta/Library/Containers/desktop.WhatsApp/Data/Library/Application Support/WhatsApp/databases/Databases.db"
   }
 ]

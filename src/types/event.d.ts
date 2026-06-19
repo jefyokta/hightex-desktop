@@ -22,8 +22,8 @@ declare global {
   }
   interface ChapterCommitEvent extends ChapterEvent {}
   interface VarUpdated {
-    name:string,
-    value:String
+    name: string;
+    value: String;
   }
   interface AppEvents {
     "chapter:update": ChapterUpdateEvent;
@@ -32,7 +32,7 @@ declare global {
     "image:update": ImageUpdateEvent;
     "chapter:commit": ChapterCommitEvent;
     "document:updated": DocumentUpdatedEvent;
-    "var:updated":VarUpdated
+    "var:updated": VarUpdated;
   }
 }
 

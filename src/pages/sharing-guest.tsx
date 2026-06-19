@@ -79,7 +79,6 @@ export const SharingGuest = () => {
         const frameDoc = iframe.contentDocument!;
 
         await new SelectionResolver(frameDoc.body as any, frameDoc).resolve();
-
         document.dispatchEvent(new CustomEvent("shadow:rendered"));
       } catch (e) {
         if (e instanceof SharingException) throw e;

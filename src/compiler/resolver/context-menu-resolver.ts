@@ -4,18 +4,32 @@ export class ContextMenuResolver {
   private state = {
     page: 1,
   };
+  private listener: ((e: MouseEvent) => void) | undefined;
+  private static _instance: ContextMenuResolver | null = null;
   constructor(
     private send: (payload: WSMessage) => void,
     private role = "anonymous",
     private html: HTMLElement = document.body,
-  ) {}
+  ) {
+    ContextMenuResolver._instance = this;
+  }
   resolve() {
+    console.log(this.role);
     this.createMenu();
     this.bind();
   }
 
+  private hide = () => {
+    if (!this.menuEl) return;
+    this.menuEl.style.display = "none";
+  };
+
+  static instance() {
+    return this._instance;
+  }
+
   private bind() {
-    this.html.addEventListener("contextmenu", (e: MouseEvent) => {
+    this.listener = (e: MouseEvent) => {
       e.preventDefault();
 
       const el = e.target as HTMLElement;
@@ -30,11 +44,12 @@ export class ContextMenuResolver {
       });
 
       this.show(e.clientX, e.clientY);
-    });
+    };
+    this.html.addEventListener("contextmenu", this.listener);
 
-    this.html.addEventListener("click", () => this.hide());
-    window.addEventListener("resize", () => this.hide());
-    window.addEventListener("blur", () => this.hide());
+    this.html.addEventListener("click", this.hide);
+    window.addEventListener("resize", this.hide);
+    window.addEventListener("blur", this.hide);
   }
 
   private setState(partial: Partial<typeof this.state>) {
@@ -76,11 +91,7 @@ export class ContextMenuResolver {
 
     el.innerHTML = `
             <button data-action="broadcast">Tell everyone to look page 1</button>
-            ${
-              this.role !== "anonymous"
-                ? `<button data-action="select">Add to selection</button>`
-                : ""
-            }
+           
         `;
 
     el.querySelectorAll("button").forEach((btn) => {
@@ -162,8 +173,22 @@ export class ContextMenuResolver {
     menu.style.top = `${top}px`;
   }
 
-  private hide() {
-    if (!this.menuEl) return;
-    this.menuEl.style.display = "none";
+  destroy() {
+    if (this.listener) {
+      this.html.removeEventListener("contextmenu", this.listener);
+    }
+
+    this.html.removeEventListener("click", this.hide);
+    window.removeEventListener("resize", this.hide);
+    window.removeEventListener("blur", this.hide);
+
+    if (this.menuEl && this.html.contains(this.menuEl)) {
+      this.html.removeChild(this.menuEl);
+    }
+
+    this.menuEl = null;
+    if (ContextMenuResolver._instance === this) {
+      ContextMenuResolver._instance = null;
+    }
   }
 }

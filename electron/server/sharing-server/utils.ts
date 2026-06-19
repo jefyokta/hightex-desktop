@@ -6,6 +6,7 @@ export type IncomingComment = SelectionPayload & {
   role: SharingParticipantRole;
   name: string;
   invitationCode?: string;
+  id: string;
 };
 
 export type ClientState = {
@@ -47,8 +48,8 @@ export function isGuest(guest: AnyGuest): guest is GuestState {
   return guest.role !== "anonymous" && guest.role !== "host";
 }
 
-export function randomCode(): string {
-  return randomBytes(3).toString("hex").toUpperCase();
+export function randomCode(len = 3): string {
+  return randomBytes(len).toString("hex").toUpperCase();
 }
 
 export function makeGuest(role: SharingGuestRole): GuestState {

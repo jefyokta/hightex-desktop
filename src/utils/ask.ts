@@ -5,10 +5,11 @@ export type AskOptions = {
   defaultValue?: string;
   submitText?: string;
   cancelText?: string;
+  hidden?: boolean;
 };
 
 export interface Ask {
-  (title: string): Promise<string | undefined>;
+  (title: string, hidden?: boolean): Promise<string | undefined>;
   (options: AskOptions): Promise<string | undefined>;
 }
 
@@ -23,6 +24,7 @@ export function registerAsk(
 
 export const ask: Ask = (
   arg: string | AskOptions,
+  hidden?: boolean,
 ): Promise<string | undefined> => {
   if (!instance) {
     throw new Error("AskProvider is not mounted");
@@ -31,6 +33,7 @@ export const ask: Ask = (
   if (typeof arg === "string") {
     return instance({
       title: arg,
+      hidden: hidden,
     });
   }
 

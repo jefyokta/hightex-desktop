@@ -1,5 +1,6 @@
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { SharingException } from "@/exception/sharing-exception";
+import { createMarker } from "@/utils/sharing";
 import React, {
   createContext,
   PropsWithChildren,
@@ -92,7 +93,6 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
   const [comments, setComments] = useState<
     (CommentMessage<"server"> | LookUpMessage<"server">)[]
   >([]);
-
   const [generalInfo, setGeneralInfo] = useState<
     SharingInfo["payload"] | undefined
   >();
@@ -113,7 +113,8 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
     setConnecting(false);
   }, []);
 
-  const connect = useCallback( (opt: HostConnect | GuestConnect): Promise<void> => {
+  const connect = useCallback(
+    (opt: HostConnect | GuestConnect): Promise<void> => {
       return new Promise((resolve, reject) => {
         disconnect();
         const isGuest = "host" in opt;
@@ -187,6 +188,10 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
 
             if (message?.type == "comment") {
               setComments((prev) => appendBounded(prev, message));
+              console.log(message);
+              requestAnimationFrame(() =>
+                setTimeout(() => createMarker(message.payload), 100),
+              );
               return;
             }
 

@@ -1,3 +1,4 @@
+import { CommentResolver } from "@/compiler/resolver/comment-resolver";
 import { ContextMenuResolver } from "@/compiler/resolver/context-menu-resolver";
 import { SelectionResolver } from "@/compiler/resolver/selection-resolver";
 import { SharingException } from "@/exception/sharing-exception";
@@ -6,7 +7,7 @@ import { useSharing } from "@/hooks/use-sharing";
 import { useEffect } from "react";
 
 export const SharingHost = () => {
-  const { connectHost, send } = useSharing();
+  const { connectHost, send, identity } = useSharing();
   const { iframeRef, setHtml } = useFrameContext();
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export const SharingHost = () => {
 
         new ContextMenuResolver(
           send,
-          undefined,
+          identity.role,
           iframe.contentDocument!.body as any,
         ).resolve();
 
@@ -66,6 +67,7 @@ export const SharingHost = () => {
         ).resolve();
 
         document.dispatchEvent(new CustomEvent("shadow:rendered"));
+        new CommentResolver(iframe.contentDocument!).resolve();
       } catch (e) {
         if (e instanceof SharingException) throw e;
         if (e instanceof Error) throw new SharingException(e.message);
@@ -75,6 +77,9 @@ export const SharingHost = () => {
 
     return () => {
       disposed = true;
+      SelectionResolver.instance?.destroy();
+      ContextMenuResolver.instance()?.destroy();
+      // CommentResolver.instance()?.destroy()
     };
   }, [connectHost, send, setHtml, iframeRef]);
 

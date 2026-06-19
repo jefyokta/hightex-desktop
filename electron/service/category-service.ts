@@ -1,13 +1,12 @@
 import { ServerService } from "./server-service";
 import { LoggerService } from "./logger-service";
 import { HasStorage } from "./concerns/has-storage";
-export class CategoryService extends HasStorage<string>{
-  protected storageName: string = 'hightex.categories';
+export class CategoryService extends HasStorage<string> {
+  protected storageName: string = "hightex.categories";
 
   static async getAll(): Promise<Category[]> {
     try {
-      console.log(this.instance().getStorage().get())
-      const cached =this.instance().getStorage().get() || ""
+      const cached = this.instance().getStorage().get() || "";
       try {
         return this.normilize(cached);
       } catch (e) {}

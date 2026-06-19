@@ -88,7 +88,8 @@ export class Exporter {
     }
     return tmp;
   }
-  async *exportLazy() {
+  *exportLazy() {
     yield 1;
+    return ""
   }
 }

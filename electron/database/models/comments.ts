@@ -1,8 +1,7 @@
 import { Model } from "../core/model";
 import { table } from "./../core/schema";
 
-export class Comments extends Model<CommentEntity> {
-  protected tableName = "comments";
+export class Comment extends Model<CommentEntity> {
   protected primaryKeyType = "TEXT" as const;
   protected schema = {
     data: table.json(),
@@ -13,7 +12,5 @@ export class Comments extends Model<CommentEntity> {
     participantId: table.text(),
   };
 
-  constructor() {
-    super();
-  }
+
 }
