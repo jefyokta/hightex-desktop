@@ -18,7 +18,7 @@ import { Settings } from "./pages/settings";
 import { Editor } from "./pages/editor";
 import { FullDocument } from "./components/printable";
 import { Single } from "./components/printable/single";
-//@ts-ignore
+//@ts-expect-error citation-js does not ship a clean typed config entry here
 import { plugins } from "citation-js";
 // import { Print } from "./pages/print";
 import xml from "@/assets/locales-id-ID.xml?raw";
@@ -26,10 +26,11 @@ import { Present } from "./pages/sharing";
 import { SharingLayout } from "./layouts/sharing-layout";
 import { SharingGuest } from "./pages/sharing-guest";
 import { SharingHost } from "./pages/sharing-host";
+import { Snapshot } from "./pages/snapshot";
+import { SnapshotViewer } from "./pages/snapshot-viewer";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
-  // console.log(lang)
 
   return (
     <BrowserRouter>
@@ -52,9 +53,13 @@ function App() {
             <Route path="/dashboard/projects/local" element={<Dashboard />} />
             <Route path="/dashboard/citation" element={<Citation />} />
             <Route path="/dashboard/splitter" element={<>comming soon</>} />
+            <Route path="/dashboard/snapshots" element={<Snapshot />} />
 
             <Route path="/settings" element={<Settings />} />
+            <Route path="/dashboard/snapshots/:id" element={<SnapshotViewer />}></Route>
           </Route>
+
+
 
           <Route element={<EditorLayout />}>
             <Route

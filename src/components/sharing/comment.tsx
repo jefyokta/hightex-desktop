@@ -10,6 +10,11 @@ export const Comment = ({
   const [text, setText] = useState("");
 
   useEffect(() => {
+    if (!comment.payload.start || !comment.payload.end) {
+      setText("");
+      return;
+    }
+
     setText(
       resolveSelectionText({
         start: comment.payload.start,
@@ -18,6 +23,11 @@ export const Comment = ({
     );
 
     const listener = () => {
+      if (!comment.payload.start || !comment.payload.end) {
+        setText("");
+        return;
+      }
+
       setText(
         resolveSelectionText({
           start: comment.payload.start,
@@ -28,7 +38,7 @@ export const Comment = ({
 
     document.addEventListener("shadow:rendered", listener);
     return () => document.removeEventListener("shadow:rendered", listener);
-  }, []);
+  }, [comment.payload.end, comment.payload.start]);
 
   return (
     <div className="flex gap-2.5 p-3 rounded-lg border bg-card" {...props}>

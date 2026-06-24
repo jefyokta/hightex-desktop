@@ -1,16 +1,16 @@
 export class CommentResolver {
-private listener = (e: PointerEvent) => {
-  const win = this.root.defaultView;
-  const CommentEl = win!.customElements.get("ht-comment")!;
-  if (e.target instanceof CommentEl) {
-    const comments: CommentServerMessage[] = (
-      e.target as CommentElement
-    ).getComments();
-    this.open(comments, e.clientX, e.clientY); // ← kirim koordinat mouse
-  } else if (!this.popUpEl!.contains(e.target as Node)) {
-    this.close();
-  }
-};
+  private listener = (e: PointerEvent) => {
+    const win = this.root.defaultView;
+    const CommentEl = win!.customElements.get("ht-comment")!;
+    if (e.target instanceof CommentEl) {
+      const comments: CommentServerMessage[] = (
+        e.target as CommentElement
+      ).getComments();
+      this.open(comments, e.clientX, e.clientY); 
+    } else if (!this.popUpEl!.contains(e.target as Node)) {
+      this.close();
+    }
+  };
 
   private scrollListener = () => this.close();
   private arrowEl: HTMLElement | null = null;
@@ -22,14 +22,14 @@ private listener = (e: PointerEvent) => {
   private currentIndex = 0;
   private comments: CommentServerMessage[] = [];
   private isOpen = false;
-  private static _instance:CommentResolver | null;
+  private static _instance: CommentResolver | null;
   constructor(private root: Document) {
     this.createPopUp();
-    CommentResolver._instance =this
+    CommentResolver._instance = this;
   }
 
-  static instance(){
-    return this._instance
+  static instance() {
+    return this._instance;
   }
 
   resolve() {
@@ -39,80 +39,75 @@ private listener = (e: PointerEvent) => {
     });
   }
 
-private open(comments: CommentServerMessage[], mx: number, my: number) {
-  const isReplace = this.isOpen;
-  this.comments = comments;
-  this.currentIndex = 0;
+  private open(comments: CommentServerMessage[], mx: number, my: number) {
+    const isReplace = this.isOpen;
+    this.comments = comments;
+    this.currentIndex = 0;
 
-  this.positionNearMouse(mx, my); 
+    this.positionNearMouse(mx, my);
 
-  if (isReplace) {
-    this.renderHeader();
-    this.renderContent();
-  } else {
-    this.popUpEl!.style.display = "block";
-    void this.popUpEl!.offsetHeight;
-    this.popUpEl!.style.opacity = "1";
-    this.popUpEl!.style.transform = "translateY(0) scale(1)";
-    this.isOpen = true;
-    this.renderHeader();
-    this.renderContent();
-  }
-}
-
-private positionNearMouse(mx: number, my: number) {
-  const el = this.popUpEl!;
-  const gap = 12;
-  const arrowSize = 8;
-
-  // Ukur ukuran popup
-  el.style.visibility = "hidden";
-  el.style.display = "block";
-  const elW = el.offsetWidth;
-  const elH = el.offsetHeight;
-  el.style.display = this.isOpen ? "block" : "none";
-  el.style.visibility = "";
-
-  const win = this.root.defaultView!;
-  const vw = win.innerWidth;
-  // const vh = win.innerHeight;
-
-  const spaceAbove = my;
-  // const spaceBelow = vh - my;
-  const placeAbove = spaceAbove > elH + gap + arrowSize;
-
-  let top: number;
-  let arrowBottom: boolean;
-
-  if (placeAbove) {
-    top = my - elH - gap - arrowSize;
-    arrowBottom = true; 
-  } else {
-    top = my + gap + arrowSize;
-    arrowBottom = false;
+    if (isReplace) {
+      this.renderHeader();
+      this.renderContent();
+    } else {
+      this.popUpEl!.style.display = "block";
+      void this.popUpEl!.offsetHeight;
+      this.popUpEl!.style.opacity = "1";
+      this.popUpEl!.style.transform = "translateY(0) scale(1)";
+      this.isOpen = true;
+      this.renderHeader();
+      this.renderContent();
+    }
   }
 
-  let left = mx - elW / 2;
-  left = Math.max(gap, Math.min(left, vw - elW - gap));
+  private positionNearMouse(mx: number, my: number) {
+    const el = this.popUpEl!;
+    const gap = 12;
+    const arrowSize = 8;
 
-  const arrowLeft = Math.min(
-    Math.max(mx - left, 16),
-    elW - 16,
-  );
+    el.style.visibility = "hidden";
+    el.style.display = "block";
+    const elW = el.offsetWidth;
+    const elH = el.offsetHeight;
+    el.style.display = this.isOpen ? "block" : "none";
+    el.style.visibility = "";
 
-  el.style.top = `${top}px`;
-  el.style.left = `${left}px`;
+    const win = this.root.defaultView!;
+    const vw = win.innerWidth;
+    // const vh = win.innerHeight;
 
-  this.arrowEl!.style.left = `${arrowLeft}px`;
-  this.arrowEl!.style.transform = `translateX(-50%) ${arrowBottom ? "rotate(180deg)" : "rotate(0deg)"}`;
-  if (arrowBottom) {
-    this.arrowEl!.style.bottom = `-${arrowSize}px`;
-    this.arrowEl!.style.top = "";
-  } else {
-    this.arrowEl!.style.top = `-${arrowSize}px`;
-    this.arrowEl!.style.bottom = "";
+    const spaceAbove = my;
+    const placeAbove = spaceAbove > elH + gap + arrowSize;
+
+    let top: number;
+    let arrowBottom: boolean;
+
+    if (placeAbove) {
+      top = my - elH - gap - arrowSize;
+      arrowBottom = true;
+    } else {
+      top = my + gap + arrowSize;
+      arrowBottom = false;
+    }
+
+    let left = mx - elW / 2;
+    left = Math.max(gap, Math.min(left, vw - elW - gap));
+
+    const arrowLeft = Math.min(Math.max(mx - left, 16), elW - 16);
+
+    el.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+
+    this.arrowEl!.style.left = `${arrowLeft}px`;
+    this.arrowEl!.style.transform = `translateX(-50%) ${arrowBottom ? "rotate(180deg)" : "rotate(0deg)"}`;
+    if (arrowBottom) {
+      this.arrowEl!.style.bottom = `-${arrowSize}px`;
+      this.arrowEl!.style.top = "";
+    } else {
+      this.arrowEl!.style.top = `-${arrowSize}px`;
+      this.arrowEl!.style.bottom = "";
+    }
   }
-}
 
   private renderHeader() {
     const el = this.headerEl!;
@@ -293,18 +288,18 @@ private positionNearMouse(mx: number, my: number) {
 
     const content = document.createElement("div");
     const arrow = document.createElement("div");
-  Object.assign(arrow.style, {
-    position: "absolute",
-    width: "0",
-    height: "0",
-    borderLeft: "8px solid transparent",
-    borderRight: "8px solid transparent",
-    borderBottom: "8px solid #ffffff",    
-    filter: "drop-shadow(0 -1px 1px rgba(0,0,0,0.08))",
-    pointerEvents: "none",
-  });
-el.appendChild(arrow);
-this.arrowEl = arrow;
+    Object.assign(arrow.style, {
+      position: "absolute",
+      width: "0",
+      height: "0",
+      borderLeft: "8px solid transparent",
+      borderRight: "8px solid transparent",
+      borderBottom: "8px solid #ffffff",
+      filter: "drop-shadow(0 -1px 1px rgba(0,0,0,0.08))",
+      pointerEvents: "none",
+    });
+    el.appendChild(arrow);
+    this.arrowEl = arrow;
     slideWrap.appendChild(content);
 
     el.appendChild(header);
@@ -325,6 +320,6 @@ this.arrowEl = arrow;
     this.headerEl = null;
     this.slideWrapEl = null;
     this.contentEl = null;
-    this.arrowEl=null;;
+    this.arrowEl = null;
   }
 }

@@ -8,7 +8,6 @@
   Desktop thesis editor built for HighTex.
 </p>
 
-
 HighTex Desktop is a desktop version of HighTex, a thesis writing application originally developed as my final-year project.
 
 The goal of HighTex is simple: help students focus on writing their thesis instead of fighting with document formatting.
@@ -123,4 +122,3 @@ HighTex Desktop is currently under active development.
 Features, architecture, and workflows may continue to evolve as the project grows.
 
 ---
-

@@ -7,15 +7,18 @@ declare global {
   }
   interface CommentEntity extends Entity {
     data: Omit<SelectionPayload, "text">;
-    type: SharingType | string;
     text: string;
-    documentId: string;
     role: string;
     participantId: string;
+    snapshotId:string
   }
 
-  interface SharingEntity extends Entity {
-    updatedAt: Date | string|null;
+  interface SnapshotEntity extends Entity {
+    updatedAt: Date | string | null;
     filePath: string;
+    type: SharingType | string;
+    documentId: string;
+
+
   }
 }

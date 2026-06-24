@@ -6,6 +6,7 @@ import {
   Quote,
   Settings,
   SplitSquareVerticalIcon,
+  Timeline,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isMac } from "../../utils/is-mac";
@@ -71,6 +72,11 @@ export const Sidebar = ({ recent = [] }: Props) => {
               <Cloud size={14} />,
               "Remote Project",
             )}
+            {navItem(
+              "/dashboard/snapshots",
+              <Timeline size={14} />,
+              "Snapshots",
+            )}
           </div>
         </div>
 
@@ -84,7 +90,7 @@ export const Sidebar = ({ recent = [] }: Props) => {
               No recent documents
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1 ms-2">
               {recent.slice(0, 5).map((doc) => {
                 const time = doc.updatedAt
                   ? formatDistanceToNow(new Date(doc.updatedAt), {
@@ -96,11 +102,11 @@ export const Sidebar = ({ recent = [] }: Props) => {
                   <button
                     key={doc.id}
                     onClick={() => navigate(`/document/${doc.id}`)}
-                    className="w-full flex items-center space-x-2 text-left px-2 py-2 rounded-md
+                    className="w-full flex items-center space-x-2 text-left  rounded-md
                       hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
                   >
                     <FileText
-                      size={20}
+                      size={14}
                       className="text-neutral-500 dark:text-neutral-400"
                     />
                     <div className="w-full">

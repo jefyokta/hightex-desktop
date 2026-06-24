@@ -1,4 +1,4 @@
-import { Grammar } from "@main/database/core/grammar";
+import { Grammar } from "@main/database/builder/grammar";
 import { test, expect } from "bun:test";
 
 const grammar = new Grammar();

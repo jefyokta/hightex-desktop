@@ -19,6 +19,7 @@ import { FileOpenManager } from "../service/file-open-service";
 import { SharingHandler } from "../handlers/sharing-handler";
 import { DatabaseBootstraper } from "@main/database/core/bootstrapper";
 import { NetworkService } from "@main/service/network-service";
+import { SnapshotHandler } from "@main/handlers/snapshot-handler";
 
 export class Application {
   private win: BrowserWindow | null = null;
@@ -215,7 +216,7 @@ export class Application {
     PluginHandler.register();
 
     PluginScannerHandler.register();
-
+    SnapshotHandler.register()
     ZoteroHandler.register();
     SharingHandler.register();
   }

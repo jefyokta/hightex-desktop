@@ -1,76 +1,61 @@
-export abstract class QueryBuilder {
+export abstract class QueryBuilder<TEntity extends Record<string, any> = any> {
   protected _wheres: WhereClause[] = [];
   protected _bindings: unknown[] = [];
-  protected _table:string=''
-  constructor(model:Queryable){
-    this._table = model.getTableName()
+  protected _table: string = "";
+  protected _model:Queryable<TEntity>
+
+  constructor(model: Queryable<TEntity>) {
+    this._table = model.getTableName();
+    this._model = model
   }
-  where(col: string, value: unknown): this;
-  where(column: string, operator: Operator, value?: unknown): this;
-  where(...args: any[]): this {
-    if (args.length === 2) {
-      this._wheres.push({
-        column: this.col(args[0]),
-        operator: "=",
-        value: args[1],
-        connector: "AND",
-      });
-      return this;
-    }
-    this._wheres.push({
-      column:this.col(args[0]),
-      operator: args[1],
-      value: args[2],
-      connector: "AND",
-    });
+
+
+  where(col: keyof TEntity & string, value: unknown): this;
+  where(col: keyof TEntity & string, operator: Operator, value: unknown): this;
+  where(col: string, arg2: unknown, arg3?: unknown): this {
+    const [operator, value]: [Operator, unknown] =
+      arg3 !== undefined ? [arg2 as Operator, arg3] : ["=", arg2];
+    this._wheres.push({ column: this._col(col), operator, value, connector: "AND" });
     return this;
   }
-  private col(col:string){
+
+  orWhere(col: keyof TEntity & string, value: unknown): this;
+  orWhere(col: keyof TEntity & string, operator: Operator, value: unknown): this;
+  orWhere(col: string, arg2: unknown, arg3?: unknown): this {
+    const [operator, value]: [Operator, unknown] =
+      arg3 !== undefined ? [arg2 as Operator, arg3] : ["=", arg2];
+    this._wheres.push({ column: this._col(col), operator, value, connector: "OR" });
+    return this;
+  }
+
+  whereIn(col: keyof TEntity & string, values: unknown[]): this {
+    return this.where(col, "IN", values);
+  }
+
+  whereNotIn(col: keyof TEntity & string, values: unknown[]): this {
+    return this.where(col, "NOT IN", values);
+  }
+
+  whereNull(col: keyof TEntity & string): this {
+    this._wheres.push({ column: this._col(col), operator: "IS NULL", value: undefined, connector: "AND" });
+    return this;
+  }
+
+  whereNotNull(col: keyof TEntity & string): this {
+    this._wheres.push({ column: this._col(col), operator: "IS NOT NULL", value: undefined, connector: "AND" });
+    return this;
+  }
+
+  whereLike(col: keyof TEntity & string, pattern: string): this {
+    return this.where(col, "LIKE", pattern);
+  }
+
+
+  protected _col(col: string): string {
     return col.includes(".") ? col : `${this._table}.${col}`;
   }
 
-  orWhere(col: string, value: unknown): this;
-  orWhere(column: string, operator: Operator, value?: unknown): this;
-  orWhere(...args: any[]): this {
-    if (args.length === 2) {
-      this._wheres.push({
-        column: args[0],
-        operator: "=",
-        value: args[1],
-        connector: "OR",
-      });
-      return this;
-    }
-    this._wheres.push({
-      column: args[0],
-      operator: args[1],
-      value: args[2],
-      connector: "OR",
-    });
-    return this;
-  }
-
-  whereIn(column: string, values: unknown[]): this {
-    return this.where(column, "IN", values);
-  }
-
-  whereNotIn(column: string, values: unknown[]): this {
-    return this.where(column, "NOT IN", values);
-  }
-
-  whereNull(column: string): this {
-    return this.where(column, "IS NULL");
-  }
-
-  whereNotNull(column: string): this {
-    return this.where(column, "IS NOT NULL");
-  }
-
-  whereLike(column: string, pattern: string): this {
-    return this.where(column, "LIKE", pattern);
-  }
-
-  protected buildWhere(): string {
+  protected _buildWhere(): string {
     if (!this._wheres.length) return "";
 
     return this._wheres
@@ -94,19 +79,19 @@ export abstract class QueryBuilder {
   }
 
   getBindings(): unknown[] {
+    this._bindings = [];
     this.toString();
-    this._wheres =[]
     return [...this._bindings];
+  }
+
+  import(builder: QueryBuilder): this {
+    this._wheres.push(...builder._wheres);
+    return this;
   }
 
   abstract toString(): string;
 
-  getQuery(): string {
-    return this.toString();
-  }
-
-  import(builder: QueryBuilder) {
-    this._wheres.push(...builder._wheres);
-    return this;
+  toSql(){
+    return this.toString()
   }
 }

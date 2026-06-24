@@ -11,12 +11,14 @@ import {
   toIdentity,
   AnonymousState,
 } from "./utils";
-import { Comment } from "@main/database/models/comments";
+import { Comment } from "@main/database/models/comment";
 import { GuestMessage } from "./events/on-guest-message";
 import { NetworkService } from "@main/service/network-service";
 import { NetworkException } from "@main/exception/network-exception";
 import { AnonMessage } from "./events/on-anon-message";
 import { randomUUID } from "node:crypto";
+import { SnapshotService } from "@main/service/snapshot-service";
+
 export class SharingServer {
   private server: http.Server | null = null;
   private wss: WebSocketServer | null = null;
@@ -29,7 +31,6 @@ export class SharingServer {
 
   public publicInvitation = "";
   private sessionId: SharingType | string;
-  public readonly sharingId: string = randomCode();
   private readonly _hostToken = randomCode();
   private lastLanAddr: string = "";
   private static _instance: SharingServer | null = null;
@@ -42,20 +43,20 @@ export class SharingServer {
 
   constructor(
     public readonly type: SharingType,
-    images: SerialableImageRecord[],
+    private images: SerialableImageRecord[],
     private readonly snapshot: Snapshot,
     doc: HighTexDocument,
   ) {
     this.categoryId = doc.category;
     this.doc = { ...doc, category: undefined };
-    this.sessionId = this.type == "advising" ? randomCode() : this.type;
+    this.sessionId = this.type == "advising" ? crypto.randomUUID() : this.type;
     this.store = new GuestStore(type);
     this.onRequest = new OnRequest(
       snapshot,
       images,
       (code) => this.store.byCode(code),
       (token) => token === this._hostToken,
-      this.sharingId,
+      this.sessionId
     );
     SharingServer._instance = this;
   }
@@ -120,6 +121,15 @@ export class SharingServer {
     if (!status.exposed) {
       throw new NetworkException(status.reason);
     }
+    SnapshotService.create({ 
+       images: this.images,
+       id:this.sessionId,
+       type:this.sessionId,
+       documentId:this.doc.id,
+       html:this.snapshot.html,
+       css:this.snapshot.css,
+
+    });
     this.server = http.createServer((req, res) =>
       this.onRequest.handle(req, res),
     );
@@ -163,9 +173,9 @@ export class SharingServer {
         this.attach(ws, client);
       });
     });
-    this.wss.addListener("error",(e)=>{
-      console.error(e)
-    })
+    this.wss.addListener("error", (e) => {
+      console.error(e);
+    });
 
     await new Promise<void>((resolve) => {
       this.server!.listen(0, "0.0.0.0", () => {
@@ -206,11 +216,10 @@ export class SharingServer {
         spanningUUIDs: comment.spanningUUIDs,
         end: comment.end,
       } satisfies Omit<SelectionPayload, "text">,
-      documentId: this.doc.id,
-      type: this.sessionId,
       id,
       role: comment.role,
       participantId: comment.participantId,
+      snapshotId:this.sessionId
     });
     const msg = JSON.stringify({
       type: "comment",

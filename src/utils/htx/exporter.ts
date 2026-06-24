@@ -90,6 +90,6 @@ export class Exporter {
   }
   *exportLazy() {
     yield 1;
-    return ""
+    return "";
   }
 }

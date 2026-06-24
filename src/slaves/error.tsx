@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
+import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
 
 export const ErrorSlave: React.FC = () => {
   const { errors, clear } = useError();
@@ -50,6 +51,11 @@ export const ErrorSlave: React.FC = () => {
     }
     if (err instanceof ShouldNotifiedWithNativeComponent) {
       err.showNotification();
+      return;
+    }
+
+    if(err instanceof ShouldNavigated){
+      go(err.navigateTo);
       return;
     }
   }, [latestError]);

@@ -16,7 +16,6 @@ export class SchemaReader<TVersion extends SchemaVersion = any> {
     file: File,
     manifest: TVersion extends 1 ? HighTexManifest : HighTexManifestV2,
   ) {
-
     const readerMap = SchemaReader.readers(file, manifest);
     this._reader = readerMap[version] as TVersion extends 1
       ? V1Reader

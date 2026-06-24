@@ -8,6 +8,7 @@ class IrregularRule implements PluralRule {
     child: "children",
     mouse: "mice",
     person: "people",
+    man: "men",
   };
 
   isMatch(word: string): boolean {

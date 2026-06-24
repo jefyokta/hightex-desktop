@@ -1,10 +1,11 @@
 import {
   DownloadCloudIcon,
-  Eye,
+  // Eye,
   File,
   FileJson,
   FileText,
-  FileType,
+  // FileType,
+  Pen,
   Trash,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -119,14 +120,14 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
           <div className="p-1 text-xs bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
             <DropdownItem onClick={() => onExport?.(doc.id)}>
               <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-neutral-700 dark:text-neutral-200">
-                <FileJson size={14} /> Export .ht (json)
+                <FileJson size={14} /> Export .ht
               </div>
             </DropdownItem>
-            <DropdownItem onClick={() => onExport?.(doc.id, "ht")}>
+            {/* <DropdownItem onClick={() => onExport?.(doc.id, "ht")}>
               <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-neutral-700 dark:text-neutral-200">
                 <FileType size={14} /> Export .htx (ht)
               </div>
-            </DropdownItem>
+            </DropdownItem> */}
             <DropdownItem
               onClick={async () => {
                 const toastId = toast.loading("Preparing PDF export...");
@@ -164,7 +165,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
           className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
           onClick={() => navigate(`/document/${doc.id}`)}
         >
-          <Eye size={14} className="text-neutral-500 dark:text-neutral-300" />
+          <Pen size={14} className="text-neutral-500 dark:text-neutral-300" />
         </button>
 
         <button

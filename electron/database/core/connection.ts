@@ -11,7 +11,9 @@ export class Connection {
         path.join(
           // __dirname,
           app.getPath("userData"),
-         "hightex.db"));
+          "hightex.db",
+        ),
+      );
     }
     return this.db;
   }

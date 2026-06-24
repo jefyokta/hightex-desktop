@@ -12,8 +12,7 @@ export function initials(name: string): string {
 }
 
 export function getRoot(): Document {
-  const host = document.querySelector("iframe")?.contentDocument || document;
-  return host;
+  return document.querySelector("iframe")?.contentDocument || document;
 }
 
 export function scrollToUuid(uuid: string): void {

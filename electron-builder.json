@@ -20,14 +20,9 @@
         "role": "Editor"
       },
       {
-        "ext": "ht",
-        "name": "HighTex Document JSON",
-        "role": "Editor"
-      },
-      {
         "ext": "htx",
-        "name": "HighTex JSON HT",
-        "role": "Editor"
+        "name": "HighTex Snapshot Document",
+        "role": "Viewer"
       }
     ]
   },
@@ -48,12 +43,9 @@
         "name": "HighTex Dynamic Document"
       },
       {
-        "ext": "ht",
-        "name": "HighTex Document JSON"
-      },
-      {
         "ext": "htx",
-        "name": "HighTex JSON HT"
+        "name": "HighTex Snapshot Document",
+        "role": "Viewer"
       }
     ]
   },
@@ -68,12 +60,9 @@
         "name": "HighTex Dynamic Document"
       },
       {
-        "ext": "ht",
-        "name": "HighTex Document JSON"
-      },
-      {
         "ext": "htx",
-        "name": "HighTex JSON HT"
+        "name": "HighTex Snapshot Document",
+        "role": "Viewer"
       }
     ]
   },
