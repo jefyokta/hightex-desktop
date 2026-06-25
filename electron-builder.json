@@ -3,6 +3,9 @@
   "appId": "com.hightex.app",
   "productName": "HighTex",
   "asar": true,
+  "asarUnpack": ["**/*.node", "node_modules/better-sqlite3/**"],
+  "npmRebuild": true,
+  "buildDependenciesFromSource": false,
   "directories": {
     "output": "release/${version}"
   },

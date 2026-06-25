@@ -31,6 +31,9 @@ jobs:
       - name: Install deps
         run: bun install
 
+      - name: Rebuild native dependencies
+        run: bunx electron-builder install-app-deps
+
       - name: Build default plugins
         run: bun run build:plugin
 
@@ -48,7 +51,8 @@ jobs:
       - name: Build mac
         if: matrix.os == 'macos-latest'
         run: bun run build:mac
-
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false        
       - name: Build win
         if: matrix.os == 'windows-latest'
         run: bun run build:win
