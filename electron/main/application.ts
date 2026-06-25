@@ -1,5 +1,6 @@
 import fs from "fs";
-import { app, BrowserWindow, Menu, MenuItem } from "electron";
+//@ts-ignore
+import { app, BrowserWindow, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -45,6 +46,10 @@ export class Application {
 
   private get publicRoot() {
     return path.join(this.appRoot, "public");
+  }
+
+  private get isDevelopment() {
+    return !app.isPackaged && process.env.APP_ENV !== "production";
   }
 
   private resolveAppRoot(): string {
@@ -134,13 +139,20 @@ export class Application {
       webPreferences: {
         preload: this.preloadEntry,
         contextIsolation: true,
+        devTools: this.isDevelopment,
         // sandbox: false,
       },
     });
 
-    if (process.env.APP_ENV !== "production") {
+    if (this.isDevelopment) {
       this.win.webContents.openDevTools();
     }
+
+    this.win.webContents.on("before-input-event", (event, input) => {
+      if (!this.isDevelopment && this.isDevToolsShortcut(input)) {
+        event.preventDefault();
+      }
+    });
 
     this.win.webContents.on("did-finish-load", () => {
       this.win?.webContents.send(
@@ -185,23 +197,32 @@ export class Application {
   }
 
   private registerContextMenu() {
-    this.win?.webContents.on("context-menu", (_event, params) => {
-      const menu = new Menu();
+    this.win?.webContents.on("context-menu", (_event, _params) => {
+      // const menu = new Menu();
 
-      menu.append(
-        new MenuItem({
-          label: "Inspect Element",
+      // menu.append(
+      //   new MenuItem({
+      //     label: "Inspect Element",
 
-          click: () => {
-            this.win!.webContents.inspectElement(params.x, params.y);
-          },
-        }),
-      );
+      //     click: () => {
+      //       this.win!.webContents.inspectElement(params.x, params.y);
+      //     },
+      //   }),
+      // );
 
-      menu.popup({
-        window: this.win!,
-      });
+      // menu.popup({
+      //   window: this.win!,
+      // });
     });
+  }
+
+  private isDevToolsShortcut(input: Electron.Input) {
+    const key = input.key.toLowerCase();
+    const isMacInspectShortcut = input.meta && input.alt && key === "i";
+    const isWindowsLinuxInspectShortcut =
+      input.control && input.shift && key === "i";
+
+    return key === "f12" || isMacInspectShortcut || isWindowsLinuxInspectShortcut;
   }
 
   private registerHandlers() {

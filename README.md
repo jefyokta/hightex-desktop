@@ -121,4 +121,16 @@ HighTex Desktop is currently under active development.
 
 Features, architecture, and workflows may continue to evolve as the project grows.
 
+## macOS Note
+
+The macOS build distributed through GitHub Releases is not notarized yet. Because of that, macOS may show a warning such as `"HighTex" is damaged and can't be opened` after downloading the DMG.
+
+For now, this is expected for development builds. After installing HighTex, users can remove the quarantine attribute manually:
+
+```sh
+xattr -cr /Applications/HighTex.app
+```
+
+Then open HighTex again.
+
 ---
