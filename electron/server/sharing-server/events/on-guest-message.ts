@@ -46,6 +46,7 @@ export class GuestMessage extends BaseOnMessage<AnyGuest> {
       participantId: this.client.id,
       role: this.client.role,
       name: this.client.name,
+      id: "",
       invitationCode: isGuest(this.client)
         ? this.client.invitationCode
         : undefined,

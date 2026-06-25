@@ -1,8 +1,8 @@
-import { expect, test, vi } from "bun:test";
+import { expect, mock, test } from "bun:test";
 import { renderToString } from "react-dom/server";
 import { parseBibtexInput, isCitationValid } from "../src/utils/citation";
 
-vi.mock("../src/editor/storage/hightex-db.ts", () => ({
+mock.module("../src/editor/storage/hightex-db.ts", () => ({
   HighTexDB: {
     getInstance: () => ({
       cite: { toArray: async () => [] },
@@ -10,7 +10,7 @@ vi.mock("../src/editor/storage/hightex-db.ts", () => ({
   },
 }));
 
-vi.mock("../src/editor/storage/index.ts", () => ({
+mock.module("../src/editor/storage/index.ts", () => ({
   Storage: class {
     static instance = null;
   },

@@ -7,6 +7,12 @@
     "output": "release/${version}"
   },
   "files": ["dist", "dist-electron"],
+  "extraResources": [
+    {
+      "from": "public.key",
+      "to": "public.key"
+    }
+  ],
 
   "mac": {
     "target": ["dmg"],

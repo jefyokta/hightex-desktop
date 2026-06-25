@@ -22,6 +22,7 @@ export class PluginRegistry {
       throw new Error("INVALID_PLUGIN");
     }
 
+    PluginValidator.trustManifestKey(manifest);
     PluginStorage.writePlugin(manifest.id, code, manifest);
 
     return manifest;

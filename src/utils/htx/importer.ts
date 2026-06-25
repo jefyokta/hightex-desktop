@@ -1,9 +1,11 @@
 import { Schema } from "./schema";
 
 export class Importer {
-  constructor(private file: File) {
+  constructor(private readonly file: File) {
     new Schema(1);
   }
 
-  async import() {}
+  async import() {
+    await this.file.arrayBuffer();
+  }
 }

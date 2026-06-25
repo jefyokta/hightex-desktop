@@ -4,18 +4,68 @@ import { fileURLToPath } from "node:url";
 import { app } from "electron";
 
 export class KeyManagerService {
+  static readonly corePluginKeyId = "hightex-core";
+
   static ensure() {
     const target = path.join(app.getPath("userData"), "public.key");
 
-    if (fs.existsSync(target)) return;
+    let publicKeyPath = target;
 
-    const source = this.getSourcePath();
+    if (!fs.existsSync(target)) {
+      const source = this.getSourcePath();
 
-    if (!source) {
-      throw new Error("public.key missing in app resources");
+      if (!source) {
+        throw new Error("public.key missing in app resources");
+      }
+
+      fs.copyFileSync(source, target);
+      publicKeyPath = target;
     }
 
-    fs.copyFileSync(source, target);
+    this.ensurePluginKey(this.corePluginKeyId, fs.readFileSync(publicKeyPath));
+  }
+
+  static pluginKeyPath(keyId: string): string {
+    const safeKeyId = this.normalizeKeyId(keyId);
+    return path.join(
+      app.getPath("userData"),
+      "plugin-keys",
+      `${safeKeyId}.pem`,
+    );
+  }
+
+  static ensurePluginKey(keyId: string, publicKey: string | Buffer) {
+    const file = this.pluginKeyPath(keyId);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+
+    if (!fs.existsSync(file)) {
+      fs.writeFileSync(file, publicKey);
+      return;
+    }
+
+    const current = fs.readFileSync(file, "utf-8").trim();
+    const next = publicKey.toString("utf-8").trim();
+
+    if (current !== next) {
+      throw new Error(`plugin key mismatch for ${keyId}`);
+    }
+  }
+
+  static readPluginKey(keyId: string): string | null {
+    const file = this.pluginKeyPath(keyId);
+    if (!fs.existsSync(file)) return null;
+
+    return fs.readFileSync(file, "utf-8");
+  }
+
+  private static normalizeKeyId(keyId: string): string {
+    const normalized = keyId.trim();
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(normalized)) {
+      throw new Error(`invalid plugin key id: ${keyId}`);
+    }
+
+    return normalized;
   }
 
   private static getSourcePath(): string | null {

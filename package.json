@@ -10,13 +10,14 @@
   "scripts": {
     "dev": "vite",
     "build:mac": "tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder",
-    "build:win": "tsc && vite build && bunx shx cp hightex.ico dist/hightex.ico && electron-builder",
+    "build:win": "tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder",
     "build:linux": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "bun test",
     "prettier": "bunx prettier . --write",
-    "build:plugin": "bun build electron/plugins/default/reference/index.ts --outdir=electron/plugins/default/reference/  && bun build electron/plugins/default/text-lint/index.ts --outdir=electron/plugins/default/text-lint/ && bun build electron/plugins/default/abstract/index.ts --outdir=electron/plugins/default/abstract/ "
+    "build:plugin": "bun build electron/plugins/default/reference/index.ts --outdir=electron/plugins/default/reference/ && bun build electron/plugins/default/text-lint/index.ts --outdir=electron/plugins/default/text-lint/ && bun build electron/plugins/default/abstract/index.ts --outdir=electron/plugins/default/abstract/",
+    "sign:plugin": "bun signer.ts"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-rc.0",

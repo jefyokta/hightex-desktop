@@ -6,6 +6,7 @@
   "type": "esm",
   "description": "Validates reference consistency for images and tables in documents.",
   "author": "HighTex Core",
-  "hash": "3e8507fe961c894c4ccb82a1a401adea1a05047666e3a70f1639dd5681db4832",
-  "signature": "CgDY/hbsxD9r6+Ow4TEryax+dk5Hqh65EMNnTlsITSh/70zUJx0cVwCl4BM0Lgk53zoIMxHf4jtJ5yKTe+ZhvdYz6yMSQ5cIuGwqBghyuEKfIyIG2hJSILrndMeLxnAIcBfiPIByfEgISrUwsqTeKCDNzuGLHSntbQSpe77/+i9RE47nlOgkLZ7fS+F8DHhWyln+5PXYIjUlCuf4CWo6zcjHX0Ca3zt+1T5YhSJeL3fxSGMcJ/38ZRX2jEXw852SjnJy4vsQFcLo8m5K3yLYf2iZ6R3/nBalwBVDBZdSo159SvudZRd15fq4Ge8JoATzI+0tV/k+Pw1Ddtm/AUn79A=="
+  "hash": "sha256:3cca546fafacba27ab69e2848131b3a469446d49aa10e5491ad9bcf1726a791e",
+  "signature": "UbZTEe81kHG/m6aEmMV/oEU3DhgDxkHP8bDsqZKYBiZB+KuREJKM9onRvAivnmnrrkdRWO3bJv+Z7+KBMT+5uDjAwIn9i1GamYWYzkjdLb/C+2phGmp8JzRUUsT64AbSPWBNM562F/JMzdVBXSyWGNvlGrZnhILzCNGCaMYYbDrLqtsRsYULmFySBC+W5dCqOJSzGKclL9zpoEPZVrJYucgb1uNhIqFxoU9v3z6qa6tERLvB5MbaIrVipXD9RTKi3iNsQtsCZgLpj2Y4E3oKeEMlj10t6wlZ7hAtsEVTkAzb7ECW4oSk6GPO4pbImkknW+//GqmoE+U89mBnd5iLXw==",
+  "keyId": "hightex-core"
 }

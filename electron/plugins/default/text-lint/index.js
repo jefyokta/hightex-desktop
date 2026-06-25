@@ -11,7 +11,7 @@ var text_lint_default = {
           title: "Double space",
           description: "Found multiple consecutive spaces",
           text,
-          match: /  /,
+          match: /  /
         });
       }
       if (/\s+[.,!?;]/.test(text)) {
@@ -21,7 +21,7 @@ var text_lint_default = {
           title: "Space before punctuation",
           description: "Invalid spacing before punctuation",
           text,
-          match: /\s+[.,!?;]/,
+          match: /\s+[.,!?;]/
         });
       }
       if (/\s+$/.test(text)) {
@@ -31,10 +31,12 @@ var text_lint_default = {
           title: "Trailing whitespace",
           description: "Line ends with whitespace",
           text,
-          match: /\s+$/,
+          match: /\s+$/
         });
       }
-    },
-  },
+    }
+  }
 };
-export { text_lint_default as default };
+export {
+  text_lint_default as default
+};

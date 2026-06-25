@@ -1,7 +1,7 @@
-import { expect, test, vi } from "bun:test";
+import { expect, mock, test } from "bun:test";
 import { renderToString } from "react-dom/server";
 
-vi.mock("../src/editor/storage/hightex-db.ts", () => ({
+mock.module("../src/editor/storage/hightex-db.ts", () => ({
   HighTexDB: {
     getInstance: () => ({
       documents: { toArray: async () => [] },
@@ -10,21 +10,21 @@ vi.mock("../src/editor/storage/hightex-db.ts", () => ({
   },
 }));
 
-vi.mock("../src/editor/storage/index.ts", () => ({
+mock.module("../src/editor/storage/index.ts", () => ({
   Storage: class {
     static instance = null;
   },
 }));
 
-vi.mock("../src/hooks/use-user", () => ({
+mock.module("../src/hooks/use-user", () => ({
   useUser: () => ({ user: false }),
 }));
 
-vi.mock("../src/context/auth-modal-context", () => ({
+mock.module("../src/context/auth-modal-context", () => ({
   useAuthModal: () => ({ openLogin: () => {} }),
 }));
 
-vi.mock("../src/hooks/use-online", () => ({
+mock.module("../src/hooks/use-online", () => ({
   useOnline: () => true,
 }));
 

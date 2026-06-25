@@ -30,7 +30,7 @@ export class SharingServer {
   private readonly onRequest: OnRequest;
 
   public publicInvitation = "";
-  private sessionId: SharingType | string;
+  private readonly sessionId: SharingType | string;
   private readonly _hostToken = randomCode();
   private lastLanAddr: string = "";
   private static _instance: SharingServer | null = null;
@@ -56,7 +56,7 @@ export class SharingServer {
       images,
       (code) => this.store.byCode(code),
       (token) => token === this._hostToken,
-      this.sessionId
+      this.sessionId,
     );
     SharingServer._instance = this;
   }
@@ -69,6 +69,8 @@ export class SharingServer {
     return this._port;
   }
 
+
+
   get lanUrl(): string {
     return `http://${NetworkService.getLocalIP()}:${this._port}`;
   }
@@ -78,6 +80,9 @@ export class SharingServer {
 
   get hostToken(): string {
     return this._hostToken;
+  }
+  get sharingId(){
+    return this.sessionId
   }
 
   private url(url = "") {
