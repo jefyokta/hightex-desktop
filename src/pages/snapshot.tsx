@@ -1,8 +1,11 @@
 import { formatDistanceToNow } from "date-fns";
-import { CalendarClock, FileArchive, RefreshCw } from "lucide-react";
+import { CalendarClock, FileArchive, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { confirm } from "@/utils/confirm";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 const loadSnapshots = async () => {
   return (await window.ipcRenderer.invoke("snapshots")) as SnapshotEntity[];
@@ -17,11 +20,29 @@ const formatRelativeDate = (value: Date | string | null | undefined) => {
   return formatDistanceToNow(date, { addSuffix: true });
 };
 
+const formatSnapshotType = (type: string) => {
+  return type
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const getSnapshotTitle = (snapshot: SnapshotEntity) => {
+  if (snapshot.type === "advising") {
+    return `Advising ${new Date(snapshot.createdAt).toLocaleString()}`;
+  }
+
+  return formatSnapshotType(snapshot.type);
+};
+
 export const Snapshot = () => {
   const navigate = useNavigate();
   const [snapshots, setSnapshots] = useState<SnapshotEntity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -29,7 +50,6 @@ export const Snapshot = () => {
 
     try {
       const items = await loadSnapshots();
-      console.log(items)
       setSnapshots(items);
     } catch (err) {
       console.error(err);
@@ -38,6 +58,48 @@ export const Snapshot = () => {
       setLoading(false);
     }
   }, []);
+
+  const deleteSnapshot = async (snapshot: SnapshotEntity) => {
+    const label = getSnapshotTitle(snapshot);
+    const confirmed = await confirm({
+      title: `Delete ${label}?`,
+      desc: "This will remove the snapshot record, related comments, and snapshot file.",
+      confirmText: "Delete",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const toastId = toast.loading("Deleting snapshot...");
+    setDeletingId(snapshot.id);
+
+    try {
+      const deleted = await window.ipcRenderer.invoke(
+        "snapshot:delete",
+        snapshot.id,
+      );
+
+      if (!deleted) {
+        throw new Error("Snapshot not found");
+      }
+
+      setSnapshots((items) => items.filter((item) => item.id !== snapshot.id));
+      toast.success("Snapshot deleted", { id: toastId });
+    } catch (err) {
+      console.error(err);
+      toast.dismiss(toastId);
+      throw new ShouldNotified({
+        message: "Failed to delete snapshot",
+        description:
+          err instanceof Error
+            ? err.message
+            : "The snapshot could not be deleted.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     refresh();
@@ -77,35 +139,61 @@ export const Snapshot = () => {
           <EmptyState label="No snapshots saved yet." />
         ) : (
           <div className="space-y-1">
-            {snapshots.map((snapshot) => (
-              <button
-                key={snapshot.id}
-                onClick={() => navigate(`/dashboard/snapshots/${snapshot.id}`)}
-                className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition hover:bg-white/80 dark:hover:bg-neutral-950/60"
-              >
-                <FileArchive
-                  size={17}
-                  className="shrink-0 text-neutral-500 dark:text-neutral-400"
-                />
+            {snapshots.map((snapshot) => {
+              const title = getSnapshotTitle(snapshot);
 
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                    {snapshot.type == 'finalDefense' && "Final Defense"}
-                    {snapshot.type == 'proposal' && "Proposal"}
-                    {snapshot.type == snapshot.id && `Advising ${new Date(snapshot.createdAt).toLocaleString()}`}
+              return (
+                <div
+                  key={snapshot.id}
+                  className="group flex w-full items-center gap-1 rounded-xl p-1 transition hover:bg-white/80 dark:hover:bg-neutral-950/60"
+                >
+                  <button
+                    onClick={() =>
+                      navigate(`/dashboard/snapshots/${snapshot.id}`)
+                    }
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-2 text-left"
+                  >
+                    <FileArchive
+                      size={17}
+                      className="shrink-0 text-neutral-500 dark:text-neutral-400"
+                    />
 
-                  </div>
-                  <div className="mt-0.5 truncate text-[11px] text-neutral-500">
-                    {snapshot.filePath}
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        {title}
+                      </div>
+                      <div className="mt-0.5 truncate text-[11px] text-neutral-500">
+                        {snapshot.filePath}
+                      </div>
+                    </div>
+
+                    <div className="hidden shrink-0 items-center gap-1.5 text-[11px] text-neutral-500 sm:flex">
+                      <CalendarClock size={13} />
+                      {formatRelativeDate(
+                        snapshot.updatedAt ?? snapshot.createdAt,
+                      )}
+                    </div>
+                  </button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={deletingId === snapshot.id}
+                    onClick={() => deleteSnapshot(snapshot)}
+                    className="text-neutral-400 opacity-100 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                    title="Delete snapshot"
+                  >
+                    {deletingId === snapshot.id ? (
+                      <RefreshCw className="animate-spin" />
+                    ) : (
+                      <Trash2 />
+                    )}
+                    <span className="sr-only">Delete snapshot</span>
+                  </Button>
                 </div>
-
-                <div className="hidden shrink-0 items-center gap-1.5 text-[11px] text-neutral-500 sm:flex">
-                  <CalendarClock size={13} />
-                  {formatRelativeDate(snapshot.updatedAt ?? snapshot.createdAt)}
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

@@ -1,3 +1,5 @@
+import { CommentResolver } from "@/compiler/resolver/comment-resolver";
+import { ContextMenuResolver } from "@/compiler/resolver/context-menu-resolver";
 import { SharingException } from "@/exception/sharing-exception";
 import { useFrameContext } from "@/hooks/use-frame";
 import { useSharing } from "@/hooks/use-sharing";
@@ -6,7 +8,7 @@ import { useParams } from "react-router-dom";
 import { SelectionResolver } from "@/compiler/resolver/selection-resolver";
 
 export const SharingGuest = () => {
-  const { connectAnonymous, connectGuest, disconnect } = useSharing();
+  const { connectAnonymous, connectGuest, disconnect, send } = useSharing();
   const { host, port, code } = useParams();
   const { iframeRef, setHtml } = useFrameContext();
 
@@ -42,7 +44,7 @@ export const SharingGuest = () => {
 
         const data: {
           snapshot: Snapshot;
-          guest: { role: SharingGuestRole; invitationCode: string };
+          guest: { role: SharingGuestRole; invitationCode: string } | null;
         } = await res.json();
 
         if (disposed) return;
@@ -60,10 +62,16 @@ export const SharingGuest = () => {
             const imgRes = await fetch(
               `${hostUrl}/share/image/${id}${codeQuery}`,
             );
+            if (!imgRes.ok) {
+              throw new SharingException(
+                `Failed to load image ${id} (${imgRes.status})`,
+              );
+            }
+
             const blob = await imgRes.blob();
             img.src = URL.createObjectURL(blob);
           }),
-        ).catch(() => {});
+        );
 
         if (disposed) return;
 
@@ -77,9 +85,21 @@ export const SharingGuest = () => {
 
         const iframe = iframeRef.current!;
         const frameDoc = iframe.contentDocument!;
+        const role = data.guest?.role ?? "anonymous";
 
-        await new SelectionResolver(frameDoc.body as any, frameDoc).resolve();
+        new ContextMenuResolver(
+          send,
+          role,
+          frameDoc.body as HTMLElement,
+        ).resolve();
+
+        await new SelectionResolver(
+          frameDoc.body as HTMLElement,
+          frameDoc,
+        ).resolve();
+
         document.dispatchEvent(new CustomEvent("shadow:rendered"));
+        new CommentResolver(frameDoc).resolve();
       } catch (e) {
         if (e instanceof SharingException) throw e;
         if (e instanceof Error) throw new SharingException(e.message);
@@ -91,6 +111,9 @@ export const SharingGuest = () => {
 
     return () => {
       disposed = true;
+      SelectionResolver.instance?.destroy();
+      ContextMenuResolver.instance()?.destroy();
+      CommentResolver.instance()?.destroy();
       disconnect();
     };
   }, [
@@ -100,6 +123,7 @@ export const SharingGuest = () => {
     connectAnonymous,
     connectGuest,
     disconnect,
+    send,
     setHtml,
     iframeRef,
   ]);

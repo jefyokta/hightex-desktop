@@ -9,15 +9,21 @@ export class SnapshotHandler {
     });
 
     ipcMain.handle("snapshot", (_, id: string) => {
-      return Snapshot.with("comments").find(id);
+      return Snapshot.with("comments", (query) => {
+        query.select("*");
+      }).find(id);
     });
 
     ipcMain.handle("snapshot:view", (_, id: string) => {
       const snapshot = Snapshot.find(id);
-    
+
       if (!snapshot) return undefined;
 
       return SnapshotService.read(snapshot.filePath);
+    });
+
+    ipcMain.handle("snapshot:delete", (_, id: string) => {
+      return SnapshotService.delete(id);
     });
   }
 }

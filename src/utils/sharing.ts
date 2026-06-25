@@ -136,6 +136,7 @@ const createCommentWrapper = (comm: CommentServerMessage) => {
   const document = getRoot();
   const comment = document.createElement("ht-comment") as CommentElement;
   comment.addComment(comm);
+  
   comment.style.background = getRandomColor(comm.id);
 
   return comment;
@@ -146,6 +147,7 @@ export const createMarker = (payload: CommentServerMessage) => {
   const { start, end } = payload;
   const st = resolveOffset(start.uuid, start.offset);
   const en = resolveOffset(end.uuid, end.offset);
+
   if (!st || !en) return;
   const range = root!.createRange();
   range.setStart(st.node, st.offset);
@@ -174,11 +176,9 @@ export const createMarker = (payload: CommentServerMessage) => {
     nodeRange.setEnd(node, end);
 
     const span = createCommentWrapper(payload);
-
     const frag = nodeRange.extractContents();
     span.addComment(payload);
     span.appendChild(frag);
-
     nodeRange.insertNode(span);
   }
 };

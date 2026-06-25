@@ -198,7 +198,7 @@ export abstract class Model<
   
 
   create(data: Omit<T, "id" | "createdAt"> & { id?: string | number }): T | undefined {
-    const insert = this._insert.values(data as Record<string, unknown>);
+    const insert = this._insert.values(data as Record<string, unknown>).onConflict("REPLACE");
     const result = this.connection.prepare(insert.toString()).run(insert.getBindings());
     this._resetBuilders();
     return new (this.constructor as new () => this)().find(result.lastInsertRowid as any) as unknown as T;
@@ -219,7 +219,7 @@ export abstract class Model<
   }
 
   put(data: T): T | undefined {
-    this._insert.values(data);
+    this._insert.values(data).onConflict("REPLACE");
     const id = this.connection
       .prepare(this._insert.toString())
       .run(this._insert.getBindings()).lastInsertRowid;
@@ -318,56 +318,50 @@ static belongsToMany<TModel extends Model<any, any, any>>(
 
   
 
-  private _hydrateRows(rows: Record<string, any>[], loaded: Map<string, Relation>): T[] {
-    if (rows.length === 0) return [];
-
-    const manyNames = new Set(
-      [...loaded.entries()]
-        .filter(([, r]) => r instanceof HasMany || r instanceof BelongsToMany)
-        .map(([k]) => k),
-    );
-
-    const singleNames = new Set(
-      [...loaded.entries()]
-        .filter(([, r]) => r instanceof BelongsTo || r instanceof HasOne)
-        .map(([k]) => k),
-    );
-
-    if (manyNames.size === 0) {
-      return rows.map(r => this._parseRow(r, singleNames));
-    }
-
-    const pk = this.primaryKey() as string;
-    const map = new Map<any, Record<string, any>>();
-
-    for (const raw of rows) {
-      const id = raw[pk];
-
-      if (!map.has(id)) {
-        const base: Record<string, any> = {};
-        for (const key of Object.keys(raw)) {
-          if (!manyNames.has(key.split("__")[0])) base[key] = raw[key];
-        }
-        for (const name of manyNames) base[name] = [];
-        map.set(id, base);
-      }
-
-      const parent = map.get(id)!;
-
-      for (const name of manyNames) {
-        const related = this._extractPrefixed(raw, name);
-        if (!related || this._isNullRow(related)) continue;
-        const already = parent[name] as any[];
-        const relId = related["id"];
-        if (relId == null || !already.some(x => x["id"] === relId)) {
-          already.push(related);
-        }
-      }
-    }
-
-    return [...map.values()].map(r => this._parseRow(r, singleNames));
+private _hydrateRows(rows: Record<string, any>[], loaded: Map<string, Relation>): T[] {
+  if (rows.length === 0) return [];
+ 
+  const manyNames = new Set(
+    [...loaded.entries()]
+      .filter(([, r]) => r instanceof HasMany || r instanceof BelongsToMany)
+      .map(([k]) => k),
+  );
+ 
+  if (manyNames.size === 0) {
+    return rows.map(r => this._parseRow(r, loaded));
   }
-
+ 
+  const pk = this.primaryKey() as string;
+  const map = new Map<any, Record<string, any>>();
+ 
+  for (const raw of rows) {
+    const id = raw[pk];
+ 
+    if (!map.has(id)) {
+      const base: Record<string, any> = {};
+      for (const key of Object.keys(raw)) {
+        if (!manyNames.has(key.split("__")[0])) base[key] = raw[key];
+      }
+      for (const name of manyNames) base[name] = [];
+      map.set(id, base);
+    }
+ 
+    const parent = map.get(id)!;
+ 
+    for (const name of manyNames) {
+      const relation = loaded.get(name)!;
+      const related = this._extractPrefixed(raw, name);
+      if (!related || this._isNullRow(related)) continue;
+      const already = parent[name] as any[];
+      const relId = related["id"];
+      if (relId == null || !already.some(x => x["id"] === relId)) {
+        already.push((relation.model as Model<any>)._parseRow(related));
+      }
+    }
+  }
+ 
+  return [...map.values()].map(r => this._parseRow(r, loaded, manyNames));
+}
   private _extractPrefixed(row: Record<string, any>, prefix: string): Record<string, any> | null {
     const result: Record<string, any> = {};
     let found = false;
@@ -384,41 +378,53 @@ static belongsToMany<TModel extends Model<any, any, any>>(
     return Object.values(obj).every(v => v == null);
   }
 
-  protected _parseRow(row: Record<string, any>, loadedSingles: Set<string> = new Set()): T {
-    for (const [col, def] of Object.entries(this.schema)) {
-      const val = row[col];
-      if (val === undefined || val === null) continue;
-
-      const mutator = this.columnMutator[col as Col<T>];
-      if (mutator) { row[col] = mutator(val); continue; }
-
-      if (def.colType === "JSON" && typeof val === "string") {
-        try { row[col] = JSON.parse(val); } catch {}
-      } else if (def.colType === "BOOLEAN") {
-        row[col] = val === 1;
-      } else if (def.colType === "DATE" && typeof val === "string" && !this.serialable) {
-        try { row[col] = new Date(val); } catch {}
-      }
+protected _parseRow(
+  row: Record<string, any>,
+  loaded: Map<string, Relation> = new Map(),
+  skipRelations: Set<string> = new Set(),
+): T {
+  for (const [col, def] of Object.entries(this.schema)) {
+    const val = row[col];
+    if (val === undefined || val === null) continue;
+ 
+    const mutator = this.columnMutator[col as Col<T>];
+    if (mutator) { row[col] = mutator(val); continue; }
+ 
+    if (def.colType === "JSON" && typeof val === "string") {
+      try { row[col] = JSON.parse(val); } catch {}
+    } else if (def.colType === "BOOLEAN") {
+      row[col] = val === 1;
+    } else if (def.colType === "DATE" && typeof val === "string" && !this.serialable) {
+      try { row[col] = new Date(val); } catch {}
     }
-
-    if (!this.serialable && row["createdAt"]) {
-      row["createdAt"] = new Date(row["createdAt"]);
-    }
-
-    return this._parseSingleRelations(row, loadedSingles) as T;
   }
-
-  private _parseSingleRelations(row: Record<string, any>, singles: Set<string>): Record<string, any> {
-    for (const key of Object.keys(row)) {
-      if (!key.includes("__")) continue;
-      const [name, col] = key.split("__");
-      if (!singles.has(name)) continue;
-      if (!row[name]) row[name] = {};
-      row[name][col] = row[key];
-      delete row[key];
-    }
-    return row;
+ 
+  if (!this.serialable && row["createdAt"]) {
+    row["createdAt"] = new Date(row["createdAt"]);
   }
+   const singleNames = new Set(
+    [...loaded.entries()]
+      .filter(([, r]) => r instanceof BelongsTo || r instanceof HasOne)
+      .map(([k]) => k),
+  );
+ 
+  for (const key of Object.keys(row)) {
+    if (!key.includes("__")) continue;
+    const [name, col] = key.split("__");
+    if (!singleNames.has(name)) continue;
+    if (!row[name]) row[name] = {};
+    row[name][col] = row[key];
+    delete row[key];
+  }
+ 
+  for (const name of singleNames) {
+    if (!row[name] || skipRelations.has(name)) continue;
+    row[name] = (loaded.get(name)!.model as Model<any>)._parseRow(row[name]);
+  }
+ 
+  return row as T;
+}
+
 
   
 
