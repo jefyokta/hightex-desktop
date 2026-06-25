@@ -9,9 +9,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build:mac": "tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder",
-    "build:win": "tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder",
-    "build:linux": "tsc && vite build && electron-builder",
+    "build:mac": "tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder --publish never",
+    "build:win": "tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder --publish never",
+    "build:linux": "tsc && vite build && electron-builder --publish never",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "bun test",
