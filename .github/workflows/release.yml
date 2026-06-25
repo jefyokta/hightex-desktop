@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -79,14 +79,35 @@ jobs:
       - name: Download all builds
         uses: actions/download-artifact@v4
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            **/release/**/*.exe
-            **/release/**/*.dmg
-            **/release/**/*.AppImage
-            **/release/**/*.blockmap
-            **/release/**/*.yml
+      - name: Collect release assets
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          find . -type f \( \
+            -name "*.exe" -o \
+            -name "*.dmg" -o \
+            -name "*.AppImage" -o \
+            -name "*.blockmap" -o \
+            -name "*.yml" \
+          \) -exec cp {} release-assets/ \;
+
+          if ! find release-assets -type f | grep -q .; then
+            echo "No release assets found after artifact download"
+            find . -maxdepth 4 -type f | sort
+            exit 1
+          fi
+
+          ls -la release-assets
+
+      - name: Create or update GitHub Release
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/* \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
