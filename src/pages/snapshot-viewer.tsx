@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Minus,
 } from "lucide-react";
+import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
 
 const formatSnapshotType = (type: string) => {
   return type
@@ -129,8 +130,7 @@ export const SnapshotViewer = () => {
       })
       .catch((err) => {
         console.error(err);
-
-        throw new ShouldNavigated("Snapshot not found", "/dashboard/snapshots");
+        throw new ShouldNotifiedWithNativeComponent(ShouldNotifiedWithNativeComponent.normilize(err) || "Snapshot Not found", "/dashboard/snapshots");
       });
 
     return () => {

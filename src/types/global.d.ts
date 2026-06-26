@@ -158,8 +158,41 @@ declare global {
     dialog: {
       selectFolder(): Promise<string | undefined>;
     };
+    updater: {
+      check(): Promise<UpdaterStatus>;
+      install(): Promise<{ ok: boolean; message?: string }>;
+      onStatus(cb: (status: UpdaterStatus) => void): () => void;
+    };
     confirm: (msg: string) => Promise<boolean>;
     alert: (msg: string) => Promise<void>;
+  }
+
+  type UpdaterStatus =
+    | { status: "disabled"; reason: string }
+    | { status: "checking" }
+    | { status: "available"; info: UpdaterInfo }
+    | { status: "not-available"; info: UpdaterInfo }
+    | { status: "downloading"; progress: UpdaterProgress }
+    | { status: "downloaded"; info: UpdaterDownloadedInfo }
+    | { status: "error"; message: string };
+
+  interface UpdaterInfo {
+    version: string;
+    releaseName?: string | null;
+    releaseNotes?: string | unknown[] | null;
+    releaseDate: string;
+  }
+
+  interface UpdaterDownloadedInfo extends UpdaterInfo {
+    downloadedFile: string;
+  }
+
+  interface UpdaterProgress {
+    total: number;
+    delta: number;
+    transferred: number;
+    percent: number;
+    bytesPerSecond: number;
   }
 
   interface SharingAPI {

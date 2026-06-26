@@ -86,6 +86,7 @@ jobs:
           find . -type f \( \
             -name "*.exe" -o \
             -name "*.dmg" -o \
+            -name "*.zip" -o \
             -name "*.AppImage" -o \
             -name "*.blockmap" -o \
             -name "*.yml" \

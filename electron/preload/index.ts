@@ -147,6 +147,20 @@ contextBridge.exposeInMainWorld("dialog", {
   },
 } satisfies Window["dialog"]);
 
+contextBridge.exposeInMainWorld("updater", {
+  check: () => ipcRenderer.invoke("updater:check"),
+  install: () => ipcRenderer.invoke("updater:install"),
+  onStatus: (cb) => {
+    const handler = (_: any, status: UpdaterStatus) => {
+      cb(status);
+    };
+
+    ipcRenderer.on("updater:status", handler);
+
+    return () => ipcRenderer.removeListener("updater:status", handler);
+  },
+} satisfies Window["updater"]);
+
 contextBridge.exposeInMainWorld("plugin", {
   scanner: {
     all: () => ipcRenderer.invoke("plugin:list"),

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { truncate } from "@/utils/truncate";
 import { Exporter } from "@/utils/htx/exporter";
 import { DocumentList } from "@/components/local/document-list";
+import { CategoryEmpty } from "@/exception/categories-empty";
 
 export const Dashboard = () => {
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
@@ -35,6 +36,10 @@ export const Dashboard = () => {
   const createDocument = async () => {
     const categories = await window.hightex.categories();
     const defaultCategory = categories[0];
+
+    if(!defaultCategory){
+      throw new CategoryEmpty
+    }
 
     const doc: HighTexDocument = {
       id: crypto.randomUUID(),

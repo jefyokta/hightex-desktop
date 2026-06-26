@@ -6,4 +6,13 @@ export class ApplicationError extends Error {
 
     this.name = this.constructor.name;
   }
+  static normilize(err:unknown){
+    if(err instanceof Error){
+      return err.message
+    }
+    if(typeof err == 'string'){
+      return err
+    }
+    return undefined
+  }
 }

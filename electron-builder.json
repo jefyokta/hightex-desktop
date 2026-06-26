@@ -18,7 +18,7 @@
   ],
 
   "mac": {
-    "target": ["dmg"],
+    "target": ["dmg", "zip"],
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
     "icon": "dist/hightex.icns",
 
@@ -81,5 +81,13 @@
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
-  }
+  },
+  "publish":[
+    {
+      "provider": "github",
+      "owner": "jefyokta",
+      "repo": "hightex-desktop"
+    }
+  ]
+  
 }

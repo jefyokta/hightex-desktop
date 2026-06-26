@@ -3,9 +3,13 @@ import { LoggerService } from "./logger-service";
 import { SessionService } from "./session-service";
 import path from "path";
 import { app } from "electron";
-
+interface ServerInfo {
+  serverHost?: string;
+  serverUrl?: string;
+  apiUrl?: string;
+}
 const configStore = new Store();
-
+const SERVER_INFO_URL = "https://raw.githubusercontent.com/jefyokta/hightex-project/main/info.json";
 export class ServerService {
   static setServerUrl(url: string) {
     const normalized = url.endsWith("/") ? url : url + "/";
@@ -16,7 +20,24 @@ export class ServerService {
     const url = configStore.get("server.url") as string | undefined;
     return url || "https://hightex.okta/api/";
   }
+static async checkForHost(){
+    const response = await fetch(SERVER_INFO_URL, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+      const info = (await response.json()) as ServerInfo;
 
+      const host = info.apiUrl || info.serverUrl || info.serverHost;
+
+      if (!host) {
+        throw new Error("serverHost is missing from info.json");
+      }
+      configStore.set("server.url",host)
+
+      
+    }
   static async request<T = any>(
     endpoint: string,
     options: RequestInit = {},
@@ -40,7 +61,6 @@ export class ServerService {
         ...options,
         headers,
       });
-
       if (!response.ok) {
         const errText = await response.text().catch(() => "Request failed");
         const error = new Error(`HTTP ${response.status}: ${errText}`);

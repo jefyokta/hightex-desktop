@@ -1,6 +1,11 @@
 import fs from "fs";
-//@ts-ignore
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import {
+  autoUpdater,
+  type ProgressInfo,
+  type UpdateDownloadedEvent,
+  type UpdateInfo,
+} from "electron-updater";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -21,12 +26,25 @@ import { SharingHandler } from "../handlers/sharing-handler";
 import { DatabaseBootstraper } from "@main/database/core/bootstrapper";
 import { NetworkService } from "@main/service/network-service";
 import { SnapshotHandler } from "@main/handlers/snapshot-handler";
+import { ServerService } from "@main/service/server-service";
+import { LoggerService } from "@main/service/logger-service";
+
+type UpdaterStatus =
+  | { status: "disabled"; reason: string }
+  | { status: "checking" }
+  | { status: "available"; info: UpdateInfo }
+  | { status: "not-available"; info: UpdateInfo }
+  | { status: "downloading"; progress: ProgressInfo }
+  | { status: "downloaded"; info: UpdateDownloadedEvent }
+  | { status: "error"; message: string };
 
 export class Application {
   private win: BrowserWindow | null = null;
 
   private server: LocalServer | null = null;
   private fileOpen?: FileOpenManager;
+  private updaterReady = false;
+  private updateDownloaded = false;
 
   private readonly __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -93,6 +111,7 @@ export class Application {
         this.createWindow();
       }
     });
+
     this.fileOpen = new FileOpenManager((filePath) => {
       this.win?.webContents.send("file:open", filePath);
       this.win?.focus();
@@ -183,6 +202,7 @@ export class Application {
   }
 
   private async onReady() {
+    await ServerService.checkForHost();
     KeyManagerService.ensure();
 
     DefaultPluginsBootstrapper.installAll();
@@ -190,10 +210,12 @@ export class Application {
     PluginManager.loadAll();
     NetworkService.tap();
     this.registerHandlers();
+    this.registerUpdater();
     await this.createWindow();
 
     this.registerContextMenu();
     this.fileOpen?.flush();
+    this.checkForUpdates();
   }
 
   private registerContextMenu() {
@@ -240,6 +262,140 @@ export class Application {
     SnapshotHandler.register()
     ZoteroHandler.register();
     SharingHandler.register();
+  }
+
+  private registerUpdater() {
+    if (this.updaterReady) {
+      return;
+    }
+
+    this.updaterReady = true;
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.logger = {
+      info: (message) => LoggerService.write(message, "updater:info"),
+      warn: (message) => LoggerService.write(message, "updater:warn"),
+      error: (message) => LoggerService.write(message, "updater:error"),
+      debug: (message) => LoggerService.write(message, "updater:debug"),
+    };
+
+    autoUpdater.on("checking-for-update", () => {
+      this.sendUpdaterStatus({ status: "checking" });
+    });
+
+    autoUpdater.on("update-available", (info) => {
+      this.sendUpdaterStatus({ status: "available", info });
+    });
+
+    autoUpdater.on("update-not-available", (info) => {
+      this.sendUpdaterStatus({ status: "not-available", info });
+    });
+
+    autoUpdater.on("download-progress", (progress) => {
+      this.sendUpdaterStatus({ status: "downloading", progress });
+    });
+
+    autoUpdater.on("update-downloaded", async (info) => {
+      this.updateDownloaded = true;
+      this.sendUpdaterStatus({ status: "downloaded", info });
+
+      const options = {
+        type: "info",
+        buttons: ["Restart now", "Later"],
+        defaultId: 0,
+        cancelId: 1,
+        title: "HighTex update is ready",
+        message: `HighTex ${info.version} has been downloaded.`,
+        detail: "Restart the app to install the latest update.",
+      } satisfies Electron.MessageBoxOptions;
+
+      const result = this.win
+        ? await dialog.showMessageBox(this.win, options)
+        : await dialog.showMessageBox(options);
+
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall(false, true);
+      }
+    });
+
+    autoUpdater.on("error", (error) => {
+      LoggerService.write(error, "updater:error");
+      this.sendUpdaterStatus({
+        status: "error",
+        message: error.message,
+      });
+    });
+
+    ipcMain.handle("updater:check", () => this.checkForUpdates(true));
+    ipcMain.handle("updater:install", () => {
+      if (!this.updateDownloaded) {
+        return { ok: false, message: "The update has not finished downloading." };
+      }
+
+      autoUpdater.quitAndInstall(false, true);
+      return { ok: true };
+    });
+  }
+
+  private async checkForUpdates(manual = false): Promise<UpdaterStatus> {
+    if (this.isDevelopment || !app.isPackaged) {
+      const status = {
+        status: "disabled",
+        reason: "Auto updater is only available in packaged builds.",
+      } satisfies UpdaterStatus;
+
+      if (manual) {
+        this.sendUpdaterStatus(status);
+      }
+
+      return status;
+    }
+
+    try {
+      const result = await autoUpdater.checkForUpdates();
+
+      if (!result) {
+        const status = {
+          status: "error",
+          message: "Updater did not return a check result.",
+        } satisfies UpdaterStatus;
+
+        this.sendUpdaterStatus(status);
+        return status;
+      }
+
+      const status = result?.isUpdateAvailable
+        ? ({
+            status: "available",
+            info: result.updateInfo,
+          } satisfies UpdaterStatus)
+        : ({
+            status: "not-available",
+            info: result.updateInfo,
+          } satisfies UpdaterStatus);
+
+      if (manual) {
+        this.sendUpdaterStatus(status);
+      }
+
+      return status;
+    } catch (error) {
+      LoggerService.write(error, "updater:check");
+      const status = {
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to check for app updates.",
+      } satisfies UpdaterStatus;
+
+      this.sendUpdaterStatus(status);
+      return status;
+    }
+  }
+
+  private sendUpdaterStatus(status: UpdaterStatus) {
+    this.win?.webContents.send("updater:status", status);
   }
 
   public resolveRendererUrl(route = "/") {
