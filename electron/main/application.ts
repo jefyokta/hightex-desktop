@@ -1,5 +1,5 @@
 import fs from "fs";
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import {
   autoUpdater,
   type ProgressInfo,
@@ -30,13 +30,13 @@ import { ServerService } from "@main/service/server-service";
 import { LoggerService } from "@main/service/logger-service";
 
 type UpdaterStatus =
-  | { status: "disabled"; reason: string }
-  | { status: "checking" }
-  | { status: "available"; info: UpdateInfo }
-  | { status: "not-available"; info: UpdateInfo }
-  | { status: "downloading"; progress: ProgressInfo }
-  | { status: "downloaded"; info: UpdateDownloadedEvent }
-  | { status: "error"; message: string };
+  | { status: "disabled"; reason: string; manual: boolean }
+  | { status: "checking"; manual: boolean }
+  | { status: "available"; info: UpdateInfo; manual: boolean }
+  | { status: "not-available"; info: UpdateInfo; manual: boolean }
+  | { status: "downloading"; progress: ProgressInfo; manual: boolean }
+  | { status: "downloaded"; info: UpdateDownloadedEvent; manual: boolean }
+  | { status: "error"; message: string; manual: boolean };
 
 export class Application {
   private win: BrowserWindow | null = null;
@@ -45,6 +45,8 @@ export class Application {
   private fileOpen?: FileOpenManager;
   private updaterReady = false;
   private updateDownloaded = false;
+  private checkingForUpdatesManually = false;
+  private lastUpdaterStatus: UpdaterStatus | null = null;
 
   private readonly __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -280,42 +282,43 @@ export class Application {
     };
 
     autoUpdater.on("checking-for-update", () => {
-      this.sendUpdaterStatus({ status: "checking" });
+      this.sendUpdaterStatus({
+        status: "checking",
+        manual: this.checkingForUpdatesManually,
+      });
     });
 
     autoUpdater.on("update-available", (info) => {
-      this.sendUpdaterStatus({ status: "available", info });
+      this.sendUpdaterStatus({
+        status: "available",
+        info,
+        manual: this.checkingForUpdatesManually,
+      });
     });
 
     autoUpdater.on("update-not-available", (info) => {
-      this.sendUpdaterStatus({ status: "not-available", info });
+      this.sendUpdaterStatus({
+        status: "not-available",
+        info,
+        manual: this.checkingForUpdatesManually,
+      });
     });
 
     autoUpdater.on("download-progress", (progress) => {
-      this.sendUpdaterStatus({ status: "downloading", progress });
+      this.sendUpdaterStatus({
+        status: "downloading",
+        progress,
+        manual: this.checkingForUpdatesManually,
+      });
     });
 
-    autoUpdater.on("update-downloaded", async (info) => {
+    autoUpdater.on("update-downloaded", (info) => {
       this.updateDownloaded = true;
-      this.sendUpdaterStatus({ status: "downloaded", info });
-
-      const options = {
-        type: "info",
-        buttons: ["Restart now", "Later"],
-        defaultId: 0,
-        cancelId: 1,
-        title: "HighTex update is ready",
-        message: `HighTex ${info.version} has been downloaded.`,
-        detail: "Restart the app to install the latest update.",
-      } satisfies Electron.MessageBoxOptions;
-
-      const result = this.win
-        ? await dialog.showMessageBox(this.win, options)
-        : await dialog.showMessageBox(options);
-
-      if (result.response === 0) {
-        autoUpdater.quitAndInstall(false, true);
-      }
+      this.sendUpdaterStatus({
+        status: "downloaded",
+        info,
+        manual: this.checkingForUpdatesManually,
+      });
     });
 
     autoUpdater.on("error", (error) => {
@@ -323,13 +326,18 @@ export class Application {
       this.sendUpdaterStatus({
         status: "error",
         message: error.message,
+        manual: this.checkingForUpdatesManually,
       });
     });
 
     ipcMain.handle("updater:check", () => this.checkForUpdates(true));
+    ipcMain.handle("updater:status", () => this.lastUpdaterStatus);
     ipcMain.handle("updater:install", () => {
       if (!this.updateDownloaded) {
-        return { ok: false, message: "The update has not finished downloading." };
+        return {
+          ok: false,
+          message: "The update has not finished downloading.",
+        };
       }
 
       autoUpdater.quitAndInstall(false, true);
@@ -342,6 +350,7 @@ export class Application {
       const status = {
         status: "disabled",
         reason: "Auto updater is only available in packaged builds.",
+        manual,
       } satisfies UpdaterStatus;
 
       if (manual) {
@@ -352,12 +361,14 @@ export class Application {
     }
 
     try {
+      this.checkingForUpdatesManually = manual;
       const result = await autoUpdater.checkForUpdates();
 
       if (!result) {
         const status = {
           status: "error",
           message: "Updater did not return a check result.",
+          manual,
         } satisfies UpdaterStatus;
 
         this.sendUpdaterStatus(status);
@@ -368,10 +379,12 @@ export class Application {
         ? ({
             status: "available",
             info: result.updateInfo,
+            manual,
           } satisfies UpdaterStatus)
         : ({
             status: "not-available",
             info: result.updateInfo,
+            manual,
           } satisfies UpdaterStatus);
 
       if (manual) {
@@ -387,14 +400,18 @@ export class Application {
           error instanceof Error
             ? error.message
             : "Failed to check for app updates.",
+        manual,
       } satisfies UpdaterStatus;
 
       this.sendUpdaterStatus(status);
       return status;
+    } finally {
+      this.checkingForUpdatesManually = false;
     }
   }
 
   private sendUpdaterStatus(status: UpdaterStatus) {
+    this.lastUpdaterStatus = status;
     this.win?.webContents.send("updater:status", status);
   }
 

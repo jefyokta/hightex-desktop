@@ -156,6 +156,14 @@ contextBridge.exposeInMainWorld("updater", {
     };
 
     ipcRenderer.on("updater:status", handler);
+    ipcRenderer
+      .invoke("updater:status")
+      .then((status: UpdaterStatus | null) => {
+        if (status) {
+          cb(status);
+        }
+      })
+      .catch(() => undefined);
 
     return () => ipcRenderer.removeListener("updater:status", handler);
   },

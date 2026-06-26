@@ -99,7 +99,28 @@ jobs:
           fi
 
           ls -la release-assets
+      - name: add update to server
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          REPO="${GITHUB_REPOSITORY}"
 
+          WINDOWS=$(find release-assets -name "*.exe" | grep -i "windows\|setup" | head -n 1)
+          MAC=$(find release-assets -name "*.dmg" | head -n 1)
+          LINUX=$(find release-assets -name "*.AppImage" | head -n 1)
+
+          curl -X POST "https://hightex.jefyokta.my.id/gh/release/snapshot" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SERVER_TOKEN }}" \
+            -d "{
+              \"version\": \"$VERSION\",
+              \"repo\": \"$REPO\",
+              \"assets\": {
+                \"windows\": \"$WINDOWS\",
+                \"mac\": \"$MAC\",
+                \"linux\": \"$LINUX\"
+              }
+            }"
       - name: Create or update GitHub Release
         shell: bash
         run: |

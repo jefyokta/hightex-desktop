@@ -1,5 +1,5 @@
 import "@/App.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,10 +10,138 @@ import { LogoutModalProvider } from "@/context/logout-modal-context";
 
 import { LoginModal } from "@/components/login-modal";
 import { ErrorSlave } from "@/slaves/error";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import { OpenFileSlave } from "@/slaves/open-file";
 import { ConfirmProvider } from "@/context/confrim-context";
 import { AskProvider } from "@/context/ask-context";
+import { confirm } from "@/utils/confirm";
+
+const UPDATER_TOAST_ID = "hightex-updater";
+
+const formatPercent = (value: number) =>
+  Math.max(0, Math.min(100, value)).toFixed(0);
+
+const UpdaterStatusListener = () => {
+  const installPromptOpen = useRef(false);
+
+  useEffect(() => {
+    if (!window.updater?.onStatus) {
+      return;
+    }
+
+    const installUpdate = async () => {
+      const result = await window.updater.install();
+
+      if (!result.ok) {
+        toast.error("Unable to install update", {
+          id: UPDATER_TOAST_ID,
+          description: result.message,
+        });
+      }
+    };
+
+    const unsubscribe = window.updater.onStatus(async (event) => {
+      switch (event.status) {
+        case "disabled": {
+          if (event.manual) {
+            toast.info("Auto updates are unavailable", {
+              id: UPDATER_TOAST_ID,
+              description: event.reason,
+            });
+          }
+          break;
+        }
+
+        case "checking": {
+          if (event.manual) {
+            toast.loading("Checking for updates...", {
+              id: UPDATER_TOAST_ID,
+            });
+          }
+          break;
+        }
+
+        case "available": {
+          toast.loading(`Downloading HighTex ${event.info.version}...`, {
+            id: UPDATER_TOAST_ID,
+            description: "The update will be ready to install shortly.",
+          });
+          break;
+        }
+
+        case "not-available": {
+          if (event.manual) {
+            toast.success("HighTex is up to date", {
+              id: UPDATER_TOAST_ID,
+              description: `Current version: ${event.info.version}`,
+            });
+          }
+          break;
+        }
+
+        case "downloading": {
+          toast.loading(
+            `Downloading HighTex update ${formatPercent(event.progress.percent)}%`,
+            {
+              id: UPDATER_TOAST_ID,
+              description: `${event.progress.transferred}/${event.progress.total} bytes`,
+            },
+          );
+          break;
+        }
+
+        case "downloaded": {
+          toast.success("Update ready to install", {
+            id: UPDATER_TOAST_ID,
+            description: `HighTex ${event.info.version} has been downloaded.`,
+            action: {
+              label: "Restart",
+              onClick: () => void installUpdate(),
+            },
+            duration: Infinity,
+          });
+
+          if (installPromptOpen.current) {
+            break;
+          }
+
+          installPromptOpen.current = true;
+
+          try {
+            const shouldRestart = await confirm({
+              title: "HighTex update is ready",
+              desc: `HighTex ${event.info.version} has been downloaded. Restart now to install it.`,
+              confirmText: "Restart now",
+              cancelText: "Later",
+            });
+
+            if (shouldRestart) {
+              await installUpdate();
+            }
+          } finally {
+            installPromptOpen.current = false;
+          }
+
+          break;
+        }
+
+        case "error": {
+          if (event.manual) {
+            toast.error("Unable to check for updates", {
+              id: UPDATER_TOAST_ID,
+              description: event.message,
+            });
+          }
+          break;
+        }
+      }
+    });
+
+    return () => unsubscribe?.();
+  }, []);
+
+  return null;
+};
 
 const applyTheme = (theme: "light" | "dark" | "system") => {
   const root = document.documentElement;
@@ -54,6 +182,7 @@ export const MainLayout = () => {
       <ConfirmProvider>
         <AskProvider>
           <OpenFileSlave />
+          <UpdaterStatusListener />
           <ErrorSlave />
           <TooltipProvider>
             <UserProvider>

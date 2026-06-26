@@ -168,13 +168,13 @@ declare global {
   }
 
   type UpdaterStatus =
-    | { status: "disabled"; reason: string }
-    | { status: "checking" }
-    | { status: "available"; info: UpdaterInfo }
-    | { status: "not-available"; info: UpdaterInfo }
-    | { status: "downloading"; progress: UpdaterProgress }
-    | { status: "downloaded"; info: UpdaterDownloadedInfo }
-    | { status: "error"; message: string };
+    | { status: "disabled"; reason: string; manual: boolean }
+    | { status: "checking"; manual: boolean }
+    | { status: "available"; info: UpdaterInfo; manual: boolean }
+    | { status: "not-available"; info: UpdaterInfo; manual: boolean }
+    | { status: "downloading"; progress: UpdaterProgress; manual: boolean }
+    | { status: "downloaded"; info: UpdaterDownloadedInfo; manual: boolean }
+    | { status: "error"; message: string; manual: boolean };
 
   interface UpdaterInfo {
     version: string;
