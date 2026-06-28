@@ -1,9 +1,8 @@
-# V0.0.6
 
 ## Added
-- importing now converting any base64 images to webp
-- category can be changed
+- alt title and keywords edit
+- pulling remote document
 
 ## fix
-- List item error due to contentfixer (lol)
+- unsafe access to content (possibly undefined)
 
