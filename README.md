@@ -120,17 +120,38 @@ For this project, shipping was more important than pursuing perfection.
 HighTex Desktop is currently under active development.
 
 Features, architecture, and workflows may continue to evolve as the project grows.
-
 ## macOS Note
 
-The macOS build distributed through GitHub Releases is not notarized yet. Because of that, macOS may show a warning such as `"HighTex" is damaged and can't be opened` after downloading the DMG.
+macOS builds distributed through GitHub Releases are unsigned and not notarized. This causes two known issues during installation and updating.
 
-For now, this is expected for development builds. After installing HighTex, users can remove the quarantine attribute manually:
+---
+
+### Installation
+
+After downloading the DMG, macOS may block the app with a message like `"HighTex" is damaged and can't be opened`. This is expected for unsigned builds.
+
+To fix it, run the following command after installing HighTex to `/Applications`:
 
 ```sh
 xattr -cr /Applications/HighTex.app
 ```
 
-Then open HighTex again.
+Then open HighTex normally.
 
 ---
+
+### Updating
+
+The built-in auto-updater downloads the update successfully, but Squirrel.Mac requires a valid Apple Developer certificate to apply it. Since the build is unsigned, the update is downloaded but never installed.
+
+After the updater finishes downloading, apply the update manually:
+
+```sh
+rm -rf /Applications/HighTex.app && unzip ~/Library/Caches/hightex-desktop-updater/update.zip -d /Applications/
+```
+
+Then relaunch HighTex.
+
+---
+
+These limitations will be resolved once the macOS build is signed and notarized with an Apple Developer certificate.
