@@ -272,8 +272,8 @@ export class Application {
     }
 
     this.updaterReady = true;
-    autoUpdater.autoDownload = true;
-    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.autoDownload = false;
+    // autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.logger = {
       info: (message) => LoggerService.write(message, "updater:info"),
       warn: (message) => LoggerService.write(message, "updater:warn"),
@@ -332,6 +332,7 @@ export class Application {
 
     ipcMain.handle("updater:check", () => this.checkForUpdates(true));
     ipcMain.handle("updater:status", () => this.lastUpdaterStatus);
+    ipcMain.handle("updater:download", () => autoUpdater.downloadUpdate());
     ipcMain.handle("updater:install", () => {
       if (!this.updateDownloaded) {
         return {

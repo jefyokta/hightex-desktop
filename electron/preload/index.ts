@@ -82,6 +82,9 @@ contextBridge.exposeInMainWorld("hightex", {
   },
   readFile: (filePath: string) =>
     ipcRenderer.invoke("hightex:readFile", filePath),
+  version() {
+    return ipcRenderer.invoke("hightex:version")
+  },
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
   user: () => {
@@ -171,6 +174,7 @@ contextBridge.exposeInMainWorld("updater", {
 
     return () => ipcRenderer.removeListener("updater:status", handler);
   },
+   download: () => ipcRenderer.invoke("updater:download"),
 } satisfies Window["updater"]);
 
 contextBridge.exposeInMainWorld("plugin", {

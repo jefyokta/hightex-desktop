@@ -45,7 +45,7 @@ export class ChapterQuery {
     if (!exists) {
       return [this.chapter.createHeading()];
     }
-    if (!exists.content.length) {
+    if (!(exists.content || []).length) {
       return [this.chapter.createHeading()];
     }
     return exists.content;

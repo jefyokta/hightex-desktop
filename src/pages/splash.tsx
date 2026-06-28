@@ -5,6 +5,7 @@ import { useAuthModal } from "../context/auth-modal-context";
 import { useOnline } from "../hooks/use-online";
 import { motion } from "motion/react";
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
+import { CategoryEmpty } from "@/exception/categories-empty";
 
 const Marquee = ({ items }: { items: string[] }) => {
   return (
@@ -56,7 +57,14 @@ export const Splash: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
-
+  const [version, setVersion] = useState("")
+  useEffect(() => { 
+    window.hightex.categories().then(e=>{
+      if(!e?.length){
+        throw CategoryEmpty
+      }
+    })
+  });
   useEffect(() => {
     let cancelled = false;
 
@@ -64,7 +72,8 @@ export const Splash: React.FC = () => {
       if (!online) return;
 
       setLoading(true);
-
+      const version = await window.hightex.version()
+      setVersion(version)
       try {
         window.hightex.onPrefetchProgress?.((data: any) => {
           if (cancelled) return;
@@ -116,7 +125,16 @@ export const Splash: React.FC = () => {
   return (
     <div className="h-screen w-screen flex items-center justify-center   dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors">
       <div className="text-center relative space-y-10 w-full max-w-2xl h-screen flex flex-col justify-center px-6 h">
-        <h1 className="text-4xl font-semibold tracking-tight">HighTex</h1>
+        <div className=" space-x-">
+          <div className="text-4xl font-semibold tracking-tight ">
+            HighTex
+          </div>
+
+          <div className="flex-justify-center">
+            <span className="text-xs font-extralight">version {version}
+            </span>
+          </div>
+        </div>
 
         <div className="py-2">
           <Marquee

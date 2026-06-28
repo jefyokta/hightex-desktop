@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Folder, InfoIcon, Monitor, Moon, Sun } from "lucide-react";
+import { AlertCircle, CheckCircle, Download, Folder, InfoIcon, Loader2, Monitor, Moon, RefreshCw, Sun } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Tooltip,
@@ -75,6 +75,7 @@ export const Settings = () => {
           Manage your application preferences
         </p>
       </div>
+      <AppInfoSection />
       <ProfileSection />
       <Card>
         <CardHeader>
@@ -635,6 +636,165 @@ const ProfileSection = () => {
             </div>
           </>
         )}
+      </CardContent>
+    </Card>
+  );
+};
+
+
+const AppInfoSection = () => {
+  const [version, setVersion] = useState<string | null>(null);
+  const [status, setStatus] = useState<UpdaterStatus | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    window.hightex.version().then(setVersion);
+
+    const unsubscribe = window.updater?.onStatus((s) => {
+      setStatus(s);
+      if (s.status !== "checking" && s.status !== "downloading") {
+        setChecking(false);
+      }
+    });
+
+    return () => unsubscribe?.();
+  }, []);
+
+  const handleCheck = async () => {
+    setChecking(true);
+    await window.updater?.check();
+  };
+
+  const handleDownload = async () => {
+    await window.updater?.download();
+  };
+
+  const handleInstall = async () => {
+    await window.updater?.install();
+  };
+
+  const renderUpdateStatus = () => {
+    if (!status) return null;
+
+    switch (status.status) {
+      case "checking":
+        return (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 size={12} className="animate-spin" />
+            Checking for updates...
+          </div>
+        );
+
+      case "not-available":
+        return (
+          <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+            <CheckCircle size={12} />
+            HighTex is up to date
+          </div>
+        );
+
+      case "available":
+        return (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+              <Download size={12} />
+              Version {status.info.version} is available
+            </div>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={handleDownload}>
+              Download
+            </Button>
+          </div>
+        );
+
+      case "downloading":
+        return (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 size={12} className="animate-spin" />
+            Downloading... {Math.round(status.progress.percent)}%
+          </div>
+        );
+
+      case "downloaded":
+        return (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+              <CheckCircle size={12} />
+              Version {status.info.version} ready to install
+            </div>
+            <Button size="sm" className="h-7 text-xs" onClick={handleInstall}>
+              Restart & Install
+            </Button>
+          </div>
+        );
+
+      case "error":
+        return (
+          <div className="flex items-center gap-2 text-xs text-destructive">
+            <AlertCircle size={12} />
+            {status.message}
+          </div>
+        );
+
+      case "disabled":
+        return (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <AlertCircle size={12} />
+            {status.reason}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>About</CardTitle>
+        <CardDescription>Application info and updates</CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label>Version</Label>
+            <p className="text-xs text-muted-foreground">
+              Currently installed version
+            </p>
+          </div>
+          <span className="font-mono text-sm text-foreground">
+            {version ?? "—"}
+          </span>
+        </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label>Software Update</Label>
+            <div className="mt-1">{renderUpdateStatus()}</div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={
+              checking ||
+              status?.status === "checking" ||
+              status?.status === "downloading" ||
+              status?.status === "downloaded"
+            }
+            onClick={handleCheck}
+            className="gap-2"
+          >
+            <RefreshCw
+              size={13}
+              className={checking || status?.status === "checking" ? "animate-spin" : ""}
+            />
+            Check for Updates
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

@@ -17,6 +17,11 @@ import { useAuthModal } from "../context/auth-modal-context";
 import { useOnline } from "../hooks/use-online";
 import { ParsedItalic } from "../utils/parse-italic";
 import { formatDistanceToNow } from "date-fns";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { importHighTexPackage } from "@/utils/import-hightex";
+import { toast } from "sonner";
+import { truncate } from "@/utils/truncate";
+import { Link } from "react-router-dom";
 
 export const RemoteDocuments = () => {
   const { user } = useUser();
@@ -129,12 +134,31 @@ export const RemoteDocuments = () => {
             </div>
 
             <div className="flex items-center gap-2 ">
-              <button className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2">
+              <button
+                onClick={() => {
+                  throw new ShouldNotified({ message: "Unimplemented", description: "This feature is currently available, planning for next updates" })
+                }}
+                className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2">
                 <GitCompare size={14} />
                 Override Local
               </button>
 
-              <button className="px-3 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition text-xs flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const id = toast.loading("Pulling document...")
+                  window.ipcRenderer.invoke("hightex:document:pull").then(r => {
+                    const file = new File([new Uint8Array(r as ArrayBuffer)], "pull.hightex")
+                    return importHighTexPackage(file)
+                  }).then((doc) => {
+                    toast.success(`document ${truncate(doc.title.replace("_", ""), 13)} updated`, {
+                      id
+                    })
+                  }).catch(_e => {
+                    toast.error("pull failed", { id })
+                  })
+
+                }}
+                className="px-3 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition text-xs flex items-center gap-2">
                 <HardDriveDownload size={14} />
                 Pull Latest
               </button>
@@ -153,18 +177,21 @@ export const RemoteDocuments = () => {
             <KeywordSection keys={document.keywords} />
           </div>
         </>
-      )}
+      )
+      }
 
-      {pickerOpen && (
-        <LocalDocumentPicker
-          cloudDoc={cloudDoc}
-          onClose={() => setPickerOpen(false)}
-          onSelect={(doc: any) => {
-            setLocalDoc(doc);
-            setPickerOpen(false);
-          }}
-        />
-      )}
+      {
+        pickerOpen && (
+          <LocalDocumentPicker
+            cloudDoc={cloudDoc}
+            onClose={() => setPickerOpen(false)}
+            onSelect={(doc: any) => {
+              setLocalDoc(doc);
+              setPickerOpen(false);
+            }}
+          />
+        )
+      }
     </>
   );
 };
@@ -207,7 +234,7 @@ const Stat = ({ icon, label, value }: any) => {
   );
 };
 
-const SyncBanner = ({ localDoc, cloudDoc }: any) => {
+const SyncBanner = ({ localDoc, cloudDoc }: { cloudDoc?: HighTexDocument, localDoc?: HighTexDocument }) => {
   const sameId = localDoc?.id === cloudDoc?.id;
 
   if (sameId) {
@@ -217,11 +244,11 @@ const SyncBanner = ({ localDoc, cloudDoc }: any) => {
 
         <div>
           <div className="text-xs font-medium text-green-700 dark:text-green-400">
-            Matching Local Document
+            You have this document locally
           </div>
 
           <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-            This cloud document is linked with an existing local document.
+            <span>Document </span> `<ParsedItalic text={cloudDoc!.title} />` exists locally, you can edit it <Link className="font-semibold underline" to={`/document/${cloudDoc!.id}/1`}>here</Link>
           </div>
         </div>
       </div>
@@ -467,8 +494,8 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
                 <div className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition">
                   {doc.updatedAt
                     ? formatDistanceToNow(new Date(doc.updatedAt), {
-                        addSuffix: true,
-                      })
+                      addSuffix: true,
+                    })
                     : "No activity"}
                 </div>
               </button>

@@ -38,7 +38,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <div className={cn("relative inline-block")} ref={ref}>
-      <div onClick={() => setOpen((prev) => !prev)} className="cursor-pointer">
+      <div onClick={(e) => {
+        e.stopPropagation()
+        setOpen((prev) => !prev)}} className="cursor-pointer">
         {trigger}
       </div>
 

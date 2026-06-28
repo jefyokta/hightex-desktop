@@ -83,6 +83,10 @@ export class HighTexHandler {
       return await CategoryService.getAll();
     });
 
+    ipcMain.handle("hightex:version",()=>{
+      return app.getVersion();
+    })
+
     ipcMain.handle("dialog:select-folder", async () => {
       const result = await dialog.showOpenDialog({
         title: "Select default export folder",
@@ -99,6 +103,10 @@ export class HighTexHandler {
     ipcMain.handle("hightex:profile", () => {
       return DocumentProfileService.get();
     });
+
+    ipcMain.handle("hightex:document:pull",()=>{
+      return ServerService.request("/document/content")
+    })
 
     ipcMain.handle(
       "hightex:export",

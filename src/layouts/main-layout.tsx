@@ -17,21 +17,25 @@ import { AskProvider } from "@/context/ask-context";
 import { confirm } from "@/utils/confirm";
 
 const UPDATER_TOAST_ID = "hightex-updater";
-
+const mb = (bytes: number) => {
+  return bytes / 1024 / 1024;
+}
 const formatPercent = (value: number) =>
   Math.max(0, Math.min(100, value)).toFixed(0);
 
 const UpdaterStatusListener = () => {
   const installPromptOpen = useRef(false);
+  const downloadPromptOpen = useRef(false);
 
   useEffect(() => {
-    if (!window.updater?.onStatus) {
-      return;
-    }
+    if (!window.updater?.onStatus) return;
+
+    const downloadAndInstall = async () => {
+      await window.updater.download();
+    };
 
     const installUpdate = async () => {
       const result = await window.updater.install();
-
       if (!result.ok) {
         toast.error("Unable to install update", {
           id: UPDATER_TOAST_ID,
@@ -54,18 +58,51 @@ const UpdaterStatusListener = () => {
 
         case "checking": {
           if (event.manual) {
-            toast.loading("Checking for updates...", {
-              id: UPDATER_TOAST_ID,
-            });
+            toast.loading("Checking for updates...", { id: UPDATER_TOAST_ID });
           }
           break;
         }
 
         case "available": {
-          toast.loading(`Downloading HighTex ${event.info.version}...`, {
-            id: UPDATER_TOAST_ID,
-            description: "The update will be ready to install shortly.",
-          });
+          if (downloadPromptOpen.current) break;
+          downloadPromptOpen.current = true;
+
+          try {
+            toast.info(`HighTex ${event.info.version} is available`, {
+              id: UPDATER_TOAST_ID,
+              description: "A new version is ready to download.",
+              duration: Infinity,
+              action: {
+                label: "Download",
+                onClick: () => void downloadAndInstall(),
+              },
+              cancel: {
+                label: "Later",
+                onClick: () => toast.dismiss(UPDATER_TOAST_ID),
+              },
+            });
+
+            if (event.manual) {
+              const shouldDownload = await confirm({
+                title: `HighTex ${event.info.version} Available`,
+                desc: "A new version is ready to download. Download now?",
+                confirmText: "Download",
+                cancelText: "Later",
+              });
+
+              if (shouldDownload) {
+                toast.loading(`Downloading HighTex ${event.info.version}...`, {
+                  id: UPDATER_TOAST_ID,
+                  description: "The update will be ready to install shortly.",
+                });
+                await downloadAndInstall();
+              } else {
+                toast.dismiss(UPDATER_TOAST_ID);
+              }
+            }
+          } finally {
+            downloadPromptOpen.current = false;
+          }
           break;
         }
 
@@ -81,10 +118,10 @@ const UpdaterStatusListener = () => {
 
         case "downloading": {
           toast.loading(
-            `Downloading HighTex update ${formatPercent(event.progress.percent)}%`,
+            `Downloading update ${formatPercent(event.progress.percent)}%`,
             {
               id: UPDATER_TOAST_ID,
-              description: `${event.progress.transferred}/${event.progress.total} bytes`,
+              description: `${mb(event.progress.transferred)} / ${mb(event.progress.total)} mb`,
             },
           );
           break;
@@ -101,10 +138,7 @@ const UpdaterStatusListener = () => {
             duration: Infinity,
           });
 
-          if (installPromptOpen.current) {
-            break;
-          }
-
+          if (installPromptOpen.current) break;
           installPromptOpen.current = true;
 
           try {
@@ -115,13 +149,10 @@ const UpdaterStatusListener = () => {
               cancelText: "Later",
             });
 
-            if (shouldRestart) {
-              await installUpdate();
-            }
+            if (shouldRestart) await installUpdate();
           } finally {
             installPromptOpen.current = false;
           }
-
           break;
         }
 
