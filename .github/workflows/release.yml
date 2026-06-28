@@ -54,7 +54,7 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Build windows
+      - name: Build win
         if: matrix.os == 'windows-latest'
         run: bun run build:win
 
@@ -66,8 +66,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
-          path: release/**
-
+          path: |
+            release/**
+            
+      - name: Upload release notes
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: RELEASE_NOTE.md
 
   release:
     needs: build
@@ -77,9 +84,6 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Download all builds
         uses: actions/download-artifact@v4
 
@@ -87,7 +91,6 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-assets
-
           find . -type f \( \
             -name "*.exe" -o \
             -name "*.dmg" -o \
@@ -98,20 +101,33 @@ jobs:
           \) -exec cp {} release-assets/ \;
 
           if ! find release-assets -type f | grep -q .; then
-            echo "No release assets found"
-            find . -maxdepth 5 -type f | sort
+            echo "No release assets found after artifact download"
+            find . -maxdepth 4 -type f | sort
             exit 1
           fi
 
-          ls -lah release-assets
+          ls -la release-assets
 
-      - name: Add update to server
+      - name: Read release notes
+        id: release_notes
+        shell: bash
+        run: |
+          NOTES_FILE="release-notes/RELEASE_NOTE.md"
+          if [ -f "$NOTES_FILE" ]; then
+            echo "notes_file=$NOTES_FILE" >> $GITHUB_OUTPUT
+            echo "has_notes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_notes=false" >> $GITHUB_OUTPUT
+            echo "RELEASE_NOTE.md not found, will use auto-generated notes"
+          fi
+
+      - name: add update to server
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME}"
           REPO="${GITHUB_REPOSITORY}"
 
-          WINDOWS=$(find release-assets -name "*.exe" | grep -Ei "windows|setup" | head -n 1)
+          WINDOWS=$(find release-assets -name "*.exe" | grep -i "windows\|setup" | head -n 1)
           MAC=$(find release-assets -name "*.dmg" | head -n 1)
           LINUX=$(find release-assets -name "*.AppImage" | head -n 1)
 
@@ -128,46 +144,23 @@ jobs:
               }
             }"
 
-      - name: Prepare release note
-        shell: bash
-        run: |
-          if [ -f RELEASE_NOTE.md ]; then
-            echo "Using RELEASE_NOTE.md"
-          else
-            echo "No RELEASE_NOTE.md found, fallback will be used"
-          fi
-
       - name: Create or update GitHub Release
         shell: bash
+        run: |
+          if [ "${{ steps.release_notes.outputs.has_notes }}" == "true" ]; then
+            NOTES_ARGS="--notes-file ${{ steps.release_notes.outputs.notes_file }}"
+          else
+            NOTES_ARGS="--generate-notes"
+          fi
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" $NOTES_ARGS
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/* \
+              --title "$GITHUB_REF_NAME" \
+              $NOTES_ARGS
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.ref_name }}
-        run: |
-          NOTE_FILE="RELEASE_NOTE.md"
-
-          if gh release view "$VERSION" >/dev/null 2>&1; then
-            echo "Updating release..."
-
-            gh release upload "$VERSION" release-assets/* --clobber
-
-            if [ -f "$NOTE_FILE" ]; then
-              gh release edit "$VERSION" \
-                --title "$VERSION" \
-                --notes-file "$NOTE_FILE"
-            else
-              gh release edit "$VERSION" \
-                --title "$VERSION"
-            fi
-          else
-            echo "Creating release..."
-
-            if [ -f "$NOTE_FILE" ]; then
-              gh release create "$VERSION" release-assets/* \
-                --title "$VERSION" \
-                --notes-file "$NOTE_FILE"
-            else
-              gh release create "$VERSION" release-assets/* \
-                --title "$VERSION" \
-                --generate-notes
-            fi
-          fi
+          GH_REPO: ${{ github.repository }}
