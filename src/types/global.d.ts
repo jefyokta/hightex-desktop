@@ -140,6 +140,7 @@ declare global {
       profile(): Promise<DocumentProfile>;
       onOpenFile(cb: (file: string) => void): () => void;
       readFile(filePath: string): Promise<NonSharedBuffer>;
+      category(id:string):Promise<Category>
     };
 
     config: ConfigAPI;

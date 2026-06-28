@@ -71,6 +71,45 @@ export const ContentFixer = (
         marks: (node.marks || []).filter((m: any) => schema.marks[m.type]),
       };
     }
+    if (node.type === "listItem") {
+      const rawContent = Array.isArray(node.content) ? node.content : [];
+
+      let content = rawContent
+        .map((c: any) => fixNode(c, "listItem"))
+        .filter(Boolean);
+
+      const hasParagraph = content.some((c: any) => c.type === "paragraph");
+
+      if (!hasParagraph) {
+        const fallbackParagraph =
+          content.length > 0
+            ? {
+                type: "paragraph",
+                content: content,
+              }
+            : {
+                type: "paragraph",
+                content: [],
+              };
+
+        content = [fallbackParagraph];
+      }
+
+      content = content.map((c: any) => {
+        if (c.type === "text") {
+          return {
+            type: "paragraph",
+            content: [c],
+          };
+        }
+        return c;
+      });
+
+      return {
+        type: "listItem",
+        content,
+      };
+    }
 
     const nodeType = schema.nodes?.[node.type];
     if (!nodeType) return null;

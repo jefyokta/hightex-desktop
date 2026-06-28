@@ -142,5 +142,9 @@ export class HighTexHandler {
         }
       },
     );
+
+    ipcMain.handle("hightex:category",(_,id)=>{
+      return CategoryService.get(id)
+    });
   }
 }

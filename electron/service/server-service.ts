@@ -64,11 +64,12 @@ static async checkForHost(){
       if (!response.ok) {
         const errText = await response.text().catch(() => "Request failed");
         const error = new Error(`HTTP ${response.status}: ${errText}`);
-
         this.log(error, context || endpoint);
         throw error;
       }
-
+      if(response.headers.get("content-type")?.toLowerCase() =='application/x-hightex'){
+        return await response.arrayBuffer() as T
+      }
       const text = await response.text();
       return text ? JSON.parse(text) : ({} as T);
     } catch (error) {

@@ -103,8 +103,6 @@ export class Engine {
     if (!this.config?.parser) {
       throw new Error("Parser config not initialized");
     }
-    console.log("memeks");
-
     await this.pipeline.run().catch(console.log);
 
     return this;
@@ -112,6 +110,20 @@ export class Engine {
 
   async createPaged() {
     console.log("creating pages..");
+    const originalError = console.error
+    console.error = (...args) => {
+      const [msg, node] = args;
+
+      if (typeof msg === "string" && msg.includes("Layout repeated")) {
+        console.log(" Paged.js overflow detected!", {
+          message: msg,
+          node,
+        });
+        FrameManager.sendMessage("layout:error",{node:undefined})
+      }
+
+      originalError(...args);
+    };
     if (!this.root) throw new Error("Engine root not mounted");
 
     const content = this.config.paged?.content;
@@ -149,6 +161,7 @@ export class Engine {
     for (const obj of ImageQueue.objectUrls) {
       URL.revokeObjectURL(obj);
     }
+    console.error = originalError
     return chunker;
   }
 

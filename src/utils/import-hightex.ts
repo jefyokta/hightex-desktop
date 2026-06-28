@@ -5,6 +5,7 @@ import { Storage } from "@/editor/storage";
 import { HighTexImportError } from "@/exception/hightex-import";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
+import { convertImage } from "./images-to-webp";
 
 export class HighTexImporter {
   public context!: ImportContextV1;
@@ -135,10 +136,11 @@ export class HighTexImporter {
       return;
     }
 
-    const content = normalizeChapterContent(
+    const dirtyContent = normalizeChapterContent(
       JSON.parse(strFromU8(chapterEntry)),
     );
 
+    const content = await this.checkImage(dirtyContent)
     const chapterId = `${documentId}.${chapterName}`;
 
     await this.context.db.chapters.put({
@@ -146,6 +148,32 @@ export class HighTexImporter {
       content,
     });
   }
+async checkImage(content: JSONContent[]): Promise<JSONContent[]> {
+  return Promise.all(
+    content.map(async (c) => {
+      const node = { ...c };
+
+      if (node.type === "image") {
+        const src = (node.attrs?.src as string) || "";
+
+        if (src.startsWith("data:image")) {
+          const id = await convertImage(src, this.actualDocumentId);
+
+          node.attrs = {
+            ...node.attrs,
+            src: id,
+          };
+        }
+      }
+
+      if (node.content) {
+        node.content = await this.checkImage(node.content);
+      }
+
+      return node;
+    })
+  );
+}
 
   getConfig() {
     const configEntry = findZipEntry(this.entries, "config.json");

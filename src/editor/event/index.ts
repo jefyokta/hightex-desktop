@@ -26,7 +26,6 @@ export const events = {
       content = ContentFixer(content, editor.state.schema);
 
       if (editor.isDestroyed) return;
-
       editor.commands.setContent(content, {
         emitUpdate: false,
       });

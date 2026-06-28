@@ -1,54 +1,89 @@
 import {
   DownloadCloudIcon,
-  // Eye,
   File,
   FileJson,
   FileText,
-  // FileType,
   Pen,
   Trash,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Dropdown, DropdownItem } from "../dropdown";
 import { toast } from "sonner";
+import { Dropdown, DropdownItem } from "../dropdown";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { HighTexDB } from "@/editor/storage/hightex-db";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 interface Props {
   doc: HighTexDocument;
   onRename: (id: string, title: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onExport: (id: string, format?: ContentFormat) => Promise<void>;
+  onCategoryChange?: (id: string, category: string) => Promise<void>;
 }
-export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
+
+export const Row = ({
+  doc,
+  onRename,
+  onDelete,
+  onExport,
+
+}: Props) => {
+  const navigate = useNavigate();
+
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(doc.title);
 
-  const [category, setCategory] = useState("-");
-  const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [category, setCategory] = useState<string>(String(doc.category));
+
+  useEffect(() => {
+    setValue(doc.title);
+    setCategory(String(doc.category));
+  }, [doc]);
 
   useEffect(() => {
     (async () => {
-      const categories = await window.hightex.categories();
+      const data = await window.hightex.categories();
+      setCategories(data);
 
-      const cat = categories.find((c) => doc.category == String(c.id));
+      if (data.length === 0) return;
 
-      if (cat) setCategory(cat.name);
+      const exists = data.some(
+        (c) => String(c.id) === String(doc.category),
+      );
+
+      if (exists) {
+        setCategory(String(doc.category));
+      } else {
+        setCategory(String(data[0].id));
+      }
     })();
-  }, []);
+  }, [doc.category]);
 
   const updatedAt = doc.updatedAt
     ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
     : null;
 
   return (
-    <div className="group flex items-center space-x-10 justify-between rounded-xl border border-transparent px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60">
+    <div className="group flex items-center justify-between rounded-xl border border-transparent px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900/60">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-          <File size={16} className="text-neutral-500 dark:text-neutral-400" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+          <File
+            size={16}
+            className="text-neutral-500 dark:text-neutral-400"
+          />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -57,31 +92,64 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
               autoFocus
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              onBlur={() => {
-                onRename(doc.id, value);
+              onBlur={async () => {
+                await onRename(doc.id, value);
                 setEditing(false);
               }}
-              onKeyDown={(e) => {
+              onKeyDown={async (e) => {
                 if (e.key === "Enter") {
-                  onRename(doc.id, value);
+                  await onRename(doc.id, value);
                   setEditing(false);
                 }
               }}
-              className="w-full bg-transparent text-sm font-medium outline-none text-neutral-900 dark:text-neutral-100"
+              className="w-full bg-transparent text-sm font-medium text-neutral-900 outline-none dark:text-neutral-100"
             />
           ) : (
             <div
               onDoubleClick={() => setEditing(true)}
-              className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100 cursor-text"
+              className="cursor-text truncate text-sm font-medium text-neutral-900 dark:text-neutral-100"
             >
               {doc.title}
             </div>
           )}
 
           <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
-            <span className="rounded-md border border-neutral-200 dark:border-neutral-800 px-1.5 py-0.5 text-neutral-500 dark:text-neutral-400">
-              {category || "-"}
-            </span>
+            {categories.length > 0 && (
+              <Select
+                value={category}
+                onValueChange={async (value) => {
+                  const previous = category;
+
+                  setCategory(value);
+
+                  try {
+                    await HighTexDB.getInstance().updateDocument({ ...doc, category: value })
+                    toast.success("Category updated")
+                  } catch {
+                    setCategory(previous);
+                    throw new ShouldNotified("Failed to update category.")
+                  }
+                }}
+                
+              >
+                <SelectTrigger className="h-6 w-35 border-neutral-200 text-[11px] dark:border-neutral-700">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    {categories.map((c) => (
+                      <SelectItem
+                        key={c.id}
+                        value={String(c.id)}
+                      >
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
 
             {updatedAt && (
               <>
@@ -109,7 +177,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
           align="right"
           width="max-content"
           trigger={
-            <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition">
+            <button className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800">
               <DownloadCloudIcon
                 size={14}
                 className="text-neutral-500 dark:text-neutral-300"
@@ -117,20 +185,18 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
             </button>
           }
         >
-          <div className="p-1 text-xs bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
-            <DropdownItem onClick={() => onExport?.(doc.id)}>
-              <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-neutral-700 dark:text-neutral-200">
-                <FileJson size={14} /> Export .ht
+          <div className="rounded-lg border border-neutral-200 bg-white p-1 text-xs dark:border-neutral-800 dark:bg-neutral-900">
+            <DropdownItem onClick={() => onExport(doc.id)}>
+              <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                <FileJson size={14} />
+                Export .ht
               </div>
             </DropdownItem>
-            {/* <DropdownItem onClick={() => onExport?.(doc.id, "ht")}>
-              <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-neutral-700 dark:text-neutral-200">
-                <FileType size={14} /> Export .htx (ht)
-              </div>
-            </DropdownItem> */}
+
             <DropdownItem
               onClick={async () => {
                 const toastId = toast.loading("Preparing PDF export...");
+
                 const unsubscribe = window.hightex.onPdfProgress((update) => {
                   toast(update.status, { id: toastId });
                 });
@@ -146,33 +212,44 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     return;
                   }
 
-                  toast.success(`Saved ${result.filename}`, { id: toastId });
-                } catch (error) {
-                  toast.error("Error while exporting PDF", { id: toastId });
+                  toast.success(`Saved ${result.filename}`, {
+                    id: toastId,
+                  });
+                } catch {
+                  toast.error("Error while exporting PDF", {
+                    id: toastId,
+                  });
                 } finally {
                   unsubscribe();
                 }
               }}
             >
-              <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-neutral-700 dark:text-neutral-200">
-                <FileText size={14} /> Export .pdf
+              <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                <FileText size={14} />
+                Export .pdf
               </div>
             </DropdownItem>
           </div>
         </Dropdown>
 
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800"
           onClick={() => navigate(`/document/${doc.id}`)}
         >
-          <Pen size={14} className="text-neutral-500 dark:text-neutral-300" />
+          <Pen
+            size={14}
+            className="text-neutral-500 dark:text-neutral-300"
+          />
         </button>
 
         <button
           onClick={() => onDelete(doc.id)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-red-50 dark:hover:bg-red-900/20"
         >
-          <Trash size={14} className="text-neutral-400 hover:text-red-500" />
+          <Trash
+            size={14}
+            className="text-neutral-400 hover:text-red-500"
+          />
         </button>
       </div>
     </div>

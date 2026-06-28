@@ -1,1 +1,0 @@
-yeyyyyy 0.0.1 is currently released! but still contain server fetch error :D, but whatever, the server is doesnt exists xD
