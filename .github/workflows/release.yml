@@ -68,7 +68,7 @@ jobs:
           name: build-${{ matrix.os }}
           path: |
             release/**
-            
+
       - name: Upload release notes
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
@@ -121,7 +121,7 @@ jobs:
             echo "RELEASE_NOTE.md not found, will use auto-generated notes"
           fi
 
-      - name: add update to server
+      - name: Add update to server
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME}"
@@ -146,6 +146,9 @@ jobs:
 
       - name: Create or update GitHub Release
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if [ "${{ steps.release_notes.outputs.has_notes }}" == "true" ]; then
             NOTES_ARGS="--notes-file ${{ steps.release_notes.outputs.notes_file }}"
@@ -161,6 +164,3 @@ jobs:
               --title "$GITHUB_REF_NAME" \
               $NOTES_ARGS
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
