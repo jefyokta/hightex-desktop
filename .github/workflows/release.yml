@@ -76,6 +76,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download all builds
         uses: actions/download-artifact@v4
 
@@ -131,6 +134,36 @@ jobs:
               --title "$GITHUB_REF_NAME" \
               --generate-notes
           fi
+      - name: Verify release note
+        shell: bash
+        run: |
+          if [ ! -f RELEASE_NOTE.md ]; then
+            echo "RELEASE_NOTE.md not found!"
+            exit 1
+          fi
+
+          echo "Release note:"
+          cat RELEASE_NOTE.md
+
+      - name: Create or update GitHub Release
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Updating release..."
+
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+
+            gh release edit "$GITHUB_REF_NAME" \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file RELEASE_NOTE.md
+          else
+            echo "Creating release..."
+
+            gh release create "$GITHUB_REF_NAME" release-assets/* \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file RELEASE_NOTE.md
+          fi    
+
