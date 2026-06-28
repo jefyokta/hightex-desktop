@@ -128,35 +128,46 @@ jobs:
               }
             }"
 
-      - name: Verify release note
+      - name: Prepare release note
         shell: bash
         run: |
-          if [ ! -f RELEASE_NOTE.md ]; then
-            echo "RELEASE_NOTE.md not found!"
-            exit 1
+          if [ -f RELEASE_NOTE.md ]; then
+            echo "Using RELEASE_NOTE.md"
+          else
+            echo "No RELEASE_NOTE.md found, fallback will be used"
           fi
-
-          echo "=== RELEASE NOTE ==="
-          cat RELEASE_NOTE.md
 
       - name: Create or update GitHub Release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ github.ref_name }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+          NOTE_FILE="RELEASE_NOTE.md"
+
+          if gh release view "$VERSION" >/dev/null 2>&1; then
             echo "Updating release..."
 
-            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
+            gh release upload "$VERSION" release-assets/* --clobber
 
-            gh release edit "$GITHUB_REF_NAME" \
-              --title "$GITHUB_REF_NAME" \
-              --notes-file RELEASE_NOTE.md
+            if [ -f "$NOTE_FILE" ]; then
+              gh release edit "$VERSION" \
+                --title "$VERSION" \
+                --notes-file "$NOTE_FILE"
+            else
+              gh release edit "$VERSION" \
+                --title "$VERSION"
+            fi
           else
             echo "Creating release..."
 
-            gh release create "$GITHUB_REF_NAME" release-assets/* \
-              --title "$GITHUB_REF_NAME" \
-              --notes-file RELEASE_NOTE.md
+            if [ -f "$NOTE_FILE" ]; then
+              gh release create "$VERSION" release-assets/* \
+                --title "$VERSION" \
+                --notes-file "$NOTE_FILE"
+            else
+              gh release create "$VERSION" release-assets/* \
+                --title "$VERSION" \
+                --generate-notes
+            fi
           fi
