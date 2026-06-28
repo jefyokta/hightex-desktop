@@ -52,7 +52,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: bun run build:mac
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false        
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
       - name: Build win
         if: matrix.os == 'windows-latest'
         run: bun run build:win
@@ -67,6 +68,13 @@ jobs:
           name: build-${{ matrix.os }}
           path: |
             release/**
+
+      - name: Upload release notes
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: RELEASE_NOTE.md
 
   release:
     needs: build
@@ -99,7 +107,21 @@ jobs:
           fi
 
           ls -la release-assets
-      - name: add update to server
+
+      - name: Read release notes
+        id: release_notes
+        shell: bash
+        run: |
+          NOTES_FILE="release-notes/RELEASE_NOTE.md"
+          if [ -f "$NOTES_FILE" ]; then
+            echo "notes_file=$NOTES_FILE" >> $GITHUB_OUTPUT
+            echo "has_notes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_notes=false" >> $GITHUB_OUTPUT
+            echo "RELEASE_NOTE.md not found, will use auto-generated notes"
+          fi
+
+      - name: Add update to server
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME}"
@@ -121,16 +143,24 @@ jobs:
                 \"linux\": \"$LINUX\"
               }
             }"
+
       - name: Create or update GitHub Release
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
+          if [ "${{ steps.release_notes.outputs.has_notes }}" == "true" ]; then
+            NOTES_ARGS="--notes-file ${{ steps.release_notes.outputs.notes_file }}"
+          else
+            NOTES_ARGS="--generate-notes"
+          fi
+
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" $NOTES_ARGS
             gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber
           else
             gh release create "$GITHUB_REF_NAME" release-assets/* \
               --title "$GITHUB_REF_NAME" \
-              --generate-notes
+              $NOTES_ARGS
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
