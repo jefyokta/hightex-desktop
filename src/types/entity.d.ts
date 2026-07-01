@@ -21,4 +21,28 @@ declare global {
 
 
   }
+
+  interface DocumentEntity extends Entity{
+    id: string;
+    category: string;
+    title: string;
+    altTitle: string;
+    keywords: Keywords;
+    config: HighTexConfig;
+    file?: HighTexFileMeta;
+    updatedAt:Date|null
+  }
+
+  interface CategoryEntity extends Entity{
+    name: string;
+    chapters: {
+      chapter: string;
+      title: string;
+    }[];
+    min?: boolean;
+  }
+
+  interface GraphEntity extends Entity {
+    
+  }
 }

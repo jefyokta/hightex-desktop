@@ -140,8 +140,12 @@ declare global {
       profile(): Promise<DocumentProfile>;
       onOpenFile(cb: (file: string) => void): () => void;
       readFile(filePath: string): Promise<NonSharedBuffer>;
-      category(id:string):Promise<Category>;
-      version():Promise<string>
+      category(id: string): Promise<Category>;
+      version(): Promise<string>;
+      reportError(payload: {
+        title: string;
+        description: string;
+      }): Promise<unknown>;
     };
 
     config: ConfigAPI;
@@ -164,7 +168,7 @@ declare global {
       check(): Promise<UpdaterStatus>;
       install(): Promise<{ ok: boolean; message?: string }>;
       onStatus(cb: (status: UpdaterStatus) => void): () => void;
-       download(): Promise<void>;
+      download(): Promise<void>;
     };
     confirm: (msg: string) => Promise<boolean>;
     alert: (msg: string) => Promise<void>;

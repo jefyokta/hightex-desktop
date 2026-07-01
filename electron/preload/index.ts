@@ -66,9 +66,8 @@ contextBridge.exposeInMainWorld("hightex", {
   categories: async () => {
     return await ipcRenderer.invoke("hightex:categories");
   },
-  category:async(id:string)=>{
-    return ipcRenderer.invoke("hightex:category",id)
-
+  category: async (id: string) => {
+    return ipcRenderer.invoke("hightex:category", id);
   },
   profile: async () => {
     return await ipcRenderer.invoke("hightex:profile");
@@ -83,7 +82,10 @@ contextBridge.exposeInMainWorld("hightex", {
   readFile: (filePath: string) =>
     ipcRenderer.invoke("hightex:readFile", filePath),
   version() {
-    return ipcRenderer.invoke("hightex:version")
+    return ipcRenderer.invoke("hightex:version");
+  },
+  reportError(payload) {
+    return ipcRenderer.invoke("hightex:report-error", payload);
   },
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
@@ -174,7 +176,7 @@ contextBridge.exposeInMainWorld("updater", {
 
     return () => ipcRenderer.removeListener("updater:status", handler);
   },
-   download: () => ipcRenderer.invoke("updater:download"),
+  download: () => ipcRenderer.invoke("updater:download"),
 } satisfies Window["updater"]);
 
 contextBridge.exposeInMainWorld("plugin", {

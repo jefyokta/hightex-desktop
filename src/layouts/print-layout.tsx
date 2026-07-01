@@ -7,6 +7,7 @@ import katexCSS from "katex/dist/katex.css?url";
 import codeCss from "highlight.js/styles/github-dark.css?url";
 import { PrintableProvider } from "@/hooks/use-printable";
 import { createElementFromUrl } from "@/utils/create-element-from-url";
+import { CliDocumentsSlave } from "@/slaves/cli-documents";
 
 export const PrintLayout = () => {
   useEffect(() => {
@@ -48,6 +49,7 @@ export const PrintLayout = () => {
 
   return (
     <PrintableProvider>
+      <CliDocumentsSlave />
       <Outlet />
     </PrintableProvider>
   );

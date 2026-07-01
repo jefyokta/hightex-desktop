@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
 import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
 import { ShouldReport } from "@/exception/should-report";
+import type { NavigateFunction } from "react-router-dom";
+import { truncate } from "@/utils/truncate";
 
 export const ErrorSlave: React.FC = () => {
   const { errors, clear } = useError();
@@ -18,48 +20,52 @@ export const ErrorSlave: React.FC = () => {
 
   const latestError = errors[0];
 
-  useEffect(() => {
-    if (!latestError) return;
-
-    const err = latestError.error;
-
-    if (!(err instanceof ApplicationError)) {
-      // console.log("error",err)
-      if (err === null) {
-        console.log("tf are you throwing error as null");
-        return;
-      }
-      const errMessage = ApplicationError.normilize(err)
-      throw new ShouldReport(errMessage);
-    }
-
-    if (err instanceof ShouldNotified) {
-      toast[err.level as NotificationErrorLevel](err.message, {
-        description: err.description,
-        id: err.id,
-        action: err.action,
-      });
-
-      clear(latestError.id);
+  const handleError = (err: unknown, id: string, go: NavigateFunction) => {
+    if (err === null) {
+      clear(id);
       return;
     }
 
-    if (err instanceof DocumentNotFound) {
-      toast.error(`Document ${err.doc.id} not found!`);
+    const error: ApplicationError =
+      err instanceof ApplicationError
+        ? err
+        : new ShouldReport(ApplicationError.normilize(err));
 
-      clear(latestError.id);
+    if (error instanceof ShouldNotified) {
+      toast[error.level as NotificationErrorLevel](truncate(error.message,100), {
+        description: truncate(error.description,100),
+        id: error.id,
+        action: error.action,
+      });
+      clear(id);
+      return;
+    }
+
+    if (error instanceof DocumentNotFound) {
+      toast.error(`Document ${error.doc.id} not found!`);
+      clear(id);
       go("/dashboard/");
       return;
     }
-    if (err instanceof ShouldNotifiedWithNativeComponent) {
-      err.showNotification();
+
+    if (error instanceof ShouldNotifiedWithNativeComponent) {
+      error.showNotification();
+      clear(id);
       return;
     }
 
-    if(err instanceof ShouldNavigated){
-      go(err.navigateTo);
+    if (error instanceof ShouldNavigated) {
+      go(error.navigateTo);
+      clear(id);
       return;
     }
+
+    clear(id);
+  };
+
+  useEffect(() => {
+    if (!latestError) return;
+    handleError(latestError.error, latestError.id, go);
   }, [latestError]);
 
   return null;

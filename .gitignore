@@ -27,7 +27,7 @@ dist-electron/
 #dev key
 *.key
 genereate-keys.ts
-
+release/
 src/editor/extensions/ai
 src/editor/plugins/ai-suggestion.ts
 

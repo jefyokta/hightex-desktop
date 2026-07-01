@@ -28,6 +28,8 @@ import { NetworkService } from "@main/service/network-service";
 import { SnapshotHandler } from "@main/handlers/snapshot-handler";
 import { ServerService } from "@main/service/server-service";
 import { LoggerService } from "@main/service/logger-service";
+import { CLIService } from "@main/service/cli-service";
+import { getCliArgs, isCliInvocation } from "./cli-args";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -51,6 +53,10 @@ export class Application {
   private readonly __dirname = path.dirname(fileURLToPath(import.meta.url));
 
   static instance: Application;
+
+  public get window() {
+    return this.win;
+  }
 
   constructor() {
     Application.instance = this;
@@ -97,8 +103,6 @@ export class Application {
   ];
 
   public bootstrap() {
-    const cliArgs = process.argv.slice(app.isPackaged ? 1 : 2);
-    console.log(cliArgs)
     app.on("window-all-closed", async () => {
       await this.server?.stop();
 
@@ -116,10 +120,15 @@ export class Application {
       }
     });
 
-    this.fileOpen = new FileOpenManager((filePath) => {
-      this.win?.webContents.send("file:open", filePath);
-      this.win?.focus();
-    });
+    this.fileOpen = new FileOpenManager(
+      (filePath) => {
+        this.win?.webContents.send("file:open", filePath);
+        this.win?.focus();
+      },
+      async (args) => {
+        await this.handleCliArgs(args);
+      },
+    );
     this.fileOpen.bootstrap(app);
 
     app.whenReady().then(() => this.onReady());
@@ -140,12 +149,13 @@ export class Application {
     return found;
   }
 
-  private async createWindow() {
+  private async createWindow(options: { show?: boolean } = {}) {
     const publicPath = process.env.VITE_DEV_SERVER_URL
       ? this.publicRoot
       : this.rendererDist;
 
     this.win = new BrowserWindow({
+      show: options.show ?? true,
       width: 1200,
       height: 800,
 
@@ -167,7 +177,7 @@ export class Application {
       },
     });
 
-    if (this.isDevelopment) {
+    if (this.isDevelopment && options.show !== false) {
       this.win.webContents.openDevTools();
     }
 
@@ -198,21 +208,16 @@ export class Application {
       return;
     }
 
-    this.server = new LocalServer(this.rendererDist);
-
-    await this.server.start();
+    if (!this.server) {
+      this.server = new LocalServer(this.rendererDist);
+      await this.server.start();
+    }
 
     await this.win.loadURL(this.server.url);
   }
 
   private async onReady() {
-    await ServerService.checkForHost();
-    KeyManagerService.ensure();
-
-    DefaultPluginsBootstrapper.installAll();
-    new DatabaseBootstraper().tap();
-    PluginManager.loadAll();
-    NetworkService.tap();
+    await this.prepareCoreServices();
     this.registerHandlers();
     this.registerUpdater();
     await this.createWindow();
@@ -222,20 +227,58 @@ export class Application {
     this.checkForUpdates();
   }
 
+  public async prepareCliMode() {
+    await this.prepareCoreServices();
+    this.registerHandlers();
+    this.registerUpdater();
+
+    await this.createWindow({ show: false });
+  }
+
+  public async closeCliMode() {
+    if (this.win && !this.win.isDestroyed()) {
+      this.win.destroy();
+    }
+    this.win = null;
+    await this.server?.stop();
+    this.server = null;
+  }
+
+  private async prepareCoreServices() {
+    await ServerService.checkForHost();
+    KeyManagerService.ensure();
+
+    DefaultPluginsBootstrapper.installAll();
+    new DatabaseBootstraper().tap();
+    PluginManager.loadAll();
+    NetworkService.tap();
+  }
+
+  private async handleCliArgs(args: string[]) {
+    const cliArgs = getCliArgs(args);
+
+    if (!isCliInvocation(cliArgs)) return;
+
+    try {
+      if (!this.win) return;
+
+      await new CLIService(cliArgs, this.win).handle();
+    } catch (error) {
+      LoggerService.write(error, "cli:second-instance");
+    }
+  }
+
   private registerContextMenu() {
     this.win?.webContents.on("context-menu", (_event, _params) => {
       // const menu = new Menu();
-
       // menu.append(
       //   new MenuItem({
       //     label: "Inspect Element",
-
       //     click: () => {
       //       this.win!.webContents.inspectElement(params.x, params.y);
       //     },
       //   }),
       // );
-
       // menu.popup({
       //   window: this.win!,
       // });
@@ -248,7 +291,9 @@ export class Application {
     const isWindowsLinuxInspectShortcut =
       input.control && input.shift && key === "i";
 
-    return key === "f12" || isMacInspectShortcut || isWindowsLinuxInspectShortcut;
+    return (
+      key === "f12" || isMacInspectShortcut || isWindowsLinuxInspectShortcut
+    );
   }
 
   private registerHandlers() {
@@ -263,7 +308,7 @@ export class Application {
     PluginHandler.register();
 
     PluginScannerHandler.register();
-    SnapshotHandler.register()
+    SnapshotHandler.register();
     ZoteroHandler.register();
     SharingHandler.register();
   }

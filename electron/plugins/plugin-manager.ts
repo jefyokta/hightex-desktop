@@ -23,7 +23,7 @@ export class PluginManager {
         const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
 
         if (!PluginValidator.verify(code, manifest)) {
-          console.error(` Invalid plugin: ${id}`);
+          // console.error(` Invalid plugin: ${id}`);
           continue;
         }
 
