@@ -104,8 +104,8 @@ export class HighTexHandler {
       return DocumentProfileService.get();
     });
 
-    ipcMain.handle("hightex:document:pull",()=>{
-      return ServerService.request("/document/content")
+    ipcMain.handle("hightex:document:pull",(_,up?:string)=>{
+      return ServerService.request("/document/content".concat(up ? `?updated_at=${up}`:""))
     })
 
     ipcMain.handle(

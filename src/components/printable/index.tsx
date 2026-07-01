@@ -63,22 +63,26 @@ export const FullDocument = () => {
     <>
       <div ref={sourceRef} style={{ display: "none" }}>
         <Cover />
+        {!(document.category?.min)
 
-        <Constent />
+          && <>
+            <Constent />
 
-        <Validity />
+            <Validity />
 
-        <IPR />
+            <IPR />
 
-        <Statement />
+            <Statement />
 
-        <Presentation />
+            <Presentation />
 
-        <Foreword />
+            <Foreword />
 
-        <AbstractIndonesian />
+            <AbstractIndonesian />
 
-        <AbstractEnglish />
+            <AbstractEnglish />
+          </>
+        }
 
         <div className="content" ref={parserRef}></div>
       </div>

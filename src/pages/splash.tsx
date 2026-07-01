@@ -7,6 +7,8 @@ import { motion } from "motion/react";
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
 import { CategoryEmpty } from "@/exception/categories-empty";
 
+import logo from "@/assets/hightex.svg"
+
 const Marquee = ({ items }: { items: string[] }) => {
   return (
     <div className="relative w-full overflow-hidden">
@@ -58,9 +60,9 @@ export const Splash: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [version, setVersion] = useState("")
-  useEffect(() => { 
-    window.hightex.categories().then(e=>{
-      if(!e?.length){
+  useEffect(() => {
+    window.hightex.categories().then(e => {
+      if (!e?.length) {
         throw CategoryEmpty
       }
     })
@@ -125,7 +127,10 @@ export const Splash: React.FC = () => {
   return (
     <div className="h-screen w-screen flex items-center justify-center   dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors">
       <div className="text-center relative space-y-10 w-full max-w-2xl h-screen flex flex-col justify-center px-6 h">
-        <div className=" space-x-">
+        <div className="">
+          <div className="flex justify-center my-2">
+            <img src={logo} alt="" className="w-24" />
+          </div>
           <div className="text-4xl font-semibold tracking-tight ">
             HighTex
           </div>

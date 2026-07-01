@@ -38,11 +38,12 @@ The original plan was for the web version to be deployed and used through the un
 
 Unfortunately, there has never been a clear answer regarding when that deployment would happen. Rather than waiting indefinitely, I decided to build a version that students can use immediately.
 
-### No storage limitations
+### Server Resources
 
 A web application always comes with infrastructure concerns.
 
 Someone has to provide storage, maintain backups, monitor usage, and pay for servers.
+formerly i've tried to deploy a server with small resources my self , but it is not enough for hightex app, compiling documents is using large resouces, and i dont wanna pay more for non profit app.
 
 With a desktop application, documents are stored locally on the user's machine. This removes many of the restrictions that would otherwise affect development decisions.
 

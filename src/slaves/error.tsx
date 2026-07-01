@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
 import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
+import { ShouldReport } from "@/exception/should-report";
 
 export const ErrorSlave: React.FC = () => {
   const { errors, clear } = useError();
@@ -28,7 +29,8 @@ export const ErrorSlave: React.FC = () => {
         console.log("tf are you throwing error as null");
         return;
       }
-      throw err;
+      const errMessage = ApplicationError.normilize(err)
+      throw new ShouldReport(errMessage);
     }
 
     if (err instanceof ShouldNotified) {

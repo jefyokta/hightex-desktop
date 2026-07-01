@@ -97,6 +97,8 @@ export class Application {
   ];
 
   public bootstrap() {
+    const cliArgs = process.argv.slice(app.isPackaged ? 1 : 2);
+    console.log(cliArgs)
     app.on("window-all-closed", async () => {
       await this.server?.stop();
 

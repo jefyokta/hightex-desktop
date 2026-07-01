@@ -44,4 +44,5 @@ export class ShouldNotified<
 
     this.level = "warning" as TLevel;
   }
+
 }

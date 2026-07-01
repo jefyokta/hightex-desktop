@@ -13,6 +13,9 @@ export class ApplicationError extends Error {
     if(typeof err == 'string'){
       return err
     }
-    return undefined
+    if(typeof err == 'object'){
+      return JSON.stringify(err)
+    }
+    return String(err)
   }
 }

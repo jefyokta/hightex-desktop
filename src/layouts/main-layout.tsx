@@ -15,10 +15,12 @@ import { OpenFileSlave } from "@/slaves/open-file";
 import { ConfirmProvider } from "@/context/confrim-context";
 import { AskProvider } from "@/context/ask-context";
 import { confirm } from "@/utils/confirm";
+import { isMac } from "@/utils/is-mac";
+import { Copy } from "lucide-react";
 
 const UPDATER_TOAST_ID = "hightex-updater";
 const mb = (bytes: number) => {
-  return bytes / 1024 / 1024;
+  return (bytes / 1024 / 1024).toFixed(2);
 }
 const formatPercent = (value: number) =>
   Math.max(0, Math.min(100, value)).toFixed(0);
@@ -28,6 +30,7 @@ const UpdaterStatusListener = () => {
   const downloadPromptOpen = useRef(false);
 
   useEffect(() => {
+
     if (!window.updater?.onStatus) return;
 
     const downloadAndInstall = async () => {
@@ -142,6 +145,25 @@ const UpdaterStatusListener = () => {
           installPromptOpen.current = true;
 
           try {
+            if (isMac) {
+              toast.error("Auto-update failed", {
+                description: "macOS blocked the update due to a signature issue. Copy and run the command to install it manually.",
+                action: {
+                  label: <Copy size={12} />,
+                  onClick: () =>
+                    navigator.clipboard.writeText(
+                      "rm -rf /Applications/HighTex.app && unzip ~/Library/Caches/hightex-desktop-updater/update.zip -d /Applications/"
+                    ).then(_ => {
+                      toast.success("copied", { id: UPDATER_TOAST_ID });
+                    }).catch(_ => {
+                      toast.error("failed to copy", { id: UPDATER_TOAST_ID });
+                    }),
+                },
+                id: UPDATER_TOAST_ID
+              });
+
+              return;
+            }
             const shouldRestart = await confirm({
               title: "HighTex update is ready",
               desc: `HighTex ${event.info.version} has been downloaded. Restart now to install it.`,
@@ -211,10 +233,10 @@ export const MainLayout = () => {
   return (
     <ErrorProvider>
       <ConfirmProvider>
+        <ErrorSlave />
         <AskProvider>
           <OpenFileSlave />
           <UpdaterStatusListener />
-          <ErrorSlave />
           <TooltipProvider>
             <UserProvider>
               <AuthModalProvider>

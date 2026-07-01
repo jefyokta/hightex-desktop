@@ -29,11 +29,13 @@ export const RemoteDocuments = () => {
   const online = useOnline();
 
   const [loading, setLoading] = useState(true);
-  const [cloudDoc, setCloudDoc] = useState<any>(null);
-  const [localDoc, setLocalDoc] = useState<any>(null);
+  const [cloudDoc, setCloudDoc] = useState<HighTexDocument | null>(null);
+  const [localDoc, setLocalDoc] = useState<HighTexDocument | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const document = localDoc || cloudDoc;
+
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -41,7 +43,9 @@ export const RemoteDocuments = () => {
     let alive = true;
     (async () => {
       try {
+        window.hightex.categories().then(setCategories)
         const res = await window.hightex.document();
+
         if (!alive) return;
 
         const remote = res?.document || res;
@@ -146,7 +150,10 @@ export const RemoteDocuments = () => {
               <button
                 onClick={() => {
                   const id = toast.loading("Pulling document...")
-                  window.ipcRenderer.invoke("hightex:document:pull").then(r => {
+                  window.ipcRenderer.invoke("hightex:document:pull", localDoc?.updatedAt?.toISOString()).then(r => {
+                    if ("updated" in r) {
+                      throw new ShouldNotified({ message: "Pull canceled", description: "Document already up to date" })
+                    }
                     const file = new File([new Uint8Array(r as ArrayBuffer)], "pull.hightex")
                     return importHighTexPackage(file)
                   }).then((doc) => {
@@ -171,8 +178,9 @@ export const RemoteDocuments = () => {
             )}
 
             <InfoRow label="Title" value={document.title} />
+            {/* @ts-ignore */}
             <InfoRow label="English Title" value={document.en_title} />
-            <InfoRow label="Category" value={document.category.name} />
+            <InfoRow label="Category" value={categories.find(c => String(c.id) == document.category)?.name} />
 
             <KeywordSection keys={document.keywords} />
           </div>
@@ -284,17 +292,21 @@ const InfoRow = ({ label, value }: any) => (
   </div>
 );
 
-const KeywordSection = ({ keys }: { keys: string }) => {
+const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
   const parsed = useMemo(() => {
+    if (typeof keys == 'object') return keys
     try {
-      return JSON.parse(keys || '{"indonesian":[],"english":[]}');
-    } catch {
+      return JSON.parse(keys)
+
+    } catch (error) {
+
       return {
         indonesian: [],
-        english: [],
-      };
+        english: []
+      }
     }
-  }, [keys]);
+
+  }, [keys])
 
   return (
     <div className="space-y-4">

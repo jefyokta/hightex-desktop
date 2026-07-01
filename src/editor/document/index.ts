@@ -14,6 +14,7 @@ export class Document {
   private table: Table<HighTexDocument, string, HighTexDocument>;
   private version?: string;
   public ready = false;
+  public category?:Category
 
   private doc?: HighTexDocument;
 
@@ -113,6 +114,7 @@ export class Document {
     if (!category) {
       throw new DocumentBroken(this.id);
     }
+    this.category = category
 
     return category?.chapters;
   }
