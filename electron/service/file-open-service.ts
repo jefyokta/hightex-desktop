@@ -1,4 +1,5 @@
 type FileOpenCallback = (filePath: string) => void;
+type CliOpenCallback = (args: string[]) => void | Promise<void>;
 
 export class FileOpenManager {
   private pendingFiles: string[] = [];
@@ -7,6 +8,7 @@ export class FileOpenManager {
 
   constructor(
     private readonly callback: FileOpenCallback,
+    private readonly onCli?: CliOpenCallback,
     extensions: string[] = [".hightex", ".htx", ".ht"],
   ) {
     this.extensions = extensions.map((e) =>
@@ -39,7 +41,10 @@ export class FileOpenManager {
     app.on("second-instance", (_event, argv) => {
       const file = this.extractFromArgs(argv);
 
-      if (!file) return;
+      if (!file) {
+        void this.onCli?.(argv);
+        return;
+      }
 
       this.emit(file);
     });

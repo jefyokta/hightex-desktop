@@ -83,9 +83,27 @@ export class HighTexHandler {
       return await CategoryService.getAll();
     });
 
-    ipcMain.handle("hightex:version",()=>{
+    ipcMain.handle("hightex:version", () => {
       return app.getVersion();
-    })
+    });
+
+    ipcMain.handle(
+      "hightex:report-error",
+      async (_event, payload: { title: string; description: string }) => {
+        try {
+          return await ServerService.request("/issues", {
+            method: "POST",
+            body: JSON.stringify({
+              title:` payload.title. On desktop app version: ${app.getVersion()}`,
+              description: `${payload.description}`,
+            }),
+          });
+        } catch (err) {
+          LoggerService.write(err, "hightex:report-error");
+          throw err;
+        }
+      },
+    );
 
     ipcMain.handle("dialog:select-folder", async () => {
       const result = await dialog.showOpenDialog({
@@ -104,9 +122,11 @@ export class HighTexHandler {
       return DocumentProfileService.get();
     });
 
-    ipcMain.handle("hightex:document:pull",(_,up?:string)=>{
-      return ServerService.request("/document/content".concat(up ? `?updated_at=${up}`:""))
-    })
+    ipcMain.handle("hightex:document:pull", (_, up?: string) => {
+      return ServerService.request(
+        "/document/content".concat(up ? `?updated_at=${up}` : ""),
+      );
+    });
 
     ipcMain.handle(
       "hightex:export",
@@ -151,8 +171,8 @@ export class HighTexHandler {
       },
     );
 
-    ipcMain.handle("hightex:category",(_,id)=>{
-      return CategoryService.get(id)
+    ipcMain.handle("hightex:category", (_, id) => {
+      return CategoryService.get(id);
     });
   }
 }

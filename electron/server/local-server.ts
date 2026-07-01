@@ -64,14 +64,14 @@ export class LocalServer {
     });
 
     await new Promise<void>((resolve) => {
-      this.server!.listen(0, "127.0.0.1", () => {
+      this.server!.listen(55432, "127.0.0.1", () => {
         const address = this.server!.address();
 
         if (address && typeof address !== "string") {
           this._port = address.port;
         }
 
-        console.log("[local-server]", this.url);
+        // console.log("[local-server]", this.url);
 
         resolve();
       });

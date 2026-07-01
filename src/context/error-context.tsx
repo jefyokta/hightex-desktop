@@ -11,6 +11,7 @@ type ErrorContextValue = {
   errors: ErrorItem[];
   clear: (id?: string) => void;
   clearAll: () => void;
+  addError:(err:ErrorItem)=>void
 };
 
 export const ErrorContext = createContext<ErrorContextValue | null>(null);
@@ -46,6 +47,9 @@ export function ErrorProvider({ children }: { children: React.ReactNode }) {
       clearAll() {
         setErrors([]);
       },
+      addError(er:ErrorItem){
+        setErrors(e=>[...e,er])
+      }
     };
   }, [errors]);
 

@@ -18,9 +18,9 @@ export const Dashboard = () => {
   useEffect(() => {
     let alive = true;
 
+
     const load = async () => {
       const docs = await db.documents.toArray();
-
       if (alive) {
         setDocuments(docs);
         setLoading(false);
@@ -37,7 +37,7 @@ export const Dashboard = () => {
     const categories = await window.hightex.categories();
     const defaultCategory = categories[0];
 
-    if(!defaultCategory){
+    if (!defaultCategory) {
       throw new CategoryEmpty
     }
 
