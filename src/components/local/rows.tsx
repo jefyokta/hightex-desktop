@@ -24,6 +24,8 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { cn } from "@/lib/utils";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { Button } from "../ui/button";
+import { truncate } from "@/utils/truncate";
+import { ApplicationError } from "@/exception/interfaces/application-error";
 
 interface Props {
   doc: HighTexDocument;
@@ -265,8 +267,15 @@ export const Row = ({
                     toast.success(`Saved ${result.filename}`, {
                       id: toastId,
                     });
-                  } catch {
+                  } catch (e) {
+                    if (e instanceof Error) {
+                      const t = e.message.split(":")
+                      e = t[t.length - 1] || e.message
+                    }
                     toast.error("Error while exporting PDF", {
+                      description() {
+                        return truncate(ApplicationError.normilize(e), 150)
+                      },
                       id: toastId,
                     });
                   } finally {

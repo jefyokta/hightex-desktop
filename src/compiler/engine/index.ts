@@ -10,6 +10,8 @@ import { PageNumberResolver } from "../resolver/page-number-resolver";
 import { TOFBuilder } from "../builder/tof-builder";
 import ChapterListener from "../handlers/chapter-listener";
 import { ImageQueue } from "../queues/image-queue";
+import { CompilerError } from "@/exception/compiler-error";
+import { LayoutError } from "@/exception/layout-error";
 
 type EngineMode = "single" | "full";
 
@@ -44,6 +46,7 @@ export class Engine {
   public config!: EngineConfig;
 
   private pipeline: EnginePipeline;
+  public error: Error | null = null;
 
   constructor() {
     this.pipeline = new EnginePipeline(this);
@@ -97,20 +100,21 @@ export class Engine {
 
   async run() {
     if (!this.root) {
-      throw new Error("Engine root not mounted");
+      throw new CompilerError("Engine root not mounted");
     }
 
     if (!this.config?.parser) {
-      throw new Error("Parser config not initialized");
+      throw new CompilerError("Parser config not initialized");
     }
-    await this.pipeline.run().catch(console.log);
+
+    this.error = null;
+    await this.pipeline.run();
 
     return this;
   }
 
-  async createPaged() {
-    console.log("creating pages..");
-    const originalError = console.error
+  private interceptError() {
+    const originalError = console.error;
     console.error = (...args) => {
       const [msg, node] = args;
 
@@ -119,50 +123,80 @@ export class Engine {
           message: msg,
           node,
         });
-        FrameManager.sendMessage("layout:error",{node:undefined})
+        if (this.isInFrame()) {
+          FrameManager.sendMessage("layout:error", { node: undefined });
+        }else{
+          this.error = new LayoutError();
+        }
+        
       }
 
       originalError(...args);
     };
-    if (!this.root) throw new Error("Engine root not mounted");
 
-    const content = this.config.paged?.content;
-    const renderTo = this.config.paged?.renderTo;
-    if (!content || !renderTo) return;
+    return () => {
+      console.error = originalError;
+    };
+  }
 
-    const shadowHost = document.createElement("div");
-    shadowHost.style.cssText = "position:absolute;left:-99999px;top:0;";
-    document.body.appendChild(shadowHost);
+  async createPaged() {
+    const cleanup = this.interceptError();
+    this.error = null;
 
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = content.innerHTML;
-    const fragment = document.createDocumentFragment();
-    fragment.append(wrapper);
-    const chunker = await new Paged.Previewer({ auto: false })
-      .preview(fragment, undefined, renderTo)
-      .then(async (c) => {
-        new PageNumberResolver().resolve();
-        this.root.remove();
-        if (this.parser.mode == "full") {
-          TOFBuilder.assignPageNumbers();
-          await TocBuilder.assignPageNumbers();
-        }
-        return c;
-      });
-    if (this.isInFrame()) await new Interactable().resolve(this);
-    await this.finishCallback(this);
-    document.dispatchEvent(
-      new CustomEvent("page:rendered", { detail: { engine: this } }),
-    );
+    try {
+      if (!this.root) throw new Error("Engine root not mounted");
 
-    FrameManager.sendMessage("page:rendered", { totalPages: chunker.total });
+      const content = this.config.paged?.content;
+      const renderTo = this.config.paged?.renderTo;
+      if (!content || !renderTo) return;
 
-    this.dispathToMainProcess();
-    for (const obj of ImageQueue.objectUrls) {
-      URL.revokeObjectURL(obj);
+      const shadowHost = document.createElement("div");
+      shadowHost.style.cssText = "position:absolute;left:-99999px;top:0;";
+      document.body.appendChild(shadowHost);
+
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = content.innerHTML;
+      const fragment = document.createDocumentFragment();
+      fragment.append(wrapper);
+
+      const chunker = await new Paged.Previewer({ auto: false })
+        .preview(fragment, undefined, renderTo)
+        .then(async (c) => {
+          new PageNumberResolver().resolve();
+          this.root.remove();
+          if (this.parser.mode == "full") {
+            TOFBuilder.assignPageNumbers();
+            await TocBuilder.assignPageNumbers();
+          }
+          return c;
+        });
+
+      if (this.isInFrame()) await new Interactable().resolve(this);
+
+      cleanup();
+
+      if (this.error) {
+        throw this.error;
+      }
+
+      await this.finishCallback(this);
+
+      document.dispatchEvent(
+        new CustomEvent("page:rendered", { detail: { engine: this } }),
+      );
+
+      FrameManager.sendMessage("page:rendered", { totalPages: chunker.total });
+
+      this.dispathToMainProcess();
+
+      for (const obj of ImageQueue.objectUrls) {
+        URL.revokeObjectURL(obj);
+      }
+
+      return chunker;
+    } finally {
+      cleanup();
     }
-    console.error = originalError
-    return chunker;
   }
 
   destroy() {

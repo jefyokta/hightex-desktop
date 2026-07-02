@@ -281,7 +281,6 @@ export class Application {
     ProfileHandler.register();
     HighTexHandler.register();
     PluginHandler.register();
-
     PluginScannerHandler.register();
     SnapshotHandler.register();
     ZoteroHandler.register();

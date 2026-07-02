@@ -12,6 +12,7 @@ import { Statement } from "@/compiler/sheets/statement";
 import { Validity } from "@/compiler/sheets/validity";
 import { useEffect, useRef } from "react";
 import { usePrintable } from "@/hooks/use-printable";
+import { ApplicationError } from "@/exception/interfaces/application-error";
 
 export const FullDocument = () => {
   const sourceRef = useRef<HTMLDivElement | null>(null);
@@ -21,6 +22,7 @@ export const FullDocument = () => {
   const { document, profile, ready } = usePrintable();
 
   useEffect(() => {
+
     if (
       !ready ||
       !document ||
@@ -46,12 +48,20 @@ export const FullDocument = () => {
         profile,
       })
       .interactable()
-      .whenPagesCreated(() => {
+      .whenPagesCreated((e) => {
         window.dispatchEvent(new CustomEvent("document:rendered"));
+        if (e.error) {
+          throw e.error
+        }
       })
       .run()
       .then(async (engine) => {
         await engine.createPaged();
+      }).catch(e => {
+        if ("ipcRenderer" in window) {
+          
+          window.ipcRenderer.send(`page:error:${document.id}`,ApplicationError.normilize(e))
+        }
       });
   }, [document, profile, ready]);
 
