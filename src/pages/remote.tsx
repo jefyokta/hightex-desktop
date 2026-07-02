@@ -22,6 +22,7 @@ import { importHighTexPackage } from "@/utils/import-hightex";
 import { toast } from "sonner";
 import { truncate } from "@/utils/truncate";
 import { Link } from "react-router-dom";
+import { ApplicationError } from "@/exception/interfaces/application-error";
 
 export const RemoteDocuments = () => {
   const { user } = useUser();
@@ -151,7 +152,7 @@ export const RemoteDocuments = () => {
                 onClick={() => {
                   const id = toast.loading("Pulling document...")
                   window.ipcRenderer.invoke("hightex:document:pull", localDoc?.updatedAt?.toISOString()).then(r => {
-                    if ("updated" in r) {
+                    if (!(r instanceof ArrayBuffer)) {
                       throw new ShouldNotified({ message: "Pull canceled", description: "Document already up to date" })
                     }
                     const file = new File([new Uint8Array(r as ArrayBuffer)], "pull.hightex")
@@ -161,7 +162,15 @@ export const RemoteDocuments = () => {
                       id
                     })
                   }).catch(_e => {
-                    toast.error("pull failed", { id })
+                    if (_e instanceof ShouldNotified) {
+                      throw _e
+                    }
+
+                    throw new ShouldNotified(
+                      { message: "Pull Failed", description: ApplicationError.normilize(_e), id: String(id) }
+                    )
+                  }).finally(() => {
+                    toast.dismiss(id)
                   })
 
                 }}

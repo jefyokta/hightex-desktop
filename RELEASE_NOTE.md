@@ -1,6 +1,7 @@
-## Whats new in v0.0.11
+## Whats new in v0.0.12
 
-## spec req
-
-- cli mode implemented
-- unexpected error should be reported
+### Core changed
+- Http Server to custom protocol
+### Fix
+- Report error message fixed
+- PDF Generation Error now reported (formerly silent till the proccess timeout)

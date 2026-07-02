@@ -44,7 +44,7 @@ export class HighTexHandler {
         LoggerService.write(error, "hightex:pdf");
         progress("PDF export failed", 0);
         throw error instanceof Error
-          ? error
+          ? new Error(error.message)
           : new Error("Unable to export PDF.");
       }
     });
@@ -94,7 +94,7 @@ export class HighTexHandler {
           return await ServerService.request("/issues", {
             method: "POST",
             body: JSON.stringify({
-              title:` payload.title. On desktop app version: ${app.getVersion()}`,
+              title:` ${payload.title}. On desktop app version: ${app.getVersion()}`,
               description: `${payload.description}`,
             }),
           });

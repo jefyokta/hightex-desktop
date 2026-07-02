@@ -9,8 +9,14 @@ export class ShouldNotified<
   readonly level: TLevel;
   readonly message!: string;
   readonly description!: string;
-  readonly id!: string;
+  private _id!: string;
   readonly action?: React.ReactNode;
+
+  public get id(){
+
+    return this._id;
+
+  }
 
   constructor(desc: string, action?: React.ReactNode, id?: string);
   constructor(options: {
@@ -40,9 +46,13 @@ export class ShouldNotified<
     this.message = msg;
     this.description = desc;
     this.action = act;
-    this.id = finalId || uniqId();
+    this._id = finalId || uniqId();
 
     this.level = "warning" as TLevel;
+  }
+
+  setId(id:string){
+    this._id =id
   }
 
 }
