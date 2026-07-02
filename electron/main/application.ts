@@ -19,8 +19,6 @@ import { PluginManager } from "../plugins/plugin-manager";
 import { KeyManagerService } from "../service/key-manager-service";
 import { DefaultPluginsBootstrapper } from "../plugins/plugin-default-boostraper";
 import { ZoteroHandler } from "../handlers/zotero-handler";
-
-import { LocalServer } from "../server/local-server";
 import { FileOpenManager } from "../service/file-open-service";
 import { SharingHandler } from "../handlers/sharing-handler";
 import { DatabaseBootstraper } from "@main/database/core/bootstrapper";
@@ -30,6 +28,7 @@ import { ServerService } from "@main/service/server-service";
 import { LoggerService } from "@main/service/logger-service";
 import { CLIService } from "@main/service/cli-service";
 import { getCliArgs, isCliInvocation } from "./cli-args";
+import { HightexProtocol } from "@main/server/hightex-protocol";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -43,7 +42,7 @@ type UpdaterStatus =
 export class Application {
   private win: BrowserWindow | null = null;
 
-  private server: LocalServer | null = null;
+  private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
   private updaterReady = false;
   private updateDownloaded = false;
@@ -104,8 +103,6 @@ export class Application {
 
   public bootstrap() {
     app.on("window-all-closed", async () => {
-      await this.server?.stop();
-
       if (process.platform !== "darwin") {
         app.quit();
         this.win = null;
@@ -119,6 +116,9 @@ export class Application {
         this.createWindow();
       }
     });
+
+    HightexProtocol.registerSchemesAsPrivileged();
+    this.server = new HightexProtocol(this.rendererDist);
 
     this.fileOpen = new FileOpenManager(
       (filePath) => {
@@ -173,7 +173,6 @@ export class Application {
         preload: this.preloadEntry,
         contextIsolation: true,
         devTools: this.isDevelopment,
-        // sandbox: false,
       },
     });
 
@@ -204,15 +203,10 @@ export class Application {
 
     if (process.env.VITE_DEV_SERVER_URL) {
       await this.win.loadURL(process.env.VITE_DEV_SERVER_URL);
-
       return;
     }
 
-    if (!this.server) {
-      this.server = new LocalServer(this.rendererDist);
-      await this.server.start();
-    }
-
+    this.server.start();
     await this.win.loadURL(this.server.url);
   }
 
@@ -240,8 +234,6 @@ export class Application {
       this.win.destroy();
     }
     this.win = null;
-    await this.server?.stop();
-    this.server = null;
   }
 
   private async prepareCoreServices() {
@@ -269,20 +261,7 @@ export class Application {
   }
 
   private registerContextMenu() {
-    this.win?.webContents.on("context-menu", (_event, _params) => {
-      // const menu = new Menu();
-      // menu.append(
-      //   new MenuItem({
-      //     label: "Inspect Element",
-      //     click: () => {
-      //       this.win!.webContents.inspectElement(params.x, params.y);
-      //     },
-      //   }),
-      // );
-      // menu.popup({
-      //   window: this.win!,
-      // });
-    });
+    this.win?.webContents.on("context-menu", (_event, _params) => {});
   }
 
   private isDevToolsShortcut(input: Electron.Input) {
@@ -298,13 +277,9 @@ export class Application {
 
   private registerHandlers() {
     ConfigHandler.register();
-
     SessionHandler.register();
-
     ProfileHandler.register();
-
     HighTexHandler.register();
-
     PluginHandler.register();
 
     PluginScannerHandler.register();
@@ -320,7 +295,6 @@ export class Application {
 
     this.updaterReady = true;
     autoUpdater.autoDownload = false;
-    // autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.logger = {
       info: (message) => LoggerService.write(message, "updater:info"),
       warn: (message) => LoggerService.write(message, "updater:warn"),
@@ -464,16 +438,16 @@ export class Application {
   }
 
   public resolveRendererUrl(route = "/") {
-    const normalized = route;
-
     if (process.env.VITE_DEV_SERVER_URL) {
-      return `${process.env.VITE_DEV_SERVER_URL}${normalized}`;
+      return `${process.env.VITE_DEV_SERVER_URL}${route}`;
     }
 
     if (!this.server) {
       throw new Error("Renderer server has not started yet");
     }
 
-    return `${this.server.url}/${normalized}`;
+    const normalized = route.startsWith("/") ? route : `/${route}`;
+
+    return `${this.server.url}${normalized}`;
   }
 }
