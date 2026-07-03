@@ -237,7 +237,7 @@ export class Application {
   }
 
   private async prepareCoreServices() {
-    await ServerService.checkForHost();
+    await ServerService.checkForHost().catch(()=>{});
     KeyManagerService.ensure();
 
     DefaultPluginsBootstrapper.installAll();
