@@ -2,7 +2,9 @@ import fs from "fs";
 import http from "node:http";
 import path from "node:path";
 import mime from "mime-types";
-
+/**
+ * @deprecated
+ */
 export class LocalServer {
   private server: http.Server | null = null;
 

@@ -117,9 +117,7 @@ export class Application {
       }
     });
 
-    HightexProtocol.registerSchemesAsPrivileged();
-    this.server = new HightexProtocol(this.rendererDist);
-
+    this.createProtocol()
     this.fileOpen = new FileOpenManager(
       (filePath) => {
         this.win?.webContents.send("file:open", filePath);
@@ -132,6 +130,12 @@ export class Application {
     this.fileOpen.bootstrap(app);
 
     app.whenReady().then(() => this.onReady());
+  }
+
+  public createProtocol(){
+    HightexProtocol.registerSchemesAsPrivileged();
+    this.server = new HightexProtocol(this.rendererDist);
+
   }
 
   public get preloadEntry() {
@@ -237,7 +241,7 @@ export class Application {
   }
 
   private async prepareCoreServices() {
-    await ServerService.checkForHost();
+    await ServerService.checkForHost().catch(()=>{});
     KeyManagerService.ensure();
 
     DefaultPluginsBootstrapper.installAll();
