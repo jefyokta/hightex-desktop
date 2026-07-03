@@ -3,6 +3,7 @@ import { Citation } from "@/components/editor/expandable-items/citation";
 import { Preview } from "@/components/editor/expandable-items/preview";
 import { Scanner } from "@/components/editor/expandable-items/scanner";
 import { Setting } from "@/components/editor/expandable-items/setting";
+import { VariableTab } from "@/components/editor/expandable-items/variables";
 import React, {
   createContext,
   Dispatch,
@@ -33,6 +34,10 @@ export const tabs = {
     name: "Setting",
     element: <Setting />,
   },
+  variabl: {
+    name: "Variable",
+    element: <VariableTab />
+  }
 } as const;
 
 export type SidebarTab = keyof typeof tabs;
@@ -47,10 +52,10 @@ type ExpandableSidebarContextType = {
 
 const ExpandableSideBarContext = createContext<ExpandableSidebarContextType>({
   open: false,
-  setOpen: () => {},
+  setOpen: () => { },
 
   content: "chapterTree",
-  setContent: () => {},
+  setContent: () => { },
 });
 
 export const ExpandableSideBarContextProvider: React.FC<PropsWithChildren> = ({
