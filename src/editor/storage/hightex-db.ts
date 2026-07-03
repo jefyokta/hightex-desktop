@@ -25,6 +25,12 @@ export class HighTexDB extends Dexie {
       variables: "name, documentId",
     });
     this.cite.bulkPut(defaulBib);
+    this.createGlobalVars()
+  }
+  async warm(){
+    await this.cite.bulkPut(defaulBib);
+    await this.createGlobalVars()
+
   }
 
   static getInstance() {
@@ -113,6 +119,15 @@ export class HighTexDB extends Dexie {
 
   async getGlobalVars() {
     return await this.variables.where("documentId").equals("global").toArray();
+  }
+  private async createGlobalVars(){
+    const api = window.profile ||  window.parent.profile
+    const profile = await api.get()
+    const entries = Object.entries(profile)
+    for(const [key, val] of entries){
+      await  this.setVar(key,String(val))
+    }
+
   }
   async setVar(
     name: string,
