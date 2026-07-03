@@ -38,9 +38,13 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <div className={cn("relative inline-block")} ref={ref}>
-      <div onClick={(e) => {
-        e.stopPropagation()
-        setOpen((prev) => !prev)}} className="cursor-pointer">
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        className="cursor-pointer"
+      >
         {trigger}
       </div>
 
@@ -69,7 +73,7 @@ export const DropdownItem: React.FC<ItemProps> = ({
     <div
       onClick={(e) => {
         if (disabled) return;
-        e.stopPropagation()
+        e.stopPropagation();
         onClick && onClick();
       }}
       className="w-full cursor-pointer text-left px-3 py-2 rounded-lg text-sm text-neutral-700 p-2 transition disabled:opacity-40 disabled:cursor-not-allowed"

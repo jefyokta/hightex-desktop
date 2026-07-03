@@ -1,7 +1,7 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { HighTexDB } from "../editor/storage/hightex-db";
 import { Manager } from "@/editor/manager";
-import { importHighTexPackage } from "@/utils/import-hightex";
+import { HighTexImporter, importHighTexPackage } from "@/utils/import-hightex";
 import { importHighTexV2Package } from "@/utils/import-v2";
 import { toast } from "sonner";
 import { truncate } from "@/utils/truncate";
@@ -17,7 +17,6 @@ export const Dashboard = () => {
 
   useEffect(() => {
     let alive = true;
-
 
     const load = async () => {
       const docs = await db.documents.toArray();
@@ -38,7 +37,7 @@ export const Dashboard = () => {
     const defaultCategory = categories[0];
 
     if (!defaultCategory) {
-      throw new CategoryEmpty
+      throw new CategoryEmpty();
     }
 
     const doc: HighTexDocument = {
@@ -66,9 +65,9 @@ export const Dashboard = () => {
     if (!file) return;
     const id = toast.loading("Importing");
     try {
-      const name = file.name.toLowerCase();
+      const manifest = (await HighTexImporter.create(file)).manifest
       const importedDocument =
-        name.endsWith(".hightex") || name.endsWith(".hightex.zip")
+        manifest.schema_version == 1
           ? await importHighTexPackage(file)
           : await importHighTexV2Package(file);
 

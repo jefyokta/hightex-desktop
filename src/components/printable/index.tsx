@@ -22,7 +22,6 @@ export const FullDocument = () => {
   const { document, profile, ready } = usePrintable();
 
   useEffect(() => {
-
     if (
       !ready ||
       !document ||
@@ -51,16 +50,19 @@ export const FullDocument = () => {
       .whenPagesCreated((e) => {
         window.dispatchEvent(new CustomEvent("document:rendered"));
         if (e.error) {
-          throw e.error
+          throw e.error;
         }
       })
       .run()
       .then(async (engine) => {
         await engine.createPaged();
-      }).catch(e => {
+      })
+      .catch((e) => {
         if ("ipcRenderer" in window) {
-          
-          window.ipcRenderer.send(`page:error:${document.id}`,ApplicationError.normilize(e))
+          window.ipcRenderer.send(
+            `page:error:${document.id}`,
+            ApplicationError.normilize(e),
+          );
         }
       });
   }, [document, profile, ready]);
@@ -73,9 +75,8 @@ export const FullDocument = () => {
     <>
       <div ref={sourceRef} style={{ display: "none" }}>
         <Cover />
-        {!(document.category?.min)
-
-          && <>
+        {!document.category?.min && (
+          <>
             <Constent />
 
             <Validity />
@@ -92,7 +93,7 @@ export const FullDocument = () => {
 
             <AbstractEnglish />
           </>
-        }
+        )}
 
         <div className="content" ref={parserRef}></div>
       </div>

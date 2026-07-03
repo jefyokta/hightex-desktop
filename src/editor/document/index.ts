@@ -14,7 +14,7 @@ export class Document {
   private table: Table<HighTexDocument, string, HighTexDocument>;
   private version?: string;
   public ready = false;
-  public category?:Category
+  public category?: Category;
 
   private doc?: HighTexDocument;
 
@@ -34,16 +34,24 @@ export class Document {
 
     return doc;
   }
+  private async createVars() {
+    const db = HighTexDB.getInstance();
+
+    await db.setVar("title", this.doc?.title || "", this.id);
+    await db.setVar("altTitle", this.doc?.altTitle || "", this.id);
+    if (!this.scheme) return;
+    for (const chapter of this.scheme) {
+      await db.setVar(`chapter${chapter.chapter}`, chapter.title, this.id);
+    }
+  }
 
   async warm() {
     try {
       Document.instance = this;
-
       this.doc = await this.get();
       this.scheme = await this.loadSchemeFromExternal();
-
       this.chapters = this.buildChaptersFromScheme();
-
+      await this.createVars();
       await Promise.all(
         this.chapters.map(async (c) => {
           if (!(await c.query.isCreated())) {
@@ -114,7 +122,7 @@ export class Document {
     if (!category) {
       throw new DocumentBroken(this.id);
     }
-    this.category = category
+    this.category = category;
 
     return category?.chapters;
   }

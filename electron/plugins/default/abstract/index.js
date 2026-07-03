@@ -19,23 +19,29 @@ var abstract_default = {
       if (chapter == "abstract") {
         const text = node.content?.map((n) => n.text || "").join("") || "";
         storage.abstract.words.push(...text.split(" ").filter(Boolean));
-        if (storage.abstract.words.length > 200 && !storage.abstract.errorAdded) {
+        if (
+          storage.abstract.words.length > 200 &&
+          !storage.abstract.errorAdded
+        ) {
           ctx.addError({
             chapterId: ctx.scanner.chapterId,
             name: "Too much words!",
             id: "abstract-error",
-            description: "Abstrak should only had max 200 words"
+            description: "Abstrak should only had max 200 words",
           });
           storage.abstract.errorAdded = true;
         }
       }
       if (chapter == "abstract-en") {
-        if (storage["abstract-en"].words.length > 200 && !storage["abstract-en"].errorAdded) {
+        if (
+          storage["abstract-en"].words.length > 200 &&
+          !storage["abstract-en"].errorAdded
+        ) {
           ctx.addError({
             chapterId: ctx.scanner.chapterId,
             name: "Too much words!",
             id: "abstract-error",
-            description: "Abstrak should only had max 200 words"
+            description: "Abstrak should only had max 200 words",
           });
           storage["abstract-en"].errorAdded = true;
         }
@@ -44,9 +50,7 @@ var abstract_default = {
         storage["abstract-en"] = { words: [], errorAdded: false };
         storage["abstract"] = { words: [], errorAdded: false };
       }
-    }
-  }
+    },
+  },
 };
-export {
-  abstract_default as default
-};
+export { abstract_default as default };

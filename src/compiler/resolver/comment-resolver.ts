@@ -6,7 +6,7 @@ export class CommentResolver {
       const comments: CommentServerMessage[] = (
         e.target as CommentElement
       ).getComments();
-      this.open(comments, e.clientX, e.clientY); 
+      this.open(comments, e.clientX, e.clientY);
     } else if (!this.popUpEl!.contains(e.target as Node)) {
       this.close();
     }

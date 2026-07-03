@@ -9,7 +9,8 @@ interface ServerInfo {
   apiUrl?: string;
 }
 const configStore = new Store();
-const SERVER_INFO_URL = "https://raw.githubusercontent.com/jefyokta/hightex-project/main/info.json";
+const SERVER_INFO_URL =
+  "https://raw.githubusercontent.com/jefyokta/hightex-project/main/info.json";
 export class ServerService {
   static setServerUrl(url: string) {
     const normalized = url.endsWith("/") ? url : url + "/";
@@ -20,24 +21,22 @@ export class ServerService {
     const url = configStore.get("server.url") as string | undefined;
     return url || "https://hightex.okta/api/";
   }
-static async checkForHost(){
+  static async checkForHost() {
     const response = await fetch(SERVER_INFO_URL, {
-        cache: "no-store",
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-      }
-      const info = (await response.json()) as ServerInfo;
-
-      const host = info.apiUrl || info.serverUrl || info.serverHost;
-
-      if (!host) {
-        throw new Error("serverHost is missing from info.json");
-      }
-      configStore.set("server.url",host)
-
-      
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     }
+    const info = (await response.json()) as ServerInfo;
+
+    const host = info.apiUrl || info.serverUrl || info.serverHost;
+
+    if (!host) {
+      throw new Error("serverHost is missing from info.json");
+    }
+    configStore.set("server.url", host);
+  }
   static async request<T = any>(
     endpoint: string,
     options: RequestInit = {},
@@ -67,8 +66,11 @@ static async checkForHost(){
         this.log(error, context || endpoint);
         throw error;
       }
-      if(response.headers.get("content-type")?.toLowerCase() =='application/x-hightex'){
-        return await response.arrayBuffer() as T
+      if (
+        response.headers.get("content-type")?.toLowerCase() ==
+        "application/x-hightex"
+      ) {
+        return (await response.arrayBuffer()) as T;
       }
       const text = await response.text();
       return text ? JSON.parse(text) : ({} as T);

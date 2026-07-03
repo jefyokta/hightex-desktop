@@ -215,7 +215,10 @@ const ShareDocument = ({
       setLoading(true);
 
       const snapshot = await window.sharing.html(document.id);
-      const imgs = await HighTexDB.getInstance().images.where("documentId").equals(document.id).toArray();
+      const imgs = await HighTexDB.getInstance()
+        .images.where("documentId")
+        .equals(document.id)
+        .toArray();
       const images = await Promise.all(
         imgs.map(async ({ id, blob }) => {
           const buffer = new Uint8Array(await blob.arrayBuffer());

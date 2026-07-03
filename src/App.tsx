@@ -31,7 +31,6 @@ import { SnapshotViewer } from "./pages/snapshot-viewer";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
-
   return (
     <BrowserRouter>
       <Routes>
@@ -56,11 +55,11 @@ function App() {
             <Route path="/dashboard/snapshots" element={<Snapshot />} />
 
             <Route path="/settings" element={<Settings />} />
-            <Route path="/dashboard/snapshots/:id" element={<SnapshotViewer />}></Route>
+            <Route
+              path="/dashboard/snapshots/:id"
+              element={<SnapshotViewer />}
+            ></Route>
           </Route>
-
-
-
           <Route element={<EditorLayout />}>
             <Route
               path="/document/:id/:chapter?/:version?"

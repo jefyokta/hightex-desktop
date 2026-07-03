@@ -107,20 +107,6 @@ jobs:
           fi
 
           ls -la release-assets
-
-      - name: Read release notes
-        id: release_notes
-        shell: bash
-        run: |
-          NOTES_FILE="release-notes/RELEASE_NOTE.md"
-          if [ -f "$NOTES_FILE" ]; then
-            echo "notes_file=$NOTES_FILE" >> $GITHUB_OUTPUT
-            echo "has_notes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_notes=false" >> $GITHUB_OUTPUT
-            echo "RELEASE_NOTE.md not found, will use auto-generated notes"
-          fi
-
       - name: Add update to server
         shell: bash
         run: |

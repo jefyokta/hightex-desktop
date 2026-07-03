@@ -136,7 +136,7 @@ const createCommentWrapper = (comm: CommentServerMessage) => {
   const document = getRoot();
   const comment = document.createElement("ht-comment") as CommentElement;
   comment.addComment(comm);
-  
+
   comment.style.background = getRandomColor(comm.id);
 
   return comment;

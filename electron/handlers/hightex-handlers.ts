@@ -94,7 +94,7 @@ export class HighTexHandler {
           return await ServerService.request("/issues", {
             method: "POST",
             body: JSON.stringify({
-              title:` ${payload.title}. On desktop app version: ${app.getVersion()}`,
+              title: ` ${payload.title}. On desktop app version: ${app.getVersion()}`,
               description: `${payload.description}`,
             }),
           });

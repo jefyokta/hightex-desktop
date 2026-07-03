@@ -25,6 +25,12 @@ export class HighTexDB extends Dexie {
       variables: "name, documentId",
     });
     this.cite.bulkPut(defaulBib);
+    this.createGlobalVars()
+  }
+  async warm(){
+    await this.cite.bulkPut(defaulBib);
+    await this.createGlobalVars()
+
   }
 
   static getInstance() {
@@ -36,6 +42,9 @@ export class HighTexDB extends Dexie {
 
   static async getDocuments() {
     return await this.getInstance().documents.toArray();
+  }
+  deleteVar(name:string,docId:string){
+   return this.variables.where("name").equals(name).and((v=>v.documentId == docId)).delete()
   }
 
   async updateDocument(document: HighTexDocument) {
@@ -99,14 +108,33 @@ export class HighTexDB extends Dexie {
       .anyOf([documentId, "global"])
       .toArray();
   }
+  async getVarsOnlyOn(documentId:string){
+    return this.variables
+      .where("documentId").equals(documentId).toArray()
+  }
 
   async getVar(name: string, documentId = "global") {
-    const v = await this.variables.get([name, documentId]);
+    const scope = documentId == "global" ? ["global"] : [documentId, "global"];
+    console.log(name);
+    const v = await this.variables
+      .where("documentId")
+      .anyOf(scope)
+      .and((v) => v.name === name)
+      .first();
     return v?.value;
   }
 
   async getGlobalVars() {
     return await this.variables.where("documentId").equals("global").toArray();
+  }
+  private async createGlobalVars(){
+    const api = window.profile ||  window.parent.profile
+    const profile = await api.get()
+    const entries = Object.entries(profile)
+    for(const [key, val] of entries){
+      await  this.setVar(key,String(val))
+    }
+
   }
   async setVar(
     name: string,

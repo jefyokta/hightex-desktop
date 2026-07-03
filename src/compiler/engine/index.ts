@@ -125,10 +125,9 @@ export class Engine {
         });
         if (this.isInFrame()) {
           FrameManager.sendMessage("layout:error", { node: undefined });
-        }else{
+        } else {
           this.error = new LayoutError();
         }
-        
       }
 
       originalError(...args);

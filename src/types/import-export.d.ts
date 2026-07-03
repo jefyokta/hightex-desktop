@@ -1,3 +1,5 @@
+import { HighTexDB } from "@/editor/storage/hightex-db";
+
 export {};
 
 declare global {

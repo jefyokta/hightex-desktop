@@ -8,7 +8,6 @@ import { Engine } from "@/compiler/engine";
 import { Chapter } from "@/editor/chapter";
 import { cn } from "@/lib/utils";
 
-
 Paged.registerHandlers(BaseHandler);
 
 export const Single = () => {
@@ -21,7 +20,6 @@ export const Single = () => {
   const lastRenderedChapter = useRef<string | null>(null);
 
   const render = async (id: string) => {
-
     if (!sourceRef.current || !pagedRef.current || !renderRef.current) {
       return;
     }
@@ -59,7 +57,8 @@ export const Single = () => {
       .run()
       .then(async (engine) => {
         await engine.createPaged();
-      }).catch(()=>{});
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {

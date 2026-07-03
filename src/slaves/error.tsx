@@ -32,11 +32,14 @@ export const ErrorSlave: React.FC = () => {
         : new ShouldReport(ApplicationError.normilize(err));
 
     if (error instanceof ShouldNotified) {
-      toast[error.level as NotificationErrorLevel](truncate(error.message,100), {
-        description: truncate(error.description,100),
-        id: error.id,
-        action: error.action,
-      });
+      toast[error.level as NotificationErrorLevel](
+        truncate(error.message, 100),
+        {
+          description: truncate(error.description, 100),
+          id: error.id,
+          action: error.action,
+        },
+      );
       clear(id);
       return;
     }

@@ -7,7 +7,7 @@ const testClass = new (class Test implements Queryable<any> {
     return new Grammar().pluralize(this.constructor.name);
   }
   get schemaKeys(): any[] {
-    return []
+    return [];
   }
 })();
 test("select test", () => {

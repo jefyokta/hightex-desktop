@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
 import { CategoryEmpty } from "@/exception/categories-empty";
 
-import logo from "@/assets/hightex.svg"
+import logo from "@/assets/hightex.svg";
 
 const Marquee = ({ items }: { items: string[] }) => {
   return (
@@ -59,13 +59,13 @@ export const Splash: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
-  const [version, setVersion] = useState("")
+  const [version, setVersion] = useState("");
   useEffect(() => {
-    window.hightex.categories().then(e => {
+    window.hightex.categories().then((e) => {
       if (!e?.length) {
-        throw CategoryEmpty
+        throw CategoryEmpty;
       }
-    })
+    });
   });
   useEffect(() => {
     let cancelled = false;
@@ -74,8 +74,8 @@ export const Splash: React.FC = () => {
       if (!online) return;
 
       setLoading(true);
-      const version = await window.hightex.version()
-      setVersion(version)
+      const version = await window.hightex.version();
+      setVersion(version);
       try {
         window.hightex.onPrefetchProgress?.((data: any) => {
           if (cancelled) return;
@@ -131,13 +131,10 @@ export const Splash: React.FC = () => {
           <div className="flex justify-center my-2">
             <img src={logo} alt="" className="w-24" />
           </div>
-          <div className="text-4xl font-semibold tracking-tight ">
-            HighTex
-          </div>
+          <div className="text-4xl font-semibold tracking-tight ">HighTex</div>
 
           <div className="flex-justify-center">
-            <span className="text-xs font-extralight">version {version}
-            </span>
+            <span className="text-xs font-extralight">version {version}</span>
           </div>
         </div>
 

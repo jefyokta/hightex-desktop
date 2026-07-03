@@ -4,11 +4,11 @@ var reference_default = (() => {
   if (!storage.images) {
     storage.images = {
       declared: {},
-      referenced: {}
+      referenced: {},
     };
     storage.tables = {
       declared: {},
-      referenced: {}
+      referenced: {},
     };
   }
   return {
@@ -34,15 +34,14 @@ var reference_default = (() => {
           }
         }
         const isFinalNode = isEndOfScan && isLastChapter;
-        if (!isFinalNode)
-          return;
+        if (!isFinalNode) return;
         for (const id in storage.images.declared) {
           if (!storage.images.referenced[id]) {
             ctx.addError({
               chapterId: storage.images.declared[id],
               name: "image",
               id,
-              description: `Image "${id}" declared, but never referenced`
+              description: `Image "${id}" declared, but never referenced`,
             });
           }
         }
@@ -52,16 +51,14 @@ var reference_default = (() => {
               chapterId: storage.tables.declared[id],
               name: "table",
               id,
-              description: `Table "${id}" declared, but never referenced`
+              description: `Table "${id}" declared, but never referenced`,
             });
           }
         }
         storage.images = { declared: {}, referenced: {} };
         storage.tables = { declared: {}, referenced: {} };
-      }
-    }
+      },
+    },
   };
 })();
-export {
-  reference_default as default
-};
+export { reference_default as default };

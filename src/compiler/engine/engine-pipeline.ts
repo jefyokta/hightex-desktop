@@ -11,6 +11,8 @@ import { TreeResolver } from "../resolver/tree-resolver";
 import { KatexResolver } from "../resolver/katex-resolver";
 import { StaticChapterResolver } from "../resolver/static-chapter-resolver";
 import { CodeBlockResolver } from "../resolver/code-block-resolver";
+import { VariableResolver } from "../resolver/variable-resolver";
+import { HighTexDB } from "@/editor/storage/hightex-db";
 
 export class EnginePipeline {
   private engine: Engine;
@@ -24,6 +26,7 @@ export class EnginePipeline {
     new CaptionResolver(),
     new CitationResolver(),
     new LinkResolver(),
+    new VariableResolver(),
     new ImageResolver(),
     new DomPreprocessor(),
     new TreeResolver(),
@@ -34,6 +37,7 @@ export class EnginePipeline {
   }
 
   async run() {
+    await HighTexDB.getInstance().warm()
     for (const step of this.steps) {
       await step.resolve(this.engine);
     }

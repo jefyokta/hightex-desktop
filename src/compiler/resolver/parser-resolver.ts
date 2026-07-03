@@ -11,7 +11,7 @@ export class ParserResolver implements Resolver {
     if (!root) {
       throw new Error("ParserResolver: root not mounted");
     }
-    console.log(document.querySelectorAll(".attachment"))
+    console.log(document.querySelectorAll(".attachment"));
     const parser = new Parser();
     const ctx = engine.config.parser;
     if (ctx.mode === "single") {
@@ -49,7 +49,10 @@ export class ParserResolver implements Resolver {
       if (att) {
         parent?.append(att);
       }
-      await this.resolveImages(root,Array.from(att?.querySelectorAll("img") || []));
+      await this.resolveImages(
+        root,
+        Array.from(att?.querySelectorAll("img") || []),
+      );
 
       return;
     }
@@ -58,8 +61,8 @@ export class ParserResolver implements Resolver {
   createWrapper() {
     return document.createElement("section");
   }
-  async resolveImages(root: HTMLElement,attsImage:HTMLImageElement[] = []) {
-    const imgs = [...Array.from(root.querySelectorAll("img")),...attsImage];
+  async resolveImages(root: HTMLElement, attsImage: HTMLImageElement[] = []) {
+    const imgs = [...Array.from(root.querySelectorAll("img")), ...attsImage];
 
     for (const img of imgs) {
       if (img.src.startsWith("data:image/")) {
