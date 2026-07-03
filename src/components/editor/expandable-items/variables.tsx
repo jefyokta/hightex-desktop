@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { isStaticVar } from "@/utils/is-static-var";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 
 
@@ -56,7 +57,7 @@ export const VariableTab = () => {
     const parsed = parseLine(newLine);
     if (!parsed) return;
 
-    if (isStaticVar(parsed.name)) return;
+    if (isStaticVar(parsed.name)) throw new ShouldNotified({message:`Cannot create variable`,description:`\`${parsed.name}\` is static variable`});
 
     await db.setVar(parsed.name, parsed.value, Document.instance!.id);
 
@@ -66,7 +67,7 @@ export const VariableTab = () => {
   };
 
   const saveEdit = async (name: string) => {
-    if (isStaticVar(name)) return;
+    if (isStaticVar(name)) throw new ShouldNotified("Variable name cannot be same as static variable Name");
 
     await db.setVar(name, draft, Document.instance!.id);
 
@@ -75,7 +76,7 @@ export const VariableTab = () => {
   };
 
   const remove = async (name: string) => {
-    if (isStaticVar(name)) return;
+    if (isStaticVar(name)) throw new ShouldNotified("Cannot Delete static vars");
 
     await db.deleteVar(name, Document.instance!.id);
     await load();
