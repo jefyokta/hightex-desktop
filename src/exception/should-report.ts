@@ -12,8 +12,6 @@ function ReportIssueAction({ description }: { description: string }) {
   const [sending, setSending] = useState(false);
 
   const report = async () => {
-
-
     try {
       setSending(true);
       await window.hightex.reportError({
@@ -23,7 +21,7 @@ function ReportIssueAction({ description }: { description: string }) {
       toast.success("Error report sent");
     } catch (error) {
       toast.error("Unable to report error", {
-        description: truncate(ApplicationError.normilize(error),100),
+        description: truncate(ApplicationError.normilize(error), 100),
       });
     } finally {
       setSending(false);
@@ -36,7 +34,8 @@ function ReportIssueAction({ description }: { description: string }) {
       type: "button",
       disabled: sending,
       onClick: report,
-      className: "text-sm font-medium border p-1 px-1.5 rounded-sm disabled:opacity-60",
+      className:
+        "text-sm font-medium border p-1 px-1.5 rounded-sm disabled:opacity-60",
     },
     sending ? "Reporting..." : "Report",
   );

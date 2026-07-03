@@ -1,7 +1,8 @@
 import { QueryBuilder } from "./query-builder";
 
-
-export class Insert<TEntity extends Record<string, any> = any> extends QueryBuilder<TEntity> {
+export class Insert<
+  TEntity extends Record<string, any> = any,
+> extends QueryBuilder<TEntity> {
   private _rows: Record<string, unknown>[] = [];
   private _onConflict?: ConflictStrategy;
 
@@ -46,8 +47,9 @@ export class Insert<TEntity extends Record<string, any> = any> extends QueryBuil
   }
 }
 
-
-export class Update<TEntity extends Record<string, any> = any> extends QueryBuilder<TEntity> {
+export class Update<
+  TEntity extends Record<string, any> = any,
+> extends QueryBuilder<TEntity> {
   private _data: Partial<Record<string, unknown>> = {};
 
   set(data: Record<string, unknown>): this {
@@ -63,7 +65,8 @@ export class Update<TEntity extends Record<string, any> = any> extends QueryBuil
   toString(): string {
     this._bindings = [];
 
-    if (!Object.keys(this._data).length) throw new Error("Update: no data to set");
+    if (!Object.keys(this._data).length)
+      throw new Error("Update: no data to set");
 
     const set = Object.entries(this._data)
       .map(([k, v]) => {
@@ -72,14 +75,19 @@ export class Update<TEntity extends Record<string, any> = any> extends QueryBuil
       })
       .join(", ");
 
-    return [`UPDATE ${this._table}`, `SET ${set}`, this._buildWhere()].filter(Boolean).join(" ");
+    return [`UPDATE ${this._table}`, `SET ${set}`, this._buildWhere()]
+      .filter(Boolean)
+      .join(" ");
   }
 }
 
-
-export class Delete<TEntity extends Record<string, any> = any> extends QueryBuilder<TEntity> {
+export class Delete<
+  TEntity extends Record<string, any> = any,
+> extends QueryBuilder<TEntity> {
   toString(): string {
     this._bindings = [];
-    return [`DELETE FROM ${this._table}`, this._buildWhere()].filter(Boolean).join(" ");
+    return [`DELETE FROM ${this._table}`, this._buildWhere()]
+      .filter(Boolean)
+      .join(" ");
   }
 }

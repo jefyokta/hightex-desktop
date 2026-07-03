@@ -18,7 +18,6 @@ export const Dashboard = () => {
   useEffect(() => {
     let alive = true;
 
-
     const load = async () => {
       const docs = await db.documents.toArray();
       if (alive) {
@@ -38,7 +37,7 @@ export const Dashboard = () => {
     const defaultCategory = categories[0];
 
     if (!defaultCategory) {
-      throw new CategoryEmpty
+      throw new CategoryEmpty();
     }
 
     const doc: HighTexDocument = {

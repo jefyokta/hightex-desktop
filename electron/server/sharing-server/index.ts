@@ -69,8 +69,6 @@ export class SharingServer {
     return this._port;
   }
 
-
-
   get lanUrl(): string {
     return `http://${NetworkService.getLocalIP()}:${this._port}`;
   }
@@ -81,8 +79,8 @@ export class SharingServer {
   get hostToken(): string {
     return this._hostToken;
   }
-  get sharingId(){
-    return this.sessionId
+  get sharingId() {
+    return this.sessionId;
   }
 
   private url(url = "") {
@@ -126,14 +124,13 @@ export class SharingServer {
     if (!status.exposed) {
       throw new NetworkException(status.reason);
     }
-    SnapshotService.create({ 
-       images: this.images,
-       id:this.sessionId,
-       type:this.sessionId,
-       documentId:this.doc.id,
-       html:this.snapshot.html,
-       css:this.snapshot.css,
-
+    SnapshotService.create({
+      images: this.images,
+      id: this.sessionId,
+      type: this.sessionId,
+      documentId: this.doc.id,
+      html: this.snapshot.html,
+      css: this.snapshot.css,
     });
     this.server = http.createServer((req, res) =>
       this.onRequest.handle(req, res),
@@ -224,7 +221,7 @@ export class SharingServer {
       id,
       role: comment.role,
       participantId: comment.participantId,
-      snapshotId:this.sessionId
+      snapshotId: this.sessionId,
     });
     const msg = JSON.stringify({
       type: "comment",

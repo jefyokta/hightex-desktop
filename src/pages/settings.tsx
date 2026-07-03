@@ -21,7 +21,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { AlertCircle, CheckCircle, Download, Folder, InfoIcon, Loader2, Monitor, Moon, RefreshCw, Sun } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Download,
+  Folder,
+  InfoIcon,
+  Loader2,
+  Monitor,
+  Moon,
+  RefreshCw,
+  Sun,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Tooltip,
@@ -641,7 +652,6 @@ const ProfileSection = () => {
   );
 };
 
-
 const AppInfoSection = () => {
   const [version, setVersion] = useState<string | null>(null);
   const [status, setStatus] = useState<UpdaterStatus | null>(null);
@@ -700,7 +710,12 @@ const AppInfoSection = () => {
               <Download size={12} />
               Version {status.info.version} is available
             </div>
-            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={handleDownload}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={handleDownload}
+            >
               Download
             </Button>
           </div>
@@ -790,7 +805,9 @@ const AppInfoSection = () => {
           >
             <RefreshCw
               size={13}
-              className={checking || status?.status === "checking" ? "animate-spin" : ""}
+              className={
+                checking || status?.status === "checking" ? "animate-spin" : ""
+              }
             />
             Check for Updates
           </Button>

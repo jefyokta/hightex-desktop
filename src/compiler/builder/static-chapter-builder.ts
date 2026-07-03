@@ -6,7 +6,7 @@ export abstract class StaticChapterBuilder {
   protected abstract chapterId: string;
 
   async build(doc: Document) {
-    if(doc.category?.min) return
+    if (doc.category?.min) return;
     const chap = doc.chapters.find(
       (c) => c.getId() === c.getDocumentId().concat(`.${this.chapterId}`),
     );

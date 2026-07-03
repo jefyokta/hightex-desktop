@@ -32,7 +32,7 @@ export class CLIApplication {
       app.quit();
       return;
     }
-    this.application.createProtocol()
+    this.application.createProtocol();
     app.whenReady().then(() => this.run());
   }
 

@@ -6,16 +6,16 @@ export class ApplicationError extends Error {
 
     this.name = this.constructor.name;
   }
-  static normilize(err:unknown){
-    if(err instanceof Error){
-      return err.message
+  static normilize(err: unknown) {
+    if (err instanceof Error) {
+      return err.message;
     }
-    if(typeof err == 'string'){
-      return err
+    if (typeof err == "string") {
+      return err;
     }
-    if(typeof err == 'object'){
-      return JSON.stringify(err)
+    if (typeof err == "object") {
+      return JSON.stringify(err);
     }
-    return String(err)
+    return String(err);
   }
 }

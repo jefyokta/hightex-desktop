@@ -12,10 +12,8 @@ export class ShouldNotified<
   private _id!: string;
   readonly action?: React.ReactNode;
 
-  public get id(){
-
+  public get id() {
     return this._id;
-
   }
 
   constructor(desc: string, action?: React.ReactNode, id?: string);
@@ -51,8 +49,7 @@ export class ShouldNotified<
     this.level = "warning" as TLevel;
   }
 
-  setId(id:string){
-    this._id =id
+  setId(id: string) {
+    this._id = id;
   }
-
 }

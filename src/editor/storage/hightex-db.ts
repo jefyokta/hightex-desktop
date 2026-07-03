@@ -101,7 +101,13 @@ export class HighTexDB extends Dexie {
   }
 
   async getVar(name: string, documentId = "global") {
-    const v = await this.variables.get([name, documentId]);
+    const scope = documentId == "global" ? ["global"] : [documentId, "global"];
+    console.log(name);
+    const v = await this.variables
+      .where("documentId")
+      .anyOf(scope)
+      .and((v) => v.name === name)
+      .first();
     return v?.value;
   }
 

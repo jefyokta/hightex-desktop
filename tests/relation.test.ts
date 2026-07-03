@@ -6,19 +6,18 @@ test("relation ", () => {
     getTableName() {
       return "users";
     },
-    get schemaKeys(){
-    return []
-  }
+    get schemaKeys() {
+      return [];
+    },
   };
 
   const post = {
     getTableName() {
       return "posts";
     },
-      get schemaKeys(){
-    return []
-  }
-    
+    get schemaKeys() {
+      return [];
+    },
   };
 
   const userSelect = new Select(user);
@@ -55,8 +54,8 @@ class FakeModel implements Queryable<any> {
   getTableName(): string {
     return new Grammar().pluralize(this.constructor.name);
   }
-  get schemaKeys(){
-    return []
+  get schemaKeys() {
+    return [];
   }
 }
 

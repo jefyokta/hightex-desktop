@@ -35,7 +35,7 @@ export class PDFService {
   ): Promise<ExportPayload> {
     const channel = this.channel(docId);
     const renderedChannel = `page:rendered:${docId}`;
-    const errorChannel = `page:error:${docId}`
+    const errorChannel = `page:error:${docId}`;
 
     return new Promise((resolve, reject) => {
       const cleanup = () => {
@@ -70,10 +70,10 @@ export class PDFService {
           reject(err);
         }
       });
-      ipcMain.once(errorChannel,(_e,message:string)=>{
-        cleanup()
-        reject(new Error(message))
-      })
+      ipcMain.once(errorChannel, (_e, message: string) => {
+        cleanup();
+        reject(new Error(message));
+      });
       win.webContents.once("render-process-gone", (_event, details) => {
         cleanup();
         reject(new Error(`Renderer process crashed: ${details.reason}`));
@@ -135,7 +135,7 @@ export class PDFService {
       progress?.("Loading print view...", 20);
 
       const exportPayloadPromise = this.waitForExport(docId, win);
-      
+
       await new Promise<void>(async (resolve, reject) => {
         win.webContents.once("did-finish-load", () => resolve());
         win.webContents.once("did-fail-load", (_e, code, desc, url) => {
@@ -198,16 +198,14 @@ export class PDFService {
       const finalPdf = await pdfDoc.save();
 
       return finalPdf;
-    }
-    catch(e){
-      throw e
-    } 
-    finally {
+    } catch (e) {
+      throw e;
+    } finally {
       if (this.window && !this.window.isDestroyed()) {
         this.window.destroy();
       }
       this.window = null;
-    } 
+    }
   }
 
   async exportPDF(docId: string, progress?: (s: string, v?: number) => void) {

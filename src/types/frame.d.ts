@@ -7,7 +7,7 @@ declare global {
     "preview:zoom": { zoom: number };
     "page:rendered": { totalPages: number };
     "page:requested": { pageId: string };
-    "layout:error":{node?:undefined};
+    "layout:error": { node?: undefined };
   };
 
   type FrameMessageType = {

@@ -44,7 +44,7 @@ export const RemoteDocuments = () => {
     let alive = true;
     (async () => {
       try {
-        window.hightex.categories().then(setCategories)
+        window.hightex.categories().then(setCategories);
         const res = await window.hightex.document();
 
         if (!alive) return;
@@ -141,40 +141,64 @@ export const RemoteDocuments = () => {
             <div className="flex items-center gap-2 ">
               <button
                 onClick={() => {
-                  throw new ShouldNotified({ message: "Unimplemented", description: "This feature is currently available, planning for next updates" })
+                  throw new ShouldNotified({
+                    message: "Unimplemented",
+                    description:
+                      "This feature is currently available, planning for next updates",
+                  });
                 }}
-                className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2">
+                className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2"
+              >
                 <GitCompare size={14} />
                 Override Local
               </button>
 
               <button
                 onClick={() => {
-                  const id = toast.loading("Pulling document...")
-                  window.ipcRenderer.invoke("hightex:document:pull", localDoc?.updatedAt?.toISOString()).then(r => {
-                    if (!(r instanceof ArrayBuffer)) {
-                      throw new ShouldNotified({ message: "Pull canceled", description: "Document already up to date" })
-                    }
-                    const file = new File([new Uint8Array(r as ArrayBuffer)], "pull.hightex")
-                    return importHighTexPackage(file)
-                  }).then((doc) => {
-                    toast.success(`document ${truncate(doc.title.replace("_", ""), 13)} updated`, {
-                      id
-                    })
-                  }).catch(_e => {
-                    if (_e instanceof ShouldNotified) {
-                      throw _e
-                    }
-
-                    throw new ShouldNotified(
-                      { message: "Pull Failed", description: ApplicationError.normilize(_e), id: String(id) }
+                  const id = toast.loading("Pulling document...");
+                  window.ipcRenderer
+                    .invoke(
+                      "hightex:document:pull",
+                      localDoc?.updatedAt?.toISOString(),
                     )
-                  }).finally(() => {
-                    toast.dismiss(id)
-                  })
+                    .then((r) => {
+                      if (!(r instanceof ArrayBuffer)) {
+                        throw new ShouldNotified({
+                          message: "Pull canceled",
+                          description: "Document already up to date",
+                        });
+                      }
+                      const file = new File(
+                        [new Uint8Array(r as ArrayBuffer)],
+                        "pull.hightex",
+                      );
+                      return importHighTexPackage(file);
+                    })
+                    .then((doc) => {
+                      toast.success(
+                        `document ${truncate(doc.title.replace("_", ""), 13)} updated`,
+                        {
+                          id,
+                        },
+                      );
+                    })
+                    .catch((_e) => {
+                      if (_e instanceof ShouldNotified) {
+                        throw _e;
+                      }
 
+                      throw new ShouldNotified({
+                        message: "Pull Failed",
+                        description: ApplicationError.normilize(_e),
+                        id: String(id),
+                      });
+                    })
+                    .finally(() => {
+                      toast.dismiss(id);
+                    });
                 }}
-                className="px-3 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition text-xs flex items-center gap-2">
+                className="px-3 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition text-xs flex items-center gap-2"
+              >
                 <HardDriveDownload size={14} />
                 Pull Latest
               </button>
@@ -189,26 +213,28 @@ export const RemoteDocuments = () => {
             <InfoRow label="Title" value={document.title} />
             {/* @ts-ignore */}
             <InfoRow label="English Title" value={document.en_title} />
-            <InfoRow label="Category" value={categories.find(c => String(c.id) == document.category)?.name} />
+            <InfoRow
+              label="Category"
+              value={
+                categories.find((c) => String(c.id) == document.category)?.name
+              }
+            />
 
             <KeywordSection keys={document.keywords} />
           </div>
         </>
-      )
-      }
+      )}
 
-      {
-        pickerOpen && (
-          <LocalDocumentPicker
-            cloudDoc={cloudDoc}
-            onClose={() => setPickerOpen(false)}
-            onSelect={(doc: any) => {
-              setLocalDoc(doc);
-              setPickerOpen(false);
-            }}
-          />
-        )
-      }
+      {pickerOpen && (
+        <LocalDocumentPicker
+          cloudDoc={cloudDoc}
+          onClose={() => setPickerOpen(false)}
+          onSelect={(doc: any) => {
+            setLocalDoc(doc);
+            setPickerOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };
@@ -251,7 +277,13 @@ const Stat = ({ icon, label, value }: any) => {
   );
 };
 
-const SyncBanner = ({ localDoc, cloudDoc }: { cloudDoc?: HighTexDocument, localDoc?: HighTexDocument }) => {
+const SyncBanner = ({
+  localDoc,
+  cloudDoc,
+}: {
+  cloudDoc?: HighTexDocument;
+  localDoc?: HighTexDocument;
+}) => {
   const sameId = localDoc?.id === cloudDoc?.id;
 
   if (sameId) {
@@ -265,7 +297,14 @@ const SyncBanner = ({ localDoc, cloudDoc }: { cloudDoc?: HighTexDocument, localD
           </div>
 
           <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-            <span>Document </span> `<ParsedItalic text={cloudDoc!.title} />` exists locally, you can edit it <Link className="font-semibold underline" to={`/document/${cloudDoc!.id}/1`}>here</Link>
+            <span>Document </span> `<ParsedItalic text={cloudDoc!.title} />`
+            exists locally, you can edit it{" "}
+            <Link
+              className="font-semibold underline"
+              to={`/document/${cloudDoc!.id}/1`}
+            >
+              here
+            </Link>
           </div>
         </div>
       </div>
@@ -303,19 +342,16 @@ const InfoRow = ({ label, value }: any) => (
 
 const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
   const parsed = useMemo(() => {
-    if (typeof keys == 'object') return keys
+    if (typeof keys == "object") return keys;
     try {
-      return JSON.parse(keys)
-
+      return JSON.parse(keys);
     } catch (error) {
-
       return {
         indonesian: [],
-        english: []
-      }
+        english: [],
+      };
     }
-
-  }, [keys])
+  }, [keys]);
 
   return (
     <div className="space-y-4">
@@ -515,8 +551,8 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
                 <div className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition">
                   {doc.updatedAt
                     ? formatDistanceToNow(new Date(doc.updatedAt), {
-                      addSuffix: true,
-                    })
+                        addSuffix: true,
+                      })
                     : "No activity"}
                 </div>
               </button>

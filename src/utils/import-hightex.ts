@@ -140,7 +140,7 @@ export class HighTexImporter {
       JSON.parse(strFromU8(chapterEntry)),
     );
 
-    const content = await this.checkImage(dirtyContent)
+    const content = await this.checkImage(dirtyContent);
     const chapterId = `${documentId}.${chapterName}`;
 
     await this.context.db.chapters.put({
@@ -148,32 +148,32 @@ export class HighTexImporter {
       content,
     });
   }
-async checkImage(content: JSONContent[]): Promise<JSONContent[]> {
-  return Promise.all(
-    content.map(async (c) => {
-      const node = { ...c };
+  async checkImage(content: JSONContent[]): Promise<JSONContent[]> {
+    return Promise.all(
+      content.map(async (c) => {
+        const node = { ...c };
 
-      if (node.type === "image") {
-        const src = (node.attrs?.src as string) || "";
+        if (node.type === "image") {
+          const src = (node.attrs?.src as string) || "";
 
-        if (src.startsWith("data:image")) {
-          const id = await convertImage(src, this.actualDocumentId);
+          if (src.startsWith("data:image")) {
+            const id = await convertImage(src, this.actualDocumentId);
 
-          node.attrs = {
-            ...node.attrs,
-            src: id,
-          };
+            node.attrs = {
+              ...node.attrs,
+              src: id,
+            };
+          }
         }
-      }
 
-      if (node.content) {
-        node.content = await this.checkImage(node.content);
-      }
+        if (node.content) {
+          node.content = await this.checkImage(node.content);
+        }
 
-      return node;
-    })
-  );
-}
+        return node;
+      }),
+    );
+  }
 
   getConfig() {
     const configEntry = findZipEntry(this.entries, "config.json");

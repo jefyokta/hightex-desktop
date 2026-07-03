@@ -82,12 +82,11 @@
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },
-  "publish":[
+  "publish": [
     {
       "provider": "github",
       "owner": "jefyokta",
       "repo": "hightex-desktop"
     }
   ]
-  
 }

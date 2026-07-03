@@ -117,7 +117,7 @@ export class Application {
       }
     });
 
-    this.createProtocol()
+    this.createProtocol();
     this.fileOpen = new FileOpenManager(
       (filePath) => {
         this.win?.webContents.send("file:open", filePath);
@@ -132,10 +132,9 @@ export class Application {
     app.whenReady().then(() => this.onReady());
   }
 
-  public createProtocol(){
+  public createProtocol() {
     HightexProtocol.registerSchemesAsPrivileged();
     this.server = new HightexProtocol(this.rendererDist);
-
   }
 
   public get preloadEntry() {
@@ -241,7 +240,7 @@ export class Application {
   }
 
   private async prepareCoreServices() {
-    await ServerService.checkForHost().catch(()=>{});
+    await ServerService.checkForHost().catch(() => {});
     KeyManagerService.ensure();
 
     DefaultPluginsBootstrapper.installAll();

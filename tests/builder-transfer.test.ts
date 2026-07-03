@@ -6,20 +6,18 @@ const model = {
   getTableName() {
     return "test";
   },
-  get schemaKeys(){
-    return ["name","id"]
-  }
+  get schemaKeys() {
+    return ["name", "id"];
+  },
 };
 test("transefer wheres and bindings", () => {
   const unknownBuilder = new Unkown(model);
   unknownBuilder.where("id", 1);
   unknownBuilder.where("name", "okta");
 
-  
-
   const selectBuilder = new Select(model);
-  selectBuilder.select(()=>({actual:"name",alias:"n"}),"*")
-  selectBuilder.transformSelected("model")
+  selectBuilder.select(() => ({ actual: "name", alias: "n" }), "*");
+  selectBuilder.transformSelected("model");
   selectBuilder.import(unknownBuilder);
 
   expect(String(selectBuilder)).toBe(

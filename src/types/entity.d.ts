@@ -10,7 +10,7 @@ declare global {
     text: string;
     role: string;
     participantId: string;
-    snapshotId:string
+    snapshotId: string;
   }
 
   interface SnapshotEntity extends Entity {
@@ -19,6 +19,4 @@ declare global {
     type: SharingType | string;
     documentId: string;
   }
-
-  
 }

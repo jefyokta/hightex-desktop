@@ -84,8 +84,8 @@ export const SnapshotViewer = () => {
         const doc = parser.parseFromString(html, "text/html");
 
         doc.body.style.background = "white";
-        doc.body.style.justifyContent = 'center'
-        doc.body.style.display = 'flex'
+        doc.body.style.justifyContent = "center";
+        doc.body.style.display = "flex";
 
         if (lists["style.css"]) {
           const css =
@@ -130,7 +130,11 @@ export const SnapshotViewer = () => {
       })
       .catch((err) => {
         console.error(err);
-        throw new ShouldNotifiedWithNativeComponent(ShouldNotifiedWithNativeComponent.normilize(err) || "Snapshot Not found", "/dashboard/snapshots");
+        throw new ShouldNotifiedWithNativeComponent(
+          ShouldNotifiedWithNativeComponent.normilize(err) ||
+            "Snapshot Not found",
+          "/dashboard/snapshots",
+        );
       });
 
     return () => {
@@ -285,8 +289,8 @@ export const SnapshotViewer = () => {
                     const author =
                       payload.name ??
                       payload.role ??
-                      (comment.participantId ??
-                      "User")
+                      comment.participantId ??
+                      "User";
 
                     return (
                       <button

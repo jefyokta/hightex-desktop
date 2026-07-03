@@ -121,6 +121,7 @@ For this project, shipping was more important than pursuing perfection.
 HighTex Desktop is currently under active development.
 
 Features, architecture, and workflows may continue to evolve as the project grows.
+
 ## macOS Note
 
 macOS builds distributed through GitHub Releases are unsigned and not notarized. This causes two known issues during installation and updating.

@@ -11,6 +11,7 @@ import { TreeResolver } from "../resolver/tree-resolver";
 import { KatexResolver } from "../resolver/katex-resolver";
 import { StaticChapterResolver } from "../resolver/static-chapter-resolver";
 import { CodeBlockResolver } from "../resolver/code-block-resolver";
+import { VariableResolver } from "../resolver/variable-resolver";
 
 export class EnginePipeline {
   private engine: Engine;
@@ -24,6 +25,7 @@ export class EnginePipeline {
     new CaptionResolver(),
     new CitationResolver(),
     new LinkResolver(),
+    new VariableResolver(),
     new ImageResolver(),
     new DomPreprocessor(),
     new TreeResolver(),

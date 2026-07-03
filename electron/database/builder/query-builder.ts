@@ -2,29 +2,42 @@ export abstract class QueryBuilder<TEntity extends Record<string, any> = any> {
   protected _wheres: WhereClause[] = [];
   protected _bindings: unknown[] = [];
   protected _table: string = "";
-  protected _model:Queryable<TEntity>
+  protected _model: Queryable<TEntity>;
 
   constructor(model: Queryable<TEntity>) {
     this._table = model.getTableName();
-    this._model = model
+    this._model = model;
   }
-
 
   where(col: keyof TEntity & string, value: unknown): this;
   where(col: keyof TEntity & string, operator: Operator, value: unknown): this;
   where(col: string, arg2: unknown, arg3?: unknown): this {
     const [operator, value]: [Operator, unknown] =
       arg3 !== undefined ? [arg2 as Operator, arg3] : ["=", arg2];
-    this._wheres.push({ column: this._col(col), operator, value, connector: "AND" });
+    this._wheres.push({
+      column: this._col(col),
+      operator,
+      value,
+      connector: "AND",
+    });
     return this;
   }
 
   orWhere(col: keyof TEntity & string, value: unknown): this;
-  orWhere(col: keyof TEntity & string, operator: Operator, value: unknown): this;
+  orWhere(
+    col: keyof TEntity & string,
+    operator: Operator,
+    value: unknown,
+  ): this;
   orWhere(col: string, arg2: unknown, arg3?: unknown): this {
     const [operator, value]: [Operator, unknown] =
       arg3 !== undefined ? [arg2 as Operator, arg3] : ["=", arg2];
-    this._wheres.push({ column: this._col(col), operator, value, connector: "OR" });
+    this._wheres.push({
+      column: this._col(col),
+      operator,
+      value,
+      connector: "OR",
+    });
     return this;
   }
 
@@ -37,19 +50,28 @@ export abstract class QueryBuilder<TEntity extends Record<string, any> = any> {
   }
 
   whereNull(col: keyof TEntity & string): this {
-    this._wheres.push({ column: this._col(col), operator: "IS NULL", value: undefined, connector: "AND" });
+    this._wheres.push({
+      column: this._col(col),
+      operator: "IS NULL",
+      value: undefined,
+      connector: "AND",
+    });
     return this;
   }
 
   whereNotNull(col: keyof TEntity & string): this {
-    this._wheres.push({ column: this._col(col), operator: "IS NOT NULL", value: undefined, connector: "AND" });
+    this._wheres.push({
+      column: this._col(col),
+      operator: "IS NOT NULL",
+      value: undefined,
+      connector: "AND",
+    });
     return this;
   }
 
   whereLike(col: keyof TEntity & string, pattern: string): this {
     return this.where(col, "LIKE", pattern);
   }
-
 
   protected _col(col: string): string {
     return col.includes(".") ? col : `${this._table}.${col}`;
@@ -91,7 +113,7 @@ export abstract class QueryBuilder<TEntity extends Record<string, any> = any> {
 
   abstract toString(): string;
 
-  toSql(){
-    return this.toString()
+  toSql() {
+    return this.toString();
   }
 }

@@ -1,15 +1,29 @@
-import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { VariableComponent } from "./component";
+import { VariableSuggestion } from "@/editor/plugins/var-suggestion";
+
+export type VariableCase =
+  | "preserve"
+  | "lower"
+  | "upper"
+  | "capitalize"
+  | "title";
 
 export const Variable = Node.create({
   name: "variable",
-  group: "inline",
+
   inline: true,
   atom: true,
+  group: "inline",
 
   addAttributes() {
     return {
       name: {
         default: "",
+      },
+      case: {
+        default: "preserve",
       },
     };
   },
@@ -18,6 +32,13 @@ export const Variable = Node.create({
     return [
       {
         tag: "span[data-variable]",
+        getAttrs: (element) => {
+          const el = element as HTMLElement;
+          return {
+            name: el.dataset.name,
+            case: el.dataset.case ?? "preserve",
+          };
+        },
       },
     ];
   },
@@ -27,21 +48,45 @@ export const Variable = Node.create({
       "span",
       mergeAttributes(HTMLAttributes, {
         "data-variable": "",
+        "data-name": HTMLAttributes.name,
+        "data-case": HTMLAttributes.case,
       }),
-      `\\${HTMLAttributes.name}`,
+      `\\${HTMLAttributes.name}${
+        HTMLAttributes.case !== "preserve" ? "." + HTMLAttributes.case : ""
+      }`,
     ];
   },
 
-  addInputRules() {
-    return [
-      nodeInputRule({
-        find: /\\([a-zA-Z][a-zA-Z0-9_]*)$/,
-        type: this.type,
-        getAttributes(match) {
-          console.log(match);
-          return { name: match[1] };
+  addNodeView() {
+    return ReactNodeViewRenderer(VariableComponent);
+  },
+  addProseMirrorPlugins() {
+    return [VariableSuggestion(this.editor)];
+  },
+
+  addCommands() {
+    return {
+      insertVariable:
+        (text: string) =>
+        ({ commands }) => {
+          const [name, caseMode = "preserve"] = text.split(".");
+
+          return commands.insertContent({
+            type: this.name,
+            attrs: {
+              name,
+              case: caseMode,
+            },
+          });
         },
-      }),
-    ];
+    };
   },
 });
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    variable: {
+      insertVariable(text: string): ReturnType;
+    };
+  }
+}

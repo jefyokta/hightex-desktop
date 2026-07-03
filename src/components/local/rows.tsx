@@ -35,21 +35,19 @@ interface Props {
   onCategoryChange?: (id: string, category: string) => Promise<void>;
 }
 
-export const Row = ({
-  doc,
-  onRename,
-  onDelete,
-  onExport,
-
-}: Props) => {
+export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
   const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(doc.title);
   const [altTitle, setAltTitle] = useState(doc.altTitle ?? "");
 
-  const [keywordsId, setKeywordsId] = useState<string[]>(doc.keywords.indonesian ?? []);
-  const [keywordsEn, setKeywordsEn] = useState<string[]>(doc.keywords.english ?? []);
+  const [keywordsId, setKeywordsId] = useState<string[]>(
+    doc.keywords.indonesian ?? [],
+  );
+  const [keywordsEn, setKeywordsEn] = useState<string[]>(
+    doc.keywords.english ?? [],
+  );
 
   const [inputId, setInputId] = useState("");
   const [inputEn, setInputEn] = useState("");
@@ -61,14 +59,22 @@ export const Row = ({
     if (lang === "id") {
       const trimmed = inputId.trim();
       if (!trimmed || keywordsId.includes(trimmed)) return;
-      if (keywordsId.length == 5) throw new ShouldNotified({ message: "Cannot added", description: "Max keywords is 5" })
+      if (keywordsId.length == 5)
+        throw new ShouldNotified({
+          message: "Cannot added",
+          description: "Max keywords is 5",
+        });
       setKeywordsId((prev) => [...prev, trimmed]);
       setInputId("");
       inputIdRef.current?.focus();
     } else {
       const trimmed = inputEn.trim();
       if (!trimmed || keywordsEn.includes(trimmed)) return;
-      if (keywordsEn.length == 5) throw new ShouldNotified({ message: "Cannot added", description: "Max keywords is 5" })
+      if (keywordsEn.length == 5)
+        throw new ShouldNotified({
+          message: "Cannot added",
+          description: "Max keywords is 5",
+        });
       setKeywordsEn((prev) => [...prev, trimmed]);
       setInputEn("");
       inputEnRef.current?.focus();
@@ -94,9 +100,7 @@ export const Row = ({
 
       if (data.length === 0) return;
 
-      const exists = data.some(
-        (c) => String(c.id) === String(doc.category),
-      );
+      const exists = data.some((c) => String(c.id) === String(doc.category));
 
       if (exists) {
         setCategory(String(doc.category));
@@ -110,21 +114,20 @@ export const Row = ({
 
   const updatedAt = doc.updatedAt
     ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
     : null;
 
   return (
     <div
       onClick={() => {
-        setExpanded(prv => !prv)
+        setExpanded((prv) => !prv);
       }}
-      className="group rounded-xl border border-transparent px-4 py-3 transition-colors  hover:bg-neutral-100 cursor-pointer dark:hover:bg-neutral-900/60">
-      <div
-
-        className=" flex items-center justify-between">
+      className="group rounded-xl border border-transparent px-4 py-3 transition-colors  hover:bg-neutral-100 cursor-pointer dark:hover:bg-neutral-900/60"
+    >
+      <div className=" flex items-center justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
             <File
@@ -155,7 +158,6 @@ export const Row = ({
               <div
                 onDoubleClick={() => setEditing(true)}
                 onClick={(e) => e.stopPropagation()}
-
                 className="cursor-text truncate text-sm font-medium text-neutral-900 dark:text-neutral-100"
               >
                 {doc.title}
@@ -172,14 +174,16 @@ export const Row = ({
                     setCategory(value);
 
                     try {
-                      await HighTexDB.getInstance().updateDocument({ ...doc, category: value })
-                      toast.success("Category updated")
+                      await HighTexDB.getInstance().updateDocument({
+                        ...doc,
+                        category: value,
+                      });
+                      toast.success("Category updated");
                     } catch {
                       setCategory(previous);
-                      throw new ShouldNotified("Failed to update category.")
+                      throw new ShouldNotified("Failed to update category.");
                     }
                   }}
-
                 >
                   <SelectTrigger className="h-6 w-35 border-neutral-200 text-[11px] dark:border-neutral-700">
                     <SelectValue />
@@ -188,10 +192,7 @@ export const Row = ({
                   <SelectContent>
                     <SelectGroup>
                       {categories.map((c) => (
-                        <SelectItem
-                          key={c.id}
-                          value={String(c.id)}
-                        >
+                        <SelectItem key={c.id} value={String(c.id)}>
                           {c.name}
                         </SelectItem>
                       ))}
@@ -225,11 +226,8 @@ export const Row = ({
           <Dropdown
             align="right"
             width="max-content"
-
             trigger={
-              <button
-
-                className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800">
+              <button className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800">
                 <DownloadCloudIcon
                   size={14}
                   className="text-neutral-500 dark:text-neutral-300"
@@ -269,12 +267,12 @@ export const Row = ({
                     });
                   } catch (e) {
                     if (e instanceof Error) {
-                      const t = e.message.split(":")
-                      e = t[t.length - 1] || e.message
+                      const t = e.message.split(":");
+                      e = t[t.length - 1] || e.message;
                     }
                     toast.error("Error while exporting PDF", {
                       description() {
-                        return truncate(ApplicationError.normilize(e), 150)
+                        return truncate(ApplicationError.normilize(e), 150);
                       },
                       id: toastId,
                     });
@@ -294,31 +292,30 @@ export const Row = ({
           <button
             className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800"
             onClick={(e) => {
-              e.stopPropagation()
-              navigate(`/document/${doc.id}`)
+              e.stopPropagation();
+              navigate(`/document/${doc.id}`);
             }}
           >
-            <Pen
-              size={14}
-              className="text-neutral-500 dark:text-neutral-300"
-            />
+            <Pen size={14} className="text-neutral-500 dark:text-neutral-300" />
           </button>
 
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              onDelete(doc.id)
+              e.stopPropagation();
+              onDelete(doc.id);
             }}
             className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            <Trash
-              size={14}
-              className="text-neutral-400 hover:text-red-500"
-            />
+            <Trash size={14} className="text-neutral-400 hover:text-red-500" />
           </button>
         </div>
       </div>
-      <div className={cn("grid transition-all duration-200 ease-in-out", expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+      <div
+        className={cn(
+          "grid transition-all duration-200 ease-in-out",
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
         <div className="overflow-hidden">
           <div
             className="mt-1 space-y-3 px-1 pb-2 pt-3"
@@ -379,7 +376,6 @@ export const Row = ({
   );
 };
 
-
 const ExpandRow = ({
   label,
   children,
@@ -433,7 +429,10 @@ const KeywordField = ({
       value={input}
       onChange={(e) => onInputChange(e.target.value)}
       onKeyDown={(e) => {
-        if (e.key === "Enter") { e.preventDefault(); onAdd(); }
+        if (e.key === "Enter") {
+          e.preventDefault();
+          onAdd();
+        }
       }}
       placeholder={lang === "id" ? "tambah..." : "add..."}
       className="w-20 bg-transparent text-[11px] text-neutral-600 placeholder:text-neutral-300 outline-none dark:text-neutral-400 dark:placeholder:text-neutral-600"

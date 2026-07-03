@@ -19,6 +19,7 @@ import { Table, TableKit } from "@tiptap/extension-table";
 import { Grid, GridCell, GridRow } from "../extensions/grid";
 import { CustomCodeBlock } from "../extensions/code-block";
 import { Dots } from "../extensions/dots";
+import { Variable } from "../extensions/variable";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -82,10 +83,11 @@ export class ChapterExtensions {
       GridRow,
       CustomCodeBlock,
       Dots,
+      Variable,
     ];
   }
 
   private getNonChapter() {
-    return [StarterKit];
+    return [StarterKit, Variable];
   }
 }
