@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { PDFService } from "./pdf-service";
 import type { IpcMainEvent } from "electron";
+import { StrippedArg } from "@main/utilies/stripped-arg";
 
 type CliDocument = {
   id: string;
@@ -18,11 +19,11 @@ export class CLIService {
   ) {}
 
   async handle() {
-    const [command, ...args] = this.args;
+    const [command, ] = this.args;
 
     switch (command) {
       case "compile":
-        await this.compile(args);
+        await this.compile();
         break;
 
       case "document":
@@ -43,11 +44,11 @@ export class CLIService {
   }
 
    get unstrippedArgs(){
-    return this.args.filter(s=>!s.startsWith("--"))
+    return this.args.slice(1).filter(s=>!s.startsWith("--"))
   }
 
    get strippedArgs(){
-    return this.args.filter(s=>s.startsWith("--"))
+    return this.args.slice(1).filter(s=>s.startsWith("--")).map(s=>new StrippedArg(s))
   }
 
   private async documents() {
@@ -64,43 +65,61 @@ export class CLIService {
     }
   }
 
-  private async compile([id, saveTo]: string[]) {
-    if (!id) {
-      console.error("Missing Document Id");
-      process.exitCode = 1;
-      return;
-    }
-
-    const documents = await this.getDocuments();
-    const document = documents.find((item) => item.id === id);
-
-    if (!document) {
-      console.error(`Document not found: ${id}`);
-      process.exitCode = 1;
-
-      if (documents.length > 0) {
-        console.error("Available documents:");
-        for (const item of documents) {
-          console.error(`- ${item.id}\t${item.title || "Untitled"}`);
-        }
-      }
-
-      return;
-    }
-
-    const pdf = new PDFService();
-
-    const buffer = await pdf.generate(id, (message, percent) => {
-      console.log(`${percent}% ${message}`);
-    });
-
-    const output = saveTo ?? join(app.getPath("downloads"), `${id}.pdf`);
-
-    writeFileSync(output, buffer);
-
-    console.log(`Saved to ${output}`);
+private async compile() {
+  if (this.strippedArgs.find((r) => r.key === "s" || r.key === "snapshot")) {
+    await this.compileSnapshot();
+    return;
   }
 
+  const id = this.requestArgument(0, "id");
+
+  if (!id) {
+    console.error("Missing Document Id");
+    process.exitCode = 1;
+    return;
+  }
+
+  const documents = await this.getDocuments();
+  const document = documents.find((item) => item.id === id);
+
+  if (!document) {
+    console.error(`Document not found: ${id}`);
+    process.exitCode = 1;
+
+    if (documents.length > 0) {
+      console.error("Available documents:");
+      for (const item of documents) {
+        console.error(`- ${item.id}\t${item.title || "Untitled"}`);
+      }
+    }
+
+    return;
+  }
+
+  const pdf = new PDFService();
+
+  const buffer = await pdf.generate(id, (message, percent) => {
+    console.log(`${percent}% ${message}`);
+  });
+
+  const saveTo =
+    this.requestArgument(1, "out") ?? this.requestArgument(1, "output");
+
+  const output = saveTo ?? join(app.getPath("downloads"), `${id}.pdf`);
+
+  writeFileSync(output, buffer);
+
+  console.log(`Saved to ${output}`);
+}
+
+private async compileSnapshot() {
+  const snapshotId =
+    this.requestArgument(0, "snapshot") ?? this.requestArgument(0, "s");
+  const saveTo =
+    this.requestArgument(1, "out") ?? this.requestArgument(1, "output");
+
+  console.log(snapshotId, saveTo);
+}
   private async getDocuments(): Promise<CliDocument[]> {
     if (!this.window || this.window.isDestroyed()) {
       throw new Error("CLI document commands require a renderer window.");
@@ -138,5 +157,19 @@ export class CLIService {
 
       this.window!.webContents.send("cli:documents:request", requestId);
     });
+  }
+
+
+
+  private requestArgument(pos:number,key?:string){
+    let result;
+    if(key){
+     result = this.strippedArgs.find(s=>s.key == key)
+    }
+    if(result){
+      return result.value
+    }
+
+    return this.unstrippedArgs[pos]
   }
 }

@@ -12,28 +12,44 @@ import {
   Quote,
   Redo2,
   ScanText,
-  Sigma,
   Strikethrough,
-  // Subscript,
-  // Superscript,
   Table,
   Underline,
   Undo2,
 } from "lucide-react";
 
 import React, { PropsWithChildren } from "react";
-import { Dropdown, DropdownItem } from "../dropdown";
 import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { Document } from "@/editor/document";
 import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { useEditorState } from "@tiptap/react";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
   const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
+
+  const state = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      isBold: ctx.editor?.isActive("bold") ?? false,
+      isItalic: ctx.editor?.isActive("italic") ?? false,
+      isUnderline: ctx.editor?.isActive("underline") ?? false,
+      isStrike: ctx.editor?.isActive("strike") ?? false,
+      isBulletList: ctx.editor?.isActive("bulletList") ?? false,
+      isOrderedList: ctx.editor?.isActive("orderedList") ?? false,
+      isH2: ctx.editor?.isActive("heading", { level: 2 }) ?? false,
+      isH3: ctx.editor?.isActive("heading", { level: 3 }) ?? false,
+      isH4: ctx.editor?.isActive("heading", { level: 4 }) ?? false,
+      isTable: ctx.editor?.isActive("figureTable") ?? false,
+      isGrid: ctx.editor?.isActive("grid") ?? false,
+      isImage: ctx.editor?.isActive("imageFigure")
+    }),
+  });
 
   if (!editor) return null;
 
@@ -60,10 +76,12 @@ export const NavBar: React.FC = () => {
           <div className="flex items-center gap-1">
             <ButtonGroup>
               <Button
+                title="undo"
                 icon={Undo2}
                 onClick={() => editor.chain().focus().undo().run()}
               />
               <Button
+                title="redo"
                 icon={Redo2}
                 onClick={() => editor.chain().focus().redo().run()}
               />
@@ -71,19 +89,25 @@ export const NavBar: React.FC = () => {
 
             <ButtonGroup>
               <Button
+                title="h2"
                 icon={Heading2}
+                active={state?.isH2}
                 onClick={() =>
                   editor.chain().focus().setHeading({ level: 2 }).run()
                 }
               />
               <Button
+                title="h3"
                 icon={Heading3}
+                active={state?.isH3}
                 onClick={() =>
                   editor.chain().focus().setHeading({ level: 3 }).run()
                 }
               />
               <Button
+                title="h4"
                 icon={Heading4}
+                active={state?.isH4}
                 onClick={() =>
                   editor.chain().focus().setHeading({ level: 4 }).run()
                 }
@@ -93,18 +117,26 @@ export const NavBar: React.FC = () => {
             <ButtonGroup>
               <Button
                 icon={Bold}
+                title="bold"
+                active={state?.isBold}
                 onClick={() => editor.chain().focus().toggleBold().run()}
               />
               <Button
                 icon={Italic}
+                title="italic"
+                active={state?.isItalic}
                 onClick={() => editor.chain().focus().toggleItalic().run()}
               />
               <Button
                 icon={Underline}
+                title="underline"
+                active={state?.isUnderline}
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
               />
               <Button
                 icon={Strikethrough}
+                title="strike"
+                active={state?.isStrike}
                 onClick={() => editor.chain().focus().toggleStrike().run()}
               />
             </ButtonGroup>
@@ -112,17 +144,23 @@ export const NavBar: React.FC = () => {
             <ButtonGroup>
               <Button
                 icon={List}
+                title="bullet list"
+                active={state?.isBulletList}
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
               />
               <Button
                 icon={ListOrdered}
+                title="ordered list"
+                active={state?.isOrderedList}
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
               />
             </ButtonGroup>
 
             <ButtonGroup>
               <Button
+                title="grid"
                 icon={Table}
+                active={state?.isGrid}
                 onClick={() =>
                   editor
                     .chain()
@@ -200,7 +238,9 @@ export const NavBar: React.FC = () => {
                 }
               />
               <Button
+                title="table"
                 icon={Table}
+                active={state?.isTable}
                 onClick={() =>
                   editor
                     .chain()
@@ -210,35 +250,32 @@ export const NavBar: React.FC = () => {
                 }
               />
               <Button
+                title="image"
                 icon={Image}
+                active={state?.isImage}
                 onClick={() => editor.chain().focus().addFigureImage("")}
               />
             </ButtonGroup>
 
             <ButtonGroup>
-              <Dropdown trigger={<Button icon={Sigma} />}>
-                <DropdownItem>Math Block</DropdownItem>
-                <DropdownItem>Math Inline</DropdownItem>
-              </Dropdown>
-
               <Button
+                title="citation"
                 icon={Quote}
                 onClick={() => {
                   setContent("citation");
                   setOpen(true);
                 }}
               />
-            </ButtonGroup>
-
-            <ButtonGroup>
               <Button
                 icon={ScanText}
+                title="scanner"
                 onClick={() => {
                   setContent("scanner");
                   setOpen(true);
                 }}
               />
               <Button
+                title="download pdf"
                 icon={DownloadCloudIcon}
                 onClick={async () => {
                   const toastId = toast.loading("Preparing PDF export...");
@@ -298,6 +335,7 @@ type ButtonProps = {
   title?: string;
   disabled?: boolean;
   handleHover?: boolean;
+  active?: boolean;
 };
 
 const Button: React.FC<ButtonProps & PropsWithChildren> = ({
@@ -307,25 +345,33 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   disabled,
   children,
   handleHover = true,
+  active = false,
 }) => {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      disabled={disabled}
-      className={`
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={onClick}
+          title={title}
+          disabled={disabled}
+          className={`
         flex items-center justify-center
         w-8 h-8 p-1 rounded-md
         transition
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-
+        ${active
+          ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+          : ""}
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
-    >
-      <Icon className="w-3 h-3" />
-      {children}
-    </button>
+        >
+          <Icon className="w-3 h-3" />
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{title}</TooltipContent>
+    </Tooltip>
   );
 };
