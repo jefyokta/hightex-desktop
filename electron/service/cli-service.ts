@@ -42,6 +42,14 @@ export class CLIService {
     }
   }
 
+   get unstrippedArgs(){
+    return this.args.filter(s=>!s.startsWith("--"))
+  }
+
+   get strippedArgs(){
+    return this.args.filter(s=>s.startsWith("--"))
+  }
+
   private async documents() {
     const documents = await this.getDocuments();
 
