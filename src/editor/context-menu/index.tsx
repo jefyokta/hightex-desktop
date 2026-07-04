@@ -19,6 +19,7 @@ import {
   AlignCenter,
   AlignLeft,
   AlignRight,
+  Wrench,
 } from "lucide-react";
 
 export const getContextMenuItems = (editor: Editor): ContextMenuAction[] => {
@@ -154,11 +155,17 @@ const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
         onClick: () => editor.commands.deleteRow(),
       },
       {
+        label: "Fix Table",
+        icon: <Wrench />,
+        onClick: () => editor.commands.fixTables()
+      },
+      {
         label: "Delete column",
         danger: true,
         icon: <Grid2x2X className="h-4 w-4" />,
         onClick: () => editor.commands.deleteColumn(),
       },
+
     ];
   }
 

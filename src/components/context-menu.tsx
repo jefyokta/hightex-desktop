@@ -48,7 +48,6 @@ export const ContextMenuPopup = () => {
   const { visible, x, y, items, close } = useContextMenuStore();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     if (!visible) return;
     const onMouseDown = (e: MouseEvent) => {

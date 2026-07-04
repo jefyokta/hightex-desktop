@@ -22,8 +22,6 @@ One of the requirements in our program is that theses must follow a strict acade
 
 While LaTeX is undeniably powerful, many students are introduced to it only when they begin writing their thesis. As a result, a significant amount of time is spent learning commands, fixing formatting issues, and searching for solutions to compilation errors instead of focusing on the research itself.
 
-I experienced these challenges firsthand and noticed that many of my classmates faced the same difficulties.
-
 HighTex was created as an attempt to make the thesis-writing process more approachable. The goal was never to replace academic standards, but to make them easier to follow by providing a more user-friendly writing experience.
 
 The project originally started as a web application and later evolved into a desktop application.
@@ -34,7 +32,7 @@ The project originally started as a web application and later evolved into a des
 
 ### No clear deployment timeline
 
-The original plan was for the web version to be deployed and used through the university.
+The original plan was for the web version to be deployed.
 
 Unfortunately, there has never been a clear answer regarding when that deployment would happen. Rather than waiting indefinitely, I decided to build a version that students can use immediately.
 
