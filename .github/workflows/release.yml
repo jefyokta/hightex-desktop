@@ -15,7 +15,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 
-
       - name: Generate changelog
         uses: orhun/git-cliff-action@v4
         id: git-cliff
@@ -147,18 +146,35 @@ jobs:
           MAC=$(find release-assets -name "*.dmg" | head -n 1)
           LINUX=$(find release-assets -name "*.AppImage" | head -n 1)
 
+          CHANGELOG_FILE="release-notes/RELEASE_NOTE.md"
+          if [ -s "$CHANGELOG_FILE" ]; then
+            CHANGELOG_CONTENT=$(cat "$CHANGELOG_FILE")
+          else
+            CHANGELOG_CONTENT=""
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg version "$VERSION" \
+            --arg repo "$REPO" \
+            --arg windows "$WINDOWS" \
+            --arg mac "$MAC" \
+            --arg linux "$LINUX" \
+            --arg changelog "$CHANGELOG_CONTENT" \
+            '{
+              version: $version,
+              repo: $repo,
+              assets: {
+                windows: $windows,
+                mac: $mac,
+                linux: $linux
+              },
+              changelog: $changelog
+            }')
+
           curl -X POST "https://hightex.jefyokta.my.id/gh/release/snapshot" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.SERVER_TOKEN }}" \
-            -d "{
-              \"version\": \"$VERSION\",
-              \"repo\": \"$REPO\",
-              \"assets\": {
-                \"windows\": \"$WINDOWS\",
-                \"mac\": \"$MAC\",
-                \"linux\": \"$LINUX\"
-              }
-            }" || echo "Server update failed, continuing anyway"
+            -d "$PAYLOAD" || echo "Server update failed, continuing anyway"
 
       - name: Create or update GitHub Release
         shell: bash

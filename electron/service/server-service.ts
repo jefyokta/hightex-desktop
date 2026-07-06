@@ -8,6 +8,8 @@ interface ServerInfo {
   serverUrl?: string;
   apiUrl?: string;
 }
+
+type TServerResponse = Record<any,any> | ArrayBuffer
 const configStore = new Store();
 const SERVER_INFO_URL =
   "https://raw.githubusercontent.com/jefyokta/hightex-project/main/info.json";
@@ -37,7 +39,7 @@ export class ServerService {
     }
     configStore.set("server.url", host);
   }
-  static async request<T = any>(
+  static async request<T extends TServerResponse = {}>(
     endpoint: string,
     options: RequestInit = {},
     context?: string,

@@ -5,6 +5,7 @@ import { writeFileSync } from "node:fs";
 import { PDFService } from "./pdf-service";
 import type { IpcMainEvent } from "electron";
 import { StrippedArg } from "@main/utilies/stripped-arg";
+import { Snapshot } from "@main/database/models/snapshot";
 
 type CliDocument = {
   id: string;
@@ -117,7 +118,11 @@ private async compileSnapshot() {
     this.requestArgument(0, "snapshot") ?? this.requestArgument(0, "s");
   const saveTo =
     this.requestArgument(1, "out") ?? this.requestArgument(1, "output");
-
+  const snapshot =Snapshot.with("comments").find(snapshotId)
+  if(!snapshot){
+    process.exitCode =1;
+    console.error("Snapshot not found")
+  }
   console.log(snapshotId, saveTo);
 }
   private async getDocuments(): Promise<CliDocument[]> {
