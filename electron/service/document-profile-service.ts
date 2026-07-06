@@ -11,13 +11,11 @@ export class DocumentProfileService {
       const advisor =
         user.advisors?.[0] ??
         user.advisors?.find((advisor) => advisor.role === "primary");
-      const advisorEmail = advisor?.email ?? user.email;
-
       return {
         name: user.name,
-        nim: user.email.split("@")[0] || "",
+        nim: user.identity_number,
         advisorName: advisor?.name || "Advisor",
-        advisorNip: advisorEmail.split("@")[0] || "",
+        advisorNip: advisor.identity_number,
         isCloud: true,
       };
     }
