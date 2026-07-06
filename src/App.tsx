@@ -68,7 +68,7 @@ function App() {
           </Route>
         </Route>
         <Route element={<PrintLayout />}>
-          <Route path="/document/:id/print" element={<FullDocument />} />
+          <Route path="/document/:id/print/:waterMark?" element={<FullDocument />} />
           <Route path="/print/:chapterId" element={<Single />} />
         </Route>
       </Routes>

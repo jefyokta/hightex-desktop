@@ -25,7 +25,7 @@ export class HighTexHandler {
       return await fs.promises.readFile(filePath);
     });
 
-    ipcMain.handle("hightex:pdf", async (event, id: string) => {
+    ipcMain.handle("hightex:pdf", async (event, id: string,wm=false) => {
       if (!id) {
         throw new Error("Document id is required for PDF export.");
       }
@@ -36,7 +36,7 @@ export class HighTexHandler {
 
       try {
         progress("Opening print view...", 5);
-        const pdf = new PDFService();
+        const pdf = new PDFService(wm);
         const result = await pdf.exportPDF(id, progress);
         progress("Export complete", 100);
         return result;

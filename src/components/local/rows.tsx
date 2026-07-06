@@ -114,11 +114,49 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
 
   const updatedAt = doc.updatedAt
     ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
     : null;
+
+  const generatePdf = async (waterMark:boolean = false) => {
+    const toastId = toast.loading("Preparing PDF export...");
+
+    const unsubscribe = window.hightex.onPdfProgress((update) => {
+      toast(update.status, { id: toastId });
+    });
+
+    try {
+      const result = await window.ipcRenderer.invoke(
+        "hightex:pdf",
+        doc.id,
+        waterMark
+      );
+
+      if (!result) {
+        toast.dismiss(toastId);
+        return;
+      }
+
+      toast.success(`Saved ${result.filename}`, {
+        id: toastId,
+      });
+    } catch (e) {
+      if (e instanceof Error) {
+        const t = e.message.split(":");
+        e = t[t.length - 1] || e.message;
+      }
+      toast.error("Error while exporting PDF", {
+        description() {
+          return truncate(ApplicationError.normilize(e), 150);
+        },
+        id: toastId,
+      });
+    } finally {
+      unsubscribe();
+    }
+  }
 
   return (
     <div
@@ -244,46 +282,19 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
               </DropdownItem>
 
               <DropdownItem
-                onClick={async () => {
-                  const toastId = toast.loading("Preparing PDF export...");
-
-                  const unsubscribe = window.hightex.onPdfProgress((update) => {
-                    toast(update.status, { id: toastId });
-                  });
-
-                  try {
-                    const result = await window.ipcRenderer.invoke(
-                      "hightex:pdf",
-                      doc.id,
-                    );
-
-                    if (!result) {
-                      toast.dismiss(toastId);
-                      return;
-                    }
-
-                    toast.success(`Saved ${result.filename}`, {
-                      id: toastId,
-                    });
-                  } catch (e) {
-                    if (e instanceof Error) {
-                      const t = e.message.split(":");
-                      e = t[t.length - 1] || e.message;
-                    }
-                    toast.error("Error while exporting PDF", {
-                      description() {
-                        return truncate(ApplicationError.normilize(e), 150);
-                      },
-                      id: toastId,
-                    });
-                  } finally {
-                    unsubscribe();
-                  }
-                }}
+                onClick={async () => await generatePdf()}
               >
                 <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileText size={14} />
                   Export .pdf
+                </div>
+              </DropdownItem>
+              <DropdownItem
+                onClick={async () => await generatePdf(true)}
+              >
+                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                  <FileText size={14} />
+                  Export .pdf watermarked
                 </div>
               </DropdownItem>
             </div>

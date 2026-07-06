@@ -13,6 +13,7 @@ import { Validity } from "@/compiler/sheets/validity";
 import { useEffect, useRef } from "react";
 import { usePrintable } from "@/hooks/use-printable";
 import { ApplicationError } from "@/exception/interfaces/application-error";
+import { useParams } from "react-router-dom";
 
 export const FullDocument = () => {
   const sourceRef = useRef<HTMLDivElement | null>(null);
@@ -20,7 +21,7 @@ export const FullDocument = () => {
   const parserRef = useRef<HTMLDivElement | null>(null);
 
   const { document, profile, ready } = usePrintable();
-
+  const { waterMark = false } = useParams()
   useEffect(() => {
     if (
       !ready ||
@@ -45,6 +46,7 @@ export const FullDocument = () => {
           content: sourceRef.current,
         },
         profile,
+        waterMark: Boolean(waterMark)
       })
       .interactable()
       .whenPagesCreated((e) => {

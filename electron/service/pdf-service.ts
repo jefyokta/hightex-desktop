@@ -10,6 +10,8 @@ import { LoggerService } from "./logger-service";
 export class PDFService {
   private window: BrowserWindow | null = null;
 
+  constructor(private waterMark = false){}
+
   private createWindow() {
     this.window = new BrowserWindow({
       show: false,
@@ -126,10 +128,9 @@ export class PDFService {
   }
   async generate(docId: string, progress?: (s: string, v?: number) => void) {
     const win = this.createWindow();
-
     try {
       const url = Application.instance.resolveRendererUrl(
-        `document/${docId}/print`,
+        `document/${docId}/print${this.waterMark ? "/true": ""}`,
       );
 
       progress?.("Loading print view...", 20);
