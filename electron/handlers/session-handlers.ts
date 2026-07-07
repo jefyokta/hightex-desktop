@@ -1,7 +1,8 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow } from "electron";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { SessionService } from "../service/session-service";
+import { IPCMain } from "@main/utilities/ipc-main";
 
 export class SessionHandler {
   private static async broadcastSession() {
@@ -26,7 +27,7 @@ export class SessionHandler {
   }
 
   static register() {
-    ipcMain.handle("session:user", async () => {
+    IPCMain.handle("session:user", async () => {
       try {
         const res = await ServerService.request<{ message: User }>("/me");
 
@@ -42,7 +43,7 @@ export class SessionHandler {
       }
     });
 
-    ipcMain.handle(
+    IPCMain.handle(
       "session:login",
       async (
         _event,
@@ -78,7 +79,7 @@ export class SessionHandler {
       },
     );
 
-    ipcMain.handle("session:logout", async () => {
+    IPCMain.handle("session:logout", async () => {
       SessionService.clear();
 
       await SessionHandler.broadcastSession();

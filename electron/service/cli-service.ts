@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { PDFService } from "./pdf-service";
 import type { IpcMainEvent } from "electron";
-import { StrippedArg } from "@main/utilies/stripped-arg";
+import { StrippedArg } from "@main/utilities/stripped-arg";
 import { Snapshot } from "@main/database/models/snapshot";
 
 type CliDocument = {

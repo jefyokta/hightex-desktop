@@ -1,18 +1,24 @@
 import fs from "fs";
 import path from "path";
-import { app, dialog, ipcMain } from "electron";
+import { app, dialog} from "electron";
 import Store from "electron-store";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { DocumentProfileService } from "../service/document-profile-service";
 import { PDFService } from "../service/pdf-service";
 import { CategoryService } from "../service/category-service";
+import { ShouldSendToRenderer } from "@main/exception/should-send-to-renderer";
+import { IPCMain } from "@main/utilities/ipc-main";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
-    ipcMain.handle("hightex:document", async () => {
+
+    IPCMain.handle("error",()=>{
+      throw new ShouldSendToRenderer("test")
+    })
+    IPCMain.handle("hightex:document", async () => {
       try {
         return await ServerService.request("/document");
       } catch (err) {
@@ -21,11 +27,11 @@ export class HighTexHandler {
       }
     });
 
-    ipcMain.handle("hightex:readFile", async (_ev, filePath: string) => {
+    IPCMain.handle("hightex:readFile", async (_ev, filePath: string) => {
       return await fs.promises.readFile(filePath);
     });
 
-    ipcMain.handle("hightex:pdf", async (event, id: string,wm=false) => {
+    IPCMain.handle("hightex:pdf", async (event, id: string,wm=false) => {
       if (!id) {
         throw new Error("Document id is required for PDF export.");
       }
@@ -49,7 +55,7 @@ export class HighTexHandler {
       }
     });
 
-    ipcMain.handle("hightex:prefetch", async (event) => {
+    IPCMain.handle("hightex:prefetch", async (event) => {
       const send = (status: string, progress: number) => {
         event.sender.send("hightex:prefetch:progress", {
           status,
@@ -79,15 +85,15 @@ export class HighTexHandler {
       }
     });
 
-    ipcMain.handle("hightex:categories", async () => {
+    IPCMain.handle("hightex:categories", async () => {
       return await CategoryService.getAll();
     });
 
-    ipcMain.handle("hightex:version", () => {
+    IPCMain.handle("hightex:version", () => {
       return app.getVersion();
     });
 
-    ipcMain.handle(
+    IPCMain.handle(
       "hightex:report-error",
       async (_event, payload: { title: string; description: string }) => {
         try {
@@ -105,7 +111,7 @@ export class HighTexHandler {
       },
     );
 
-    ipcMain.handle("dialog:select-folder", async () => {
+    IPCMain.handle("dialog:select-folder", async () => {
       const result = await dialog.showOpenDialog({
         title: "Select default export folder",
         properties: ["openDirectory"],
@@ -118,17 +124,17 @@ export class HighTexHandler {
       return result.filePaths[0];
     });
 
-    ipcMain.handle("hightex:profile", () => {
+    IPCMain.handle("hightex:profile", () => {
       return DocumentProfileService.get();
     });
 
-    ipcMain.handle("hightex:document:pull", (_, up?: string) => {
+    IPCMain.handle("hightex:document:pull", (_, up?: string) => {
       return ServerService.request(
         "/document/content".concat(up ? `?updated_at=${up}` : ""),
       );
     });
 
-    ipcMain.handle(
+    IPCMain.handle(
       "hightex:export",
       async (
         _event,
@@ -171,7 +177,7 @@ export class HighTexHandler {
       },
     );
 
-    ipcMain.handle("hightex:category", (_, id) => {
+    IPCMain.handle("hightex:category", (_, id) => {
       return CategoryService.get(id);
     });
   }

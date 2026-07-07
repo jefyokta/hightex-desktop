@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+import { IPCMain } from "@main/utilities/ipc-main";
 import {
   buildZoteroItemBibtexUrl,
   buildZoteroItemListUrl,
@@ -8,7 +8,7 @@ import {
 
 export class ZoteroHandler {
   static register() {
-    ipcMain.handle(
+    IPCMain.handle(
       "zotero:test",
       async (_event, host: string, port: number) => {
         const url = buildZoteroTestUrl(host, port);
@@ -43,7 +43,7 @@ export class ZoteroHandler {
       },
     );
 
-    ipcMain.handle(
+    IPCMain.handle(
       "zotero:list",
       async (_event, host: string, port: number, limit = 100) => {
         try {
@@ -65,7 +65,7 @@ export class ZoteroHandler {
       },
     );
 
-    ipcMain.handle(
+    IPCMain.handle(
       "zotero:exportBibtex",
       async (_event, host: string, port: number, itemKey: string) => {
         try {

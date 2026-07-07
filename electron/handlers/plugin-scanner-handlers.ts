@@ -1,10 +1,10 @@
-import { ipcMain } from "electron";
 import { JSONContent } from "@tiptap/core";
 import { PluginManager } from "../plugins/plugin-manager";
+import { IPCMain } from "@main/utilities/ipc-main";
 
 export class PluginScannerHandler {
   static register() {
-    ipcMain.handle(
+    IPCMain.handle(
       "plugin:scanner.text",
       async (_, pluginKey: string, text: string, context: ScannerContext) => {
         const plugin = PluginManager.plugins.get(pluginKey);
@@ -27,7 +27,7 @@ export class PluginScannerHandler {
       },
     );
 
-    ipcMain.handle(
+    IPCMain.handle(
       "plugin:scanner.node",
       async (
         _event,

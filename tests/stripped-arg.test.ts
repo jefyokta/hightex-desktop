@@ -1,4 +1,4 @@
-import { StrippedArg } from "@main/utilies/stripped-arg";
+import { StrippedArg } from "@main/utilities/stripped-arg";
 import { expect, test } from "bun:test";
 
 test("Throw error if argument is not start with `--`",()=>{

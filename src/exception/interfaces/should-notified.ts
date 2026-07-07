@@ -1,14 +1,14 @@
 import { uniqId } from "@/utils/uniq-id";
-import { ApplicationError } from "./application-error";
+import { RegisterMainError } from "@/decorators/error-name";
+import { ThrowByMain } from "./throw-by-main";
 
 export type NotificationErrorLevel = "warning" | "error";
 
-export class ShouldNotified<
-  TLevel extends NotificationErrorLevel = "warning",
-> extends ApplicationError {
+@RegisterMainError("ShouldNotified")
+export class ShouldNotified<TLevel extends NotificationErrorLevel = "warning"> extends ThrowByMain {
   readonly level: TLevel;
-  readonly message!: string;
-  readonly description!: string;
+  public message!: string;
+  public description!: string;
   private _id!: string;
   readonly action?: React.ReactNode;
 
@@ -51,5 +51,14 @@ export class ShouldNotified<
 
   setId(id: string) {
     this._id = id;
+  }
+
+  onMainThrowing(msg: string): this {
+
+    this.description = msg;
+    if(!this.message){
+      this.message = "Something went wrong"
+    }
+    return this
   }
 }

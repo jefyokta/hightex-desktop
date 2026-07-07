@@ -1,5 +1,5 @@
 import fs from "fs";
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow} from "electron";
 import {
   autoUpdater,
   type ProgressInfo,
@@ -29,6 +29,7 @@ import { LoggerService } from "@main/service/logger-service";
 import { CLIService } from "@main/service/cli-service";
 import { getCliArgs, isCliInvocation } from "./cli-args";
 import { HightexProtocol } from "@main/server/hightex-protocol";
+import { IPCMain } from "@main/utilities/ipc-main";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -353,10 +354,10 @@ export class Application {
       });
     });
 
-    ipcMain.handle("updater:check", () => this.checkForUpdates(true));
-    ipcMain.handle("updater:status", () => this.lastUpdaterStatus);
-    ipcMain.handle("updater:download", () => autoUpdater.downloadUpdate());
-    ipcMain.handle("updater:install", () => {
+    IPCMain.handle("updater:check", () => this.checkForUpdates(true));
+    IPCMain.handle("updater:status", () => this.lastUpdaterStatus);
+    IPCMain.handle("updater:download", () => autoUpdater.downloadUpdate());
+    IPCMain.handle("updater:install", () => {
       if (!this.updateDownloaded) {
         return {
           ok: false,

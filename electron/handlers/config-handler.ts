@@ -1,5 +1,6 @@
-import { ipcMain, BrowserWindow } from "electron";
+import {  BrowserWindow } from "electron";
 import { ConfigService } from "../service/config-service";
+import { IPCMain } from "@main/utilities/ipc-main";
 
 export class ConfigHandler {
   private static broadcastConfig() {
@@ -10,27 +11,27 @@ export class ConfigHandler {
   }
 
   static register() {
-    ipcMain.handle("config:get", () => {
+    IPCMain.handle("config:get", () => {
       return ConfigService.get();
     });
 
-    ipcMain.handle("config:raw", () => {
+    IPCMain.handle("config:raw", () => {
       return ConfigService.raw();
     });
 
-    ipcMain.handle("config:reset", () => {
+    IPCMain.handle("config:reset", () => {
       const res = ConfigService.reset();
       this.broadcastConfig();
       return res;
     });
 
-    ipcMain.handle("config:set", (_event, patch) => {
+    IPCMain.handle("config:set", (_event, patch) => {
       const res = ConfigService.set(patch);
       this.broadcastConfig();
       return res;
     });
 
-    ipcMain.handle("config:key", (_event, key) => {
+    IPCMain.handle("config:key", (_event, key) => {
       return ConfigService.getKey(key);
     });
   }
