@@ -15,6 +15,7 @@ interface ProgressJobProps {
   started: boolean;
   onSuccess?: (res: any) => void;
   onError?: (jobIndex: number, error: unknown) => void;
+  onProgress?: (progres: string) => void;
 }
 
 
@@ -24,6 +25,7 @@ export const ProgressJob = ({
   started,
   onSuccess,
   onError,
+  onProgress
 }: ProgressJobProps) => {
   const [status, setStatus] = useState<Status[]>(jobs.map(() => "pending"));
 
@@ -31,6 +33,13 @@ export const ProgressJob = ({
   useEffect(() => {
     setStatus(jobs.map(() => "pending"));
   }, [jobs]);
+
+  const [progress, setProgress] = useState<string>();
+
+  useEffect(()=>{
+    if(!progress) return
+    onProgress?.(progress)
+  },[progress])
 
   useEffect(() => {
     if (!started) return;
@@ -49,7 +58,7 @@ export const ProgressJob = ({
         setStatus([...next]);
 
         try {
-          res = await jobs[i].task(res);
+          res = await jobs[i].task(res, setProgress);
 
           if (cancelled) return;
 

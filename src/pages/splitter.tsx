@@ -85,6 +85,8 @@ export const Splitter = () => {
     useEffect(() => {
         HighTexDB.getDocuments().then(setDocs);
     }, []);
+
+    const [progress, setProgress] = useState<string>()
     const add = async (src: PDFDocument, target: PDFDocument, i: number = 0) => {
         const [p] = await target.copyPages(src, [i])
         target.addPage(p)
@@ -96,9 +98,11 @@ export const Splitter = () => {
         if (inputs.doc.type === "hightex") {
             tasks.push({
                 name: "Compile PDF",
-                task: async () => {
-                    const id = (inputs.doc as Extract<MainDocument, { type: "hightex" }>).document?.id;
+                task: async (_, setProgress: (p: string) => void) => {
+                    const { id = undefined, title } = (inputs.doc as Extract<MainDocument, { type: "hightex" }>).document!;
+
                     if (!id) throw new Error("No Document Selected!")
+                    setProgress(`Compiling document ${truncate(title, 10).replace("_", "")}`)
                     const buffer: Uint8Array = await window.ipcRenderer.invoke(
                         "hightex:pdf:silent",
                         id,
@@ -114,13 +118,14 @@ export const Splitter = () => {
 
         tasks.push({
             name: "Reading Main Document",
-            task: async (file?: File) => {
+            task: async (file: File | undefined, setProgress: (p: string) => void) => {
                 if (!file) {
                     file = (inputs.doc as Extract<MainDocument, { type: "pdf" }>).file || undefined
                 }
                 if (!file) throw new Error("Main document not found")
-
+                setProgress("Loading document")
                 const pdf = await PDFDocument.load(await file.arrayBuffer());
+                setProgress("Creating empty document")
 
                 const payload: SplitContext = {
                     original: pdf,
@@ -131,6 +136,8 @@ export const Splitter = () => {
                 }
 
                 try {
+                    setProgress("Reading meta data")
+
                     const exportPayload: ExportPayload = JSON.parse(pdf.getSubject()!);
                     const c = exportPayload.chapters?.slice(3);
                     if (!c || !c?.length) {
@@ -155,9 +162,10 @@ export const Splitter = () => {
 
         tasks.push({
             name: "Merge Statement",
-            task: async (s: SplitContext) => {
+            task: async (s: SplitContext, setProgress: (p: string) => void) => {
                 if (!inputs.statement) throw new Error("Statement file is required")
-
+                setProgress("Adding statment page to public.pdf")
+                await sleep(800);
                 await add(await PDFDocument.load(await inputs.statement!.arrayBuffer()), s.publicPdf)
                 return s;
             },
@@ -166,7 +174,9 @@ export const Splitter = () => {
 
         tasks.push({
             name: "Merge Constent",
-            task: async (s: SplitContext) => {
+            task: async (s: SplitContext, setProgress: (p: string) => void) => {
+                setProgress("Adding consent page to public.pdf")
+
                 await sleep(800);
                 if (!inputs.approval) throw new Error("Constent file is required")
 
@@ -178,8 +188,9 @@ export const Splitter = () => {
 
         tasks.push({
             name: "Merge Plagiarism",
-            task: async (s: SplitContext) => {
-                if (!inputs.plagiarism) throw new Error("Plagiarism file is required")
+            task: async (s: SplitContext, setProgress: (p: string) => void) => {
+                if (!inputs.plagiarism) throw new Error("Plagiarism file is required");
+                setProgress("Adding plagiarsm page to public.pdf")
                 await add(await PDFDocument.load(await inputs.plagiarism.arrayBuffer()), s.publicPdf)
                 await sleep(800);
                 return s;
@@ -189,54 +200,96 @@ export const Splitter = () => {
 
         tasks.push({
             name: "Generate Output",
-            task: async (s: SplitContext) => {
+            task: async (s: SplitContext, setProgress: (p: string) => void) => {
                 const chapterKeys = Object.keys(s.payload!.detail).sort();
-                const chs = chapterKeys.filter((_, i) => {
-                    return i <= 2 || i >= chapterKeys.length - 2;
-                })
-                const privateRangeKeys = chapterKeys.filter((_, i) => {
-                    return !(i <= 2 || i >= chapterKeys.length - 2);
-                })
 
-                const copyRange = async (range: { start: number, end: number }, srcDoc: PDFDocument, targetDoc: PDFDocument) => {
-                    const pages = []
-                    let page = range.start
-                    while (page <= range.end) {
-                        pages.push(page)
-                        page++
+                const publicChapters = chapterKeys.filter((_, i) =>
+                    i <= 2 || i >= chapterKeys.length - 2
+                );
+
+                const privateChapters = chapterKeys.filter((_, i) =>
+                    !(i <= 2 || i >= chapterKeys.length - 2)
+                );
+
+                const copyRange = async (
+                    range: { start: number; end: number },
+                    srcDoc: PDFDocument,
+                    targetDoc: PDFDocument,
+                    label: string
+                ) => {
+                    const total = range.end - range.start + 1;
+                    const pageIndexes: number[] = [];
+
+                    for (let page = range.start; page <= range.end; page++) {
+                        pageIndexes.push(page - 1);
+
+                        const current = page - range.start + 1;
+                        setProgress(
+                            `${label} (${current}/${total}) - Copying page ${page}`
+                        );
+
+                        await sleep(100);
                     }
-                    const copiedPages = await targetDoc.copyPages(srcDoc, pages.map(p => p - 1))
+
+                    const copiedPages = await targetDoc.copyPages(srcDoc, pageIndexes);
+
                     for (const page of copiedPages) {
-                        targetDoc.addPage(page)
-
+                        targetDoc.addPage(page);
                     }
+                };
+
+                setProgress("Preparing public.pdf...");
+
+                await copyRange(
+                    {
+                        start: 4,
+                        end: s.payload!.detail[Number(publicChapters[0])].start - 1,
+                    },
+                    s.original,
+                    s.publicPdf,
+                    "Building public.pdf"
+                );
+
+                for (const key of publicChapters) {
+                    await copyRange(
+                        s.payload!.detail[Number(key)],
+                        s.original,
+                        s.publicPdf,
+                        "Building public.pdf"
+                    );
                 }
 
-                await copyRange({ start: 4, end: s.payload!.detail[Number(chs[0])].start - 1 }, s.original, s.publicPdf)
+                setProgress("Preparing private.pdf...");
 
-                for (const _key of chs) {
-                    const key = Number(_key);
-                    const range = s.payload!.detail[key]
-                    await copyRange(range, s.original, s.publicPdf)
+                for (const key of privateChapters) {
+                    await copyRange(
+                        s.payload!.detail[Number(key)],
+                        s.original,
+                        s.privatePdf,
+                        "Building private.pdf"
+                    );
                 }
 
-                for (const _ of privateRangeKeys) {
-                    const key = Number(_);
-                    const range = s.payload!.detail[key]
-                    await copyRange(range, s.original, s.privatePdf)
-                }
+                setProgress("Saving PDF files...");
 
+                const publicPdf = await s.publicPdf.save();
+                const privatePdf = await s.privatePdf.save();
+                const originalPdf = await s.original.save();
+
+                setProgress("Creating ZIP archive...");
 
                 const zip = zipSync({
-                    'public.pdf': await s.publicPdf.save(),
-                    'private.pdf': await s.privatePdf.save(),
-                    'original.pdf': await s.original.save(),
-                    'payload.json': strToU8(JSON.stringify(s.payload || {}))
+                    "public.pdf": publicPdf,
+                    "private.pdf": privatePdf,
+                    "original.pdf": originalPdf,
+                    "payload.json": strToU8(JSON.stringify(s.payload ?? {})),
+                });
 
-                })
-                await sleep(1000);
-                return window.file.save(`splitted.zip`, zip)
+                setProgress("Saving archive...");
 
+                await sleep(500);
+
+                return window.file.save("splitted.zip", zip);
             },
         });
 
@@ -423,6 +476,8 @@ export const Splitter = () => {
                     started={started}
                     onSuccess={(res) => {
                         setStarted(false);
+                        setProgress("Splitted succesfully!")
+
                         toast.success("Split Success", {
                             description: `saved to ${res}`
                         })
@@ -430,14 +485,16 @@ export const Splitter = () => {
                     }}
                     onError={(_, err) => {
                         setStarted(false);
+                        setProgress(undefined)
                         setError(ApplicationError.normilize(err))
                         console.error(err)
                         if (err instanceof ShouldSilent) throw new ShouldNotified(err.message)
                     }}
+                    onProgress={setProgress}
                 />
                 <div className="h-11 flex items-center justify-center rounded-2xl p-2 my-4 border text-xs">
                     {!error && !started && <p className="text-muted-foreground">Let start splitting</p>}
-                    {started && <>Wait for all jobs to finish</>}
+                    {started && progress && <p className="text-muted-foreground">{progress}</p>}
                     {error && typeof error == 'string' && <p className="text-center text-destructive ">{error}</p>}
                 </div>
 
@@ -446,6 +503,7 @@ export const Splitter = () => {
                     <Button
                         onClick={async () => {
                             setStarted(true)
+                            setProgress(undefined)
                             setError(undefined)
                         }}
                         disabled={started}
