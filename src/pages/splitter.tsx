@@ -198,7 +198,7 @@ export const Splitter = () => {
                     s.publicPdf.addPage(page);
                 }
                 pagesToCopy = [];
-                for (let index = s.splitAtPage; index < s.continueAtPage; index++) {
+                for (let index = s.splitAtPage + 1; index < s.continueAtPage; index++) {
                     pagesToCopy.push(index)
                 }
                 const copiedPages2 = await s.privatePdf.copyPages(s.original, pagesToCopy)
@@ -413,7 +413,7 @@ export const Splitter = () => {
                 />
                 <div className="h-11 flex items-center justify-center rounded-2xl p-2 my-4 border text-xs">
                     {!error && !started && <p className="text-muted-foreground">Let start splitting</p>}
-                    {started && <>Wait we for all job to finish</>}
+                    {started && <>Wait for all job to finish</>}
                     {error && typeof error == 'string' && <p className="text-center text-destructive ">{error}</p>}
                 </div>
 
