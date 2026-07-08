@@ -178,6 +178,7 @@ export class PDFService {
           docId,
           chapters: exportPayload.chapters ?? [],
           hasWm: exportPayload.hasWm ?? false,
+          detail:exportPayload.detail
         }),
       );
 
@@ -251,6 +252,7 @@ export class PDFService {
           docId,
           chapters: exportPayload.chapters ?? [],
           hasWm: exportPayload.hasWm ?? false,
+          detail:exportPayload.detail
         }),
       );
 

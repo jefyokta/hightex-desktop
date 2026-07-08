@@ -76,7 +76,7 @@ export const DropdownItem: React.FC<ItemProps> = ({
         e.stopPropagation();
         onClick && onClick();
       }}
-      className="w-full cursor-pointer text-left px-3 py-2 rounded-lg text-sm text-neutral-700 p-2 transition disabled:opacity-40 disabled:cursor-not-allowed"
+      className="w-full cursor-pointer text-left px-3 py-2 rounded-lg text-sm text-neutral-700 dark:text-neutral-200 p-2 transition disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {children}
     </div>

@@ -1,5 +1,5 @@
 import fs from "fs";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu, MenuItem } from "electron";
 import {
   autoUpdater,
   type ProgressInfo,
@@ -219,7 +219,6 @@ export class Application {
     this.registerHandlers();
     this.registerUpdater();
     await this.createWindow();
-
     this.registerContextMenu();
     this.fileOpen?.flush();
     this.checkForUpdates();
@@ -265,7 +264,24 @@ export class Application {
   }
 
   private registerContextMenu() {
-    this.win?.webContents.on("context-menu", (_event, _params) => {});
+    this.win?.webContents.on("context-menu", (_event, params) => {
+      if(app.isPackaged) return
+        const menu = new Menu();
+
+      menu.append(
+        new MenuItem({
+          label: "Inspect Element",
+
+          click: () => {
+            this.win!.webContents.inspectElement(params.x, params.y);
+          },
+        }),
+      );
+
+      menu.popup({
+        window: this.win!,
+      });
+    });
   }
 
   private isDevToolsShortcut(input: Electron.Input) {

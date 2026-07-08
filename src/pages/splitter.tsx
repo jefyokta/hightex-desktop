@@ -19,10 +19,12 @@ import {
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { PDFDocument } from "pdf-lib";
 import { ApplicationError } from "@/exception/interfaces/application-error";
-import { zipSync, } from "fflate";
+import { strToU8, zipSync, } from "fflate";
 import { ShouldSilent } from "@/exception/should-silent";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
+import { ParsedItalic } from "@/utils/parse-italic";
+import { truncate } from "@/utils/truncate";
 
 type MainDocument =
     | {
@@ -43,7 +45,8 @@ type SplitContext = {
     splitAtPage: number,
     privatePdf: PDFDocument,
     publicPdf: PDFDocument
-    continueAtPage: number
+    continueAtPage: number,
+    payload?: ExportPayload
 }
 
 const documents = [
@@ -133,8 +136,10 @@ export const Splitter = () => {
                     if (!c || !c?.length) {
                         throw new Error;
                     }
-                    payload.splitAtPage = c[0].page - 1;
-                    payload.continueAtPage = c[c.length - 1].page - 1
+
+                    payload.splitAtPage = c[0].page;
+                    payload.continueAtPage = c[c.length - 1].page
+                    payload.payload = exportPayload
                     await add(pdf, payload.publicPdf, 0)
                     return payload
 
@@ -185,30 +190,48 @@ export const Splitter = () => {
         tasks.push({
             name: "Generate Output",
             task: async (s: SplitContext) => {
-                const before = s.publicPdf.getPageCount() - 1;
-                let pagesToCopy = []
-                for (let index = before; index < s.splitAtPage; index++) {
-                    pagesToCopy.push((index))
+                const chapterKeys = Object.keys(s.payload!.detail).sort();
+                const chs = chapterKeys.filter((_, i) => {
+                    return i <= 2 || i >= chapterKeys.length - 2;
+                })
+                const privateRangeKeys = chapterKeys.filter((_, i) => {
+                    return !(i <= 2 || i >= chapterKeys.length - 2);
+                })
+
+                const copyRange = async (range: { start: number, end: number }, srcDoc: PDFDocument, targetDoc: PDFDocument) => {
+                    const pages = []
+                    let page = range.start
+                    while (page <= range.end) {
+                        pages.push(page)
+                        page++
+                    }
+                    const copiedPages = await targetDoc.copyPages(srcDoc, pages.map(p => p - 1))
+                    for (const page of copiedPages) {
+                        targetDoc.addPage(page)
+
+                    }
                 }
-                for (let index = s.continueAtPage; index < s.original.getPageCount() - 1; index++) {
-                    pagesToCopy.push((index))
+
+                await copyRange({ start: 4, end: s.payload!.detail[Number(chs[0])].start - 1 }, s.original, s.publicPdf)
+
+                for (const _key of chs) {
+                    const key = Number(_key);
+                    const range = s.payload!.detail[key]
+                    await copyRange(range, s.original, s.publicPdf)
                 }
-                const copiedPages = await s.publicPdf.copyPages(s.original, pagesToCopy)
-                for (const page of copiedPages) {
-                    s.publicPdf.addPage(page);
+
+                for (const _ of privateRangeKeys) {
+                    const key = Number(_);
+                    const range = s.payload!.detail[key]
+                    await copyRange(range, s.original, s.privatePdf)
                 }
-                pagesToCopy = [];
-                for (let index = s.splitAtPage + 1; index < s.continueAtPage; index++) {
-                    pagesToCopy.push(index)
-                }
-                const copiedPages2 = await s.privatePdf.copyPages(s.original, pagesToCopy)
-                for (const page of copiedPages2) {
-                    s.privatePdf.addPage(page);
-                }
+
+
                 const zip = zipSync({
                     'public.pdf': await s.publicPdf.save(),
                     'private.pdf': await s.privatePdf.save(),
-                    'original.pdf': await s.original.save()
+                    'original.pdf': await s.original.save(),
+                    'payload.json': strToU8(JSON.stringify(s.payload || {}))
 
                 })
                 await sleep(1000);
@@ -344,7 +367,7 @@ export const Splitter = () => {
                                                     key={doc.id}
                                                     value={doc.id}
                                                 >
-                                                    {doc.title}
+                                                    <ParsedItalic text={truncate(doc.title)} />
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -408,12 +431,13 @@ export const Splitter = () => {
                     onError={(_, err) => {
                         setStarted(false);
                         setError(ApplicationError.normilize(err))
+                        console.error(err)
                         if (err instanceof ShouldSilent) throw new ShouldNotified(err.message)
                     }}
                 />
                 <div className="h-11 flex items-center justify-center rounded-2xl p-2 my-4 border text-xs">
                     {!error && !started && <p className="text-muted-foreground">Let start splitting</p>}
-                    {started && <>Wait for all job to finish</>}
+                    {started && <>Wait for all jobs to finish</>}
                     {error && typeof error == 'string' && <p className="text-center text-destructive ">{error}</p>}
                 </div>
 

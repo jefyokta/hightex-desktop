@@ -95,12 +95,14 @@ declare global {
     ): Promise<ZoteroItem[]>;
     exportBibtex(host: string, port: number, itemKey: string): Promise<string>;
   }
+  type ExportPayloadChapter ={ chapter: number; page: number }
   type ExportPayload = {
     title?: string;
     author?: string;
-    chapters?: { chapter: number; page: number }[];
+    chapters?: ExportPayloadChapter[];
     hasWm?: boolean;
     keywords?: string[];
+    detail:Record<number,{start:number,end:number}>
   };
   interface PluginScannerAPI {
     paragraph(

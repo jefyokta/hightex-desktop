@@ -9,24 +9,24 @@ declare global {
 export default class ChapterListener {
   private chapterNum = 0;
   stack: { chapter: number; page: number }[] = [];
+
+  detail:Record<number,{start:number,end:number}>= {}
   static instance: ChapterListener;
-  private attachmentHasCounted = false;
   constructor() {
     window._chapters = false;
     ChapterListener.instance = this;
   }
   afterPageLayout(pageEl: HTMLElement, page: Page, _breakToken: BreakToken) {
     const content = pageEl.querySelector(".content");
-    const attach = pageEl.querySelector(".attachment")
-    if (!content && !attach) return;
-    if(attach && attach.querySelector('h1') && !this.attachmentHasCounted){
-      this.chapterNum ++;
-      this.increase(this.chapterNum,page.position +1);
-      this.attachmentHasCounted =true
-      return;
-    }
-    if (!content?.querySelector("h1") || content.querySelector("#biblio")) return;
+    if (!content || !content.querySelector("h1")) return;
     this.chapterNum++;
+    this.detail[this.chapterNum] = {
+      start:page.position+1,
+      end:page.position+1
+    };
+    if(this.chapterNum > 1){
+      this.detail[this.chapterNum -1].end = page.position
+    }
 
     this.increase(this.chapterNum,page.position + 1)
 
@@ -36,5 +36,7 @@ export default class ChapterListener {
     this.stack.push({chapter,page})
 
   }
-  afterRendered(){}
+  afterRendered(){
+    this.detail[this.chapterNum].end = Array.from(document.querySelectorAll(".pagedjs_page")).length
+  }
 }

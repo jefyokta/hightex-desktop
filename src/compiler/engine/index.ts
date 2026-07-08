@@ -240,6 +240,7 @@ export class Engine {
       keywords: this.parser.document
         .getDocument()
         .keywords.indonesian.map((k) => k.replace("_", "")),
+      detail:ChapterListener.instance.detail
       
     };
 
