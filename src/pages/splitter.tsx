@@ -94,9 +94,11 @@ export const Splitter = () => {
             tasks.push({
                 name: "Compile PDF",
                 task: async () => {
+                    const id = (inputs.doc as Extract<MainDocument, { type: "hightex" }>).document?.id;
+                    if (!id) throw new Error("No Document Selected!")
                     const buffer: Uint8Array = await window.ipcRenderer.invoke(
                         "hightex:pdf:silent",
-                        (inputs.doc as Extract<MainDocument, { type: "hightex" }>).document!.id,
+                        id,
                         true
                     );
 
@@ -127,13 +129,12 @@ export const Splitter = () => {
 
                 try {
                     const exportPayload: ExportPayload = JSON.parse(pdf.getSubject()!);
-                    console.log(exportPayload)
                     const c = exportPayload.chapters?.slice(3);
                     if (!c || !c?.length) {
                         throw new Error;
                     }
                     payload.splitAtPage = c[0].page - 1;
-                    payload.continueAtPage = c[c.length - 1].page -1
+                    payload.continueAtPage = c[c.length - 1].page - 1
                     await add(pdf, payload.publicPdf, 0)
                     return payload
 
@@ -150,6 +151,8 @@ export const Splitter = () => {
         tasks.push({
             name: "Merge Statement",
             task: async (s: SplitContext) => {
+                if (!inputs.statement) throw new Error("Statement file is required")
+
                 await add(await PDFDocument.load(await inputs.statement!.arrayBuffer()), s.publicPdf)
                 return s;
             },
@@ -160,6 +163,8 @@ export const Splitter = () => {
             name: "Merge Constent",
             task: async (s: SplitContext) => {
                 await sleep(800);
+                if (!inputs.approval) throw new Error("Constent file is required")
+
                 await add(await PDFDocument.load(await inputs.approval!.arrayBuffer()), s.publicPdf)
 
                 return s;
@@ -169,7 +174,8 @@ export const Splitter = () => {
         tasks.push({
             name: "Merge Plagiarism",
             task: async (s: SplitContext) => {
-                await add(await PDFDocument.load(await inputs.plagiarism!.arrayBuffer()), s.publicPdf)
+                if (!inputs.plagiarism) throw new Error("Plagiarism file is required")
+                await add(await PDFDocument.load(await inputs.plagiarism.arrayBuffer()), s.publicPdf)
                 await sleep(800);
                 return s;
             },
@@ -192,7 +198,7 @@ export const Splitter = () => {
                     s.publicPdf.addPage(page);
                 }
                 pagesToCopy = [];
-                for (let index = s.splitAtPage; index < s.continueAtPage ; index++) {
+                for (let index = s.splitAtPage; index < s.continueAtPage; index++) {
                     pagesToCopy.push(index)
                 }
                 const copiedPages2 = await s.privatePdf.copyPages(s.original, pagesToCopy)
@@ -206,7 +212,7 @@ export const Splitter = () => {
 
                 })
                 await sleep(1000);
-                return window.file.save("tesdsat.zip", zip)
+                return window.file.save(`splitted.zip`, zip)
 
             },
         });
