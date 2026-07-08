@@ -128,6 +128,7 @@ declare global {
       logout(): Promise<void>;
       onChange?: (cb: (u: User | false) => void) => () => void;
     };
+    file:FileApi;
 
     hightex: {
       document(): Promise<{ document: HighTexDocument }>;
@@ -223,5 +224,9 @@ declare global {
       }>;
       scan(): Promise<WifiInformation[]>;
     };
+  }
+
+  interface FileApi {
+    save(fileName:string,file:Uint8Array):Promise<string>;
   }
 }

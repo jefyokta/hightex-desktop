@@ -144,7 +144,7 @@ export const RemoteDocuments = () => {
                   throw new ShouldNotified({
                     message: "Unimplemented",
                     description:
-                      "This feature is currently available, planning for next updates",
+                      "This feature is currently unavailable, planning for next updates",
                   });
                 }}
                 className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2"

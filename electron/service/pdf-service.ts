@@ -6,9 +6,13 @@ import { PDFDocument } from "pdf-lib";
 
 import { Application } from "../main/application";
 import { LoggerService } from "./logger-service";
+import { ShouldSilent } from "@main/exception/should-silent";
+import { ConfigService } from "./config-service";
 
 export class PDFService {
   private window: BrowserWindow | null = null;
+
+  constructor(private waterMark = false) {}
 
   private createWindow() {
     this.window = new BrowserWindow({
@@ -124,12 +128,74 @@ export class PDFService {
       if (!win.isDestroyed()) win.destroy();
     }
   }
-  async generate(docId: string, progress?: (s: string, v?: number) => void) {
-    const win = this.createWindow();
 
+  async generateSilently(docId: string) {
+    const win = this.createWindow();
     try {
       const url = Application.instance.resolveRendererUrl(
-        `document/${docId}/print`,
+        `document/${docId}/print${this.waterMark ? "/true" : ""}`,
+      );
+
+      const exportPayloadPromise = this.waitForExport(docId, win);
+      await new Promise<void>(async (resolve, reject) => {
+        win.webContents.once("did-finish-load", () => resolve());
+        win.webContents.once("did-fail-load", (_e, code, desc, url) => {
+          reject(new Error(`Print failed: ${desc} (${code}) ${url}`));
+        });
+
+        win.loadURL(url).catch(reject);
+        await win.webContents.executeJavaScript(`
+          window.sharingMode = true;
+          
+          `);
+      });
+      const exportPayload = await exportPayloadPromise;
+      const pdfBuffer = await win.webContents.printToPDF({
+        printBackground: true,
+        preferCSSPageSize: true,
+        displayHeaderFooter: false,
+        margins: {
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+        },
+      });
+
+      const pdfDoc = await PDFDocument.load(pdfBuffer, {
+        ignoreEncryption: true,
+      });
+
+      const safeTitle =
+        exportPayload.title?.replace(/<[^>]*>/g, "") ?? "Untitled";
+
+      pdfDoc.setTitle(safeTitle);
+      pdfDoc.setAuthor(exportPayload.author ?? "HighTeX");
+
+      pdfDoc.setSubject(
+        JSON.stringify({
+          producer: "HighTeX",
+          docId,
+          chapters: exportPayload.chapters ?? [],
+          hasWm: exportPayload.hasWm ?? false,
+        }),
+      );
+
+      pdfDoc.setCreator("HighTeX");
+      pdfDoc.setProducer("HighTeX");
+      pdfDoc.setKeywords(exportPayload.keywords || []);
+      pdfDoc.setCreationDate(new Date());
+
+      return await pdfDoc.save();
+    } catch (error) {
+      throw new ShouldSilent(String(error));
+    }
+  }
+  async generate(docId: string, progress?: (s: string, v?: number) => void) {
+    const win = this.createWindow();
+    try {
+      const url = Application.instance.resolveRendererUrl(
+        `document/${docId}/print${this.waterMark ? "/true" : ""}`,
       );
 
       progress?.("Loading print view...", 20);
@@ -211,7 +277,7 @@ export class PDFService {
   async exportPDF(docId: string, progress?: (s: string, v?: number) => void) {
     const result = await dialog.showSaveDialog({
       title: "Export PDF",
-      defaultPath: `document-${docId}.pdf`,
+      defaultPath: path.join(ConfigService.get().export.saveFolder ,(`document-${docId}.pdf`)),
       filters: [{ name: "PDF", extensions: ["pdf"] }],
     });
 

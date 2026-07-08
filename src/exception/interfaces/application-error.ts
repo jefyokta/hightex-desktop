@@ -18,4 +18,13 @@ export class ApplicationError extends Error {
     }
     return String(err);
   }
+
+  static getMainErrorName(error: unknown) {
+    const message = this.normilize(error);
+    const errorName = message.split(":")[2];
+    if (errorName) {
+      return errorName.trim();
+    }
+    return false;
+  }
 }

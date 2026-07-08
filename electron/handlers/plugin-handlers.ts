@@ -1,13 +1,13 @@
-import { ipcMain } from "electron";
+import { IPCMain } from "@main/utilities/ipc-main";
 import { PluginManager } from "../plugins/plugin-manager";
 
 export class PluginHandler {
   static register() {
-    ipcMain.handle("plugin:list", () => {
+    IPCMain.handle("plugin:list", () => {
       return PluginManager.getSerializablePlugins();
     });
 
-    ipcMain.handle("plugin:start", () => {
+    IPCMain.handle("plugin:start", () => {
       PluginManager.resetAllStates();
     });
   }

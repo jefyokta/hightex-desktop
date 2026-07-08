@@ -157,7 +157,7 @@ const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
       {
         label: "Fix Table",
         icon: <Wrench />,
-        onClick: () => editor.commands.fixTables()
+        onClick: () => editor.commands.fixTables(),
       },
       {
         label: "Delete column",
@@ -165,7 +165,6 @@ const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
         icon: <Grid2x2X className="h-4 w-4" />,
         onClick: () => editor.commands.deleteColumn(),
       },
-
     ];
   }
 

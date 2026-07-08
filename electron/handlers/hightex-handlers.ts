@@ -1,18 +1,21 @@
-import fs from "fs";
+import fs, {  writeFileSync } from "fs";
 import path from "path";
-import { app, dialog, ipcMain } from "electron";
+import { app, dialog } from "electron";
 import Store from "electron-store";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { DocumentProfileService } from "../service/document-profile-service";
 import { PDFService } from "../service/pdf-service";
 import { CategoryService } from "../service/category-service";
+import { IPCMain } from "@main/utilities/ipc-main";
+import { ShouldSilent } from "@main/exception/should-silent";
+import { ConfigService } from "@main/service/config-service";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
-    ipcMain.handle("hightex:document", async () => {
+    IPCMain.handle("hightex:document", async () => {
       try {
         return await ServerService.request("/document");
       } catch (err) {
@@ -21,11 +24,34 @@ export class HighTexHandler {
       }
     });
 
-    ipcMain.handle("hightex:readFile", async (_ev, filePath: string) => {
+    IPCMain.handle("hightex:readFile", async (_ev, filePath: string) => {
       return await fs.promises.readFile(filePath);
     });
+    IPCMain.handle(
+      "hightex:pdf:silent",
+      async (_event, id: string, wm = false) => {
+        if (!id) {
+          throw new ShouldSilent("Document id is required for PDF export.");
+        }
+        try {
+          const pdf = new PDFService(wm);
+          const result = await pdf.generateSilently(id);
+          return result;
+        } catch (error) {
+          LoggerService.write(error, "hightex:pdf");
+          throw error instanceof Error
+            ? new ShouldSilent(error.message)
+            : new ShouldSilent("Unable to export PDF.");
+        }
+      },
+    );
+    IPCMain.handle("file:save",(_,fileName:string,file:Uint8Array)=>{
 
-    ipcMain.handle("hightex:pdf", async (event, id: string) => {
+      const filePath =path.join(ConfigService.get().export.saveFolder,fileName)
+      writeFileSync(filePath,file);
+      return filePath
+    })
+    IPCMain.handle("hightex:pdf", async (event, id: string, wm = false) => {
       if (!id) {
         throw new Error("Document id is required for PDF export.");
       }
@@ -36,7 +62,7 @@ export class HighTexHandler {
 
       try {
         progress("Opening print view...", 5);
-        const pdf = new PDFService();
+        const pdf = new PDFService(wm);
         const result = await pdf.exportPDF(id, progress);
         progress("Export complete", 100);
         return result;
@@ -49,7 +75,7 @@ export class HighTexHandler {
       }
     });
 
-    ipcMain.handle("hightex:prefetch", async (event) => {
+    IPCMain.handle("hightex:prefetch", async (event) => {
       const send = (status: string, progress: number) => {
         event.sender.send("hightex:prefetch:progress", {
           status,
@@ -79,15 +105,15 @@ export class HighTexHandler {
       }
     });
 
-    ipcMain.handle("hightex:categories", async () => {
+    IPCMain.handle("hightex:categories", async () => {
       return await CategoryService.getAll();
     });
 
-    ipcMain.handle("hightex:version", () => {
+    IPCMain.handle("hightex:version", () => {
       return app.getVersion();
     });
 
-    ipcMain.handle(
+    IPCMain.handle(
       "hightex:report-error",
       async (_event, payload: { title: string; description: string }) => {
         try {
@@ -105,7 +131,7 @@ export class HighTexHandler {
       },
     );
 
-    ipcMain.handle("dialog:select-folder", async () => {
+    IPCMain.handle("dialog:select-folder", async () => {
       const result = await dialog.showOpenDialog({
         title: "Select default export folder",
         properties: ["openDirectory"],
@@ -118,17 +144,17 @@ export class HighTexHandler {
       return result.filePaths[0];
     });
 
-    ipcMain.handle("hightex:profile", () => {
+    IPCMain.handle("hightex:profile", () => {
       return DocumentProfileService.get();
     });
 
-    ipcMain.handle("hightex:document:pull", (_, up?: string) => {
+    IPCMain.handle("hightex:document:pull", (_, up?: string) => {
       return ServerService.request(
         "/document/content".concat(up ? `?updated_at=${up}` : ""),
       );
     });
 
-    ipcMain.handle(
+    IPCMain.handle(
       "hightex:export",
       async (
         _event,
@@ -171,7 +197,7 @@ export class HighTexHandler {
       },
     );
 
-    ipcMain.handle("hightex:category", (_, id) => {
+    IPCMain.handle("hightex:category", (_, id) => {
       return CategoryService.get(id);
     });
   }

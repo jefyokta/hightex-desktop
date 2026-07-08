@@ -39,8 +39,14 @@ export class Exporter {
     );
     this.scheme.writter.putConfig(document.config);
     this.scheme.writter.putReference(cites);
-    const vars =await this.db.variables.where("documentId").equals(document.id).filter(x=>!isStaticVar(x.name)).toArray()
-    this.scheme.writter.putVariables(vars.map(x=>({name:x.name,value:x.value})))
+    const vars = await this.db.variables
+      .where("documentId")
+      .equals(document.id)
+      .filter((x) => !isStaticVar(x.name))
+      .toArray();
+    this.scheme.writter.putVariables(
+      vars.map((x) => ({ name: x.name, value: x.value })),
+    );
     for (const { chapter, content } of chaptersContent) {
       this.scheme.writter.putChapter(chapter, content);
     }

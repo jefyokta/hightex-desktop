@@ -65,7 +65,7 @@ export const Dashboard = () => {
     if (!file) return;
     const id = toast.loading("Importing");
     try {
-      const manifest = (await HighTexImporter.create(file)).manifest
+      const manifest = (await HighTexImporter.create(file)).manifest;
       const importedDocument =
         manifest.schema_version == 1
           ? await importHighTexPackage(file)

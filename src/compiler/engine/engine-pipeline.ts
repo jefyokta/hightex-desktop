@@ -37,7 +37,7 @@ export class EnginePipeline {
   }
 
   async run() {
-    await HighTexDB.getInstance().warm()
+    await HighTexDB.getInstance().warm();
     for (const step of this.steps) {
       await step.resolve(this.engine);
     }
