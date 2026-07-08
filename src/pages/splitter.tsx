@@ -25,6 +25,7 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { truncate } from "@/utils/truncate";
+import { cn } from "@/lib/utils";
 
 type MainDocument =
     | {
@@ -492,10 +493,22 @@ export const Splitter = () => {
                     }}
                     onProgress={setProgress}
                 />
-                <div className="h-11 flex items-center justify-center rounded-2xl p-2 my-4 border text-xs">
-                    {!error && !started && <p className="text-muted-foreground">Let start splitting</p>}
-                    {started && progress && <p className="text-muted-foreground">{progress}</p>}
-                    {error && typeof error == 'string' && <p className="text-center text-destructive ">{error}</p>}
+                <div className="my-4 flex h-11 items-center justify-center rounded-2xl border px-3 text-xs overflow-hidden">
+                    <p
+                        className={cn(
+                            "text-center transition-all duration-300 ease-in-out",
+                            error
+                                ? "text-destructive"
+                                : "text-muted-foreground",
+                            started && !error && "animate-pulse"
+                        )}
+                    >
+                        {error && typeof error === "string"
+                            ? error
+                            : started
+                                ? progress
+                                : "Let's start splitting"}
+                    </p>
                 </div>
 
 
