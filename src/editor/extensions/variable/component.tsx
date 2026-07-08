@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Manager } from "@/editor/manager";
 
 function applyCase(value: string, mode: string) {
   switch (mode) {
@@ -44,6 +45,15 @@ export function VariableComponent({ node }: NodeViewProps) {
       .getVar(node.attrs.name, Document.instance.id)
       .then((v) => setValue(v ?? ""));
   }, [node.attrs.name]);
+
+  useEffect(() => {
+    return Manager.app.on("var:updated", (vr) => {
+      if (vr.name == node.attrs.name) {
+        setValue(vr.value)
+      }
+
+    });
+  }, [])
 
   return (
     <NodeViewWrapper as="span" data-variable>
