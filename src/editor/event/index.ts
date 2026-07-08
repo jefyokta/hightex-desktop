@@ -29,8 +29,8 @@ export const events = {
       editor.commands.setContent(content, {
         emitUpdate: false,
       });
-      if ("fixTables" in editor.commands){
-        editor.commands.fixTables()
+      if ("fixTables" in editor.commands) {
+        editor.commands.fixTables();
       }
 
       const newState = EditorState.create({

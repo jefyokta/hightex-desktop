@@ -36,8 +36,8 @@ export const tabs = {
   },
   variabl: {
     name: "Variable",
-    element: <VariableTab />
-  }
+    element: <VariableTab />,
+  },
 } as const;
 
 export type SidebarTab = keyof typeof tabs;
@@ -52,10 +52,10 @@ type ExpandableSidebarContextType = {
 
 const ExpandableSideBarContext = createContext<ExpandableSidebarContextType>({
   open: false,
-  setOpen: () => { },
+  setOpen: () => {},
 
   content: "chapterTree",
-  setContent: () => { },
+  setContent: () => {},
 });
 
 export const ExpandableSideBarContextProvider: React.FC<PropsWithChildren> = ({

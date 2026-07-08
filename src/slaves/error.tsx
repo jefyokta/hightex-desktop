@@ -14,6 +14,7 @@ import { ShouldReport } from "@/exception/should-report";
 import type { NavigateFunction } from "react-router-dom";
 import { truncate } from "@/utils/truncate";
 import { reconstructMainError } from "@/decorators/error-name";
+import { ShouldSilent } from "@/exception/should-silent";
 
 export const ErrorSlave: React.FC = () => {
   const { errors, clear } = useError();
@@ -29,10 +30,7 @@ export const ErrorSlave: React.FC = () => {
     const error: ApplicationError =
       err instanceof ApplicationError
         ? err
-        :  reconstructMainError(err, (e) => new ShouldReport(e))
-
-
-
+        : reconstructMainError(err, (e) => new ShouldReport(e));
 
     if (error instanceof ShouldNotified) {
       toast[error.level as NotificationErrorLevel](
@@ -62,6 +60,11 @@ export const ErrorSlave: React.FC = () => {
 
     if (error instanceof ShouldNavigated) {
       go(error.navigateTo);
+      clear(id);
+      return;
+    }
+    if (error instanceof ShouldSilent) {
+      console.warn(error);
       clear(id);
       return;
     }

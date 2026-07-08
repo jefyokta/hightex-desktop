@@ -4,7 +4,7 @@ export function LogOnError(context = "default", file = "error-log") {
   return function (
     _target: any,
     _propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
 

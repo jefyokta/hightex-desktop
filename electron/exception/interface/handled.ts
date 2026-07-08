@@ -1,6 +1,6 @@
 export class Handled<T = void> extends Error {
-    public name = this.constructor.name
+  public name = this.constructor.name;
 
-    //@ts-ignore
-    handle():T{ }
+  //@ts-ignore
+  handle(): T {}
 }

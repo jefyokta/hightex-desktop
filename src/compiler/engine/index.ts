@@ -33,7 +33,7 @@ export type EngineConfig = {
     renderTo?: HTMLElement;
   };
   profile?: DocumentProfile;
-  waterMark?:boolean;
+  waterMark?: boolean;
 };
 
 export class Engine {
@@ -178,7 +178,7 @@ export class Engine {
       if (this.error) {
         throw this.error;
       }
-    if (this.config.waterMark) {
+      if (this.config.waterMark) {
         await new Promise<void>((res, rej) => {
           const img = new Image();
           img.onload = () => res();
@@ -186,13 +186,17 @@ export class Engine {
           img.src = "/wm-uin.jpg";
         });
 
-        const pages = Array.from(document.querySelectorAll<HTMLDivElement>(".pagedjs_page"));
+        const pages = Array.from(
+          document.querySelectorAll<HTMLDivElement>(".pagedjs_page"),
+        );
         for (const page of pages) {
           page.style.background = 'url("/wm-uin.jpg")';
           page.style.backgroundSize = "cover";
         }
 
-        await new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
+        await new Promise<void>((res) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => res())),
+        );
       }
 
       await this.finishCallback(this);
@@ -232,9 +236,11 @@ export class Engine {
       chapters: stack,
       title: this.parser.document.getDocument().title,
       author: this.config.profile?.name,
+      hasWm:this.config.waterMark,
       keywords: this.parser.document
         .getDocument()
         .keywords.indonesian.map((k) => k.replace("_", "")),
+      
     };
 
     (window as any).__hightexExportPayload = payload;

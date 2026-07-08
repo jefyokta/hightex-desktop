@@ -1,9 +1,9 @@
 declare global {
   interface MainError {
-    name:string,
-    message:string
-    safe:boolean
-  }  
+    name: string;
+    message: string;
+    safe: boolean;
+  }
 }
 
-export {}
+export {};

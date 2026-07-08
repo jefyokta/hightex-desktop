@@ -21,7 +21,7 @@ export const FullDocument = () => {
   const parserRef = useRef<HTMLDivElement | null>(null);
 
   const { document, profile, ready } = usePrintable();
-  const { waterMark = false } = useParams()
+  const { waterMark = false } = useParams();
   useEffect(() => {
     if (
       !ready ||
@@ -46,7 +46,7 @@ export const FullDocument = () => {
           content: sourceRef.current,
         },
         profile,
-        waterMark: Boolean(waterMark)
+        waterMark: Boolean(waterMark),
       })
       .interactable()
       .whenPagesCreated((e) => {

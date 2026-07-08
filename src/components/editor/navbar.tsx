@@ -47,7 +47,7 @@ export const NavBar: React.FC = () => {
       isH4: ctx.editor?.isActive("heading", { level: 4 }) ?? false,
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
-      isImage: ctx.editor?.isActive("imageFigure")
+      isImage: ctx.editor?.isActive("imageFigure"),
     }),
   });
 
@@ -361,9 +361,11 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${active
-          ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-          : ""}
+        ${
+          active
+            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+            : ""
+        }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

@@ -62,7 +62,7 @@ export class HighTexImporter {
       await this.importChapters(document.id);
       await this.importReferences();
       await this.importImages(document.id);
-      await this.importVariables()
+      await this.importVariables();
       await Storage.instance.setDocument(document);
 
       const doc = new Document(document.id);
@@ -81,19 +81,20 @@ export class HighTexImporter {
     }
   }
 
- async importVariables(){
-    const vars = this.entries['files/assets/variables.json']
-    if(!vars) return
+  async importVariables() {
+    const vars = this.entries["files/assets/variables.json"];
+    if (!vars) return;
     try {
-      const vs= JSON.parse(strFromU8(vars)) as Variable[] || []
-      for (const v of vs){
-        console.log(v)
-      await  this.context.db.setVar(v.name,v.value,this.context.actualDocumentId)
+      const vs = (JSON.parse(strFromU8(vars)) as Variable[]) || [];
+      for (const v of vs) {
+        console.log(v);
+        await this.context.db.setVar(
+          v.name,
+          v.value,
+          this.context.actualDocumentId,
+        );
       }
-
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   }
 
   async createDocument(): Promise<HighTexDocument> {

@@ -38,7 +38,7 @@ export class ServerService {
     }
     configStore.set("server.url", host);
   }
-  static async request<T =any>(
+  static async request<T = any>(
     endpoint: string,
     options: RequestInit = {},
     context?: string,

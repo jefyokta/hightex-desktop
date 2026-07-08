@@ -28,6 +28,7 @@ import { SharingGuest } from "./pages/sharing-guest";
 import { SharingHost } from "./pages/sharing-host";
 import { Snapshot } from "./pages/snapshot";
 import { SnapshotViewer } from "./pages/snapshot-viewer";
+import { Splitter } from "./pages/splitter";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
@@ -51,7 +52,7 @@ function App() {
             <Route path="/dashboard/present" element={<Present />} />
             <Route path="/dashboard/projects/local" element={<Dashboard />} />
             <Route path="/dashboard/citation" element={<Citation />} />
-            <Route path="/dashboard/splitter" element={<>comming soon</>} />
+            <Route path="/dashboard/splitter" element={<Splitter />} />
             <Route path="/dashboard/snapshots" element={<Snapshot />} />
 
             <Route path="/settings" element={<Settings />} />
@@ -68,7 +69,10 @@ function App() {
           </Route>
         </Route>
         <Route element={<PrintLayout />}>
-          <Route path="/document/:id/print/:waterMark?" element={<FullDocument />} />
+          <Route
+            path="/document/:id/print/:waterMark?"
+            element={<FullDocument />}
+          />
           <Route path="/print/:chapterId" element={<Single />} />
         </Route>
       </Routes>

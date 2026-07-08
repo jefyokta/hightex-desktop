@@ -13,9 +13,6 @@ import { Button } from "@/components/ui/button";
 import { isStaticVar } from "@/utils/is-static-var";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
-
-
-
 export const VariableTab = () => {
   const [vars, setVars] = useState<Variable[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +54,11 @@ export const VariableTab = () => {
     const parsed = parseLine(newLine);
     if (!parsed) return;
 
-    if (isStaticVar(parsed.name)) throw new ShouldNotified({message:`Cannot create variable`,description:`\`${parsed.name}\` is static variable`});
+    if (isStaticVar(parsed.name))
+      throw new ShouldNotified({
+        message: `Cannot create variable`,
+        description: `\`${parsed.name}\` is static variable`,
+      });
 
     await db.setVar(parsed.name, parsed.value, Document.instance!.id);
 
@@ -67,7 +68,10 @@ export const VariableTab = () => {
   };
 
   const saveEdit = async (name: string) => {
-    if (isStaticVar(name)) throw new ShouldNotified("Variable name cannot be same as static variable Name");
+    if (isStaticVar(name))
+      throw new ShouldNotified(
+        "Variable name cannot be same as static variable Name",
+      );
 
     await db.setVar(name, draft, Document.instance!.id);
 
@@ -76,7 +80,8 @@ export const VariableTab = () => {
   };
 
   const remove = async (name: string) => {
-    if (isStaticVar(name)) throw new ShouldNotified("Cannot Delete static vars");
+    if (isStaticVar(name))
+      throw new ShouldNotified("Cannot Delete static vars");
 
     await db.deleteVar(name, Document.instance!.id);
     await load();
@@ -124,20 +129,16 @@ export const VariableTab = () => {
               onClick={() => setCreating(true)}
               className="cursor-pointer"
             >
-               add variable
+              add variable
             </Button>
           )}
         </div>
 
         <div className="px-2 space-y-2 text-sm">
           {loading ? (
-            <div className="text-neutral-500 text-xs py-3">
-              loading...
-            </div>
+            <div className="text-neutral-500 text-xs py-3">loading...</div>
           ) : sortedVars.length === 0 ? (
-            <div className="text-neutral-500 text-xs py-3">
-              no variables
-            </div>
+            <div className="text-neutral-500 text-xs py-3">no variables</div>
           ) : (
             sortedVars.map((v) => {
               const locked = isStaticVar(v.name);
@@ -161,9 +162,7 @@ export const VariableTab = () => {
                             {v.name}
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          {v.name}
-                        </TooltipContent>
+                        <TooltipContent>{v.name}</TooltipContent>
                       </Tooltip>
 
                       <span className="text-neutral-400">=</span>
@@ -174,10 +173,8 @@ export const VariableTab = () => {
                           onChange={(e) => setDraft(e.target.value)}
                           className="flex-1 bg-transparent outline-none text-neutral-600 dark:text-neutral-300"
                           onKeyDown={(e) => {
-                            if (e.key === "Enter")
-                              saveEdit(v.name);
-                            if (e.key === "Escape")
-                              setEditing(null);
+                            if (e.key === "Enter") saveEdit(v.name);
+                            if (e.key === "Escape") setEditing(null);
                           }}
                         />
                       ) : (
@@ -187,9 +184,7 @@ export const VariableTab = () => {
                               {v.value}
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            {v.value}
-                          </TooltipContent>
+                          <TooltipContent>{v.value}</TooltipContent>
                         </Tooltip>
                       )}
                     </div>
@@ -198,9 +193,7 @@ export const VariableTab = () => {
                     {!locked && (
                       <div className="flex items-center gap-2 text-xs">
                         {isEditing ? (
-                          <button onClick={() => saveEdit(v.name)}>
-                            save
-                          </button>
+                          <button onClick={() => saveEdit(v.name)}>save</button>
                         ) : (
                           <>
                             <button

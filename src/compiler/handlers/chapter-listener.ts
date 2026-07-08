@@ -10,21 +10,31 @@ export default class ChapterListener {
   private chapterNum = 0;
   stack: { chapter: number; page: number }[] = [];
   static instance: ChapterListener;
+  private attachmentHasCounted = false;
   constructor() {
     window._chapters = false;
     ChapterListener.instance = this;
   }
   afterPageLayout(pageEl: HTMLElement, page: Page, _breakToken: BreakToken) {
     const content = pageEl.querySelector(".content");
-    if (!content) return;
-    if (!content.querySelector("h1") || content.querySelector("#biblio"))
+    const attach = pageEl.querySelector(".attachment")
+    if (!content && !attach) return;
+    if(attach && attach.querySelector('h1') && !this.attachmentHasCounted){
+      this.chapterNum ++;
+      this.increase(this.chapterNum,page.position +1);
+      this.attachmentHasCounted =true
       return;
+    }
+    if (!content?.querySelector("h1") || content.querySelector("#biblio")) return;
     this.chapterNum++;
-    const obj = {
-      chapter: this.chapterNum,
-      page: page.position + 1,
-    };
-    this.stack.push(obj);
+
+    this.increase(this.chapterNum,page.position + 1)
+
   }
-  afterRendered() {}
+
+  increase(chapter:number,page:number){
+    this.stack.push({chapter,page})
+
+  }
+  afterRendered(){}
 }

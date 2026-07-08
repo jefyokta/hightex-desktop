@@ -1,5 +1,5 @@
 import fs from "fs";
-import { app, BrowserWindow} from "electron";
+import { app, BrowserWindow } from "electron";
 import {
   autoUpdater,
   type ProgressInfo,

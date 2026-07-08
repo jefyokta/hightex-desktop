@@ -1,4 +1,4 @@
-import {  BrowserWindow } from "electron";
+import { BrowserWindow } from "electron";
 import { ConfigService } from "../service/config-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 

@@ -103,7 +103,7 @@ export const Present = () => {
   if (activeSession) {
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl border p-6">
+        <div className="rounded-3xl  p-6">
           <h1 className="text-2xl font-semibold">Presentation Planner</h1>
 
           <p className="text-sm text-muted-foreground mt-2">
@@ -124,7 +124,7 @@ export const Present = () => {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border p-6 flex justify-between">
+      <div className="rounded-3xl  p-6 flex justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Presentation Planner</h1>
 
@@ -179,7 +179,7 @@ export const Present = () => {
           No documents available.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 bg-neutral-50 dark:bg-neutral-900 h-full rounded-2xl p-5">
           {docs.map((doc) => (
             <ShareDocument
               key={doc.id}
@@ -247,7 +247,7 @@ const ShareDocument = ({
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
+    <div className="flex items-center justify-between rounded-lg  p-4">
       <div>
         <div className="text-xs text-muted-foreground">
           {categories.find((c) => String(c.id) === document.category)?.name ??
@@ -290,7 +290,7 @@ const SharingInfo = ({
   const go = useNavigate();
 
   return (
-    <div className="rounded-xl border p-5 space-y-4">
+    <div className="rounded-xl bg-neutral-50 dark:bg-neutral-900 p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold">Active Session</h3>
@@ -314,13 +314,13 @@ const SharingInfo = ({
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg border p-3">
+        <div className="rounded-lg bg-black/5 dark:bg-white/3  p-3">
           <div className="text-xs text-muted-foreground">Session Type</div>
 
           <div className="font-medium">{sharingTypeLabel(session.type)}</div>
         </div>
 
-        <div className="rounded-lg border p-3">
+        <div className="rounded-lg bg-black/5 dark:bg-white/3 p-3">
           <div className="text-xs text-muted-foreground">Address</div>
 
           <div className="font-mono text-sm">{session.host}</div>
@@ -333,7 +333,7 @@ const SharingInfo = ({
         {session.guest.map((guest) => (
           <div
             key={guest.code}
-            className="flex items-center justify-between rounded border p-2"
+            className="flex items-center justify-between rounded-xl bg-black/5 dark:bg-white/3 p-3"
           >
             <RoleBadge role={guest.role} />
             <div className="flex items-center space-x-2">

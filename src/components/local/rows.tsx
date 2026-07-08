@@ -114,13 +114,13 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
 
   const updatedAt = doc.updatedAt
     ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
     : null;
 
-  const generatePdf = async (waterMark:boolean = false) => {
+  const generatePdf = async (waterMark: boolean = false) => {
     const toastId = toast.loading("Preparing PDF export...");
 
     const unsubscribe = window.hightex.onPdfProgress((update) => {
@@ -131,7 +131,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
       const result = await window.ipcRenderer.invoke(
         "hightex:pdf",
         doc.id,
-        waterMark
+        waterMark,
       );
 
       if (!result) {
@@ -156,7 +156,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
     } finally {
       unsubscribe();
     }
-  }
+  };
 
   return (
     <div
@@ -281,17 +281,13 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                 </div>
               </DropdownItem>
 
-              <DropdownItem
-                onClick={async () => await generatePdf()}
-              >
+              <DropdownItem onClick={async () => await generatePdf()}>
                 <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileText size={14} />
                   Export .pdf
                 </div>
               </DropdownItem>
-              <DropdownItem
-                onClick={async () => await generatePdf(true)}
-              >
+              <DropdownItem onClick={async () => await generatePdf(true)}>
                 <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileText size={14} />
                   Export .pdf watermarked

@@ -15,7 +15,7 @@ declare global {
     name: string;
     email: string;
     advisors: Mentor[];
-    identity_number:string
+    identity_number: string;
   }
 
   interface Variable {

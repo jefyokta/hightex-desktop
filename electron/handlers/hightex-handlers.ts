@@ -1,23 +1,20 @@
-import fs from "fs";
+import fs, {  writeFileSync } from "fs";
 import path from "path";
-import { app, dialog} from "electron";
+import { app, dialog } from "electron";
 import Store from "electron-store";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { DocumentProfileService } from "../service/document-profile-service";
 import { PDFService } from "../service/pdf-service";
 import { CategoryService } from "../service/category-service";
-import { ShouldSendToRenderer } from "@main/exception/should-send-to-renderer";
 import { IPCMain } from "@main/utilities/ipc-main";
+import { ShouldSilent } from "@main/exception/should-silent";
+import { ConfigService } from "@main/service/config-service";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
-
-    IPCMain.handle("error",()=>{
-      throw new ShouldSendToRenderer("test")
-    })
     IPCMain.handle("hightex:document", async () => {
       try {
         return await ServerService.request("/document");
@@ -30,8 +27,31 @@ export class HighTexHandler {
     IPCMain.handle("hightex:readFile", async (_ev, filePath: string) => {
       return await fs.promises.readFile(filePath);
     });
+    IPCMain.handle(
+      "hightex:pdf:silent",
+      async (_event, id: string, wm = false) => {
+        if (!id) {
+          throw new ShouldSilent("Document id is required for PDF export.");
+        }
+        try {
+          const pdf = new PDFService(wm);
+          const result = await pdf.generateSilently(id);
+          return result;
+        } catch (error) {
+          LoggerService.write(error, "hightex:pdf");
+          throw error instanceof Error
+            ? new ShouldSilent(error.message)
+            : new ShouldSilent("Unable to export PDF.");
+        }
+      },
+    );
+    IPCMain.handle("file:save",(_,fileName:string,file:Uint8Array)=>{
 
-    IPCMain.handle("hightex:pdf", async (event, id: string,wm=false) => {
+      const filePath =path.join(ConfigService.get().export.saveFolder,fileName)
+      writeFileSync(filePath,file);
+      return filePath
+    })
+    IPCMain.handle("hightex:pdf", async (event, id: string, wm = false) => {
       if (!id) {
         throw new Error("Document id is required for PDF export.");
       }

@@ -239,3 +239,12 @@ contextBridge.exposeInMainWorld("sharing", {
     },
   },
 } satisfies SharingAPI);
+
+
+
+contextBridge.exposeInMainWorld("file",{
+  async save(fileName:string,file:Uint8Array){
+
+    return ipcRenderer.invoke("file:save",fileName,file)
+  }
+}  satisfies Window['file'])

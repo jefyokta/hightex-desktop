@@ -5,7 +5,9 @@ import { ThrowByMain } from "./throw-by-main";
 export type NotificationErrorLevel = "warning" | "error";
 
 @RegisterMainError("ShouldNotified")
-export class ShouldNotified<TLevel extends NotificationErrorLevel = "warning"> extends ThrowByMain {
+export class ShouldNotified<
+  TLevel extends NotificationErrorLevel = "warning",
+> extends ThrowByMain {
   readonly level: TLevel;
   public message!: string;
   public description!: string;
@@ -54,11 +56,10 @@ export class ShouldNotified<TLevel extends NotificationErrorLevel = "warning"> e
   }
 
   onMainThrowing(msg: string): this {
-
     this.description = msg;
-    if(!this.message){
-      this.message = "Something went wrong"
+    if (!this.message) {
+      this.message = "Something went wrong";
     }
-    return this
+    return this;
   }
 }

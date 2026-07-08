@@ -43,8 +43,8 @@ export class SchemaWritter {
     });
     this.entries["files/assets/references.json"] = this.jsonToU8(tmp);
   }
-  putVariables(variables:(Omit<Variable,"documentId">)[]){
-    this.entries["files/assets/variables.json"] = this.jsonToU8(variables)
+  putVariables(variables: Omit<Variable, "documentId">[]) {
+    this.entries["files/assets/variables.json"] = this.jsonToU8(variables);
   }
 
   private jsonToU8(json: any) {

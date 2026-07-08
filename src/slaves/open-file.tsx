@@ -9,7 +9,6 @@ export const OpenFileSlave = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-
     const off = window.hightex.onOpenFile(async (path) => {
       try {
         console.log("open file", path);
