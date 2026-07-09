@@ -29,6 +29,7 @@ import { SharingHost } from "./pages/sharing-host";
 import { Snapshot } from "./pages/snapshot";
 import { SnapshotViewer } from "./pages/snapshot-viewer";
 import { Splitter } from "./pages/splitter";
+import { Forms } from "./pages/forms";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
@@ -54,6 +55,7 @@ function App() {
             <Route path="/dashboard/citation" element={<Citation />} />
             <Route path="/dashboard/splitter" element={<Splitter />} />
             <Route path="/dashboard/snapshots" element={<Snapshot />} />
+            <Route path="/dashboard/forms" element={<Forms />} />
 
             <Route path="/settings" element={<Settings />} />
             <Route
