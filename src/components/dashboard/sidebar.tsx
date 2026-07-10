@@ -76,12 +76,8 @@ export const Sidebar = ({ recent = [] }: Props) => {
               "/dashboard/snapshots",
               <Timeline size={14} />,
               "Snapshots",
-            )},
-            {navItem(
-              "/dashboard/forms",
-              <FileStack size={14} />,
-              "Forms",
             )}
+
           </div>
         </div>
 
@@ -145,6 +141,11 @@ export const Sidebar = ({ recent = [] }: Props) => {
               "/dashboard/present",
               <LucideScreenShare size={14} />,
               "Present",
+            )}
+            {navItem(
+              "/dashboard/forms",
+              <FileStack size={14} />,
+              "Forms",
             )}
           </div>
         </div>

@@ -4,6 +4,7 @@ import { EditorProvider } from "@/hooks/use-editor";
 import { ExpandableSideBarContextProvider } from "@/hooks/use-expandable-sidebar";
 import { GraphContextProvider } from "@/hooks/use-graph";
 import { ParamsContextProvider } from "@/hooks/use-params";
+import { EditorNavigatorSlave } from "@/slaves/editor-navigator";
 import { FrameSlave } from "@/slaves/frame";
 
 import { Outlet } from "react-router-dom";
@@ -21,6 +22,7 @@ export const EditorLayout: React.FC = () => {
                 <Outlet />
               </div>
             </ExpandableSideBarContextProvider>
+            <EditorNavigatorSlave />
           </EditorProvider>
         </GraphContextProvider>
       </div>
