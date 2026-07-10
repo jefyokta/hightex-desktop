@@ -9,6 +9,11 @@ export const EditorNavigatorSlave = () => {
         const doc = Document.instance;
         if (!doc) return;
 
+        if (chapter == 0) {
+            go(`/document/${doc.id}/attachment`);
+            return;
+        }
+
         const validChapter = doc.category?.chapters?.find(
             (c) => Number(c.chapter) === chapter
         );
@@ -24,7 +29,7 @@ export const EditorNavigatorSlave = () => {
 
             const chapter = Number(e.key);
 
-            if (Number.isNaN(chapter) || chapter < 1 || chapter > 9) {
+            if (Number.isNaN(chapter) || chapter < 0 || chapter > 9) {
                 return;
             }
 
