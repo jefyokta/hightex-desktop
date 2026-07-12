@@ -139,6 +139,52 @@ export class Engine {
     };
   }
 
+  private async assignWatermark(){
+    const pages = Array.from(
+  document.querySelectorAll<HTMLDivElement>(".pagedjs_pagebox"),
+);
+
+const images = pages.map((page) => {
+  page.style.position = "relative";
+
+  const img = document.createElement("img");
+  img.src = "/wm-uin.jpg";
+
+  img.style.position = "absolute";
+  img.style.inset = "0";
+  img.style.width = "100%";
+  img.style.height = "100%";
+  img.style.objectFit = "cover";
+  img.style.pointerEvents = "none";
+  img.style.userSelect = "none";
+  img.style.zIndex = "0";
+  img.draggable = false;
+
+  page.prepend(img);
+
+  return img;
+});
+
+await Promise.all(
+  images.map((img) => {
+    if (img.complete && img.naturalWidth > 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Watermark image failed to load"));
+    });
+  }),
+);
+
+await new Promise<void>((resolve) =>
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => resolve()),
+  ),
+);
+  }
+
   async createPaged() {
     const cleanup = this.interceptError();
     this.error = null;
@@ -179,24 +225,7 @@ export class Engine {
         throw this.error;
       }
       if (this.config.waterMark) {
-        await new Promise<void>((res, rej) => {
-          const img = new Image();
-          img.onload = () => res();
-          img.onerror = () => rej(new Error("Watermark image failed to load"));
-          img.src = "/wm-uin.jpg";
-        });
-
-        const pages = Array.from(
-          document.querySelectorAll<HTMLDivElement>(".pagedjs_page"),
-        );
-        for (const page of pages) {
-          page.style.background = 'url("/wm-uin.jpg")';
-          page.style.backgroundSize = "cover";
-        }
-
-        await new Promise<void>((res) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => res())),
-        );
+        await this.assignWatermark()
       }
 
       await this.finishCallback(this);

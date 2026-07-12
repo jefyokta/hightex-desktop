@@ -87,7 +87,6 @@ export class PDFService {
 
   async generateHtml(docId: string): Promise<{ html: string; css: string }> {
     const win = this.createWindow();
-
     try {
       const url = Application.instance.resolveRendererUrl(
         `document/${docId}/print`,
@@ -152,14 +151,16 @@ export class PDFService {
       const exportPayload = await exportPayloadPromise;
       const pdfBuffer = await win.webContents.printToPDF({
         printBackground: true,
-        preferCSSPageSize: true,
-        displayHeaderFooter: false,
+  preferCSSPageSize: false,
+  pageSize: "A4",
+          displayHeaderFooter: false,
         margins: {
           top: 0,
           bottom: 0,
           left: 0,
           right: 0,
         },
+        
       });
 
       const pdfDoc = await PDFDocument.load(pdfBuffer, {
@@ -224,8 +225,8 @@ export class PDFService {
 
       const pdfBuffer = await win.webContents.printToPDF({
         printBackground: true,
-        preferCSSPageSize: true,
-        displayHeaderFooter: false,
+  preferCSSPageSize: false,
+  pageSize: "A4",        displayHeaderFooter: false,
         margins: {
           top: 0,
           bottom: 0,

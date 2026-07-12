@@ -17,7 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { PDFDocument } from "pdf-lib";
+import { PDFArray, PDFDocument, PDFName, PDFRawStream } from "pdf-lib";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { strToU8, zipSync, } from "fflate";
 import { ShouldSilent } from "@/exception/should-silent";
@@ -37,7 +37,49 @@ type MainDocument =
         document: HighTexDocument | null;
     };
 
+function getPageContentSize(pdf: PDFDocument, pageIndex: number) {
+    const page = pdf.getPage(pageIndex);
+    const contents = page.node.get(PDFName.of("Contents"));
 
+    if (!contents) return 0;
+
+    const obj = pdf.context.lookup(contents);
+
+    if (obj instanceof PDFRawStream) {
+        return obj.getContents().length;
+    }
+
+    if (obj instanceof PDFArray) {
+        let size = 0;
+
+        for (let i = 0; i < obj.size(); i++) {
+            const stream = pdf.context.lookup(obj.get(i));
+
+            if (stream instanceof PDFRawStream) {
+                size += stream.getContents().length;
+            }
+        }
+
+        return size;
+    }
+
+    return 0;
+}
+
+
+function findBlankPages(pdf: PDFDocument) {
+    const blankPages: number[] = [];
+
+    for (let i = 0; i < pdf.getPageCount(); i++) {
+        const size = getPageContentSize(pdf, i);
+
+        if (size < 20) {
+            blankPages.push(i);
+        }
+    }
+
+    return blankPages;
+}
 const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -117,47 +159,63 @@ export const Splitter = () => {
             });
         }
 
-        tasks.push({
-            name: "Reading Main Document",
-            task: async (file: File | undefined, setProgress: (p: string) => void) => {
-                if (!file) {
-                    file = (inputs.doc as Extract<MainDocument, { type: "pdf" }>).file || undefined
-                }
-                if (!file) throw new Error("Main document not found")
-                setProgress("Loading document")
-                const pdf = await PDFDocument.load(await file.arrayBuffer());
-                setProgress("Creating empty document")
+        tasks.push(
+            {
+                name: "Reading Main Document",
+                task: async (file: File | undefined, setProgress: (p: string) => void) => {
+                    if (!file) {
+                        file = (inputs.doc as Extract<MainDocument, { type: "pdf" }>).file || undefined
+                    }
+                    if (!file) throw new Error("Main document not found")
+                    setProgress("Loading document")
+                    const pdf = await PDFDocument.load(await file.arrayBuffer());
 
-                const payload: SplitContext = {
-                    original: pdf,
-                    privatePdf: await PDFDocument.create(),
-                    publicPdf: await PDFDocument.create(),
-                    splitAtPage: 0,
-                    continueAtPage: 0
-                }
+                    const clean = await PDFDocument.create();
+                    const blanks = findBlankPages(pdf);
 
-                try {
-                    setProgress("Reading meta data")
+                    for (let index = 0; index < pdf.getPageCount(); index++) {
+                        if (blanks.includes(index)) {
+                            setProgress(`Removed ${index + 1} blank pages`);
+                            continue;
+                        }
 
-                    const exportPayload: ExportPayload = JSON.parse(pdf.getSubject()!);
-                    const c = exportPayload.chapters?.slice(3);
-                    if (!c || !c?.length) {
-                        throw new Error;
+                        const [copied] = await clean.copyPages(pdf, [index]);
+                        clean.addPage(copied);
                     }
 
-                    payload.splitAtPage = c[0].page;
-                    payload.continueAtPage = c[c.length - 1].page
-                    payload.payload = exportPayload
-                    await add(pdf, payload.publicPdf, 0)
-                    return payload
+                    console.log("blank pages:", blanks.length);
+                    console.log("cleaned total pages:", clean.getPages().length);
 
-                } catch (error) {
-                    throw new Error("Invalid PDF: pdf must be produce by Hightex");
+                    const payload: SplitContext = {
+                        original: clean,
+                        privatePdf: await PDFDocument.create(),
+                        publicPdf: await PDFDocument.create(),
+                        splitAtPage: 0,
+                        continueAtPage: 0
+                    }
 
-                }
+                    try {
+                        setProgress("Reading meta data")
 
-            },
-        });
+                        const exportPayload: ExportPayload = JSON.parse(pdf.getSubject()!);
+                        const c = exportPayload.chapters?.slice(3);
+                        if (!c || !c?.length) {
+                            throw new Error;
+                        }
+
+                        payload.splitAtPage = c[0].page;
+                        payload.continueAtPage = c[c.length - 1].page
+                        payload.payload = exportPayload
+                        await add(pdf, payload.publicPdf, 0)
+                        return payload
+
+                    } catch (error) {
+                        throw new Error("Invalid PDF: pdf must be produce by Hightex");
+
+                    }
+
+                },
+            });
 
 
 
@@ -222,7 +280,7 @@ export const Splitter = () => {
                     const pageIndexes: number[] = [];
 
                     for (let page = range.start; page <= range.end; page++) {
-                        pageIndexes.push(page - 1);
+                        pageIndexes.push(page-1);
 
                         const current = page - range.start + 1;
                         setProgress(
