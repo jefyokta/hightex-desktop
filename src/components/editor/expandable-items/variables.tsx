@@ -62,8 +62,7 @@ export const VariableTab = () => {
       });
 
     await db.setVar(parsed.name, parsed.value, Document.instance!.id);
-    Manager.app.dispatch("var:updated", parsed)
-
+    Manager.app.dispatch("var:updated", parsed);
 
     setNewLine("");
     setCreating(false);
@@ -77,7 +76,7 @@ export const VariableTab = () => {
       );
 
     await db.setVar(name, draft, Document.instance!.id);
-    Manager.app.dispatch("var:updated", { name, value: draft })
+    Manager.app.dispatch("var:updated", { name, value: draft });
 
     setEditing(null);
     await load();
@@ -88,7 +87,7 @@ export const VariableTab = () => {
       throw new ShouldNotified("Cannot Delete static vars");
 
     await db.deleteVar(name, Document.instance!.id);
-    Manager.app.dispatch("var:updated", { name, value: "" })
+    Manager.app.dispatch("var:updated", { name, value: "" });
 
     await load();
   };

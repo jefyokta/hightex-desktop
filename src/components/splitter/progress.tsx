@@ -18,17 +18,14 @@ interface ProgressJobProps {
   onProgress?: (progres: string) => void;
 }
 
-
-
 export const ProgressJob = ({
   jobs,
   started,
   onSuccess,
   onError,
-  onProgress
+  onProgress,
 }: ProgressJobProps) => {
   const [status, setStatus] = useState<Status[]>(jobs.map(() => "pending"));
-
 
   useEffect(() => {
     setStatus(jobs.map(() => "pending"));
@@ -36,10 +33,10 @@ export const ProgressJob = ({
 
   const [progress, setProgress] = useState<string>();
 
-  useEffect(()=>{
-    if(!progress) return
-    onProgress?.(progress)
-  },[progress])
+  useEffect(() => {
+    if (!progress) return;
+    onProgress?.(progress);
+  }, [progress]);
 
   useEffect(() => {
     if (!started) return;
@@ -103,10 +100,7 @@ export const ProgressJob = ({
             status[index + 1] === "error";
 
           return (
-            <div
-              key={job.name}
-              className="relative flex flex-col items-center"
-            >
+            <div key={job.name} className="relative flex flex-col items-center">
               {index < jobs.length - 1 && (
                 <div className="absolute top-3.5 left-[calc(50%+20px)] right-[calc(-50%+20px)]">
                   <div className="relative h-0.75 overflow-hidden rounded-full bg-border">
@@ -135,8 +129,7 @@ export const ProgressJob = ({
                 className={cn(
                   "relative z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 bg-background shadow-sm",
                   {
-                    "border-muted text-muted-foreground":
-                      current === "pending",
+                    "border-muted text-muted-foreground": current === "pending",
 
                     "border-primary bg-primary text-primary-foreground":
                       current === "running",
@@ -146,7 +139,7 @@ export const ProgressJob = ({
 
                     "border-destructive bg-destructive text-destructive-foreground":
                       current === "error",
-                  }
+                  },
                 )}
               >
                 <AnimatePresence mode="wait">
@@ -186,18 +179,14 @@ export const ProgressJob = ({
                 className={cn(
                   "mt-3 max-w-28 text-center text-xs font-medium leading-tight",
                   {
-                    "text-muted-foreground":
-                      current === "pending",
+                    "text-muted-foreground": current === "pending",
 
-                    "text-primary":
-                      current === "running",
+                    "text-primary": current === "running",
 
-                    "text-green-600 dark:text-green-400":
-                      current === "success",
+                    "text-green-600 dark:text-green-400": current === "success",
 
-                    "text-destructive":
-                      current === "error",
-                  }
+                    "text-destructive": current === "error",
+                  },
                 )}
               >
                 {job.name}

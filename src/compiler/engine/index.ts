@@ -48,10 +48,16 @@ export class Engine {
 
   private pipeline: EnginePipeline;
   public error: Error | null = null;
+  private document:Window['document'];
 
   constructor() {
     this.pipeline = new EnginePipeline(this);
+
+    
+    this.document = this.isInFrame() ? window.parent.document :document 
+
   }
+
 
   static getInstance() {
     return new Engine();
@@ -71,6 +77,8 @@ export class Engine {
       ...this.config,
       ...config,
     } as EngineConfig;
+
+    
 
     return this;
   }
@@ -139,56 +147,55 @@ export class Engine {
     };
   }
 
-  private async assignWatermark(){
+  private async assignWatermark() {
     const pages = Array.from(
-  document.querySelectorAll<HTMLDivElement>(".pagedjs_pagebox"),
-);
+      document.querySelectorAll<HTMLDivElement>(".pagedjs_pagebox"),
+    );
 
-const images = pages.map((page) => {
-  page.style.position = "relative";
+    const images = pages.map((page) => {
+      page.style.position = "relative";
 
-  const img = document.createElement("img");
-  img.src = "/wm-uin.jpg";
+      const img = document.createElement("img");
+      img.src = "/wm-uin.jpg";
 
-  img.style.position = "absolute";
-  img.style.inset = "0";
-  img.style.width = "100%";
-  img.style.height = "100%";
-  img.style.objectFit = "cover";
-  img.style.pointerEvents = "none";
-  img.style.userSelect = "none";
-  img.style.zIndex = "0";
-  img.draggable = false;
+      img.style.position = "absolute";
+      img.style.inset = "0";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      img.style.pointerEvents = "none";
+      img.style.userSelect = "none";
+      img.style.zIndex = "0";
+      img.draggable = false;
 
-  page.prepend(img);
+      page.prepend(img);
 
-  return img;
-});
-
-await Promise.all(
-  images.map((img) => {
-    if (img.complete && img.naturalWidth > 0) {
-      return Promise.resolve();
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("Watermark image failed to load"));
+      return img;
     });
-  }),
-);
 
-await new Promise<void>((resolve) =>
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => resolve()),
-  ),
-);
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete && img.naturalWidth > 0) {
+          return Promise.resolve();
+        }
+
+        return new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () =>
+            reject(new Error("Watermark image failed to load"));
+        });
+      }),
+    );
+
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
   }
 
   async createPaged() {
     const cleanup = this.interceptError();
     this.error = null;
-
+    let shadowHost:HTMLElement|null = null
     try {
       if (!this.root) throw new Error("Engine root not mounted");
 
@@ -196,7 +203,8 @@ await new Promise<void>((resolve) =>
       const renderTo = this.config.paged?.renderTo;
       if (!content || !renderTo) return;
 
-      const shadowHost = document.createElement("div");
+      shadowHost = document.createElement("div");
+      shadowHost.classList.add("no-print")
       shadowHost.style.cssText = "position:absolute;left:-99999px;top:0;";
       document.body.appendChild(shadowHost);
 
@@ -204,6 +212,8 @@ await new Promise<void>((resolve) =>
       wrapper.innerHTML = content.innerHTML;
       const fragment = document.createDocumentFragment();
       fragment.append(wrapper);
+
+      await this.document.fonts.ready
 
       const chunker = await new Paged.Previewer({ auto: false })
         .preview(fragment, undefined, renderTo)
@@ -225,7 +235,7 @@ await new Promise<void>((resolve) =>
         throw this.error;
       }
       if (this.config.waterMark) {
-        await this.assignWatermark()
+        await this.assignWatermark();
       }
 
       await this.finishCallback(this);
@@ -245,6 +255,8 @@ await new Promise<void>((resolve) =>
       return chunker;
     } finally {
       cleanup();
+      shadowHost?.remove()
+      
     }
   }
 
@@ -265,12 +277,11 @@ await new Promise<void>((resolve) =>
       chapters: stack,
       title: this.parser.document.getDocument().title,
       author: this.config.profile?.name,
-      hasWm:this.config.waterMark,
+      hasWm: this.config.waterMark,
       keywords: this.parser.document
         .getDocument()
         .keywords.indonesian.map((k) => k.replace("_", "")),
-      detail:ChapterListener.instance.detail
-      
+      detail: ChapterListener.instance.detail,
     };
 
     (window as any).__hightexExportPayload = payload;

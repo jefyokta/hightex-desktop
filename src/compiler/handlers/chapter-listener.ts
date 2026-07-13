@@ -10,7 +10,7 @@ export default class ChapterListener {
   private chapterNum = 0;
   stack: { chapter: number; page: number }[] = [];
 
-  detail:Record<number,{start:number,end:number}>= {}
+  detail: Record<number, { start: number; end: number }> = {};
   static instance: ChapterListener;
   constructor() {
     window._chapters = false;
@@ -21,22 +21,22 @@ export default class ChapterListener {
     if (!content || !content.querySelector("h1")) return;
     this.chapterNum++;
     this.detail[this.chapterNum] = {
-      start:page.position+1,
-      end:page.position+1
+      start: page.position + 1,
+      end: page.position + 1,
     };
-    if(this.chapterNum > 1){
-      this.detail[this.chapterNum -1].end = page.position
+    if (this.chapterNum > 1) {
+      this.detail[this.chapterNum - 1].end = page.position;
     }
 
-    this.increase(this.chapterNum,page.position + 1)
-
+    this.increase(this.chapterNum, page.position + 1);
   }
 
-  increase(chapter:number,page:number){
-    this.stack.push({chapter,page})
-
+  increase(chapter: number, page: number) {
+    this.stack.push({ chapter, page });
   }
-  afterRendered(){
-    this.detail[this.chapterNum].end = Array.from(document.querySelectorAll(".pagedjs_page")).length
+  afterRendered() {
+    this.detail[this.chapterNum].end = Array.from(
+      document.querySelectorAll(".pagedjs_page"),
+    ).length;
   }
 }
