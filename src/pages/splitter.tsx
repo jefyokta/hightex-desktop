@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { PDFDocument} from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { strToU8, zipSync } from "fflate";
 import { ShouldSilent } from "@/exception/should-silent";
@@ -33,7 +33,6 @@ type MainDocument =
       type: "hightex";
       document: HighTexDocument | null;
     };
-
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -132,7 +131,6 @@ export const Splitter = () => {
         setProgress("Loading document");
         const pdf = await PDFDocument.load(await file.arrayBuffer());
 
- 
         const payload: SplitContext = {
           original: pdf,
           privatePdf: await PDFDocument.create(),

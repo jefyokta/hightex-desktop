@@ -197,7 +197,9 @@ export default class RepeatTableHeaderAndCaption {
       div.classList.add("debug-el");
       div.style.height = h.height + "px";
       div.style.width = "100%";
-    const parent =  page.element.querySelector(".pagedjs_page_content > div > div > div")
+      const parent = page.element.querySelector(
+        ".pagedjs_page_content > div > div > div",
+      );
       parent?.append(div);
     }
   }

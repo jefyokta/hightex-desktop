@@ -48,16 +48,13 @@ export class Engine {
 
   private pipeline: EnginePipeline;
   public error: Error | null = null;
-  private document:Window['document'];
+  private document: Window["document"];
 
   constructor() {
     this.pipeline = new EnginePipeline(this);
 
-    
-    this.document = this.isInFrame() ? window.parent.document :document 
-
+    this.document = this.isInFrame() ? window.parent.document : document;
   }
-
 
   static getInstance() {
     return new Engine();
@@ -77,8 +74,6 @@ export class Engine {
       ...this.config,
       ...config,
     } as EngineConfig;
-
-    
 
     return this;
   }
@@ -195,7 +190,7 @@ export class Engine {
   async createPaged() {
     const cleanup = this.interceptError();
     this.error = null;
-    let shadowHost:HTMLElement|null = null
+    let shadowHost: HTMLElement | null = null;
     try {
       if (!this.root) throw new Error("Engine root not mounted");
 
@@ -204,7 +199,7 @@ export class Engine {
       if (!content || !renderTo) return;
 
       shadowHost = document.createElement("div");
-      shadowHost.classList.add("no-print")
+      shadowHost.classList.add("no-print");
       shadowHost.style.cssText = "position:absolute;left:-99999px;top:0;";
       document.body.appendChild(shadowHost);
 
@@ -213,7 +208,7 @@ export class Engine {
       const fragment = document.createDocumentFragment();
       fragment.append(wrapper);
 
-      await this.document.fonts.ready
+      await this.document.fonts.ready;
 
       const chunker = await new Paged.Previewer({ auto: false })
         .preview(fragment, undefined, renderTo)
@@ -255,8 +250,7 @@ export class Engine {
       return chunker;
     } finally {
       cleanup();
-      shadowHost?.remove()
-      
+      shadowHost?.remove();
     }
   }
 
