@@ -95,14 +95,14 @@ declare global {
     ): Promise<ZoteroItem[]>;
     exportBibtex(host: string, port: number, itemKey: string): Promise<string>;
   }
-  type ExportPayloadChapter ={ chapter: number; page: number }
+  type ExportPayloadChapter = { chapter: number; page: number };
   type ExportPayload = {
     title?: string;
     author?: string;
     chapters?: ExportPayloadChapter[];
     hasWm?: boolean;
     keywords?: string[];
-    detail:Record<number,{start:number,end:number}>
+    detail: Record<number, { start: number; end: number }>;
   };
   interface PluginScannerAPI {
     paragraph(
@@ -130,7 +130,7 @@ declare global {
       logout(): Promise<void>;
       onChange?: (cb: (u: User | false) => void) => () => void;
     };
-    file:FileApi;
+    file: FileApi;
 
     hightex: {
       document(): Promise<{ document: HighTexDocument }>;
@@ -229,6 +229,6 @@ declare global {
   }
 
   interface FileApi {
-    save(fileName:string,file:Uint8Array):Promise<string>;
+    save(fileName: string, file: Uint8Array): Promise<string>;
   }
 }

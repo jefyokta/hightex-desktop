@@ -49,11 +49,10 @@ export function VariableComponent({ node }: NodeViewProps) {
   useEffect(() => {
     return Manager.app.on("var:updated", (vr) => {
       if (vr.name == node.attrs.name) {
-        setValue(vr.value)
+        setValue(vr.value);
       }
-
     });
-  }, [])
+  }, []);
 
   return (
     <NodeViewWrapper as="span" data-variable>

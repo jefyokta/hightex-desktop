@@ -151,16 +151,15 @@ export class PDFService {
       const exportPayload = await exportPayloadPromise;
       const pdfBuffer = await win.webContents.printToPDF({
         printBackground: true,
-  preferCSSPageSize: false,
-  pageSize: "A4",
-          displayHeaderFooter: false,
+        preferCSSPageSize: false,
+        pageSize: "A4",
+        displayHeaderFooter: false,
         margins: {
           top: 0,
           bottom: 0,
           left: 0,
           right: 0,
         },
-        
       });
 
       const pdfDoc = await PDFDocument.load(pdfBuffer, {
@@ -179,7 +178,7 @@ export class PDFService {
           docId,
           chapters: exportPayload.chapters ?? [],
           hasWm: exportPayload.hasWm ?? false,
-          detail:exportPayload.detail
+          detail: exportPayload.detail,
         }),
       );
 
@@ -225,8 +224,9 @@ export class PDFService {
 
       const pdfBuffer = await win.webContents.printToPDF({
         printBackground: true,
-  preferCSSPageSize: false,
-  pageSize: "A4",        displayHeaderFooter: false,
+        preferCSSPageSize: false,
+        pageSize: "A4",
+        displayHeaderFooter: false,
         margins: {
           top: 0,
           bottom: 0,
@@ -253,7 +253,7 @@ export class PDFService {
           docId,
           chapters: exportPayload.chapters ?? [],
           hasWm: exportPayload.hasWm ?? false,
-          detail:exportPayload.detail
+          detail: exportPayload.detail,
         }),
       );
 
@@ -280,7 +280,10 @@ export class PDFService {
   async exportPDF(docId: string, progress?: (s: string, v?: number) => void) {
     const result = await dialog.showSaveDialog({
       title: "Export PDF",
-      defaultPath: path.join(ConfigService.get().export.saveFolder ,(`document-${docId}.pdf`)),
+      defaultPath: path.join(
+        ConfigService.get().export.saveFolder,
+        `document-${docId}.pdf`,
+      ),
       filters: [{ name: "PDF", extensions: ["pdf"] }],
     });
 

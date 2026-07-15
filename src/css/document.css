@@ -9,7 +9,8 @@
 }
 
 @page {
-  size: A4;
+  size: A4 !important;
+  margin: 0 !important;
 }
 
 @page cover {
@@ -616,4 +617,10 @@ cite {
 }
 .static-chapter h1 {
   text-transform: uppercase;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
 }

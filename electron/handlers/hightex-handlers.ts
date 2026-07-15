@@ -1,4 +1,4 @@
-import fs, {  writeFileSync } from "fs";
+import fs, { writeFileSync } from "fs";
 import path from "path";
 import { app, dialog } from "electron";
 import Store from "electron-store";
@@ -45,12 +45,14 @@ export class HighTexHandler {
         }
       },
     );
-    IPCMain.handle("file:save",(_,fileName:string,file:Uint8Array)=>{
-
-      const filePath =path.join(ConfigService.get().export.saveFolder,fileName)
-      writeFileSync(filePath,file);
-      return filePath
-    })
+    IPCMain.handle("file:save", (_, fileName: string, file: Uint8Array) => {
+      const filePath = path.join(
+        ConfigService.get().export.saveFolder,
+        fileName,
+      );
+      writeFileSync(filePath, file);
+      return filePath;
+    });
     IPCMain.handle("hightex:pdf", async (event, id: string, wm = false) => {
       if (!id) {
         throw new Error("Document id is required for PDF export.");

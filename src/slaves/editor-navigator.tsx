@@ -3,44 +3,44 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const EditorNavigatorSlave = () => {
-    const go = useNavigate();
+  const go = useNavigate();
 
-    const navigate = (chapter: number) => {
-        const doc = Document.instance;
-        if (!doc) return;
+  const navigate = (chapter: number) => {
+    const doc = Document.instance;
+    if (!doc) return;
 
-        if (chapter == 0) {
-            go(`/document/${doc.id}/attachment`);
-            return;
-        }
+    if (chapter == 0) {
+      go(`/document/${doc.id}/attachment`);
+      return;
+    }
 
-        const validChapter = doc.category?.chapters?.find(
-            (c) => Number(c.chapter) === chapter
-        );
+    const validChapter = doc.category?.chapters?.find(
+      (c) => Number(c.chapter) === chapter,
+    );
 
-        if (!validChapter) return;
+    if (!validChapter) return;
 
-        go(`/document/${doc.id}/${chapter}`);
+    go(`/document/${doc.id}/${chapter}`);
+  };
+
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+
+      const chapter = Number(e.key);
+
+      if (Number.isNaN(chapter) || chapter < 0 || chapter > 9) {
+        return;
+      }
+
+      e.preventDefault();
+      navigate(chapter);
     };
 
-    useEffect(() => {
-        const listener = (e: KeyboardEvent) => {
-            if (!(e.metaKey || e.ctrlKey)) return;
+    document.addEventListener("keydown", listener);
 
-            const chapter = Number(e.key);
+    return () => document.removeEventListener("keydown", listener);
+  }, []);
 
-            if (Number.isNaN(chapter) || chapter < 0 || chapter > 9) {
-                return;
-            }
-
-            e.preventDefault();
-            navigate(chapter);
-        };
-
-        document.addEventListener("keydown", listener);
-
-        return () => document.removeEventListener("keydown", listener);
-    }, []);
-
-    return null;
+  return null;
 };

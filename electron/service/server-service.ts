@@ -93,4 +93,15 @@ export class ServerService {
   private static getLogFile(): string {
     return path.join(app.getPath("userData"), "hightex-server.log");
   }
+
+  static checkForUpdates() {
+    try {
+    } catch (error) {
+      LoggerService.write(
+        error,
+        "checking for server data updates",
+        this.getLogFile(),
+      );
+    }
+  }
 }
