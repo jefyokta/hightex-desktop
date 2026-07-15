@@ -27,10 +27,6 @@
       "@/*": ["./src/*"],
       "@main/*": ["./electron/*"],
       "pagedjs": ["./src/types/pagedjs"],
-        "prosemirror-model": ["./node_modules/prosemirror-model"],
-  "prosemirror-state": ["./node_modules/prosemirror-state"],
-  "prosemirror-transform": ["./node_modules/prosemirror-transform"],
-  "prosemirror-view": ["./node_modules/prosemirror-view"]
     }
   },
   "include": [
