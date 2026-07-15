@@ -133,7 +133,9 @@ export class Chapter {
     const c = Array.isArray(content) ? content : content?.content || [];
     const cleanContent = this.query.isAttachmentChapter()
       ? c
-      : this.filterContent(c.filter(c=>!(c.type == 'heading' && c.attrs?.level == 1)));
+      : this.filterContent(
+          c.filter((c) => !(c.type == "heading" && c.attrs?.level == 1)),
+        );
 
     await Storage.instance.setChapter({
       id: this.chapterId,

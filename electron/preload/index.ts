@@ -1,4 +1,5 @@
 import { ipcRenderer, contextBridge } from "electron";
+
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {
@@ -240,11 +241,8 @@ contextBridge.exposeInMainWorld("sharing", {
   },
 } satisfies SharingAPI);
 
-
-
-contextBridge.exposeInMainWorld("file",{
-  async save(fileName:string,file:Uint8Array){
-
-    return ipcRenderer.invoke("file:save",fileName,file)
-  }
-}  satisfies Window['file'])
+contextBridge.exposeInMainWorld("file", {
+  async save(fileName: string, file: Uint8Array) {
+    return ipcRenderer.invoke("file:save", fileName, file);
+  },
+} satisfies Window["file"]);

@@ -30,6 +30,7 @@ import { CLIService } from "@main/service/cli-service";
 import { getCliArgs, isCliInvocation } from "./cli-args";
 import { HightexProtocol } from "@main/server/hightex-protocol";
 import { IPCMain } from "@main/utilities/ipc-main";
+import { firstInstalled } from "@main/utilities/first-installed";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -57,6 +58,10 @@ export class Application {
   public get window() {
     return this.win;
   }
+
+  private windowOptions = {
+    show: true,
+  };
 
   constructor() {
     Application.instance = this;
@@ -154,12 +159,13 @@ export class Application {
   }
 
   private async createWindow(options: { show?: boolean } = {}) {
+    this.windowOptions = { ...options, ...this.windowOptions };
     const publicPath = process.env.VITE_DEV_SERVER_URL
       ? this.publicRoot
       : this.rendererDist;
 
     this.win = new BrowserWindow({
-      show: options.show ?? true,
+      show: false,
       width: 1200,
       height: 800,
 
@@ -191,10 +197,14 @@ export class Application {
     });
 
     this.win.webContents.on("did-finish-load", () => {
+      if (this.windowOptions.show) {
+        this.win?.show();
+      }
       this.win?.webContents.send(
         "main-process-message",
         new Date().toLocaleString(),
       );
+      this.win?.webContents.send("first-installed", firstInstalled());
     });
 
     this.win.on("maximize", () => {
@@ -265,8 +275,8 @@ export class Application {
 
   private registerContextMenu() {
     this.win?.webContents.on("context-menu", (_event, params) => {
-      if(app.isPackaged) return
-        const menu = new Menu();
+      if (app.isPackaged) return;
+      const menu = new Menu();
 
       menu.append(
         new MenuItem({
