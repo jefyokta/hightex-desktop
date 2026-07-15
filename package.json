@@ -114,5 +114,11 @@
     "vite-plugin-electron": "^0.28.8",
     "vite-plugin-electron-renderer": "^0.14.7"
   },
+    "overrides": {
+    "prosemirror-model": "1.25.11",
+    "prosemirror-state": "1.25.11",
+    "prosemirror-transform": "1.25.11",
+    "prosemirror-view": "1.25.11"
+  },
   "main": "./dist-electron/index.js"
 }

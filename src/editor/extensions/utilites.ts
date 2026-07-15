@@ -1,6 +1,6 @@
 import { Node, Fragment, Slice } from "@tiptap/pm/model";
 import { Editor, Range } from "@tiptap/react";
-import { Plugin } from "prosemirror-state";
+import { Plugin } from "@tiptap/pm/state";
 
 import {
   computePosition,

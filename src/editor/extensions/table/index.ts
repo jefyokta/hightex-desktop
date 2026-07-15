@@ -6,7 +6,7 @@ import {
 } from "@tiptap/extension-table";
 
 import { CommandProps } from "@tiptap/react";
-import { CellSelection } from "prosemirror-tables";
+import { CellSelection } from "@tiptap/pm/tables"
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
