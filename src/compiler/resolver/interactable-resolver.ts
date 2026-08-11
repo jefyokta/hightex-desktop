@@ -8,21 +8,7 @@ export class Interactable {
     if (!pagesWrapper) {
       throw new ApplicationError("emnyenenennee");
     }
-    pagesWrapper
-      .querySelectorAll<HTMLElement>(".pagedjs_page_content")
-      .forEach((page, i) => {
-        const height = page.getBoundingClientRect().height;
-        const tolerance = height + 15;
-        const contentHeight = page.scrollHeight;
-        const overflow = contentHeight > tolerance;
 
-        if (overflow) {
-          console.log("overflow on %s", i + 1);
-          FrameManager.sendMessage("page:overflow", {
-            page: i + 1,
-          });
-        }
-      });
     FrameManager.onMessaged((e) => {
       if (e.type == "node:clicked") {
         const target = pagesWrapper.querySelector(

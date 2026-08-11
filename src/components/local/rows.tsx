@@ -231,7 +231,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     <SelectGroup>
                       {categories.map((c) => (
                         <SelectItem key={c.id} value={String(c.id)}>
-                          {c.name}
+                          {c.name} - {c.variant}
                         </SelectItem>
                       ))}
                     </SelectGroup>

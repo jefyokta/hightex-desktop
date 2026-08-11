@@ -11,7 +11,6 @@ export class ParserResolver implements Resolver {
     if (!root) {
       throw new Error("ParserResolver: root not mounted");
     }
-    console.log(document.querySelectorAll(".attachment"));
     const parser = new Parser();
     const ctx = engine.config.parser;
     if (ctx.mode === "single") {

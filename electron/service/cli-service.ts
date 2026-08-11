@@ -172,9 +172,8 @@ export class CLIService {
     if (key) {
       result = this.strippedArgs.find((s) => s.key == key);
     }
-    if (result) {
-      return result.value;
-    }
+    if (result) return result.value;
+
 
     return this.unstrippedArgs[pos];
   }

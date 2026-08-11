@@ -6,8 +6,9 @@ import logo from "@/assets/images/logo-uin.png";
 export const Cover = ({ ...props }: HTMLAttributes<any>) => {
   const { document, profile } = usePrintable();
   if (!document) return null;
-
+  
   const doc = document.getDocument();
+  const docType = document.category?.variant ?? "thesis"
 
   return (
     <section
@@ -46,7 +47,7 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
             marginBottom: "1.5cm",
           }}
         >
-          Tugas akhir
+          {docType == "intern" ? "Laporan Kerja Praktek" : (docType == "proposal" ? "Proposal Tugas Akhir" : "Tugas akhir")}
         </div>
 
         <div
