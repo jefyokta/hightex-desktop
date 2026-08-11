@@ -82,6 +82,12 @@ export const Setting = () => {
 
   if (!doc) return null;
 
+  const selectedCategory = categories.find(
+    (category) => String(category.id) === String(doc.category),
+  );
+  const isInternDoc =
+    selectedCategory?.variant === "intern" || Boolean(doc.config?.intern);
+
   return (
     <div className="flex h-full flex-col bg-background">
       <TabHeader title="Document Setting" desc={doc.title}>
@@ -137,10 +143,23 @@ export const Setting = () => {
             <Select
               value={doc.category?.toString() ?? 1}
               onValueChange={(value) =>
-                setDoc((prev) => ({
-                  ...prev!,
-                  category: value,
-                }))
+                setDoc((prev) => {
+                  const nextCategory = categories.find(
+                    (category) => String(category.id) === value,
+                  );
+
+                  return {
+                    ...prev!,
+                    category: value,
+                    config: {
+                      ...prev!.config,
+                      intern:
+                        nextCategory?.variant === "intern"
+                          ? prev!.config?.intern ?? {}
+                          : prev!.config?.intern,
+                    },
+                  };
+                })
               }
             >
               <SelectTrigger className="w-full mt-1">
@@ -283,6 +302,84 @@ export const Setting = () => {
             }}
           />
         </Section>
+
+        {isInternDoc && (
+          <Section title="Intern Document Info">
+            <Field
+              label="Onsite Location"
+              value={doc.config.intern?.onsite_at ?? ""}
+              onChange={(onsite_at) =>
+                setDoc((prev) => ({
+                  ...prev!,
+                  config: {
+                    ...prev?.config,
+                    intern: {
+                      ...prev?.config?.intern,
+                      onsite_at,
+                    },
+                  },
+                }))
+              }
+            />
+
+            <Field
+              label="Internship Advisor Name"
+              value={doc.config.intern?.advisor?.name ?? ""}
+              onChange={(name) =>
+                setDoc((prev) => ({
+                  ...prev!,
+                  config: {
+                    ...prev?.config,
+                    intern: {
+                      ...prev?.config?.intern,
+                      advisor: {
+                        ...prev?.config?.intern?.advisor,
+                        name,
+                      },
+                    },
+                  },
+                }))
+              }
+            />
+
+            <Field
+              label="Internship Advisor NIP"
+              value={doc.config.intern?.advisor?.nip ?? ""}
+              onChange={(nip) =>
+                setDoc((prev) => ({
+                  ...prev!,
+                  config: {
+                    ...prev?.config,
+                    intern: {
+                      ...prev?.config?.intern,
+                      advisor: {
+                        ...prev?.config?.intern?.advisor,
+                        nip,
+                      },
+                    },
+                  },
+                }))
+              }
+            />
+
+            <DatePickerInput
+              label="Intern Validity Date"
+              date={doc.config.intern?.validity}
+              setDate={(date) => {
+                setDoc((prv) => ({
+                  ...prv!,
+                  config: {
+                    ...prv?.config,
+                    intern: {
+                      ...prv?.config?.intern,
+                      validity: date,
+                    },
+                  },
+                }));
+              }}
+            />
+          </Section>
+        )}
       </div>
     </div>
   );

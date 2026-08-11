@@ -35,7 +35,8 @@
     "src/types/**/*.d.ts",
     "src/components/**/*.tsx",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+    "signer.ts"
   ],
   "exclude": ["electron/plugins/plugin-example.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

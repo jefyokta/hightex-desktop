@@ -1,19 +1,9 @@
 import { Engine } from "@/compiler/engine";
-import {
-  AbstractEnglish,
-  AbstractIndonesian,
-} from "@/compiler/sheets/abstracts";
-import { Constent } from "@/compiler/sheets/consent";
-import { Cover } from "@/compiler/sheets/cover";
-import { Foreword } from "@/compiler/sheets/foreword";
-import { IPR } from "@/compiler/sheets/ipr";
-import { Presentation } from "@/compiler/sheets/presentation";
-import { Statement } from "@/compiler/sheets/statement";
-import { Validity } from "@/compiler/sheets/validity";
 import { useEffect, useRef } from "react";
 import { usePrintable } from "@/hooks/use-printable";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { useParams } from "react-router-dom";
+import { StaticPages } from "@/compiler/static-pages";
 
 export const FullDocument = () => {
   const sourceRef = useRef<HTMLDivElement | null>(null);
@@ -73,29 +63,15 @@ export const FullDocument = () => {
     return null;
   }
 
+  const categoryVariant: CategoryVariant =
+    document.category?.variant ?? "thesis";
+
+  const FrontPages = StaticPages.create(categoryVariant);
+
   return (
     <>
       <div ref={sourceRef} style={{ display: "none" }}>
-        <Cover />
-        {!document.category?.min && (
-          <>
-            <Constent />
-
-            <Validity />
-
-            <IPR />
-
-            <Statement />
-
-            <Presentation />
-
-            <Foreword />
-
-            <AbstractIndonesian />
-
-            <AbstractEnglish />
-          </>
-        )}
+        <FrontPages />
 
         <div className="content" ref={parserRef}></div>
       </div>

@@ -1,7 +1,11 @@
 import { JSONContent } from "@tiptap/core";
 export {};
 
+
+
 declare global {
+
+  type CategoryVariant = "thesis" | "proposal" | "intern"
   interface HighTexFileMeta {
     filePath: string;
     lastUpdated: number;
@@ -34,6 +38,7 @@ declare global {
       title: string;
     }[];
     id: number;
+    variant: CategoryVariant;
     min?: boolean;
   }
   interface Mentor extends User {
@@ -50,6 +55,15 @@ declare global {
     leader?: string;
     member_1?: string;
     member_2?: string;
+    // intern only
+    intern?: {
+      onsite_at?: string;
+      advisor?: {
+        name?: string;
+        nip?: string;
+      };
+      validity?: Date;
+    }
   }
   interface HighTexDocument {
     id: string;
