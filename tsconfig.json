@@ -26,7 +26,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@main/*": ["./electron/*"],
-      "pagedjs": ["./src/types/pagedjs"]
+      "pagedjs": ["./src/types/pagedjs"],
     }
   },
   "include": [

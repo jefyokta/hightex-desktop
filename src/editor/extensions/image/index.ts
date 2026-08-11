@@ -1,7 +1,7 @@
 import { mergeAttributes } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { Plugin } from "prosemirror-state";
+import { Plugin } from "@tiptap/pm/state";
 import {
   convertImage,
   fromClipboard,
