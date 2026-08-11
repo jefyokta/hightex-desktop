@@ -24,6 +24,7 @@ dist-ssr
 *.sw?
 dist-electron/
 .env
+bun.lock
 #dev key
 *.key
 genereate-keys.ts
