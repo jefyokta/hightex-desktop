@@ -8,6 +8,7 @@ type SnapshotRelation = {
 };
 export class Snapshot extends Model<SnapshotEntity, SnapshotRelation> {
   protected primaryKeyType = "TEXT" as const;
+  protected tableName: string = 'snapshots';
   protected schema = {
     updatedAt: table.date().nullable(),
     filePath: table.text(),

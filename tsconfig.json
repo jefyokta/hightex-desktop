@@ -36,7 +36,8 @@
     "src/components/**/*.tsx",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "signer.ts"
+    "signer.ts",
+    "create-release.ts"
   ],
   "exclude": ["electron/plugins/plugin-example.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

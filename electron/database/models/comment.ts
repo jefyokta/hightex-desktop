@@ -8,6 +8,8 @@ type CommentRelation = {
 };
 export class Comment extends Model<CommentEntity, CommentRelation> {
   protected primaryKeyType = "TEXT" as const;
+
+  protected tableName: string = 'comments';
   protected schema = {
     data: table.json(),
     text: table.text(),

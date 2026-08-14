@@ -48,7 +48,7 @@ export const FigureNumberPlugin = new Plugin({
         }
       });
 
-      return DecorationSet.create(tr.doc, decorations);
+      return DecorationSet.create(tr.doc as any, decorations);
     },
   },
 

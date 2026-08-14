@@ -4,7 +4,7 @@ type Input = JSONContent | JSONContent[] | null | undefined;
 
 export const ContentFixer = (
   content: Input,
-  schema: Editor["schema"],
+  schema: Editor['schema'] ,
 ): JSONContent => {
   let json: any = content;
 

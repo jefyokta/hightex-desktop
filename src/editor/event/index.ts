@@ -23,7 +23,7 @@ export const events = {
       };
 
       let content = isEmpty() ? emptyDoc : ch;
-      content = ContentFixer(content, editor.state.schema);
+      content = ContentFixer(content, editor.state.schema as any);
 
       if (editor.isDestroyed) return;
       editor.commands.setContent(content, {

@@ -145,7 +145,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
     );
     if (figure === undefined) return;
     editor.view.dispatch(
-      editor.state.tr.replaceWith(pos, pos + node.nodeSize, figure),
+      editor.state.tr.replaceWith(pos, pos + node.nodeSize, figure as any),
     );
   }, [node, getPos, editor]);
 
