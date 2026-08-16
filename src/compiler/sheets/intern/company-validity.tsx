@@ -52,7 +52,7 @@ export const CompanyConsent = () => {
                 Telah diperiksa dan disetujui sebagai Laporan Kerja Praktek
                 <br />
                 di {document.getDocument().config.intern?.onsite_at ?? "{lokasi kerja praktek}"}, pada tanggal{" "}
-                {formatDate(document.getDocument().config.intern?.validity ?? document.getDocument().config.consentDate!)}
+                {formatDate(document.getDocument().config.intern?.validity ?? document.getDocument().config.consentDate ?? new Date)}
             </div>
 
             <div
