@@ -62,7 +62,7 @@ export const FullDocument = () => {
   if (!document) {
     return null;
   }
-
+  console.log(document.category)
   const categoryVariant: CategoryVariant =
     document.category?.variant ?? "thesis";
 

@@ -368,6 +368,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     ...doc,
                     altTitle,
                     keywords: { indonesian: keywordsId, english: keywordsEn },
+                    category:category ?? doc.category
                   });
                   toast.success("Saved");
                 }}
