@@ -2,6 +2,7 @@ import { app } from "electron";
 import Store from "electron-store";
 
 const DEFAULT_CONFIG: ConfigShape = {
+  language: "en",
   theme: "system",
 
   previewer: {

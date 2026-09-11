@@ -42,11 +42,13 @@ import {
 import { toast } from "sonner";
 import { cleanUnusedProgress } from "@/utils/clean-unused-data";
 import { HighTexDB } from "@/editor/storage/hightex-db";
+import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 
 export const Settings = () => {
   const [config, setConfig] = useState<ConfigShape | null>(null);
 
   const [theme, setTheme] = useState<ThemeMode>("system");
+  const [language, setLanguage] = useState<SupportedLanguage>("en");
 
   useEffect(() => {
     const init = window.config.get();
@@ -54,11 +56,13 @@ export const Settings = () => {
     if (init) {
       setConfig(init);
       setTheme(init.theme);
+      setLanguage(init.language ?? "en");
     }
 
     return window.config.onChange((cnfg) => {
       setConfig(cnfg);
       setTheme(cnfg.theme);
+      setLanguage(cnfg.language ?? "en");
     });
   }, []);
 
@@ -76,30 +80,65 @@ export const Settings = () => {
     });
   };
 
+  const changeLanguage = async (mode: SupportedLanguage) => {
+    setLanguage(mode);
+
+    await patchConfig({
+      language: mode,
+    });
+  };
+
   if (!config) return null;
 
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Settings</h1>
+        <h1 className="text-xl font-semibold text-foreground">
+          {t("settings.title", language)}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Manage your application preferences
+          {t("settings.subtitle", language)}
         </p>
       </div>
       <AppInfoSection />
       <ProfileSection />
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Theme and visual preferences</CardDescription>
+          <CardTitle>{t("settings.appearance", language)}</CardTitle>
+          <CardDescription>
+            {t("settings.appearance.description", language)}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Theme</Label>
+              <Label>{t("settings.language", language)}</Label>
               <p className="text-xs text-muted-foreground">
-                Choose application theme mode
+                {t("settings.language.description", language)}
+              </p>
+            </div>
+
+            <Select value={language} onValueChange={changeLanguage}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>{t("settings.theme", language)}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.theme.description", language)}
               </p>
             </div>
 

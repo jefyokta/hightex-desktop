@@ -5,6 +5,7 @@ export {};
 
 declare global {
   type ThemeMode = "light" | "dark" | "system";
+  type SupportedLanguage = "en" | "id";
   interface Profile {
     name: string;
     nim: string;
@@ -22,6 +23,7 @@ declare global {
     reset: () => Promise<void>;
   }
   type ConfigShape = {
+    language: SupportedLanguage;
     theme: ThemeMode;
 
     previewer: {
