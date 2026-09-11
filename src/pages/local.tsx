@@ -8,6 +8,7 @@ import { truncate } from "@/utils/truncate";
 import { Exporter } from "@/utils/htx/exporter";
 import { DocumentList } from "@/components/local/document-list";
 import { CategoryEmpty } from "@/exception/categories-empty";
+import { t } from "@/utils/lang";
 
 export const Dashboard = () => {
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
@@ -42,7 +43,7 @@ export const Dashboard = () => {
 
     const doc: HighTexDocument = {
       id: crypto.randomUUID(),
-      title: "Untitled Document",
+    title: t("common.untitled_document"),
       altTitle: "",
       category: defaultCategory.id.toString(),
       keywords: { indonesian: [], english: [] },
@@ -63,7 +64,7 @@ export const Dashboard = () => {
   const importFromFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const id = toast.loading("Importing");
+    const id = toast.loading(t("common.importing"));
     try {
       const manifest = (await HighTexImporter.create(file)).manifest;
       const importedDocument =
@@ -96,7 +97,7 @@ export const Dashboard = () => {
   };
 
   const exportDocument = async (id: string, format: ContentFormat = "json") => {
-    const toastId = toast.loading(`Exporting HighTex  package...`);
+    const toastId = toast.loading(`${t("common.export")} HighTex...`);
     const exporter = new Exporter(id, {
       format,
       ext: "hightex",
@@ -108,10 +109,10 @@ export const Dashboard = () => {
         toast.dismiss(toastId);
         return;
       }
-      toast.success(`Export successful`, { id: toastId });
+      toast.success(t("common.export_success"), { id: toastId });
     } catch (err) {
       console.error("Export failed", err);
-      toast.error("Export failed", { id: toastId });
+      toast.error(t("common.export_failed"), { id: toastId });
     }
   };
 
@@ -129,8 +130,10 @@ export const Dashboard = () => {
   );
 };
 
-const Loading = () => (
-  <div className="flex items-center justify-center text-sm text-neutral-400">
-    Loading HighTex...
-  </div>
-);
+const Loading = () => {
+  return (
+    <div className="flex items-center justify-center text-sm text-neutral-400">
+      {t("dashboard.loading")}
+    </div>
+  );
+};

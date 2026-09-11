@@ -2,6 +2,7 @@ import { ChevronDown, Cloud, File, FilePlus2, Plus } from "lucide-react";
 import { Dropdown, DropdownItem } from "../dropdown";
 import { Row } from "./rows";
 import { ChangeEvent } from "react";
+import { t } from "@/utils/lang";
 interface Props {
   documents: HighTexDocument[];
   onRename: (id: string, title: string) => Promise<void>;
@@ -23,11 +24,11 @@ export const DocumentList = ({
       <div className="flex h-16 mb-4 items-start justify-between px-4 py-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Your Documents
+            {t("dashboard.your_documents")}
           </h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Local workspace stored in your device
+            {t("dashboard.documents_subtitle")}
           </p>
         </div>
 
@@ -37,7 +38,7 @@ export const DocumentList = ({
             className="flex items-center gap-1 ps-3 pe-1 py-1.5"
           >
             <FilePlus2 size={14} />
-            New
+            {t("common.new")}
           </button>
 
           <Dropdown
@@ -58,7 +59,7 @@ export const DocumentList = ({
                   />
 
                   <span className="font-light text-neutral-700 dark:text-neutral-200">
-                    Create Empty
+                    {t("dashboard.create_empty")}
                   </span>
                 </div>
               </DropdownItem>
@@ -74,7 +75,7 @@ export const DocumentList = ({
                   />
 
                   <span className="font-light text-neutral-700 dark:text-neutral-200">
-                    Import from file
+                    {t("dashboard.import_from_file")}
                   </span>
                 </label>
 
@@ -97,7 +98,7 @@ export const DocumentList = ({
                   />
 
                   <span className="font-light text-neutral-700 dark:text-neutral-200">
-                    Import from Cloud
+                    {t("dashboard.import_from_cloud")}
                   </span>
                 </div>
               </DropdownItem>
@@ -109,7 +110,7 @@ export const DocumentList = ({
       <div className="flex-1 bg-neutral-50 p-2 dark:bg-neutral-900/50 overflow-y-auto rounded-2xl min-h-0 border border-transparent dark:border-neutral-800">
         {documents.length === 0 ? (
           <div className="p-6 text-xs text-neutral-400 dark:text-neutral-500">
-            No documents yet. Create your first document to start writing.
+            {t("dashboard.no_documents")}
           </div>
         ) : (
           documents.map((doc: HighTexDocument) => (

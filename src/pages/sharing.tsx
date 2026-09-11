@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { connectToHost } from "@/utils/sharing";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
+import { t } from "@/utils/lang";
 
 const sharingType: { type: SharingType; name: string }[] = [
   {
@@ -97,17 +98,17 @@ export const Present = () => {
   }, [activeSession]);
 
   if (!initialized) {
-    return <div className="flex justify-center py-10">Loading...</div>;
+    return <div className="flex justify-center py-10">{t("common.loading")}</div>;
   }
 
   if (activeSession) {
     return (
       <div className="space-y-6">
         <div className="rounded-3xl  p-6">
-          <h1 className="text-2xl font-semibold">Presentation Planner</h1>
+          <h1 className="text-2xl font-semibold">{t("present.title")}</h1>
 
           <p className="text-sm text-muted-foreground mt-2">
-            Sharing session is active.
+            {t("present.session_active")}
           </p>
         </div>
 
@@ -126,32 +127,32 @@ export const Present = () => {
     <div className="space-y-6">
       <div className="rounded-3xl  p-6 flex justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Presentation Planner</h1>
+          <h1 className="text-2xl font-semibold">{t("present.title")}</h1>
 
           <p className="text-sm text-muted-foreground mt-2">
-            Let them judge your document!
+            {t("present.subtitle")}
           </p>
         </div>
         <div>
           <Dialog>
             <DialogTrigger className={cn(buttonVariants({ size: "sm" }))}>
-              Join
+              {t("present.join")}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Join a sharing Session</DialogTitle>
+                <DialogTitle>{t("present.join_session")}</DialogTitle>
                 <DialogDescription>
-                  Drop that weirdly text from your host.
+                  {t("present.join_description")}
                 </DialogDescription>
               </DialogHeader>
               <Input
                 value={invitation}
                 onChange={(e) => setInvitation(e.target.value)}
-                placeholder="invitation code"
+                placeholder={t("present.invitation_code")}
               ></Input>
               <Button
                 onClick={async () => {
-                  const id = toast.loading("Loading");
+                  const id = toast.loading(t("present.loading"));
                   try {
                     const inv = await connectToHost(invitation);
 
@@ -167,7 +168,7 @@ export const Present = () => {
                   }
                 }}
               >
-                Join
+                {t("present.join")}
               </Button>
             </DialogContent>
           </Dialog>
@@ -176,7 +177,7 @@ export const Present = () => {
 
       {docs.length === 0 ? (
         <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-          No documents available.
+          {t("present.no_documents")}
         </div>
       ) : (
         <div className="space-y-4 bg-neutral-50 dark:bg-neutral-900 h-full rounded-2xl p-5">
@@ -251,7 +252,7 @@ const ShareDocument = ({
       <div>
         <div className="text-xs text-muted-foreground">
           {categories.find((c) => String(c.id) === document.category)?.name ??
-            "Uncategorized"}
+            t("sharing.uncategorized")}
         </div>
 
         <div className="font-medium">{document.title}</div>

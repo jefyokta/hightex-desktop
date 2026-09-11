@@ -94,28 +94,28 @@ export const Settings = () => {
     <>
       <div>
         <h1 className="text-xl font-semibold text-foreground">
-          {t("settings.title", language)}
+          {t("settings.title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {t("settings.subtitle", language)}
+          {t("settings.subtitle")}
         </p>
       </div>
       <AppInfoSection />
       <ProfileSection />
       <Card>
         <CardHeader>
-          <CardTitle>{t("settings.appearance", language)}</CardTitle>
+          <CardTitle>{t("settings.appearance")}</CardTitle>
           <CardDescription>
-            {t("settings.appearance.description", language)}
+            {t("settings.appearance.description")}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>{t("settings.language", language)}</Label>
+              <Label>{t("settings.language")}</Label>
               <p className="text-xs text-muted-foreground">
-                {t("settings.language.description", language)}
+                {t("settings.language.description")}
               </p>
             </div>
 
@@ -136,9 +136,9 @@ export const Settings = () => {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>{t("settings.theme", language)}</Label>
+              <Label>{t("settings.theme")}</Label>
               <p className="text-xs text-muted-foreground">
-                {t("settings.theme.description", language)}
+                {t("settings.theme.description")}
               </p>
             </div>
 
@@ -151,21 +151,21 @@ export const Settings = () => {
                 <SelectItem value="light">
                   <div className="flex items-center gap-2">
                     <Sun size={14} />
-                    Light
+                    {t("common.light")}
                   </div>
                 </SelectItem>
 
                 <SelectItem value="dark">
                   <div className="flex items-center gap-2">
                     <Moon size={14} />
-                    Dark
+                    {t("common.dark")}
                   </div>
                 </SelectItem>
 
                 <SelectItem value="system">
                   <div className="flex items-center gap-2">
                     <Monitor size={14} />
-                    System
+                    {t("common.system")}
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -175,13 +175,15 @@ export const Settings = () => {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Editor</CardTitle>
-          <CardDescription>Writing and editing behavior</CardDescription>
+          <CardTitle>{t("settings.editor")}</CardTitle>
+          <CardDescription>
+            {t("settings.editor.description")}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label="Spell Check"
+            label={t("editor.spell_check")}
             value={config.editor?.spellCheck ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -196,19 +198,18 @@ export const Settings = () => {
           <SettingSwitch
             label={
               <>
-                <span>Prefer Cloud Profile</span>{" "}
+                <span>{t("profile.cloud_profile")}</span>{" "}
                 <Tooltip>
                   <TooltipTrigger>
                     <InfoIcon size={12} />
                   </TooltipTrigger>
                   <TooltipPanel>
-                    If you enable this, when you connected to the cloud profile,
-                    the all documents will using cloud profile
+                    {t("profile.cloud_tooltip")}
                   </TooltipPanel>
                 </Tooltip>
               </>
             }
-            description="Use cloud profile as primary identity"
+            description={t("profile.cloud_profile_description")}
             value={config.editor?.preferCloudProfile ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -224,14 +225,16 @@ export const Settings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Export</CardTitle>
-          <CardDescription>Configure how exports are saved</CardDescription>
+          <CardTitle>{t("settings.export")}</CardTitle>
+          <CardDescription>
+            {t("settings.export.description")}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label="Enable save dialog"
-            description="Show a save dialog when exporting a HighTex package"
+            label={t("settings.export")}
+            description={t("settings.export.description")}
             value={config.export?.saveDialog ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -379,7 +382,7 @@ export const Settings = () => {
 
         <CardContent className="space-y-4">
           <DangerAction
-            label="Clear Cache"
+            label={t("settings.data.clearcache")}
             description="Remove temporary stored data"
             action="Clear"
             onClick={async () => {
@@ -435,7 +438,7 @@ export const Settings = () => {
           <Separator />
 
           <DangerAction
-            label="Clear Data"
+            label={t("settings.data.cleardata")}
             description="Delete all of your documents"
             action="Clear"
             onClick={async () => {
