@@ -1,20 +1,19 @@
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export const Forms = () => {
-  const language = useAppLanguage();
 
   return (
     <>
       <div>
         <h1 className="text-xl font-semibold text-foreground">
-          {t("forms.title", language)}
+          {t("forms.title")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {t("forms.subtitle", language)}
+          {t("forms.subtitle")}
         </p>
       </div>
       <div>
-        <h1>{t("forms.coming_soon", language)}</h1>
+        <h1>{t("forms.coming_soon")}</h1>
       </div>
     </>
   );

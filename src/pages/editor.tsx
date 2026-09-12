@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { TableMenu } from "@/editor/components/table-menu";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { t } from "@/utils/lang";
 
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
@@ -163,8 +164,8 @@ const EditorComponent = () => {
                 const frame = document.querySelector("iframe");
                 if (!frame) {
                   throw new FrameNotOpened({
-                    message: "Frame Not Opened",
-                    description: "Please Open Previewer First!",
+                    message: t("frame.not.opened"),
+                    description: t("frame.not.opened.desc"),
                     action: (
                       <Button
                         onClick={() => {

@@ -6,16 +6,17 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { confirm } from "@/utils/confirm";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { t } from "@/utils/lang";
 
 const loadSnapshots = async () => {
   return (await window.ipcRenderer.invoke("snapshots")) as SnapshotEntity[];
 };
 
 const formatRelativeDate = (value: Date | string | null | undefined) => {
-  if (!value) return "Unknown time";
+  if (!value) return t("snapshots.unknown_time");
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown time";
+  if (Number.isNaN(date.getTime())) return t("snapshots.unknown_time");
 
   return formatDistanceToNow(date, { addSuffix: true });
 };
@@ -31,7 +32,7 @@ const formatSnapshotType = (type: string) => {
 
 const getSnapshotTitle = (snapshot: SnapshotEntity) => {
   if (snapshot.type === "advising") {
-    return `Advising ${new Date(snapshot.createdAt).toLocaleString()}`;
+    return `${t("snapshots.advising")} ${new Date(snapshot.createdAt).toLocaleString()}`;
   }
 
   return formatSnapshotType(snapshot.type);
@@ -53,7 +54,7 @@ export const Snapshot = () => {
       setSnapshots(items);
     } catch (err) {
       console.error(err);
-      setError("Failed to load snapshots.");
+      setError(t("snapshots.load_error"));
     } finally {
       setLoading(false);
     }
@@ -62,16 +63,16 @@ export const Snapshot = () => {
   const deleteSnapshot = async (snapshot: SnapshotEntity) => {
     const label = getSnapshotTitle(snapshot);
     const confirmed = await confirm({
-      title: `Delete ${label}?`,
-      desc: "This will remove the snapshot record, related comments, and snapshot file.",
-      confirmText: "Delete",
+      title: t("snapshots.delete_title", { label }),
+      desc: t("snapshots.delete_description"),
+      confirmText: t("snapshots.delete"),
     });
 
     if (!confirmed) {
       return;
     }
 
-    const toastId = toast.loading("Deleting snapshot...");
+    const toastId = toast.loading(t("snapshots.deleting"));
     setDeletingId(snapshot.id);
 
     try {
@@ -81,20 +82,20 @@ export const Snapshot = () => {
       );
 
       if (!deleted) {
-        throw new Error("Snapshot not found");
+        throw new Error(t("snapshots.not_found"));
       }
 
       setSnapshots((items) => items.filter((item) => item.id !== snapshot.id));
-      toast.success("Snapshot deleted", { id: toastId });
+      toast.success(t("snapshots.deleted"), { id: toastId });
     } catch (err) {
       console.error(err);
       toast.dismiss(toastId);
       throw new ShouldNotified({
-        message: "Failed to delete snapshot",
+        message: t("snapshots.delete_error"),
         description:
           err instanceof Error
             ? err.message
-            : "The snapshot could not be deleted.",
+            : t("snapshots.delete_failed"),
       });
     } finally {
       setDeletingId(null);
@@ -109,10 +110,11 @@ export const Snapshot = () => {
     <div className="flex h-full min-h-0 flex-col px-4 pb-4">
       <div className="flex shrink-0 items-start justify-between py-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Snapshots</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("snapshots.title")}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Saved sharing sessions. Open one to inspect the rendered document
-            and comments.
+            {t("snapshots.description")}
           </p>
         </div>
 
@@ -122,7 +124,7 @@ export const Snapshot = () => {
           className="flex items-center gap-2 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-800 dark:hover:bg-neutral-700"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          Refresh
+          {t("snapshots.refresh")}
         </button>
       </div>
 
@@ -134,9 +136,9 @@ export const Snapshot = () => {
 
       <section className="min-h-0 flex-1 rounded-2xl border border-transparent bg-neutral-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50">
         {loading ? (
-          <EmptyState label="Loading snapshots..." />
+          <EmptyState label={t("snapshots.loading")} />
         ) : snapshots.length === 0 ? (
-          <EmptyState label="No snapshots saved yet." />
+          <EmptyState label={t("snapshots.empty")} />
         ) : (
           <div className="space-y-1">
             {snapshots.map((snapshot) => {
@@ -182,14 +184,16 @@ export const Snapshot = () => {
                     disabled={deletingId === snapshot.id}
                     onClick={() => deleteSnapshot(snapshot)}
                     className="text-neutral-400 opacity-100 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-400"
-                    title="Delete snapshot"
+                    title={t("snapshots.delete_snapshot")}
                   >
                     {deletingId === snapshot.id ? (
                       <RefreshCw className="animate-spin" />
                     ) : (
                       <Trash2 />
                     )}
-                    <span className="sr-only">Delete snapshot</span>
+                    <span className="sr-only">
+                      {t("snapshots.delete_snapshot")}
+                    </span>
                   </Button>
                 </div>
               );

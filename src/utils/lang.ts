@@ -1,25 +1,78 @@
+
 import { useEffect, useState } from "react";
+
 import en from "@/locales/en.json";
 import id from "@/locales/id.json";
 
 export const SUPPORTED_LANGUAGES = ["en", "id"] as const;
+
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-const LOCALE_MESSAGES: Record<SupportedLanguage, Record<string, string>> = {
-  en: en as Record<string, string>,
-  id: id as Record<string, string>,
+type TranslationValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
+
+type TranslationValues = Record<string, TranslationValue>;
+
+type TranslationObject = {
+  [key: string]: string | TranslationObject;
+};
+
+const flattenTranslations = (
+  object: TranslationObject,
+  prefix = "",
+): Record<string, string> => {
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(object)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (typeof value === "string") {
+      result[fullKey] = value;
+
+      continue;
+    }
+
+    Object.assign(result, flattenTranslations(value, fullKey));
+  }
+
+  return result;
+};
+
+const LOCALE_MESSAGES: Record<
+  SupportedLanguage,
+  Record<string, string>
+> = {
+  en: flattenTranslations(en as TranslationObject),
+  id: flattenTranslations(id as TranslationObject),
 };
 
 let currentLanguage: SupportedLanguage = "en";
 
-export const LANGUAGE_OPTIONS: Array<{ value: SupportedLanguage; label: string }> = [
-  { value: "en", label: "English" },
-  { value: "id", label: "Bahasa Indonesia" },
+export const LANGUAGE_OPTIONS: Array<{
+  value: SupportedLanguage;
+  label: string;
+}> = [
+  {
+    value: "en",
+    label: "English",
+  },
+  {
+    value: "id",
+    label: "Bahasa Indonesia",
+  },
 ];
 
-export const getLanguageLabel = (language: SupportedLanguage = "en") => {
+export const getLanguageLabel = (
+  language: SupportedLanguage = "en",
+): string => {
   return (
-    LANGUAGE_OPTIONS.find((item) => item.value === language)?.label ?? "English"
+    LANGUAGE_OPTIONS.find(
+      (item) => item.value === language,
+    )?.label ?? "English"
   );
 };
 
@@ -28,37 +81,60 @@ export const getCurrentLanguage = (): SupportedLanguage => {
     return currentLanguage;
   }
 
-  const nextLanguage = (window.config.get()?.language ?? currentLanguage) as SupportedLanguage;
-  currentLanguage = SUPPORTED_LANGUAGES.includes(nextLanguage)
-    ? nextLanguage
-    : "en";
+  const configuredLanguage = window.config.get()?.language;
+
+  const language = SUPPORTED_LANGUAGES.includes(
+    configuredLanguage as SupportedLanguage,
+  )
+    ? (configuredLanguage as SupportedLanguage)
+    : currentLanguage;
+
+  currentLanguage = language;
 
   return currentLanguage;
 };
 
-export const setCurrentLanguage = (language: SupportedLanguage = "en") => {
-  currentLanguage = SUPPORTED_LANGUAGES.includes(language) ? language : "en";
-  if (typeof document !== "undefined") {
-    const root = document.documentElement;
-    root.lang = currentLanguage === "id" ? "id" : "en";
-    root.dataset.lang = currentLanguage;
+export const setCurrentLanguage = (
+  language: SupportedLanguage = "en",
+): void => {
+  currentLanguage = SUPPORTED_LANGUAGES.includes(language)
+    ? language
+    : "en";
+
+  if (typeof document === "undefined") {
+    return;
   }
+
+  const root = document.documentElement;
+
+  root.lang = currentLanguage;
+  root.dataset.lang = currentLanguage;
 };
 
-export const useAppLanguage = () => {
+export const useAppLanguage = (): SupportedLanguage => {
   const [language, setLanguage] = useState<SupportedLanguage>(() =>
     getCurrentLanguage(),
   );
 
   useEffect(() => {
-    if (typeof window === "undefined" || !window.config?.onChange) {
+    if (
+      typeof window === "undefined" ||
+      !window.config?.onChange
+    ) {
       return;
     }
 
     const unsubscribe = window.config.onChange((config) => {
-      const nextLanguage = (config.language ?? "en") as SupportedLanguage;
-      setCurrentLanguage(nextLanguage);
-      setLanguage(nextLanguage);
+      const configuredLanguage = config.language;
+
+      const language = SUPPORTED_LANGUAGES.includes(
+        configuredLanguage as SupportedLanguage,
+      )
+        ? (configuredLanguage as SupportedLanguage)
+        : "en";
+
+      setCurrentLanguage(language);
+      setLanguage(language);
     });
 
     return unsubscribe;
@@ -67,17 +143,66 @@ export const useAppLanguage = () => {
   return language;
 };
 
-export const t = (key: string, language?: SupportedLanguage) => {
-  const activeLanguage = language ?? getCurrentLanguage();
-  return LOCALE_MESSAGES[activeLanguage]?.[key] ?? LOCALE_MESSAGES.en[key] ?? key;
+const interpolate = (
+  message: string,
+  values?: TranslationValues,
+): string => {
+  if (!values) {
+    return message;
+  }
+
+  return message.replace(
+    /\{(\w+)\}/g,
+    (placeholder, key: string) => {
+      if (!(key in values)) {
+        return placeholder;
+      }
+
+      const value = values[key];
+
+      if (value === null || value === undefined) {
+        return "";
+      }
+
+      return String(value);
+    },
+  );
 };
 
-export const applyLanguage = (language: SupportedLanguage = "en") => {
+export const t = (
+  key: string,
+  values?: TranslationValues,
+): string => {
+  const language = getCurrentLanguage();
+
+  const message =
+    LOCALE_MESSAGES[language]?.[key] ??
+    LOCALE_MESSAGES.en[key] ??
+    key;
+
+  return interpolate(message, values);
+};
+
+export const applyLanguage = (
+  language: SupportedLanguage = "en",
+): void => {
   setCurrentLanguage(language);
 };
 
-if (typeof window !== "undefined" && window.config?.onChange) {
+if (
+  typeof window !== "undefined" &&
+  window.config?.onChange
+) {
   window.config.onChange((config) => {
-    setCurrentLanguage((config.language ?? "en") as SupportedLanguage);
+    const configuredLanguage = config.language;
+
+    const language = SUPPORTED_LANGUAGES.includes(
+      configuredLanguage as SupportedLanguage,
+    )
+      ? (configuredLanguage as SupportedLanguage)
+      : "en";
+
+    setCurrentLanguage(language);
   });
 }
+

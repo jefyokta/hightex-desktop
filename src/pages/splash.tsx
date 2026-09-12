@@ -216,10 +216,6 @@ export const Splash: React.FC = () => {
                 name: "Irvandi Kurniawan",
                 role: "Best of The Best Friend",
               },
-              {
-                name: "Lafera Space",
-                role: "My Second Home",
-              },
             ]}
           />
         </div>

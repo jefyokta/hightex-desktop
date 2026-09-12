@@ -808,8 +808,8 @@ const AppInfoSection = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>About</CardTitle>
-        <CardDescription>Application info and updates</CardDescription>
+        <CardTitle>{t("settings.about")}</CardTitle>
+        <CardDescription>{t("settings.main.header")}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -817,7 +817,7 @@ const AppInfoSection = () => {
           <div className="space-y-0.5">
             <Label>Version</Label>
             <p className="text-xs text-muted-foreground">
-              Currently installed version
+              {t("settings.version.info.title")}
             </p>
           </div>
           <span className="font-mono text-sm text-foreground">
@@ -851,7 +851,7 @@ const AppInfoSection = () => {
                 checking || status?.status === "checking" ? "animate-spin" : ""
               }
             />
-            Check for Updates
+            {t("settings.checkforupdate")}
           </Button>
         </div>
       </CardContent>

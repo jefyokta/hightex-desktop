@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { ShouldNotified } from "./interfaces/should-notified";
+import { t } from "@/utils/lang";
 
 export class CategoryEmpty extends ShouldNotified<"error"> {
   level: "error" = "error";
   constructor() {
     super({
-      message: "Categories is missing!",
-      description: "Try to get online or reinstall the app",
+      message: t("error.category.missing"),
+      description: t("error.category.missing.desc"),
       action: (
         <Button
           onClick={() => {
             location.href = "/";
           }}
         >
-          Back
+          {t("back")}
         </Button>
       ),
     });

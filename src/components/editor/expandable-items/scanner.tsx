@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -11,6 +12,7 @@ import { Scanner as ScannerEngine } from "@/scanner";
 import { Document } from "@/editor/document";
 import { TabHeader } from "./components/tab-header";
 import { Button } from "@/components/ui/button";
+import { t } from "@/utils/lang";
 
 type ScanResult = {
   chapterId: string;
@@ -87,7 +89,7 @@ export function Scanner() {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <TabHeader title="Scanner" desc="Validate document structure">
+      <TabHeader title={t("scanner.title")} desc={t("scanner.description")}>
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={scan} disabled={loading}>
             {loading ? (
@@ -95,7 +97,7 @@ export function Scanner() {
             ) : (
               <Scan className="w-4 h-4" />
             )}
-            Scan
+            {t("scanner.scan")}
           </Button>
         </div>
       </TabHeader>
@@ -103,7 +105,7 @@ export function Scanner() {
       <div className="flex-1 overflow-auto p-4 space-y-6">
         {!loading && results.length === 0 && (
           <div className="text-sm text-muted-foreground">
-            Click scan to validate document
+            {t("scanner.empty")}
           </div>
         )}
 
@@ -132,7 +134,9 @@ function ChapterBlock({ chapter }: { chapter: ScanResult }) {
         <h3 className="text-sm font-semibold">
           {chapter.chapterTitle || chapter.chapterId}
         </h3>
-        <p className="text-xs text-muted-foreground">Chapter</p>
+        <p className="text-xs text-muted-foreground">
+          {t("scanner.chapter")}
+        </p>
       </div>
       {!hasNode && !hasText && (
         <Passed chapter={chapter.chapterTitle?.toLocaleLowerCase()} />
@@ -140,7 +144,7 @@ function ChapterBlock({ chapter }: { chapter: ScanResult }) {
 
       {hasText && (
         <ErrorSection
-          title="Text Errors"
+          title={t("scanner.text_errors")}
           color="red"
           open={openText}
           onToggle={() => setOpenText(!openText)}
@@ -151,7 +155,7 @@ function ChapterBlock({ chapter }: { chapter: ScanResult }) {
 
       {hasNode && (
         <ErrorSection
-          title="Node Errors"
+          title={t("scanner.node_errors")}
           color="yellow"
           open={openNode}
           onToggle={() => setOpenNode(!openNode)}
@@ -257,7 +261,7 @@ function ErrorGroup({ name, items }: { name: string; items: any[] }) {
 
               {err.range && (
                 <div className="text-[10px] opacity-60">
-                  range: {err.range.start} - {err.range.end}
+                  {t("scanner.range")}: {err.range.start} - {err.range.end}
                 </div>
               )}
             </div>
@@ -324,10 +328,14 @@ const Passed = ({ chapter }: { chapter?: string }) => (
     <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
     <div>
       <p className="text-sm font-medium">
-        No issues found {chapter && `on ${chapter}`}
+        {chapter
+          ? t("scanner.no_issues_chapter", { chapter })
+          : t("scanner.no_issues")}
       </p>
       <p className="text-xs text-muted-foreground">
-        {chapter ? `Chapter \`${chapter}\`` : "All Chapters"} passed validation
+        {chapter
+          ? t("scanner.chapter_passed", { chapter })
+          : t("scanner.all_chapters_passed")}
       </p>
     </div>
   </div>

@@ -13,8 +13,12 @@
   "settings.export.description": "Configure how exports are saved",
   "settings.zotero": "Zotero",
   "settings.zotero.description": "Connect to your local Zotero client for direct reference import.",
-  "settings.data.clearcache":"Clear Cache",
-    "settings.data.cleardata":"Clear Data",
+  "settings.data.clearcache": "Clear Cache",
+  "settings.data.cleardata": "Clear Data",
+  "settings.about": "About",
+  "settings.main.header": "Application info and updates",
+  "settings.version.info.title": "Current installed version",
+  "settings.checkforupdate": "Check For Update",
 
   "common.light": "Light",
   "common.dark": "Dark",
@@ -43,6 +47,7 @@
   "common.join": "Join",
   "common.ready": "Ready",
   "common.offline_ready": "Lightweight • Offline-ready",
+
   "dashboard.loading": "Loading HighTex...",
   "dashboard.your_documents": "Your Documents",
   "dashboard.documents_subtitle": "Local workspace stored in your device",
@@ -51,6 +56,7 @@
   "dashboard.import_from_file": "Import from file",
   "dashboard.import_from_cloud": "Import from Cloud",
   "dashboard.no_documents": "No documents yet. Create your first document to start writing.",
+
   "splash.preparing": "Preparing HighTex...",
   "splash.tagline_1": "just focus on your ideas",
   "splash.tagline_2": "write without formatting distractions",
@@ -59,6 +65,7 @@
   "splash.tagline_5": "research first, formatting later",
   "splash.lightweight": "Lightweight • Offline-ready",
   "splash.thanks_to": "From Jepi Okta Mipa, Thanks to",
+
   "present.title": "Presentation Planner",
   "present.subtitle": "Let them judge your document!",
   "present.session_active": "Sharing session is active.",
@@ -68,23 +75,29 @@
   "present.invitation_code": "invitation code",
   "present.loading": "Loading",
   "present.no_documents": "No documents available.",
+
   "forms.title": "Forms Generation",
   "forms.subtitle": "One click download for your complete thesis forms",
   "forms.coming_soon": "Coming soon",
+
   "sharing.advising": "Advising",
   "sharing.proposal_seminar": "Proposal Seminar",
   "sharing.final_defense": "Final Defense",
   "sharing.uncategorized": "Uncategorized",
+
   "language.english": "English",
   "language.indonesian": "Bahasa Indonesia",
+
   "profile.cloud_profile": "Prefer Cloud Profile",
   "profile.cloud_profile_description": "Use cloud profile as primary identity",
   "profile.cloud_tooltip": "If you enable this, when you connected to the cloud profile, the all documents will using cloud profile",
+
   "editor.spell_check": "Spell Check",
   "editor.danger.clear_cache": "Clear Cache",
   "editor.danger.clear_data": "Clear Data",
   "editor.danger.delete_documents": "Delete all of your documents",
   "editor.danger.confirm_delete": "Are you sure you want to delete all documents?",
+
   "remote.login_required": "Login Required",
   "remote.login_description": "Connect your cloud workspace to access remote documents",
   "remote.offline": "You are offline",
@@ -123,5 +136,208 @@
   "remote.search_local_documents": "Search local documents...",
   "remote.loading_documents": "Loading documents...",
   "remote.no_local_documents_found": "No local documents found",
-  "remote.pull_latest": "Pull Latest"
+  "remote.pull_latest": "Pull Latest",
+
+  "error.category.missing": "Categories is missing!",
+  "error.category.missing.desc": "Try to get online or reinstall the app",
+  "error.frame.not.opened": "Frame not opened!",
+  "error.frame.not.opened.desc": "Please open previewer first!",
+  "error.sharing.not_sharing": "You are not sharing any document!",
+
+  "back": "Back",
+
+  "sheet.statement": "Statement Sheet",
+  "sheet.presentation": "Presentation Sheet",
+  "sheet.foreword": "Foreword Sheet",
+  "sheet.attachment": "Attachment",
+
+  "split.ensure_signed_stammped": "Ensure it's signed and stammped",
+  "split.title": "Split Your Document",
+  "split.subtitle": "Separate supporting pages from your thesis document before publishing it to the repository.",
+
+  "split.main_document.title": "Main Thesis Document",
+  "split.main_document.description": "Choose a PDF or an existing HighTex document.",
+  "split.main_document.pdf": "PDF File",
+  "split.main_document.hightex": "HighTex Document",
+  "split.main_document.select": "Select HighTex document",
+  "split.main_document_not_found": "Main document not found",
+  "split.document_not_selected": "No document selected",
+
+  "split.statement.title": "Statement Sheet",
+  "split.approval.title": "Consent Sheet",
+  "split.plagiarism.title": "Plagiarism",
+
+  "split.ensure_signed": "Ensure it's signed",
+  "split.ensure_signed_stamped": "Ensure it's signed and stamped",
+
+  "split.compile_document": "Compile PDF",
+  "split.compiling_document": "Compiling document {title}",
+
+  "split.reading_main_document": "Reading Main Document",
+  "split.loading_document": "Loading document",
+  "split.reading_metadata": "Reading metadata",
+  "split.invalid_pdf": "Invalid PDF: PDF must be produced by HighTex",
+  "split.invalid_payload": "Invalid HighTex document metadata",
+
+  "split.merge_statement": "Merge Statement",
+  "split.merge_statement_progress": "Adding statement page to public.pdf",
+  "split.statement_required": "Statement file is required",
+
+  "split.merge_consent": "Merge Consent",
+  "split.merge_consent_progress": "Adding consent page to public.pdf",
+  "split.consent_required": "Consent file is required",
+
+  "split.merge_plagiarism": "Merge Plagiarism",
+  "split.merge_plagiarism_progress": "Adding plagiarism page to public.pdf",
+  "split.plagiarism_required": "Plagiarism file is required",
+
+  "split.generate_output": "Generate Output",
+  "split.preparing_public": "Preparing public.pdf...",
+  "split.building_public": "Building public.pdf",
+  "split.preparing_private": "Preparing private.pdf...",
+  "split.building_private": "Building private.pdf",
+  "split.saving_pdf": "Saving PDF files...",
+  "split.creating_zip": "Creating ZIP archive...",
+  "split.saving_archive": "Saving archive...",
+
+  "split.copying_page": "{label} ({current}/{total}) - Copying page {page}",
+
+  "split.success": "Split successfully!",
+  "split.success_title": "Split Success",
+  "split.success_description": "Saved to {path}",
+
+  "split.start": "Start Split",
+  "split.ready": "Let's start splitting",
+
+  "citation": {
+    "title": "Citation Library",
+    "subtitle": "Manage bibliography references and import directly from Zotero.",
+    "actions": "Bibliography Actions",
+    "add": "Add Citation",
+    "import_zotero": "Import from Zotero",
+    "loading": "Loading citations...",
+    "search": "Search from {count} citations...",
+    "empty": "No citations available.",
+    "import_title": "Import Citation",
+    "import_description": "Paste BibTeX content or upload a .bib file.",
+    "bibtex_content": "BibTeX Content",
+    "upload_bib": "Upload .bib",
+    "bibtex_placeholder": "@article{...}",
+    "validation_description": "Only valid citations with title, year, and author/editor are imported.",
+    "import": "Import citations",
+    "copy": "Copy citation",
+    "delete": "Delete citation",
+    "imported": "Imported {count} citation(s){skipped}.",
+    "skipped_invalid": ", skipped {count} invalid",
+    "error": {
+      "no_bibtex_content": "No BibTeX content provided.",
+      "no_valid_citations": "No valid citations found.",
+      "no_citations_parsed": "No citations parsed."
+    },
+    "zotero": {
+      "title": "Import from Zotero",
+      "description": "Browse and import references directly from your local Zotero library.",
+      "checking": "Checking",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "local_api": "Zotero Local API",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
+      "loading": "Loading references...",
+      "empty": "No references found.",
+      "reference": "Reference",
+      "title_column": "Title",
+      "type_column": "Type",
+      "year_column": "Year",
+      "import_selected": "Import Selected",
+      "integration_disabled": "Local Zotero integration is disabled in settings.",
+      "connection_failed": "Unable to connect to Zotero local API.",
+      "no_references": "No Zotero references found.",
+      "select_reference": "Select at least one Zotero reference.",
+      "no_matching_references": "No matching Zotero references.",
+      "no_valid_imported": "No valid references imported.",
+      "imported": "Imported {count} reference(s)."
+    }
+  },
+
+  "editor": {
+    "expandable": {
+      "citation": {
+        "title": "Citation",
+        "description": "All citations saved on your computer",
+        "search": "Search citation...",
+        "empty": "No citations found",
+        "empty_description": "Try another keyword.",
+        "untitled": "Untitled Citation",
+        "copied": "Copied",
+        "copy": "Copy",
+        "copy_cite_a": "Copy Cite A",
+        "copy_cite": "Copy Cite"
+      }
+    }
+  },
+
+  "scanner": {
+    "title": "Scanner",
+    "description": "Validate document structure",
+    "scan": "Scan",
+    "empty": "Click scan to validate document",
+    "chapter": "Chapter",
+    "text_errors": "Text Errors",
+    "node_errors": "Node Errors",
+    "range": "Range",
+    "no_issues": "No issues found",
+    "no_issues_chapter": "No issues found on {chapter}",
+    "chapter_passed": "Chapter `{chapter}` passed validation",
+    "all_chapters_passed": "All Chapters passed validation"
+  },
+
+  "setting": {
+    "title": "Document Setting",
+    "unsaved": "Unsaved",
+    "saving": "Saving...",
+    "save": "Save",
+    "document": "Document",
+    "title_label": "Title",
+    "alt_title": "Alt Title",
+    "category": "Category",
+    "select_category": "Select category",
+    "keywords": "Keywords",
+    "indonesian": "Indonesian",
+    "english": "English",
+    "thesis_examination_committee": "Thesis Examination Committee",
+    "leaded_by": "Leaded By",
+    "primary_examiner_name": "Primary Examiner Name",
+    "secondary_examiner_name": "Secondary Examiner Name",
+    "thesis_dates": "Date(s) in your Thesis document",
+    "consent_date": "Consent Date",
+    "validity_date": "Validity Date",
+    "statement_date": "Statement Date",
+    "intern_document_info": "Intern Document Info",
+    "onsite_location": "Onsite Location",
+    "internship_advisor_name": "Internship Advisor Name",
+    "internship_advisor_nip": "Internship Advisor NIP",
+    "intern_validity_date": "Intern Validity Date",
+    "add_keyword": "Add keyword..."
+  },
+    "snapshots": {
+    "title": "Snapshots",
+    "description": "Saved sharing sessions. Open one to inspect the rendered document and comments.",
+    "refresh": "Refresh",
+    "loading": "Loading snapshots...",
+    "empty": "No snapshots saved yet.",
+    "unknown_time": "Unknown time",
+    "advising": "Advising",
+    "load_error": "Failed to load snapshots.",
+    "delete_title": "Delete {label}?",
+    "delete_description": "This will remove the snapshot record, related comments, and snapshot file.",
+    "delete": "Delete",
+    "deleting": "Deleting snapshot...",
+    "not_found": "Snapshot not found",
+    "deleted": "Snapshot deleted",
+    "delete_error": "Failed to delete snapshot",
+    "delete_failed": "The snapshot could not be deleted.",
+    "delete_snapshot": "Delete snapshot"
+  }
+
 }
