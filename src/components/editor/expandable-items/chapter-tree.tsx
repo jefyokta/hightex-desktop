@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "@/hooks/use-params";
 import { Counter } from "tjsn-parser";
 import { TabHeader } from "./components/tab-header";
+import { t } from "@/utils/lang";
 
 export const ChapteTree = () => {
   const [doc, setDoc] = useState<Document | undefined>(Document.instance);
@@ -30,7 +31,7 @@ export const ChapteTree = () => {
 
   return (
     <div className="w-full h-full overflow-auto ">
-      <TabHeader title="Chapters" desc="List of chapters in this document" />
+      <TabHeader title="Chapters" desc={t("editor.expandable.chapters.header")} />
       <Files>
         {doc?.chapters.map((chapter) => (
           <ChapterNode key={chapter.getId()} chapter={chapter} />

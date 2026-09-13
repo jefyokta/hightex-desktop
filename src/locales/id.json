@@ -273,11 +273,8 @@
         "copy": "Salin",
         "copy_cite_a": "Salin Cite A",
         "copy_cite": "Salin Cite"
-      }
-    }
-  },
-
-  "scanner": {
+      },
+        "scanner": {
     "title": "Pemindai",
     "description": "Validasi struktur dokumen",
     "scan": "Pindai",
@@ -319,7 +316,17 @@
     "internship_advisor_nip": "NIP Pembimbing Kerja Praktek",
     "intern_validity_date": "Tanggal Berlaku Kerja Praktek",
     "add_keyword": "Tambah kata kunci..."
+    },
+    "chapters":{
+      "header":"Daftar Bab pada doument"
+    },
+  "preview":{
+    "header":"Pratinjau rendering dokumen berhalaman"
+  }
+    }
   },
+
+
     "snapshots": {
     "title": "Snapshot",
     "description": "Sesi berbagi yang tersimpan. Buka salah satu untuk melihat dokumen yang dirender dan komentar.",

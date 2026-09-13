@@ -273,11 +273,8 @@
         "copy": "Copy",
         "copy_cite_a": "Copy Cite A",
         "copy_cite": "Copy Cite"
-      }
-    }
-  },
-
-  "scanner": {
+      },
+        "scanner": {
     "title": "Scanner",
     "description": "Validate document structure",
     "scan": "Scan",
@@ -291,8 +288,11 @@
     "chapter_passed": "Chapter `{chapter}` passed validation",
     "all_chapters_passed": "All Chapters passed validation"
   },
+     "chapters":{
+    "header":"List of chapters in this document"
 
-  "setting": {
+  },
+    "setting": {
     "title": "Document Setting",
     "unsaved": "Unsaved",
     "saving": "Saving...",
@@ -320,7 +320,17 @@
     "intern_validity_date": "Intern Validity Date",
     "add_keyword": "Add keyword..."
   },
-    "snapshots": {
+  "preview":{
+    "header":"Paged document rendering preview"
+  }
+    }
+ 
+  },
+
+
+
+
+  "snapshots": {
     "title": "Snapshots",
     "description": "Saved sharing sessions. Open one to inspect the rendered document and comments.",
     "refresh": "Refresh",
@@ -339,5 +349,6 @@
     "delete_failed": "The snapshot could not be deleted.",
     "delete_snapshot": "Delete snapshot"
   }
+
 
 }

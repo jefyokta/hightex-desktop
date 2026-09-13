@@ -89,7 +89,7 @@ export function Scanner() {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <TabHeader title={t("scanner.title")} desc={t("scanner.description")}>
+      <TabHeader title={t("editor.expandable.scanner.title")} desc={t("editor.expandable.scanner.description")}>
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={scan} disabled={loading}>
             {loading ? (
@@ -97,7 +97,7 @@ export function Scanner() {
             ) : (
               <Scan className="w-4 h-4" />
             )}
-            {t("scanner.scan")}
+            {t("editor.expandable.scanner.scan")}
           </Button>
         </div>
       </TabHeader>
@@ -105,7 +105,7 @@ export function Scanner() {
       <div className="flex-1 overflow-auto p-4 space-y-6">
         {!loading && results.length === 0 && (
           <div className="text-sm text-muted-foreground">
-            {t("scanner.empty")}
+            {t("editor.expandable.scanner.empty")}
           </div>
         )}
 
@@ -135,7 +135,7 @@ function ChapterBlock({ chapter }: { chapter: ScanResult }) {
           {chapter.chapterTitle || chapter.chapterId}
         </h3>
         <p className="text-xs text-muted-foreground">
-          {t("scanner.chapter")}
+          {t("editor.expandable.scanner.chapter")}
         </p>
       </div>
       {!hasNode && !hasText && (
@@ -144,7 +144,7 @@ function ChapterBlock({ chapter }: { chapter: ScanResult }) {
 
       {hasText && (
         <ErrorSection
-          title={t("scanner.text_errors")}
+          title={t("editor.expandable.scanner.text_errors")}
           color="red"
           open={openText}
           onToggle={() => setOpenText(!openText)}
@@ -155,7 +155,7 @@ function ChapterBlock({ chapter }: { chapter: ScanResult }) {
 
       {hasNode && (
         <ErrorSection
-          title={t("scanner.node_errors")}
+          title={t("editor.expandable.scanner.node_errors")}
           color="yellow"
           open={openNode}
           onToggle={() => setOpenNode(!openNode)}
@@ -261,7 +261,7 @@ function ErrorGroup({ name, items }: { name: string; items: any[] }) {
 
               {err.range && (
                 <div className="text-[10px] opacity-60">
-                  {t("scanner.range")}: {err.range.start} - {err.range.end}
+                  {t("editor.expandable.scanner.range")}: {err.range.start} - {err.range.end}
                 </div>
               )}
             </div>
@@ -329,13 +329,13 @@ const Passed = ({ chapter }: { chapter?: string }) => (
     <div>
       <p className="text-sm font-medium">
         {chapter
-          ? t("scanner.no_issues_chapter", { chapter })
-          : t("scanner.no_issues")}
+          ? t("editor.expandable.scanner.no_issues_chapter", { chapter })
+          : t("editor.expandable.scanner.no_issues")}
       </p>
       <p className="text-xs text-muted-foreground">
         {chapter
-          ? t("scanner.chapter_passed", { chapter })
-          : t("scanner.all_chapters_passed")}
+          ? t("editor.expandable.scanner.chapter_passed", { chapter })
+          : t("editor.expandable.scanner.all_chapters_passed")}
       </p>
     </div>
   </div>

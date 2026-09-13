@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { t } from "@/utils/lang";
 
 export const Preview = () => {
   const [loading, setLoading] = useState(true);
@@ -108,7 +109,7 @@ export const Preview = () => {
 
   return (
     <div className="flex flex-col h-full justify-between">
-      <TabHeader title="Preview" desc="Paged document rendering preview">
+      <TabHeader title="Preview" desc={t("editor.expandable.preview.header")}>
         <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
           <div className="flex items-center gap-2 min-w-35">
             <Eye className="w-4 h-4 opacity-60 shrink-0" />

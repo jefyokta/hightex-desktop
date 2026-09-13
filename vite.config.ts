@@ -49,4 +49,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server:{
+    watch:{
+      ignored:"src/locales/*.json"
+    }
+  }
 });
