@@ -183,7 +183,7 @@ export const Settings = () => {
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label={t("editor.spell_check")}
+            label={t("settings.editor.spell_check")}
             value={config.editor?.spellCheck ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -196,13 +196,13 @@ export const Settings = () => {
 
           />
           <SettingSwitch
-            label={t("editor.scrollbar")}
-            value={config.editor?.scrollBar?? false}
+            label={t("settings.editor.scrollbar")}
+            value={config.editor?.scrollBar ?? false}
             onChange={async (val) => {
               await patchConfig({
                 editor: {
                   ...config.editor,
-                  scrollBar:val,
+                  scrollBar: val,
                 },
               });
             }}
@@ -212,18 +212,18 @@ export const Settings = () => {
           <SettingSwitch
             label={
               <>
-                <span>{t("profile.cloud_profile")}</span>{" "}
+                <span>{t("settings.profile.cloud_profile")}</span>{" "}
                 <Tooltip>
                   <TooltipTrigger>
                     <InfoIcon size={12} />
                   </TooltipTrigger>
                   <TooltipPanel>
-                    {t("profile.cloud_tooltip")}
+                    {t("settings.profile.cloud_tooltip")}
                   </TooltipPanel>
                 </Tooltip>
               </>
             }
-            description={t("profile.cloud_profile_description")}
+            description={t("settings.profile.cloud_profile_description")}
             value={config.editor?.preferCloudProfile ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -239,7 +239,7 @@ export const Settings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("settings.export")}</CardTitle>
+          <CardTitle>{t("settings.export.export")}</CardTitle>
           <CardDescription>
             {t("settings.export.description")}
           </CardDescription>
@@ -263,10 +263,9 @@ export const Settings = () => {
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-0.5">
-                <Label>Default export folder</Label>
+                <Label>{t('settings.export.default_folder.label')}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Files are saved here automatically when the save dialog is
-                  disabled.
+                  {t('settings.export.default_folder.description')}
                 </p>
               </div>
 
@@ -285,7 +284,7 @@ export const Settings = () => {
                 className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-neutral-800 text-white px-3 py-2 text-xs hover:bg-neutral-800 dark:hover:bg-neutral-700 transition"
               >
                 <Folder size={14} />
-                Choose Folder
+                {t("settings.export.choose_folder")}
               </button>
             </div>
 
@@ -308,14 +307,14 @@ export const Settings = () => {
         <CardHeader>
           <CardTitle>Zotero</CardTitle>
           <CardDescription>
-            Connect to your local Zotero client for direct reference import.
+            {t("settings.zotero.description")}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label="Enable local Zotero"
-            description="Allow HighTex to connect to Zotero on the configured host and port."
+            label={t('settings.zotero.enable.label')}
+            description={t('settings.zotero.enable.description')}
             value={config.zotero?.enabled ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -329,10 +328,9 @@ export const Settings = () => {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-0.5">
-              <Label>Host</Label>
+              <Label>{t('settings.zotero.host.label')}</Label>
               <p className="text-xs text-muted-foreground">
-                The network host where the Zotero local server is exposed.
-              </p>
+                {t('settings.zotero.host.description')}              </p>
             </div>
             <Input
               value={config.zotero?.host ?? "127.0.0.1"}
@@ -349,10 +347,9 @@ export const Settings = () => {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-0.5">
-              <Label>Port</Label>
+              <Label>{t("settings.zotero.port.label")}</Label>
               <p className="text-xs text-muted-foreground">
-                The port used by Zotero's local API. The default value is 23119.
-              </p>
+                {t("settings.zotero.port.description")}              </p>
             </div>
             <Input
               type="number"
@@ -373,10 +370,9 @@ export const Settings = () => {
           <Separator />
 
           <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-            <p className="font-semibold">How to enable Zotero HTTP access</p>
+            <p className="font-semibold">{t("settings.zotero.how_to_enable.label")}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Open Zotero preferences, go to Advanced &gt; General, and enable
-              "Enable HTTP access". Restart Zotero to apply the setting.
+              {t("settings.zotero.how_to_enable.description")}
             </p>
 
             <img
@@ -396,51 +392,61 @@ export const Settings = () => {
 
         <CardContent className="space-y-4">
           <DangerAction
-            label={t("settings.data.clearcache")}
-            description="Remove temporary stored data"
+            label={t("settings.data.clear_cache.label")}
+            description={t("settings.data.clear_cache.description")}
             action="Clear"
             onClick={async () => {
-              const id = toast.loading("Resetting config...");
+              const id = toast.loading(t("settings.data.clear_cache.progress.resetting_config"));
 
               try {
                 await window.config.reset();
 
-                toast.loading("Cleaning unused data...", {
+                toast.loading(t("settings.data.clear_cache.progress.clean_unused"), {
                   id,
                 });
 
                 try {
-                  // use async iterator to show progress
                   for await (const ev of cleanUnusedProgress()) {
                     if (ev.type === "start") {
                       toast.loading(
-                        `Cleaning: 0/${ev.totals.chapters} chapters, 0/${ev.totals.images} images`,
+                        t("settings.data.clear_cache.progress.start",
+                          {
+                            chaptersCount: ev.totals.chapters,
+                            imagesCount: ev.totals.images
+                          }
+                        ),
                         { id },
                       );
                     } else if (ev.type === "chapter") {
                       toast.loading(
-                        `Deleting chapters: ${ev.index}/${ev.total}`,
+                        t("settings.data.clear_cache.progress.deleting",
+                          { name: "chapters", index: ev.index, total: ev.total }
+                        ),
                         { id },
                       );
                     } else if (ev.type === "image") {
                       toast.loading(
-                        `Deleting images: ${ev.index}/${ev.total}`,
-                        { id },
+                        t("settings.data.clear_cache.progress.deleting",
+                          { name: "images", index: ev.index, total: ev.total }
+                        ), { id },
                       );
                     } else if (ev.type === "done") {
+                      const { deletedChapters, deletedImages } = ev;
                       toast.success(
-                        `Cleanup completed. ${ev.deletedChapters} chapters and ${ev.deletedImages} images deleted`,
+                        t("settings.data.clear_cache.progress.done", {
+                          deletedChapters, deletedImages
+                        }),
                         { id },
                       );
                     }
                   }
                 } catch (err) {
                   // fallback: show generic message
-                  toast.error("Cleanup failed", { id });
+                  toast.error(t("settings.data.clear_cache.progress.failed"), { id });
                 }
               } catch (error) {
                 toast.error(
-                  error instanceof Error ? error.message : "Cleanup failed",
+                  error instanceof Error ? error.message : t("settings.data.clear_cache.progress.failed"),
                   {
                     id,
                   },
@@ -452,17 +458,17 @@ export const Settings = () => {
           <Separator />
 
           <DangerAction
-            label={t("settings.data.cleardata")}
-            description="Delete all of your documents"
+            label={t("settings.data.clear_data.label")}
+            description={t("settings.data.clear_data.description")}
             action="Clear"
             onClick={async () => {
               const confirmed = confirm(
-                "Are you sure you want to delete all documents?",
+                t("settings.data.clear_data.confirm"),
               );
 
               if (!confirmed) return;
 
-              const id = toast.loading("Deleting documents...");
+              const id = toast.loading(t("settings.data.clear_data.deleting.start"));
 
               try {
                 const docs = await HighTexDB.getDocuments();
@@ -471,7 +477,11 @@ export const Settings = () => {
 
                 for (const doc of docs) {
                   toast.loading(
-                    `Deleting ${deleted + 1}/${docs.length}: ${doc.title || doc.id}`,
+                    t("settings.data.clear_data.deleting.start", {
+                      deleted: deleted + 1, total: docs.length
+                      , identifier: doc.title || doc.id
+                    }),
+                    // `Deleting ${deleted + 1}/${docs.length}: ${doc.title || doc.id}`,
                     { id },
                   );
 
@@ -480,7 +490,7 @@ export const Settings = () => {
                   deleted++;
                 }
 
-                toast.success(`${deleted} documents deleted successfully`, {
+                toast.success(t("settings.data.clear_data.deleting.done", { deleted }), {
                   id,
                 });
               } catch (error) {
@@ -601,15 +611,18 @@ const ProfileSection = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription className="space-x-2 flex items-center">
-          <span>Configure your local profile here</span>
+        <CardTitle>{t("settings.profile.label")}</CardTitle>
+
+        <CardDescription className="flex items-center space-x-2">
+          <span>{t("settings.profile.description")}</span>
+
           <Tooltip>
             <TooltipTrigger>
               <InfoIcon size={12} />
             </TooltipTrigger>
+
             <TooltipPanel>
-              Fallback profile when internet gone away
+              {t("settings.profile.tooltip")}
             </TooltipPanel>
           </Tooltip>
         </CardDescription>
@@ -617,14 +630,16 @@ const ProfileSection = () => {
 
       <CardContent className="space-y-6">
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading profile...</p>
+          <p className="text-sm text-muted-foreground">
+            {t("settings.profile.loading")}
+          </p>
         ) : (
           <>
             <div className="grid w-full grid-cols-2 items-center gap-4">
               <div className="space-y-0.5">
-                <Label>Name</Label>
+                <Label>{t("settings.profile.name.label")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Your name to be the author of your documents
+                  {t("settings.profile.name.description")}
                 </p>
               </div>
 
@@ -641,9 +656,9 @@ const ProfileSection = () => {
 
             <div className="grid w-full grid-cols-2 items-center gap-4">
               <div className="space-y-0.5">
-                <Label>Nim</Label>
+                <Label>{t("settings.profile.nim.label")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Your student identifier number
+                  {t("settings.profile.nim.description")}
                 </p>
               </div>
 
@@ -660,9 +675,9 @@ const ProfileSection = () => {
 
             <div className="grid w-full grid-cols-2 items-center gap-4">
               <div className="space-y-0.5">
-                <Label>Advisor Name</Label>
+                <Label>{t("settings.profile.advisor.name.label")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Your advisor's name
+                  {t("settings.profile.advisor.name.description")}
                 </p>
               </div>
 
@@ -679,9 +694,9 @@ const ProfileSection = () => {
 
             <div className="grid w-full grid-cols-2 items-center gap-4">
               <div className="space-y-0.5">
-                <Label>Advisor's NIP</Label>
+                <Label>{t("settings.profile.advisor.nip.label")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Your advisor's identifier number
+                  {t("settings.profile.advisor.nip.description")}
                 </p>
               </div>
 
@@ -698,7 +713,7 @@ const ProfileSection = () => {
 
             <div className="flex justify-end pt-4">
               <Button onClick={saveProfile} disabled={saving}>
-                {saving ? "Saving..." : "Save Profile"}
+                {saving ? t("settings.profile.saving") : t("settings.profile.save")}
               </Button>
             </div>
           </>
@@ -707,7 +722,6 @@ const ProfileSection = () => {
     </Card>
   );
 };
-
 const AppInfoSection = () => {
   const [version, setVersion] = useState<string | null>(null);
   const [status, setStatus] = useState<UpdaterStatus | null>(null);
@@ -718,6 +732,7 @@ const AppInfoSection = () => {
 
     const unsubscribe = window.updater?.onStatus((s) => {
       setStatus(s);
+
       if (s.status !== "checking" && s.status !== "downloading") {
         setChecking(false);
       }
@@ -747,7 +762,7 @@ const AppInfoSection = () => {
         return (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 size={12} className="animate-spin" />
-            Checking for updates...
+            {t("settings.updater.checking")}
           </div>
         );
 
@@ -755,7 +770,7 @@ const AppInfoSection = () => {
         return (
           <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
             <CheckCircle size={12} />
-            HighTex is up to date
+            {t("settings.updater.up_to_date")}
           </div>
         );
 
@@ -764,15 +779,18 @@ const AppInfoSection = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
               <Download size={12} />
-              Version {status.info.version} is available
+              {t("settings.updater.available", {
+                version: status.info.version,
+              })}
             </div>
+
             <Button
               size="sm"
               variant="outline"
               className="h-7 text-xs"
               onClick={handleDownload}
             >
-              Download
+              {t("settings.updater.download")}
             </Button>
           </div>
         );
@@ -781,7 +799,9 @@ const AppInfoSection = () => {
         return (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 size={12} className="animate-spin" />
-            Downloading... {Math.round(status.progress.percent)}%
+            {t("settings.updater.downloading", {
+              percent: Math.round(status.progress.percent),
+            })}
           </div>
         );
 
@@ -790,10 +810,17 @@ const AppInfoSection = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
               <CheckCircle size={12} />
-              Version {status.info.version} ready to install
+              {t("settings.updater.ready", {
+                version: status.info.version,
+              })}
             </div>
-            <Button size="sm" className="h-7 text-xs" onClick={handleInstall}>
-              Restart & Install
+
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              onClick={handleInstall}
+            >
+              {t("settings.updater.restart_install")}
             </Button>
           </div>
         );
@@ -822,18 +849,22 @@ const AppInfoSection = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("settings.about")}</CardTitle>
-        <CardDescription>{t("settings.main.header")}</CardDescription>
+        <CardTitle>{t("settings.about.title")}</CardTitle>
+        <CardDescription>
+          {t("settings.about.header")}
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label>Version</Label>
+            <Label>{t("settings.about.version.label")}</Label>
+
             <p className="text-xs text-muted-foreground">
-              {t("settings.version.info.title")}
+              {t("settings.about.version.description")}
             </p>
           </div>
+
           <span className="font-mono text-sm text-foreground">
             {version ?? "—"}
           </span>
@@ -843,8 +874,11 @@ const AppInfoSection = () => {
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label>Software Update</Label>
-            <div className="mt-1">{renderUpdateStatus()}</div>
+            <Label>{t("settings.updater.label")}</Label>
+
+            <div className="mt-1">
+              {renderUpdateStatus()}
+            </div>
           </div>
 
           <Button
@@ -862,10 +896,13 @@ const AppInfoSection = () => {
             <RefreshCw
               size={13}
               className={
-                checking || status?.status === "checking" ? "animate-spin" : ""
+                checking || status?.status === "checking"
+                  ? "animate-spin"
+                  : ""
               }
             />
-            {t("settings.checkforupdate")}
+
+            {t("settings.updater.check")}
           </Button>
         </div>
       </CardContent>

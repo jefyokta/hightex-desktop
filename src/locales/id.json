@@ -1,231 +1,452 @@
 {
-  "settings.title": "Pengaturan",
-  "settings.subtitle": "Kelola preferensi aplikasi",
-  "settings.appearance": "Tampilan",
-  "settings.appearance.description": "Tema dan preferensi visual",
-  "settings.language": "Bahasa",
-  "settings.language.description": "Pilih bahasa aplikasi",
-  "settings.theme": "Tema",
-  "settings.theme.description": "Pilih mode tema aplikasi",
-  "settings.editor": "Editor",
-  "settings.editor.description": "Perilaku penulisan dan penyuntingan",
-  "settings.export": "Ekspor",
-  "settings.export.description": "Atur bagaimana hasil ekspor disimpan",
-  "settings.zotero": "Zotero",
-  "settings.zotero.description": "Hubungkan ke klien Zotero lokal untuk mengimpor referensi secara langsung.",
-  "settings.data.clearcache": "Bersihkan Cache",
-  "settings.data.cleardata": "Hapus Data",
-  "settings.about": "Tentang",
-  "settings.main.header": "Informasi aplikasi dan pembaruan",
-  "settings.version.info.title": "Versi yang terpasang saat ini",
-  "settings.checkforupdate": "Periksa Pembaruan",
+  "settings": {
+    "title": "Pengaturan",
+    "subtitle": "Kelola preferensi aplikasi kamu",
+    "appearance": "Tampilan",
+    "appearance.description": "Tema dan preferensi visual",
+    "language": "Bahasa",
+    "language.description": "Pilih bahasa aplikasi",
+    "theme": "Tema",
+    "theme.description": "Pilih mode tema aplikasi",
+    "editor": {
+      "title": "Editor",
+      "description": "Perilaku penulisan dan pengeditan",
+      "spell_check": "Pemeriksa Ejaan",
+      "scrollbar": "Scrollbar Editor"
+    },
+    "data": {
+      "clear_cache": {
+        "label": "Bersihkan Cache",
+        "description": "Hapus data sementara yang tersimpan",
+        "progress": {
+          "resetting_config": "Mereset konfigurasi...",
+          "clean_unused": "Membersihkan data yang tidak terpakai",
+          "start": "Membersihkan: 0/{chaptesCount} bab, 0/${imageCount} gambar",
+          "deleting": "Menghapus {name}: {index}/{total}",
+          "done": "Pembersihan selesai. {deletedChapters} bab dan {deletedImages} gambar sudah dihapus",
+          "failed": "Pembersihan gagal!"
+        }
+      },
+      "clear_data": {
+        "label": "Hapus Data",
+        "description": "Hapus semua dokumen kamu",
+        "confirm": "Yakin mau menghapus semua dokumen?",
+        "deleting": {
+          "start": "Menghapus dokumen...",
+          "progress": "Menghapus {deleted}/{total}: {identifier}",
+          "done": "{total} dokumen berhasil dihapus"
+        }
+      }
+    },
+    "main": {
+      "header": "Info aplikasi dan pembaruan"
+    },
+    "version": {
+      "info": {
+        "title": "Versi yang terpasang saat ini"
+      }
+    },
+    "checkforupdate": "Cek Pembaruan",
+    "export": {
+      "export": "Ekspor",
+      "description": "Atur cara file ekspor disimpan",
+      "default_folder": {
+        "label": "Folder ekspor default",
+        "description": "File otomatis disimpan di sini kalau dialog simpan dimatikan."
+      },
+      "choose_folder": "Pilih Folder"
+    },
 
-  "common.light": "Terang",
-  "common.dark": "Gelap",
-  "common.system": "Sistem",
-  "common.loading": "Memuat",
-  "common.loading_hightex": "Memuat HighTex...",
-  "common.version": "versi",
-  "common.start": "Mulai",
-  "common.logout": "Keluar",
-  "common.login": "Masuk",
-  "common.continue_as_guest": "Lanjutkan sebagai Tamu",
-  "common.hi": "Hai",
-  "common.new": "Baru",
-  "common.documents": "Dokumen Anda",
-  "common.documents_subtitle": "Ruang kerja lokal yang tersimpan di perangkat Anda",
-  "common.create_empty": "Buat Kosong",
-  "common.import_from_file": "Impor dari file",
-  "common.import_from_cloud": "Impor dari Cloud",
-  "common.no_documents": "Belum ada dokumen. Buat dokumen pertama Anda untuk mulai menulis.",
-  "common.export": "Ekspor",
-  "common.export_success": "Ekspor berhasil",
-  "common.export_failed": "Ekspor gagal",
-  "common.importing": "Mengimpor",
-  "common.untitled_document": "Dokumen Tanpa Judul",
-  "common.done": "selesai",
-  "common.join": "Gabung",
-  "common.ready": "Siap",
-  "common.offline_ready": "Ringan • Siap digunakan offline",
+    "zotero": {
+      "zotero": "Zotero",
+      "description": "Hubungkan ke Zotero lokal kamu untuk impor referensi langsung.",
+      "enable": {
+        "label": "Aktifkan Zotero lokal",
+        "description": "Izinkan HighTex terhubung ke Zotero di host dan port yang sudah dikonfigurasi."
+      },
+      "host": {
+        "label": "Host",
+        "description": "Host jaringan tempat server lokal Zotero berjalan."
+      },
+      "port": {
+        "label": "Port",
+        "description": "Port yang dipakai API lokal Zotero. Defaultnya 23119."
+      },
+      "how_to_enable": {
+        "label": "Cara mengaktifkan akses HTTP Zotero",
+        "description": "Buka preferensi Zotero, masuk ke Advanced > General, lalu aktifkan \"Enable HTTP access\". Restart Zotero biar pengaturannya kepakai."
+      }
+    },
+    "profile": {
+      "label": "Profil",
+      "description": "Atur profil lokal kamu di sini",
+      "tooltip": "Profil cadangan kalau internet lagi mati",
+      "loading": "Memuat profil...",
+      "name": {
+        "label": "Nama",
+        "description": "Nama kamu sebagai penulis dokumen"
+      },
+      "nim": {
+        "label": "NIM",
+        "description": "Nomor induk mahasiswa kamu"
+      },
+      "advisor": {
+        "name": {
+          "label": "Nama Pembimbing",
+          "description": "Nama pembimbing kamu"
+        },
+        "nip": {
+          "label": "NIP Pembimbing",
+          "description": "Nomor induk pegawai pembimbing kamu"
+        }
+      },
+      "save": "Simpan Profil",
+      "saving": "Menyimpan...",
+      "cloud_profile": "Utamakan Profil Cloud",
+      "cloud_profile_description": "Pakai profil cloud sebagai identitas utama",
+      "cloud_tooltip": "Kalau ini diaktifkan, pas kamu terhubung ke profil cloud, semua dokumen bakal pakai profil cloud"
+    },
+    "about": {
+      "title": "Tentang",
+      "header": "Info aplikasi dan pembaruan",
+      "version": {
+        "label": "Versi",
+        "description": "Versi yang terpasang saat ini"
+      }
+    },
+    "updater": {
+      "label": "Pembaruan Perangkat Lunak",
+      "checking": "Memeriksa pembaruan...",
+      "up_to_date": "HighTex sudah versi terbaru",
+      "available": "Versi {version} tersedia",
+      "download": "Unduh",
+      "downloading": "Mengunduh... {percent}%",
+      "ready": "Versi {version} siap dipasang",
+      "restart_install": "Restart & Pasang",
+      "check": "Cek Pembaruan"
+    }
+  },
 
-  "dashboard.loading": "Memuat HighTex...",
-  "dashboard.your_documents": "Dokumen Anda",
-  "dashboard.documents_subtitle": "Ruang kerja lokal yang tersimpan di perangkat Anda",
-  "dashboard.new": "Baru",
-  "dashboard.create_empty": "Buat Kosong",
-  "dashboard.import_from_file": "Impor dari file",
-  "dashboard.import_from_cloud": "Impor dari Cloud",
-  "dashboard.no_documents": "Belum ada dokumen. Buat dokumen pertama Anda untuk mulai menulis.",
+  "common": {
+    "light": "Terang",
+    "dark": "Gelap",
+    "system": "Sistem",
+    "loading": "Memuat",
+    "loading_hightex": "Memuat HighTex...",
+    "version": "versi",
+    "start": "Mulai",
+    "logout": "Keluar",
+    "login": "Masuk",
+    "continue_as_guest": "Lanjut sebagai Tamu",
+    "hi": "Hai",
+    "new": "Baru",
+    "documents": "Dokumen Kamu",
+    "documents_subtitle": "Ruang kerja lokal yang tersimpan di perangkat kamu",
+    "create_empty": "Buat Kosong",
+    "import_from_file": "Impor dari file",
+    "import_from_cloud": "Impor dari Cloud",
+    "no_documents": "Belum ada dokumen. Buat dokumen pertamamu buat mulai nulis.",
+    "export": "Ekspor",
+    "export_success": "Ekspor berhasil",
+    "export_failed": "Ekspor gagal",
+    "importing": "Mengimpor",
+    "untitled_document": "Dokumen Tanpa Judul",
+    "done": "selesai",
+    "join": "Gabung",
+    "ready": "Siap",
+    "offline_ready": "Ringan • Siap offline"
+  },
 
-  "splash.preparing": "Menyiapkan HighTex...",
-  "splash.tagline_1": "fokus saja pada ide Anda",
-  "splash.tagline_2": "menulis tanpa gangguan format",
-  "splash.tagline_3": "sitasi ditangani secara otomatis",
-  "splash.tagline_4": "menulis secara terstruktur tanpa usaha",
-  "splash.tagline_5": "utamakan penelitian, format belakangan",
-  "splash.lightweight": "Ringan • Siap digunakan offline",
-  "splash.thanks_to": "Dari Jepi Okta Mipa, Terima kasih kepada",
+  "dashboard": {
+    "loading": "Memuat HighTex...",
+    "your_documents": "Dokumen Kamu",
+    "documents_subtitle": "Ruang kerja lokal yang tersimpan di perangkat kamu",
+    "new": "Baru",
+    "create_empty": "Buat Kosong",
+    "import_from_file": "Impor dari file",
+    "import_from_cloud": "Impor dari Cloud",
+    "no_documents": "Belum ada dokumen. Buat dokumen pertamamu buat mulai nulis."
+  },
 
-  "present.title": "Perencana Presentasi",
-  "present.subtitle": "Biarkan mereka menilai dokumen Anda!",
-  "present.session_active": "Sesi berbagi sedang aktif.",
-  "present.join": "Gabung",
-  "present.join_session": "Gabung ke Sesi Berbagi",
-  "present.join_description": "Ambil teks aneh itu dari host Anda.",
-  "present.invitation_code": "kode undangan",
-  "present.loading": "Memuat",
-  "present.no_documents": "Tidak ada dokumen yang tersedia.",
+  "splash": {
+    "preparing": "Preparing HighTex...",
+    "tagline_1": "just focus on your ideas",
+    "tagline_2": "write without formatting distractions",
+    "tagline_3": "citations handled automatically",
+    "tagline_4": "structured writing without effort",
+    "tagline_5": "research first, formatting later",
+    "lightweight": "Lightweight • Offline-ready",
+    "thanks_to": "From Jepi Okta Mipa, Thanks to"
+  },
 
-  "forms.title": "Pembuatan Formulir",
-  "forms.subtitle": "Unduh semua formulir tugas akhir Anda dengan satu klik",
-  "forms.coming_soon": "Segera hadir",
+  "present": {
+    "title": "Perencana Presentasi",
+    "subtitle": "Biar mereka nilai dokumen kamu!",
+    "session_active": "Sesi berbagi lagi aktif.",
+    "join": "Gabung",
+    "join_session": "Gabung ke Sesi Berbagi",
+    "join_description": "Masukin kode aneh dari host kamu.",
+    "invitation_code": "kode undangan",
+    "loading": "Memuat",
+    "no_documents": "Tidak ada dokumen yang tersedia."
+  },
 
-  "sharing.advising": "Bimbingan",
-  "sharing.proposal_seminar": "Seminar Proposal",
-  "sharing.final_defense": "Sidang Akhir",
-  "sharing.uncategorized": "Tanpa Kategori",
+  "forms": {
+    "title": "Pembuatan Formulir",
+    "subtitle": "Sekali klik buat unduh semua formulir skripsi kamu",
+    "coming_soon": "Segera hadir"
+  },
 
-  "language.english": "English",
-  "language.indonesian": "Bahasa Indonesia",
+  "sharing": {
+    "advising": "Bimbingan",
+    "proposal_seminar": "Seminar Proposal",
+    "final_defense": "Sidang Akhir",
+    "uncategorized": "Tanpa Kategori"
+  },
 
-  "profile.cloud_profile": "Utamakan Profil Cloud",
-  "profile.cloud_profile_description": "Gunakan profil cloud sebagai identitas utama",
-  "profile.cloud_tooltip": "Jika diaktifkan, saat terhubung ke profil cloud, semua dokumen akan menggunakan profil cloud",
+  "language": {
+    "english": "Inggris",
+    "indonesian": "Bahasa Indonesia"
+  },
 
-  "editor.spell_check": "Pemeriksaan Ejaan",
-  "editor.danger.clear_cache": "Bersihkan Cache",
-  "editor.danger.clear_data": "Hapus Data",
-  "editor.danger.delete_documents": "Hapus semua dokumen Anda",
-  "editor.danger.confirm_delete": "Apakah Anda yakin ingin menghapus semua dokumen?",
-    "editor.scrollbar":"Scrollbar Editor",
+  "profile": {},
 
+  "editor": {
 
-  "remote.login_required": "Perlu Login",
-  "remote.login_description": "Hubungkan ruang kerja cloud Anda untuk mengakses dokumen jarak jauh",
-  "remote.offline": "Anda sedang offline",
-  "remote.loading_workspace": "Memuat ruang kerja jarak jauh...",
-  "remote.title": "Dokumen Jarak Jauh",
-  "remote.subtitle": "Sinkronkan ruang kerja cloud dan kelola status dokumen jarak jauh.",
-  "remote.override_local": "Timpa Lokal",
-  "remote.pulling_document": "Mengambil dokumen...",
-  "remote.pull_canceled": "Pengambilan dibatalkan",
-  "remote.up_to_date": "Dokumen sudah terbaru",
-  "remote.document_updated": "Dokumen diperbarui",
-  "remote.pull_failed": "Pengambilan Gagal",
-  "remote.connection": "Koneksi",
-  "remote.connected": "Terhubung",
-  "remote.offline_label": "Offline",
-  "remote.workspace": "Ruang Kerja",
-  "remote.remote_sync": "Sinkronisasi Jarak Jauh",
-  "remote.document": "Dokumen",
-  "remote.local_available": "Anda memiliki dokumen ini secara lokal",
-  "remote.local_available_message_suffix": "tersedia secara lokal, Anda dapat mengeditnya",
-  "remote.here": "di sini",
-  "remote.different_local_document": "Dokumen Lokal Berbeda",
-  "remote.different_local_document_message": "Menimpa dokumen lokal akan mengganti metadata lokal Anda saat ini.",
-  "remote.title_label": "Judul",
-  "remote.english_title": "Judul Bahasa Inggris",
-  "remote.category": "Kategori",
-  "remote.keywords": "Kata Kunci",
-  "remote.indonesian": "Bahasa Indonesia",
-  "remote.english": "Bahasa Inggris",
-  "remote.no_keywords": "tidak ada kata kunci",
-  "remote.no_remote_document": "Tidak Ada Dokumen Jarak Jauh",
-  "remote.no_remote_document_description": "Ruang kerja cloud Anda belum memiliki dokumen yang disinkronkan.",
-  "remote.override_local_document": "Timpa Dokumen Lokal",
-  "remote.override_local_document_description": "Pilih dokumen lokal yang ingin diganti dengan versi cloud",
-  "remote.close": "Tutup",
-  "remote.search_local_documents": "Cari dokumen lokal...",
-  "remote.loading_documents": "Memuat dokumen...",
-  "remote.no_local_documents_found": "Tidak ada dokumen lokal yang ditemukan",
-  "remote.pull_latest": "Ambil Terbaru",
+    "expandable": {
+      "citation": {
+        "title": "Sitasi",
+        "description": "Semua sitasi yang tersimpan di komputer kamu",
+        "search": "Cari sitasi...",
+        "empty": "Sitasi tidak ditemukan",
+        "empty_description": "Coba kata kunci lain.",
+        "untitled": "Sitasi Tanpa Judul",
+        "copied": "Tersalin",
+        "copy": "Salin",
+        "copy_cite_a": "Salin Cite A",
+        "copy_cite": "Salin Cite"
+      },
+      "scanner": {
+        "title": "Pemindai",
+        "description": "Validasi struktur dokumen",
+        "scan": "Pindai",
+        "empty": "Klik pindai buat memvalidasi dokumen",
+        "chapter": "Bab",
+        "text_errors": "Kesalahan Teks",
+        "node_errors": "Kesalahan Node",
+        "range": "Rentang",
+        "no_issues": "Tidak ada masalah ditemukan",
+        "no_issues_chapter": "Tidak ada masalah di {chapter}",
+        "chapter_passed": "Bab `{chapter}` lolos validasi",
+        "all_chapters_passed": "Semua Bab lolos validasi"
+      },
+      "chapters": {
+        "header": "Daftar bab dalam dokumen ini"
+      },
+      "setting": {
+        "title": "Pengaturan Dokumen",
+        "unsaved": "Belum disimpan",
+        "saving": "Menyimpan...",
+        "save": "Simpan",
+        "document": "Dokumen",
+        "title_label": "Judul",
+        "alt_title": "Judul Alternatif",
+        "category": "Kategori",
+        "select_category": "Pilih kategori",
+        "keywords": "Kata Kunci",
+        "indonesian": "Indonesia",
+        "english": "Inggris",
+        "thesis_examination_committee": "Panitia Penguji Skripsi",
+        "leaded_by": "Diketuai Oleh",
+        "primary_examiner_name": "Nama Penguji Utama",
+        "secondary_examiner_name": "Nama Penguji Kedua",
+        "thesis_dates": "Tanggal-tanggal dalam dokumen skripsi kamu",
+        "consent_date": "Tanggal Persetujuan",
+        "validity_date": "Tanggal Berlaku",
+        "statement_date": "Tanggal Pernyataan",
+        "intern_document_info": "Info Dokumen Magang",
+        "onsite_location": "Lokasi Onsite",
+        "internship_advisor_name": "Nama Pembimbing Magang",
+        "internship_advisor_nip": "NIP Pembimbing Magang",
+        "intern_validity_date": "Tanggal Berlaku Magang",
+        "add_keyword": "Tambah kata kunci..."
+      },
+      "preview": {
+        "header": "Pratinjau tampilan dokumen berhalaman"
+      }
+    },
+    "error":{
+      "pagging_stopped":{
+        "title":"Penghalaman Terhenti",
+        "description":"Batas halaman konten bikin error. Sesuaikan konten di halaman sebelumnya atau pecah jadi halaman baru."
+      }
+    },
+    "context_menu":{
+      "see_in_preview":"Lihat di Pratinjau",
+      "delete":"Hapus",
+      "split_cell": "Pecah sel",
+      "align_left": "Rata Kiri",
+      "align_center": "Rata Tengah",
+      "align_right": "Rata Kanan",
+      "merge_cells": "Gabung sel",
+      "add_row_after": "Tambah baris setelah ini",
+      "add_column_after": "Tambah kolom setelah ini",
+      "delete_row": "Hapus baris",
+      "delete_column": "Hapus kolom",
+      "delete_grid": "Hapus grid",
+      "fix_table": "Perbaiki Tabel",
+      "paragraph": "Paragraf",
+      "heading_2": "Heading 2",
+      "heading_3": "Heading 3",
+      "heading_4": "Heading 4",
+      "outdent_item": "Kurangi indentasi item",
+      "indent_item": "Tambah indentasi item",
+      "toggle_bullet_list": "Nyalakan/matikan daftar poin",
+      "toggle_ordered_list": "Nyalakan/matikan daftar berurutan",
+      "delete_image": "Hapus gambar",
+      "delete_figure_table": "Hapus tabel gambar",
+      "delete_math": "Hapus rumus matematika",
+      "remove_quote": "Hapus kutipan"    }
+  },
 
-  "error.category.missing": "Kategori tidak ditemukan!",
-  "error.category.missing.desc": "Coba sambungkan ke internet atau instal ulang aplikasi",
-  "error.frame.not.opened": "Frame belum dibuka!",
-  "error.frame.not.opened.desc": "Silakan buka previewer terlebih dahulu!",
-  "error.sharing.not_sharing": "Anda tidak sedang membagikan dokumen apa pun!",
+  "remote": {
+    "login_required": "Login Diperlukan",
+    "login_description": "Hubungkan ruang kerja cloud kamu buat mengakses dokumen remote",
+    "offline": "Kamu lagi offline",
+    "loading_workspace": "Memuat ruang kerja remote...",
+    "title": "Dokumen Remote",
+    "subtitle": "Sinkronkan ruang kerja cloud dan kelola status dokumen remote kamu.",
+    "override_local": "Timpa Lokal",
+    "pulling_document": "Menarik dokumen...",
+    "pull_canceled": "Penarikan dibatalkan",
+    "up_to_date": "Dokumen sudah versi terbaru",
+    "document_updated": "Dokumen diperbarui",
+    "pull_failed": "Gagal Menarik",
+    "connection": "Koneksi",
+    "connected": "Terhubung",
+    "offline_label": "Offline",
+    "workspace": "Ruang Kerja",
+    "remote_sync": "Sinkronisasi Remote",
+    "document": "Dokumen",
+    "local_available": "Kamu punya dokumen ini secara lokal",
+    "local_available_message_suffix": "sudah ada secara lokal, kamu bisa mengeditnya",
+    "here": "di sini",
+    "different_local_document": "Dokumen Lokal Berbeda",
+    "different_local_document_message": "Menimpa dokumen lokal bakal mengganti metadata lokal kamu saat ini.",
+    "title_label": "Judul",
+    "english_title": "Judul Inggris",
+    "category": "Kategori",
+    "keywords": "Kata Kunci",
+    "indonesian": "Indonesia",
+    "english": "Inggris",
+    "no_keywords": "tidak ada kata kunci",
+    "no_remote_document": "Tidak Ada Dokumen Remote",
+    "no_remote_document_description": "Ruang kerja cloud kamu belum punya dokumen yang tersinkron.",
+    "override_local_document": "Timpa Dokumen Lokal",
+    "override_local_document_description": "Pilih dokumen lokal buat diganti dengan versi cloud",
+    "close": "Tutup",
+    "search_local_documents": "Cari dokumen lokal...",
+    "loading_documents": "Memuat dokumen...",
+    "no_local_documents_found": "Dokumen lokal tidak ditemukan",
+    "pull_latest": "Tarik Versi Terbaru"
+  },
+
+  "error": {
+    "category": {
+      "missing": "Kategori tidak ditemukan!",
+      "missing.desc": "Coba sambungkan ke internet atau pasang ulang aplikasinya"
+    },
+    "frame": {
+      "not": {
+        "opened": "Frame belum dibuka!",
+        "opened.desc": "Silakan buka previewer dulu!"
+      }
+    },
+    "sharing": {
+      "not_sharing": "Kamu belum membagikan dokumen apa pun!"
+    }
+  },
 
   "back": "Kembali",
 
-  "sheet.statement": "Lembar Pernyataan",
-  "sheet.presentation": "Lembar Presentasi",
-  "sheet.foreword": "Lembar Kata Pengantar",
-  "sheet.attachment": "Lampiran",
+  "sheet": {
+    "statement": "Lembar Pernyataan",
+    "presentation": "Lembar Presentasi",
+    "foreword": "Lembar Kata Pengantar",
+    "attachment": "Lampiran"
+  },
 
-  "split.ensure_signed_stammped": "Pastikan sudah ditandatangani dan distempel",
-  "split.title": "Pisahkan Dokumen Anda",
-  "split.subtitle": "Pisahkan halaman pendukung dari dokumen tugas akhir Anda sebelum menerbitkannya ke repositori.",
-
-  "split.main_document.title": "Dokumen Utama Tugas Akhir",
-  "split.main_document.description": "Pilih PDF atau dokumen HighTex yang sudah ada.",
-  "split.main_document.pdf": "File PDF",
-  "split.main_document.hightex": "Dokumen HighTex",
-  "split.main_document.select": "Pilih dokumen HighTex",
-  "split.main_document_not_found": "Dokumen utama tidak ditemukan",
-  "split.document_not_selected": "Tidak ada dokumen yang dipilih",
-
-  "split.statement.title": "Lembar Pernyataan",
-  "split.approval.title": "Lembar Persetujuan",
-  "split.plagiarism.title": "Plagiarisme",
-
-  "split.ensure_signed": "Pastikan sudah ditandatangani",
-  "split.ensure_signed_stamped": "Pastikan sudah ditandatangani dan distempel",
-
-  "split.compile_document": "Kompilasi PDF",
-  "split.compiling_document": "Mengompilasi dokumen {title}",
-
-  "split.reading_main_document": "Membaca Dokumen Utama",
-  "split.loading_document": "Memuat dokumen",
-  "split.reading_metadata": "Membaca metadata",
-  "split.invalid_pdf": "PDF tidak valid: PDF harus dibuat oleh HighTex",
-  "split.invalid_payload": "Metadata dokumen HighTex tidak valid",
-
-  "split.merge_statement": "Menggabungkan Pernyataan",
-  "split.merge_statement_progress": "Menambahkan halaman pernyataan ke public.pdf",
-  "split.statement_required": "File pernyataan diperlukan",
-
-  "split.merge_consent": "Menggabungkan Persetujuan",
-  "split.merge_consent_progress": "Menambahkan halaman persetujuan ke public.pdf",
-  "split.consent_required": "File persetujuan diperlukan",
-
-  "split.merge_plagiarism": "Menggabungkan Plagiarisme",
-  "split.merge_plagiarism_progress": "Menambahkan halaman plagiarisme ke public.pdf",
-  "split.plagiarism_required": "File plagiarisme diperlukan",
-
-  "split.generate_output": "Membuat Output",
-  "split.preparing_public": "Menyiapkan public.pdf...",
-  "split.building_public": "Membangun public.pdf",
-  "split.preparing_private": "Menyiapkan private.pdf...",
-  "split.building_private": "Membangun private.pdf",
-  "split.saving_pdf": "Menyimpan file PDF...",
-  "split.creating_zip": "Membuat arsip ZIP...",
-  "split.saving_archive": "Menyimpan arsip...",
-
-  "split.copying_page": "{label} ({current}/{total}) - Menyalin halaman {page}",
-
-  "split.success": "Berhasil memisahkan dokumen!",
-  "split.success_title": "Pemisahan Berhasil",
-  "split.success_description": "Disimpan ke {path}",
-
-  "split.start": "Mulai Pemisahan",
-  "split.ready": "Mari mulai memisahkan",
+  "split": {
+    "ensure_signed_stammped": "Pastikan sudah ditandatangani dan distempel",
+    "title": "Pecah Dokumen Kamu",
+    "subtitle": "Pisahkan halaman pendukung dari dokumen skripsi kamu sebelum dipublikasikan ke repository.",
+    "main_document": {
+      "title": "Dokumen Skripsi Utama",
+      "description": "Pilih file PDF atau dokumen HighTex yang sudah ada.",
+      "pdf": "File PDF",
+      "hightex": "Dokumen HighTex",
+      "select": "Pilih dokumen HighTex"
+    },
+    "main_document_not_found": "Dokumen utama tidak ditemukan",
+    "document_not_selected": "Belum ada dokumen yang dipilih",
+    "statement": {
+      "title": "Lembar Pernyataan"
+    },
+    "approval": {
+      "title": "Lembar Persetujuan"
+    },
+    "plagiarism": {
+      "title": "Plagiarisme"
+    },
+    "ensure_signed": "Pastikan sudah ditandatangani",
+    "ensure_signed_stamped": "Pastikan sudah ditandatangani dan distempel",
+    "compile_document": "Kompilasi PDF",
+    "compiling_document": "Mengompilasi dokumen {title}",
+    "reading_main_document": "Membaca Dokumen Utama",
+    "loading_document": "Memuat dokumen",
+    "reading_metadata": "Membaca metadata",
+    "invalid_pdf": "PDF tidak valid: PDF harus dibuat oleh HighTex",
+    "invalid_payload": "Metadata dokumen HighTex tidak valid",
+    "merge_statement": "Gabungkan Pernyataan",
+    "merge_statement_progress": "Menambahkan halaman pernyataan ke public.pdf",
+    "statement_required": "File pernyataan wajib diisi",
+    "merge_consent": "Gabungkan Persetujuan",
+    "merge_consent_progress": "Menambahkan halaman persetujuan ke public.pdf",
+    "consent_required": "File persetujuan wajib diisi",
+    "merge_plagiarism": "Gabungkan Plagiarisme",
+    "merge_plagiarism_progress": "Menambahkan halaman plagiarisme ke public.pdf",
+    "plagiarism_required": "File plagiarisme wajib diisi",
+    "generate_output": "Buat Output",
+    "preparing_public": "Menyiapkan public.pdf...",
+    "building_public": "Membangun public.pdf",
+    "preparing_private": "Menyiapkan private.pdf...",
+    "building_private": "Membangun private.pdf",
+    "saving_pdf": "Menyimpan file PDF...",
+    "creating_zip": "Membuat arsip ZIP...",
+    "saving_archive": "Menyimpan arsip...",
+    "copying_page": "{label} ({current}/{total}) - Menyalin halaman {page}",
+    "success": "Berhasil dipecah!",
+    "success_title": "Pemecahan Berhasil",
+    "success_description": "Disimpan ke {path}",
+    "start": "Mulai Pecah",
+    "ready": "Yuk, mulai pecah dokumennya"
+  },
 
   "citation": {
-    "title": "Pustaka Sitasi",
+    "title": "Perpustakaan Sitasi",
     "subtitle": "Kelola referensi bibliografi dan impor langsung dari Zotero.",
     "actions": "Aksi Bibliografi",
     "add": "Tambah Sitasi",
     "import_zotero": "Impor dari Zotero",
     "loading": "Memuat sitasi...",
     "search": "Cari dari {count} sitasi...",
-    "empty": "Tidak ada sitasi yang tersedia.",
+    "empty": "Tidak ada sitasi tersedia.",
     "import_title": "Impor Sitasi",
     "import_description": "Tempel konten BibTeX atau unggah file .bib.",
     "bibtex_content": "Konten BibTeX",
     "upload_bib": "Unggah .bib",
     "bibtex_placeholder": "@article{...}",
-    "validation_description": "Hanya sitasi valid dengan judul, tahun, dan penulis/editor yang akan diimpor.",
+    "validation_description": "Cuma sitasi valid dengan judul, tahun, dan penulis/editor yang bakal diimpor.",
     "import": "Impor sitasi",
     "copy": "Salin sitasi",
     "delete": "Hapus sitasi",
@@ -233,119 +454,52 @@
     "skipped_invalid": ", {count} tidak valid dilewati",
     "error": {
       "no_bibtex_content": "Tidak ada konten BibTeX yang diberikan.",
-      "no_valid_citations": "Tidak ditemukan sitasi yang valid.",
+      "no_valid_citations": "Tidak ada sitasi valid yang ditemukan.",
       "no_citations_parsed": "Tidak ada sitasi yang berhasil diproses."
     },
     "zotero": {
       "title": "Impor dari Zotero",
-      "description": "Telusuri dan impor referensi langsung dari pustaka Zotero lokal Anda.",
+      "description": "Telusuri dan impor referensi langsung dari perpustakaan Zotero lokal kamu.",
       "checking": "Memeriksa",
       "connected": "Terhubung",
       "disconnected": "Terputus",
-      "local_api": "API Zotero Lokal",
+      "local_api": "API Lokal Zotero",
       "refresh": "Segarkan",
       "refreshing": "Menyegarkan...",
       "loading": "Memuat referensi...",
-      "empty": "Tidak ada referensi yang ditemukan.",
+      "empty": "Tidak ada referensi ditemukan.",
       "reference": "Referensi",
       "title_column": "Judul",
       "type_column": "Tipe",
       "year_column": "Tahun",
       "import_selected": "Impor yang Dipilih",
       "integration_disabled": "Integrasi Zotero lokal dinonaktifkan di pengaturan.",
-      "connection_failed": "Tidak dapat terhubung ke API Zotero lokal.",
-      "no_references": "Tidak ada referensi Zotero yang ditemukan.",
-      "select_reference": "Pilih setidaknya satu referensi Zotero.",
+      "connection_failed": "Tidak bisa terhubung ke API lokal Zotero.",
+      "no_references": "Referensi Zotero tidak ditemukan.",
+      "select_reference": "Pilih minimal satu referensi Zotero.",
       "no_matching_references": "Tidak ada referensi Zotero yang cocok.",
       "no_valid_imported": "Tidak ada referensi valid yang diimpor.",
       "imported": "Berhasil mengimpor {count} referensi."
     }
   },
 
-  "editor": {
-    "expandable": {
-      "citation": {
-        "title": "Sitasi",
-        "description": "Semua sitasi yang tersimpan di komputer Anda",
-        "search": "Cari sitasi...",
-        "empty": "Tidak ada sitasi yang ditemukan",
-        "empty_description": "Coba kata kunci lain.",
-        "untitled": "Sitasi Tanpa Judul",
-        "copied": "Disalin",
-        "copy": "Salin",
-        "copy_cite_a": "Salin Cite A",
-        "copy_cite": "Salin Cite"
-      },
-        "scanner": {
-    "title": "Pemindai",
-    "description": "Validasi struktur dokumen",
-    "scan": "Pindai",
-    "empty": "Klik pindai untuk memvalidasi dokumen",
-    "chapter": "Bab",
-    "text_errors": "Kesalahan Teks",
-    "node_errors": "Kesalahan Node",
-    "range": "Rentang",
-    "no_issues": "Tidak ditemukan masalah",
-    "no_issues_chapter": "Tidak ditemukan masalah pada {chapter}",
-    "chapter_passed": "Bab `{chapter}` lolos validasi",
-    "all_chapters_passed": "Semua Bab lolos validasi"
-  },
-
-  "setting": {
-    "title": "Pengaturan Dokumen",
-    "unsaved": "Belum Disimpan",
-    "saving": "Menyimpan...",
-    "save": "Simpan",
-    "document": "Dokumen",
-    "title_label": "Judul",
-    "alt_title": "Judul Alternatif",
-    "category": "Kategori",
-    "select_category": "Pilih kategori",
-    "keywords": "Kata Kunci",
-    "indonesian": "Bahasa Indonesia",
-    "english": "Bahasa Inggris",
-    "thesis_examination_committee": "Tim Penguji Tugas Akhir",
-    "leaded_by": "Dipimpin Oleh",
-    "primary_examiner_name": "Nama Penguji Utama",
-    "secondary_examiner_name": "Nama Penguji Kedua",
-    "thesis_dates": "Tanggal pada Dokumen Tugas Akhir Anda",
-    "consent_date": "Tanggal Persetujuan",
-    "validity_date": "Tanggal Berlaku",
-    "statement_date": "Tanggal Pernyataan",
-    "intern_document_info": "Informasi Dokumen Kerja Praktek",
-    "onsite_location": "Lokasi Kerja Praktek",
-    "internship_advisor_name": "Nama Pembimbing Kerja Praktek",
-    "internship_advisor_nip": "NIP Pembimbing Kerja Praktek",
-    "intern_validity_date": "Tanggal Berlaku Kerja Praktek",
-    "add_keyword": "Tambah kata kunci..."
-    },
-    "chapters":{
-      "header":"Daftar Bab pada doument"
-    },
-  "preview":{
-    "header":"Pratinjau rendering dokumen berhalaman"
-  }
-    }
-  },
-
-
-    "snapshots": {
+  "snapshots": {
     "title": "Snapshot",
-    "description": "Sesi berbagi yang tersimpan. Buka salah satu untuk melihat dokumen yang dirender dan komentar.",
-    "refresh": "Refresh",
+    "description": "Sesi berbagi yang tersimpan. Buka salah satu buat lihat tampilan dokumen dan komentarnya.",
+    "refresh": "Segarkan",
     "loading": "Memuat snapshot...",
     "empty": "Belum ada snapshot yang tersimpan.",
     "unknown_time": "Waktu tidak diketahui",
     "advising": "Bimbingan",
     "load_error": "Gagal memuat snapshot.",
     "delete_title": "Hapus {label}?",
-    "delete_description": "Ini akan menghapus catatan snapshot, komentar terkait, dan file snapshot.",
+    "delete_description": "Ini bakal menghapus catatan snapshot, komentar terkait, dan file snapshot-nya.",
     "delete": "Hapus",
     "deleting": "Menghapus snapshot...",
     "not_found": "Snapshot tidak ditemukan",
-    "deleted": "Snapshot dihapus",
+    "deleted": "Snapshot berhasil dihapus",
     "delete_error": "Gagal menghapus snapshot",
-    "delete_failed": "Snapshot tidak dapat dihapus.",
+    "delete_failed": "Snapshot tidak bisa dihapus.",
     "delete_snapshot": "Hapus snapshot"
   }
 }

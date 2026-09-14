@@ -157,13 +157,13 @@ const EditorComponent = () => {
           e.clientY,
           [
             {
-              label: "Delete",
+              label: t("editor.context_menu.delete"),
               danger: true,
               icon: <TrashIcon className="h-4 w-4" />,
               onClick: () => editor.commands.deleteSelection(),
             },
             {
-              label: "See In Preview",
+              label: t("editor.context_menu.see_in_preview"),
               icon: <Eye className="h-4 w-4" />,
               onClick: () => {
                 const frame = document.querySelector("iframe");
