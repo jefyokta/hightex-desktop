@@ -6,15 +6,49 @@ on:
       - "v*"
 
 jobs:
+  validate:
+    name: Validate release version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate tag
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${TAG_VERSION#v}"
+
+          echo "Package version: $PACKAGE_VERSION"
+          echo "Tag version:     $TAG_VERSION"
+
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Version mismatch: package.json=$PACKAGE_VERSION, tag=v$TAG_VERSION"
+            exit 1
+          fi
+
+          if ! [[ "$TAG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([\-+].*)?$ ]]; then
+            echo "::error::Invalid release tag: ${{ github.ref_name }}"
+            echo "::error::Expected format: vX.Y.Z"
+            exit 1
+          fi
+
+          echo "Version validation passed: v$TAG_VERSION"
+
   changelog:
+    needs: validate
     runs-on: ubuntu-latest
     outputs:
       has_notes: ${{ steps.check.outputs.has_notes }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Generate changelog
         uses: orhun/git-cliff-action@v4
         id: git-cliff
@@ -40,7 +74,7 @@ jobs:
           path: RELEASE_NOTE.md
 
   build:
-    needs: changelog
+    needs: [validate, changelog]
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
@@ -104,7 +138,7 @@ jobs:
             release/**
 
   release:
-    needs: [build, changelog]
+    needs: [validate, build, changelog]
     runs-on: ubuntu-latest
 
     permissions:
@@ -134,6 +168,12 @@ jobs:
           fi
 
           ls -la release-assets
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes
 
       - name: Add update to server
         shell: bash
