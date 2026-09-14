@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*"
-
 jobs:
   validate:
     name: Validate release version
