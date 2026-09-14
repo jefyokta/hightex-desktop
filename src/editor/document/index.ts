@@ -166,19 +166,24 @@ export class Document {
   }
 
   private getDefaultChapter() {
-    return [
-      new Chapter({
+    const isIntern =this.category?.variant === 'intern';
+    const def:Chapter[] = []
+
+    def.push(
+        new Chapter({
         documentId: this.id,
         chapter: "foreword",
         isolated: true,
-      }).setTitle("KATA PENGANTAR"),
-
-      new Chapter({
+      }).setTitle("KATA PENGANTAR")
+    )
+    if(!isIntern){
+      def.push(   new Chapter({
         documentId: this.id,
         chapter: "presentation",
         isolated: true,
-      }).setTitle("LEMBAR PERSEMBAHAN"),
-      new Chapter({
+      }).setTitle("LEMBAR PERSEMBAHAN"))
+    }
+    def.push(  new Chapter({
         documentId: this.id,
         chapter: "abstract",
         isolated: true,
@@ -187,8 +192,8 @@ export class Document {
         documentId: this.id,
         chapter: "abstract-en",
         isolated: true,
-      }).setTitle("ABSTRACT"),
-    ];
+      }).setTitle("ABSTRACT"),)
+    return def;
   }
 
   destroy() {

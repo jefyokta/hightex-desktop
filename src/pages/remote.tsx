@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { truncate } from "@/utils/truncate";
 import { Link } from "react-router-dom";
 import { ApplicationError } from "@/exception/interfaces/application-error";
+import { t } from "@/utils/lang";
 
 export const RemoteDocuments = () => {
   const { user } = useUser();
@@ -80,16 +81,16 @@ export const RemoteDocuments = () => {
             </div>
 
             <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 text-center">
-              Login Required
+              {t("remote.login_required")}
             </div>
-
+ 
             <div className="text-xs text-neutral-400 dark:text-neutral-500 text-center mt-1">
-              Connect your cloud workspace to access remote documents
+              {t("remote.login_description")}
             </div>
-
+ 
             {!online && (
               <div className="mt-3 text-[11px] text-red-500 text-center">
-                You are offline
+                {t("remote.offline")}
               </div>
             )}
 
@@ -98,7 +99,7 @@ export const RemoteDocuments = () => {
               disabled={!online}
               className="mt-6 w-full py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50"
             >
-              Login
+              {t("common.login")}
             </button>
           </div>
         </div>
@@ -110,7 +111,7 @@ export const RemoteDocuments = () => {
     return (
       <div className="rounded-3xl bg-neutral-50 dark:bg-neutral-900 p-6 border border-neutral-100 dark:border-neutral-800 shadow-sm">
         <div className="text-sm text-neutral-400 dark:text-neutral-500 animate-pulse">
-          Loading remote workspace...
+          {t("remote.loading_workspace")}
         </div>
       </div>
     );
@@ -120,10 +121,10 @@ export const RemoteDocuments = () => {
     <>
       <div>
         <h1 className="text-xl font-semibold text-foreground">
-          Remote Documents
+          {t("remote.title")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Sync your cloud workspace and manage remote document state.
+          {t("remote.subtitle")}
         </p>
       </div>
 
@@ -135,9 +136,9 @@ export const RemoteDocuments = () => {
         <>
           <div className="mb-5 flex flex-col space-y-2">
             <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
-              <ParsedItalic text={document.title || "Untitled"} />
+              <ParsedItalic text={document.title || t("common.untitled_document")} />
             </div>
-
+ 
             <div className="flex items-center gap-2 ">
               <button
                 onClick={() => {
@@ -150,12 +151,12 @@ export const RemoteDocuments = () => {
                 className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2"
               >
                 <GitCompare size={14} />
-                Override Local
+                {t("remote.override_local")}
               </button>
-
+ 
               <button
                 onClick={() => {
-                  const id = toast.loading("Pulling document...");
+                  const id = toast.loading(t("remote.pulling_document"));
                   window.ipcRenderer
                     .invoke(
                       "hightex:document:pull",
@@ -164,8 +165,8 @@ export const RemoteDocuments = () => {
                     .then((r) => {
                       if (!(r instanceof ArrayBuffer)) {
                         throw new ShouldNotified({
-                          message: "Pull canceled",
-                          description: "Document already up to date",
+                          message: t("remote.pull_canceled"),
+                          description: t("remote.up_to_date"),
                         });
                       }
                       const file = new File(
@@ -176,7 +177,7 @@ export const RemoteDocuments = () => {
                     })
                     .then((doc) => {
                       toast.success(
-                        `document ${truncate(doc.title.replace("_", ""), 13)} updated`,
+                        `${t("remote.document_updated")} ${truncate(doc.title.replace("_", ""), 13)}`,
                         {
                           id,
                         },
@@ -186,9 +187,9 @@ export const RemoteDocuments = () => {
                       if (_e instanceof ShouldNotified) {
                         throw _e;
                       }
-
+ 
                       throw new ShouldNotified({
-                        message: "Pull Failed",
+                        message: t("remote.pull_failed"),
                         description: ApplicationError.normilize(_e),
                         id: String(id),
                       });
@@ -200,7 +201,7 @@ export const RemoteDocuments = () => {
                 className="px-3 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition text-xs flex items-center gap-2"
               >
                 <HardDriveDownload size={14} />
-                Pull Latest
+                {t("remote.pull_latest")}
               </button>
             </div>
           </div>
@@ -210,11 +211,11 @@ export const RemoteDocuments = () => {
               <SyncBanner localDoc={localDoc} cloudDoc={cloudDoc} />
             )}
 
-            <InfoRow label="Title" value={document.title} />
+            <InfoRow label={t("remote.title_label")} value={document.title} />
             {/* @ts-ignore */}
-            <InfoRow label="English Title" value={document.en_title} />
+            <InfoRow label={t("remote.english_title")} value={document.en_title} />
             <InfoRow
-              label="Category"
+              label={t("remote.category")}
               value={
                 categories.find((c) => String(c.id) == document.category)?.name
               }
@@ -243,19 +244,19 @@ const Stats = ({ online, document }: any) => {
     <div className="grid grid-cols-3 gap-3 h-20 mb-6">
       <Stat
         icon={online ? <Cloud size={14} /> : <CloudOff size={14} />}
-        label="Connection"
-        value={online ? "Connected" : "Offline"}
+        label={t("remote.connection")}
+        value={online ? t("remote.connected") : t("remote.offline_label")}
       />
-
+ 
       <Stat
         icon={<Database size={14} />}
-        label="Workspace"
-        value="Remote Sync"
+        label={t("remote.workspace")}
+        value={t("remote.remote_sync")}
       />
-
+ 
       <Stat
         icon={<Folder size={14} />}
-        label="Document"
+        label={t("remote.document")}
         value={document?.id?.slice(0, 6) || "-"}
       />
     </div>
@@ -293,17 +294,17 @@ const SyncBanner = ({
 
         <div>
           <div className="text-xs font-medium text-green-700 dark:text-green-400">
-            You have this document locally
+            {t("remote.local_available")}
           </div>
 
           <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-            <span>Document </span> `<ParsedItalic text={cloudDoc!.title} />`
-            exists locally, you can edit it{" "}
+            <span>{t("remote.document")}</span> <ParsedItalic text={cloudDoc!.title} />
+            {` ${t("remote.local_available_message_suffix")}`}
             <Link
               className="font-semibold underline"
               to={`/document/${cloudDoc!.id}/1`}
             >
-              here
+              {` ${t("remote.here")}`}
             </Link>
           </div>
         </div>
@@ -317,11 +318,11 @@ const SyncBanner = ({
 
       <div>
         <div className="text-xs font-medium text-amber-700 dark:text-amber-400">
-          Different Local Document
+          {t("remote.different_local_document")}
         </div>
-
+ 
         <div className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-          Overriding local document will replace your current local metadata.
+          {t("remote.different_local_document_message")}
         </div>
       </div>
     </div>
@@ -357,13 +358,13 @@ const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-5">
         <div className="w-32 shrink-0 text-xs uppercase text-neutral-400 dark:text-neutral-500">
-          Keywords
+          {t("remote.keywords")}
         </div>
 
         <div className="flex-1 space-y-3">
           <div>
             <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mb-1">
-              Indonesian
+              {t("remote.indonesian")}
             </div>
 
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -378,7 +379,7 @@ const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
                 ))
               ) : (
                 <div className="text-xs text-neutral-300 dark:text-neutral-600">
-                  no keywords
+                  {t("remote.no_keywords")}
                 </div>
               )}
             </div>
@@ -386,7 +387,7 @@ const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
 
           <div>
             <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mb-1">
-              English
+              {t("remote.english")}
             </div>
 
             <div className="flex flex-wrap justify-end gap-1.5">
@@ -401,7 +402,7 @@ const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
                 ))
               ) : (
                 <div className="text-xs text-neutral-300 dark:text-neutral-600">
-                  no keywords
+                  {t("remote.no_keywords")}
                 </div>
               )}
             </div>
@@ -419,11 +420,11 @@ const Empty = () => (
     </div>
 
     <div className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-      No Remote Document
+      {t("remote.no_remote_document")}
     </div>
 
     <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-      Your cloud workspace does not contain any synced document yet.
+      {t("remote.no_remote_document_description")}
     </div>
   </div>
 );
@@ -476,10 +477,10 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
         <div className="p-5 border-b border-neutral-100">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium">Override Local Document</div>
+              <div className="text-sm font-medium">{t("remote.override_local_document")}</div>
 
               <div className="text-xs text-neutral-400 mt-1">
-                Select a local document to replace with cloud version
+                {t("remote.override_local_document_description")}
               </div>
             </div>
 
@@ -487,7 +488,7 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
               onClick={onClose}
               className="text-xs text-neutral-400 hover:text-neutral-700"
             >
-              Close
+              {t("remote.close")}
             </button>
           </div>
 
@@ -500,7 +501,7 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search local documents..."
+              placeholder={t("remote.search_local_documents")}
               className="w-full bg-neutral-50 rounded-xl pl-9 pr-3 py-2 text-sm outline-none"
             />
           </div>
@@ -509,13 +510,13 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
         <div className="max-h-105 overflow-y-auto p-2">
           {loading && (
             <div className="p-5 text-xs text-neutral-400">
-              Loading documents...
+              {t("remote.loading_documents")}
             </div>
           )}
 
           {!loading && filtered.length === 0 && (
             <div className="p-5 text-xs text-neutral-400">
-              No local documents found
+              {t("remote.no_local_documents_found")}
             </div>
           )}
 

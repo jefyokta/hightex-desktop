@@ -4,6 +4,7 @@ import { SelectionResolver } from "@/compiler/resolver/selection-resolver";
 import { SharingException } from "@/exception/sharing-exception";
 import { useFrameContext } from "@/hooks/use-frame";
 import { useSharing } from "@/hooks/use-sharing";
+import { t } from "@/utils/lang";
 import { useEffect } from "react";
 
 export const SharingHost = () => {
@@ -19,7 +20,7 @@ export const SharingHost = () => {
         if (disposed) return;
 
         if (!info) {
-          throw new SharingException("You are not sharing any document");
+          throw new SharingException(t("error.sharing.not_sharing"));
         }
 
         await connectHost(info.port, info.hostToken);

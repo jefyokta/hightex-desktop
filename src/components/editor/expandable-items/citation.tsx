@@ -1,7 +1,8 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { Copy, Search, Check, BookMarked, ChevronDown } from "lucide-react";
 
-//@ts-ignore
+// @ts-ignore
 import Cite from "citation-js";
 
 import { TabHeader } from "./components/tab-header";
@@ -9,14 +10,13 @@ import { TabHeader } from "./components/tab-header";
 import { CiteUtils } from "bibtex.js";
 import { Dropdown } from "@/components/dropdown";
 import { HighTexDB } from "@/editor/storage/hightex-db";
+import { t } from "@/utils/lang";
 
 type CopyType = "cite-a" | "cite";
 
 export const Citation = () => {
   const [loading, setLoading] = useState(true);
-
   const [query, setQuery] = useState("");
-
   const [cites, setCites] = useState<CiteUtils[]>([]);
 
   useEffect(() => {
@@ -38,11 +38,11 @@ export const Citation = () => {
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
 
-    if (!q) return cites;
+    if (!q) {
+      return cites;
+    }
 
     return cites.filter((cite) => {
-      const qLower = q.toLowerCase();
-
       const data = cite.getCite();
       const authors = data?.author || data?.authors;
 
@@ -50,10 +50,10 @@ export const Citation = () => {
 
       if (Array.isArray(authors)) {
         authorText = authors
-          .map((a: any) =>
-            typeof a === "string"
-              ? a
-              : `${a.given ?? ""} ${a.family ?? ""}`.trim(),
+          .map((author: any) =>
+            typeof author === "string"
+              ? author
+              : `${author.given ?? ""} ${author.family ?? ""}`.trim(),
           )
           .join(" ");
       } else if (typeof authors === "string") {
@@ -61,22 +61,23 @@ export const Citation = () => {
       }
 
       const title = (cite.getTitle() || "").toLowerCase();
-
       const full = (cite.toCite() || "").toLowerCase();
-
       const authorLower = authorText.toLowerCase();
 
       return (
-        title.includes(qLower) ||
-        full.includes(qLower) ||
-        authorLower.includes(qLower)
+        title.includes(q) ||
+        full.includes(q) ||
+        authorLower.includes(q)
       );
     });
   }, [query, cites]);
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <TabHeader title="Citation" desc="All citations saved on your computer" />
+      <TabHeader
+        title={t("editor.expandable.citation.title")}
+        desc={t("editor.expandable.citation.description")}
+      />
 
       <div className="border-b p-4">
         <div className="relative">
@@ -84,8 +85,8 @@ export const Citation = () => {
 
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search citation..."
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("editor.expandable.citation.search")}
             className="h-10 w-full rounded-xl border bg-background pl-10 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-ring"
           />
         </div>
@@ -94,10 +95,8 @@ export const Citation = () => {
       <div className="flex-1 overflow-auto p-4 pb-20">
         {loading && (
           <div className="space-y-3">
-            {Array.from({
-              length: 5,
-            }).map((_, i) => (
-              <div key={i} className="rounded-2xl border p-4">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="rounded-2xl border p-4">
                 <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
 
                 <div className="mt-3 h-3 w-full animate-pulse rounded bg-muted" />
@@ -112,10 +111,12 @@ export const Citation = () => {
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed py-16 text-center">
             <BookMarked className="h-10 w-10 text-muted-foreground" />
 
-            <h2 className="mt-4 text-sm font-medium">No citations found</h2>
+            <h2 className="mt-4 text-sm font-medium">
+              {t("editor.expandable.citation.empty")}
+            </h2>
 
             <p className="mt-1 text-xs text-muted-foreground">
-              Try another keyword.
+              {t("editor.expandable.citation.empty_description")}
             </p>
           </div>
         )}
@@ -132,7 +133,11 @@ export const Citation = () => {
   );
 };
 
-const CitationItem = ({ cite }: { cite: CiteUtils }) => {
+type CitationItemProps = {
+  cite: CiteUtils;
+};
+
+const CitationItem = ({ cite }: CitationItemProps) => {
   const [copied, setCopied] = useState<CopyType | null>(null);
 
   const title = cite.getTitle();
@@ -165,26 +170,29 @@ const CitationItem = ({ cite }: { cite: CiteUtils }) => {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-sm font-semibold">
-            {title || "Untitled Citation"}
+            {title || t("editor.expandable.citation.untitled")}
           </h2>
 
-          <p className="mt-1 text-xs text-muted-foreground">{author}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {author}
+          </p>
         </div>
 
         <div className="flex items-center">
           <button
+            type="button"
             onClick={() => copy("cite-a")}
             className="inline-flex h-8 items-center justify-center gap-1 rounded-l-lg border border-r-0 bg-background px-2.5 text-[11px] transition hover:bg-muted"
           >
             {copied ? (
               <>
                 <Check className="h-3 w-3" />
-                Copied
+                {t("editor.expandable.citation.copied")}
               </>
             ) : (
               <>
                 <Copy className="h-3 w-3" />
-                Copy
+                {t("editor.expandable.citation.copy")}
               </>
             )}
           </button>
@@ -200,17 +208,19 @@ const CitationItem = ({ cite }: { cite: CiteUtils }) => {
           >
             <div className="min-w-40 p-1 text-xs">
               <button
+                type="button"
                 onClick={() => copy("cite-a")}
                 className="flex w-full items-center rounded-lg px-3 py-2 text-left transition hover:bg-muted"
               >
-                Copy Cite A
+                {t("editor.expandable.citation.copy_cite_a")}
               </button>
 
               <button
+                type="button"
                 onClick={() => copy("cite")}
                 className="flex w-full items-center rounded-lg px-3 py-2 text-left transition hover:bg-muted"
               >
-                Copy Cite
+                {t("editor.expandable.citation.copy_cite")}
               </button>
             </div>
           </Dropdown>
@@ -218,7 +228,7 @@ const CitationItem = ({ cite }: { cite: CiteUtils }) => {
       </div>
 
       <div className="mt-4 rounded-xl border bg-muted/30 p-3">
-        <p className="wrap-break-word text-xs leading-6 whitespace-pre-wrap">
+        <p className="wrap-break-word whitespace-pre-wrap text-xs leading-6">
           {biblio}
         </p>
       </div>

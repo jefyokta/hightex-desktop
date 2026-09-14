@@ -17,6 +17,7 @@ import { ConfirmProvider } from "@/context/confrim-context";
 import { AskProvider } from "@/context/ask-context";
 import { confirm } from "@/utils/confirm";
 import { isMac } from "@/utils/is-mac";
+import { applyLanguage } from "@/utils/lang";
 import { Copy } from "lucide-react";
 
 const UPDATER_TOAST_ID = "hightex-updater";
@@ -223,10 +224,13 @@ export const MainLayout = () => {
     const config = window.config.get();
 
     const theme = config?.theme ?? "system";
+    const language = config?.language ?? "en";
     applyTheme(theme);
+    applyLanguage(language);
 
     const unsubscribe = window.config.onChange((cfg) => {
       applyTheme(cfg.theme);
+      applyLanguage(cfg.language ?? "en");
     });
 
     return () => {

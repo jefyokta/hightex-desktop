@@ -6,6 +6,7 @@ import { useOnline } from "../hooks/use-online";
 import { motion } from "motion/react";
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
 import { CategoryEmpty } from "@/exception/categories-empty";
+import { t } from "@/utils/lang";
 
 import logo from "@/assets/hightex.svg";
 
@@ -106,7 +107,7 @@ export const Splash: React.FC = () => {
       <div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-black">
         <div className="w-[320px] space-y-4 text-center">
           <div className="text-sm text-neutral-500 dark:text-neutral-400">
-            {status || "Preparing HighTex..."}
+            {status || t("splash.preparing")}
           </div>
 
           <div className="w-full h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
@@ -134,18 +135,20 @@ export const Splash: React.FC = () => {
           <div className="text-4xl font-semibold tracking-tight ">HighTex</div>
 
           <div className="flex-justify-center">
-            <span className="text-xs font-extralight">version {version}</span>
+            <span className="text-xs font-extralight">
+              {t("common.version")} {version}
+            </span>
           </div>
         </div>
 
         <div className="py-2">
           <Marquee
             items={[
-              "just focus on your ideas",
-              "write without formatting distractions",
-              "citations handled automatically",
-              "structured writing without effort",
-              "research first, formatting later",
+              t("splash.tagline_1"),
+              t("splash.tagline_2"),
+              t("splash.tagline_3"),
+              t("splash.tagline_4"),
+              t("splash.tagline_5"),
             ]}
           />
         </div>
@@ -154,7 +157,7 @@ export const Splash: React.FC = () => {
           {user ? (
             <div className="space-y-2">
               <div className="text-sm text-neutral-500">
-                Hi {user.name.split(" ")[0]}
+                {t("common.hi")} {user.name.split(" ")[0]}
               </div>
 
               <div className="flex gap-2 justify-center">
@@ -162,14 +165,14 @@ export const Splash: React.FC = () => {
                   onClick={() => navigate("/dashboard")}
                   className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
                 >
-                  Start
+                  {t("common.start")}
                 </button>
 
                 <button
                   onClick={async () => await window.session.logout()}
                   className="px-5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800"
                 >
-                  Logout
+                  {t("common.logout")}
                 </button>
               </div>
             </div>
@@ -179,23 +182,23 @@ export const Splash: React.FC = () => {
                 onClick={() => navigate("/dashboard")}
                 className="px-5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700"
               >
-                Continue as Guest
+                {t("common.continue_as_guest")}
               </button>
 
               <button
                 onClick={openLogin}
                 className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
               >
-                Login
+                {t("common.login")}
               </button>
             </>
           )}
         </div>
 
-        <p className="text-xs text-neutral-400">Lightweight • Offline-ready</p>
+        <p className="text-xs text-neutral-400">{t("splash.lightweight")}</p>
         <div className="pt-6 self-end w-full border-t flex justify-center border-neutral-200 dark:border-neutral-800">
           <LayoutTextFlip
-            text="From Jepi Okta Mipa, Thanks to"
+            text={t("splash.thanks_to")}
             words={[
               {
                 name: "Tengku Khairil Ahsyar",
@@ -212,10 +215,6 @@ export const Splash: React.FC = () => {
               {
                 name: "Irvandi Kurniawan",
                 role: "Best of The Best Friend",
-              },
-              {
-                name: "Lafera Space",
-                role: "My Second Home",
               },
             ]}
           />

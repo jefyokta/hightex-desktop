@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { FileWarningIcon, Save, X } from "lucide-react";
 
@@ -5,6 +6,7 @@ import { Document } from "@/editor/document";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 
 import { ParsedItalic } from "@/utils/parse-italic";
+import { t } from "@/utils/lang";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -90,12 +92,12 @@ export const Setting = () => {
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <TabHeader title="Document Setting" desc={doc.title}>
+      <TabHeader title={t("editor.expandable.setting.title")} desc={doc.title}>
         <div className="flex justify-end space-x-1 items-center">
           {isDirty && (
             <Badge className=" gap-1 border-yellow-500/20 bg-yellow-500/10 text-yellow-700 dark:border-yellow-400/20 dark:bg-yellow-400/10 dark:text-yellow-300">
               <FileWarningIcon className="h-1.5 w-1.5 " />
-              Unsaved
+              {t("editor.expandable.setting.unsaved")}
             </Badge>
           )}
 
@@ -108,15 +110,15 @@ export const Setting = () => {
           >
             <Save className="h-3 w-3" />
 
-            {loading ? "Saving..." : "Save"}
+            {loading ? t("editor.expandable.setting.saving") : t("editor.expandable.setting.save")}
           </Button>
         </div>
       </TabHeader>
 
       <div className="flex-1 space-y-4 overflow-auto p-4">
-        <Section title="Document">
+        <Section title={t("editor.expandable.setting.document")}>
           <Field
-            label="Title"
+            label={t("editor.expandable.setting.title_label")}
             value={doc.title ?? ""}
             onChange={(title) =>
               setDoc((prev) => ({
@@ -127,7 +129,7 @@ export const Setting = () => {
           />
 
           <Field
-            label="Alt Title"
+            label={t("editor.expandable.setting.alt_title")}
             value={doc.altTitle ?? ""}
             onChange={(altTitle) =>
               setDoc((prev) => ({
@@ -138,7 +140,9 @@ export const Setting = () => {
           />
 
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground ">Category</label>
+            <label className="text-xs text-muted-foreground ">
+              {t("editor.expandable.setting.category")}
+            </label>
 
             <Select
               value={doc.category?.toString() ?? 1}
@@ -163,7 +167,7 @@ export const Setting = () => {
               }
             >
               <SelectTrigger className="w-full mt-1">
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder={t("editor.expandable.setting.select_category")} />
               </SelectTrigger>
 
               <SelectContent>
@@ -182,9 +186,9 @@ export const Setting = () => {
           </div>
         </Section>
 
-        <Section title="Keywords">
+        <Section title={t("editor.expandable.setting.keywords")}>
           <KeywordBox
-            label="Indonesian"
+            label={t("editor.expandable.setting.indonesian")}
             values={doc.keywords.indonesian}
             onChange={(values) =>
               setDoc((prev) => ({
@@ -199,7 +203,7 @@ export const Setting = () => {
           />
 
           <KeywordBox
-            label="English"
+            label={t("editor.expandable.setting.english")}
             values={doc.keywords.english}
             onChange={(values) =>
               setDoc((prev) => ({
@@ -213,9 +217,10 @@ export const Setting = () => {
             render={(value) => <em>{value}</em>}
           />
         </Section>
-        <Section title="Thesis Examination Committee">
+
+        <Section title={t("editor.expandable.setting.thesis_examination_committee")}>
           <Field
-            label="Leaded By"
+            label={t("editor.expandable.setting.leaded_by")}
             value={doc.config.leader ?? ""}
             onChange={(leader) =>
               setDoc((prev) => ({
@@ -227,8 +232,9 @@ export const Setting = () => {
               }))
             }
           />
+
           <Field
-            label="Primary Examiner Name"
+            label={t("editor.expandable.setting.primary_examiner_name")}
             value={doc.config.member_1 ?? ""}
             onChange={(member_1) =>
               setDoc((prev) => ({
@@ -242,7 +248,7 @@ export const Setting = () => {
           />
 
           <Field
-            label="Secondary Examiner Name"
+            label={t("editor.expandable.setting.secondary_examiner_name")}
             value={doc.config.member_2 ?? ""}
             onChange={(member_2) =>
               setDoc((prev) => ({
@@ -255,9 +261,10 @@ export const Setting = () => {
             }
           />
         </Section>
-        <Section title="Date(s) in your Thesis document">
+
+        <Section title={t("editor.expandable.setting.thesis_dates")}>
           <DatePickerInput
-            label="Consent Date"
+            label={t("editor.expandable.setting.consent_date")}
             date={doc.config.consentDate}
             setDate={(date) => {
               setDoc((prv) => {
@@ -271,8 +278,9 @@ export const Setting = () => {
               });
             }}
           />
+
           <DatePickerInput
-            label="Validity Date"
+            label={t("editor.expandable.setting.validity_date")}
             date={doc.config.validityDate}
             setDate={(date) => {
               setDoc((prv) => {
@@ -286,8 +294,9 @@ export const Setting = () => {
               });
             }}
           />
+
           <DatePickerInput
-            label="Statement Date"
+            label={t("editor.expandable.setting.statement_date")}
             date={doc.config.validityDate}
             setDate={(date) => {
               setDoc((prv) => {
@@ -304,9 +313,9 @@ export const Setting = () => {
         </Section>
 
         {isInternDoc && (
-          <Section title="Intern Document Info">
+          <Section title={t("editor.expandable.setting.intern_document_info")}>
             <Field
-              label="Onsite Location"
+              label={t("editor.expandable.setting.onsite_location")}
               value={doc.config.intern?.onsite_at ?? ""}
               onChange={(onsite_at) =>
                 setDoc((prev) => ({
@@ -323,7 +332,7 @@ export const Setting = () => {
             />
 
             <Field
-              label="Internship Advisor Name"
+              label={t("editor.expandable.setting.internship_advisor_name")}
               value={doc.config.intern?.advisor?.name ?? ""}
               onChange={(name) =>
                 setDoc((prev) => ({
@@ -343,7 +352,7 @@ export const Setting = () => {
             />
 
             <Field
-              label="Internship Advisor NIP"
+              label={t("editor.expandable.setting.internship_advisor_nip")}
               value={doc.config.intern?.advisor?.nip ?? ""}
               onChange={(nip) =>
                 setDoc((prev) => ({
@@ -363,7 +372,7 @@ export const Setting = () => {
             />
 
             <DatePickerInput
-              label="Intern Validity Date"
+              label={t("editor.expandable.setting.intern_validity_date")}
               date={doc.config.intern?.validity}
               setDate={(date) => {
                 setDoc((prv) => ({
@@ -478,7 +487,7 @@ const KeywordBox = ({
 
       <Input
         value={input}
-        placeholder="Add keyword..."
+        placeholder={t("editor.expandable.setting.add_keyword")}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {

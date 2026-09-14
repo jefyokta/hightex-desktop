@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { HighTexDB } from "../editor/storage/hightex-db";
 import { CiteUtils } from "bibtex.js";
+import { HighTexDB } from "../editor/storage/hightex-db";
 import { parseBibtexInput, isCitationValid } from "@/utils/citation";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
+import { t } from "@/utils/lang";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +20,10 @@ import {
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 import { Search, Trash, Copy, Quote, Plus } from "lucide-react";
 import { Zotero } from "@/assets/icons/zotero";
-import { Input } from "@/components/ui/input";
 
 export const Citation = () => {
   const [citations, setCitations] = useState<CiteUtils[]>([]);
@@ -41,18 +42,18 @@ export const Citation = () => {
 
   const [zoteroItems, setZoteroItems] = useState<ZoteroItem[]>([]);
   const [zoteroLoading, setZoteroLoading] = useState(false);
-
   const [zoteroError, setZoteroError] = useState<string | null>(null);
-
   const [zoteroConnected, setZoteroConnected] = useState<boolean | null>(null);
-
   const [selectedZoteroIds, setSelectedZoteroIds] = useState<string[]>([]);
 
   const db = HighTexDB.getInstance();
 
   const loadCitations = async () => {
     const rows = await db.cite.toArray();
-    return rows.map((c) => new CiteUtils(c.bib).setId(c.key));
+
+    return rows.map((citation) =>
+      new CiteUtils(citation.bib).setId(citation.key),
+    );
   };
 
   useEffect(() => {
@@ -73,7 +74,9 @@ export const Citation = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return citations;
+    if (!query.trim()) {
+      return citations;
+    }
 
     const lower = query.toLowerCase();
 
@@ -89,7 +92,10 @@ export const Citation = () => {
   }, [citations, query]);
 
   const deleteCitation = async (id: string) => {
-    setCitations((prev) => prev.filter((c) => c.getId() !== id));
+    setCitations((previous) =>
+      previous.filter((citation) => citation.getId() !== id),
+    );
+
     await db.cite.delete(id);
   };
 
@@ -116,12 +122,14 @@ export const Citation = () => {
     const content = await file.text();
 
     setBibText(content.trim());
-
     setFeedback(null);
     setFeedbackType(null);
   };
 
-  const ensureUniqueKey = async (key: string, existing: Set<string>) => {
+  const ensureUniqueKey = async (
+    key: string,
+    existing: Set<string>,
+  ): Promise<string> => {
     let candidate = key;
     let suffix = 1;
 
@@ -135,13 +143,17 @@ export const Citation = () => {
     return candidate;
   };
 
-  const importBibtexContent = async (content: string, openModal = false) => {
+  const importBibtexContent = async (
+    content: string,
+    openModal = false,
+  ): Promise<number> => {
     setFeedback(null);
     setFeedbackType(null);
 
     if (!content.trim()) {
-      setFeedback("No BibTeX content provided.");
+      setFeedback(t("citation.error.no_bibtex_content"));
       setFeedbackType("error");
+
       return 0;
     }
 
@@ -150,10 +162,13 @@ export const Citation = () => {
     if (errors.length > 0) {
       setFeedback(errors.join(" "));
       setFeedbackType("error");
+
       return 0;
     }
 
-    const validEntries = entries.filter((entry) => isCitationValid(entry.cite));
+    const validEntries = entries.filter((entry) =>
+      isCitationValid(entry.cite),
+    );
 
     const invalidEntries = entries.filter(
       (entry) => !isCitationValid(entry.cite),
@@ -161,9 +176,9 @@ export const Citation = () => {
 
     if (validEntries.length === 0) {
       setFeedback(
-        invalidEntries.length
-          ? "No valid citations found."
-          : "No citations parsed.",
+        invalidEntries.length > 0
+          ? t("citation.error.no_valid_citations")
+          : t("citation.error.no_citations_parsed"),
       );
 
       setFeedbackType("error");
@@ -189,15 +204,18 @@ export const Citation = () => {
     setCitations(mapped);
 
     setFeedback(
-      `Imported ${citationsToSave.length} citation(s)${
-        invalidEntries.length
-          ? `, skipped ${invalidEntries.length} invalid`
-          : ""
-      }.`,
+      t("citation.imported", {
+        count: citationsToSave.length,
+        skipped:
+          invalidEntries.length > 0
+            ? t("citation.skipped_invalid", {
+                count: invalidEntries.length,
+              })
+            : "",
+      }),
     );
 
     setFeedbackType("success");
-
     setBibText("");
 
     if (openModal) {
@@ -220,8 +238,7 @@ export const Citation = () => {
 
     if (!enabled) {
       setZoteroConnected(false);
-
-      setZoteroError("Local Zotero integration is disabled in settings.");
+      setZoteroError(t("citation.zotero.integration_disabled"));
 
       return false;
     }
@@ -236,7 +253,7 @@ export const Citation = () => {
         setZoteroConnected(false);
 
         setZoteroError(
-          result?.message ?? "Unable to connect to Zotero local API.",
+          result?.message ?? t("citation.zotero.connection_failed"),
         );
 
         return false;
@@ -246,10 +263,10 @@ export const Citation = () => {
 
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message =
+        error instanceof Error ? error.message : String(error);
 
       setZoteroConnected(false);
-
       setZoteroError(message);
 
       return false;
@@ -271,10 +288,11 @@ export const Citation = () => {
       setSelectedZoteroIds([]);
 
       if (!items || items.length === 0) {
-        setZoteroError("No Zotero references found.");
+        setZoteroError(t("citation.zotero.no_references"));
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message =
+        error instanceof Error ? error.message : String(error);
 
       setZoteroError(message);
     } finally {
@@ -284,7 +302,6 @@ export const Citation = () => {
 
   const openZoteroImport = async () => {
     setIsZoteroOpen(true);
-
     setZoteroError(null);
     setZoteroItems([]);
     setSelectedZoteroIds([]);
@@ -297,14 +314,16 @@ export const Citation = () => {
   };
 
   const toggleZoteroSelection = (key: string) => {
-    setSelectedZoteroIds((prev) =>
-      prev.includes(key) ? prev.filter((id) => id !== key) : [...prev, key],
+    setSelectedZoteroIds((previous) =>
+      previous.includes(key)
+        ? previous.filter((id) => id !== key)
+        : [...previous, key],
     );
   };
 
   const importSelectedZoteroItems = async () => {
     if (selectedZoteroIds.length === 0) {
-      setZoteroError("Select at least one Zotero reference.");
+      setZoteroError(t("citation.zotero.select_reference"));
 
       return;
     }
@@ -314,7 +333,7 @@ export const Citation = () => {
     );
 
     if (!selectedItems.length) {
-      setZoteroError("No matching Zotero references.");
+      setZoteroError(t("citation.zotero.no_matching_references"));
 
       return;
     }
@@ -333,7 +352,7 @@ export const Citation = () => {
       );
 
       if (importedCount === 0) {
-        setZoteroError("No valid references imported.");
+        setZoteroError(t("citation.zotero.no_valid_imported"));
 
         return;
       }
@@ -342,12 +361,17 @@ export const Citation = () => {
 
       setCitations(mapped);
 
-      setFeedback(`Imported ${importedCount} reference(s).`);
-      setFeedbackType("success");
+      setFeedback(
+        t("citation.zotero.imported", {
+          count: importedCount,
+        }),
+      );
 
+      setFeedbackType("success");
       setIsZoteroOpen(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message =
+        error instanceof Error ? error.message : String(error);
 
       setZoteroError(message);
     }
@@ -361,70 +385,72 @@ export const Citation = () => {
     return (
       <div className="flex-1 p-6">
         <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">
-          Loading citations...
+          {t("citation.loading")}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full w-full flex-col p-6 max-w-3xl mx-auto flex-1">
-      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 min-h-0">
+    <div className="flex h-full w-full max-w-3xl flex-1 flex-col p-6 mx-auto">
+      <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Citation Library
+            {t("citation.title")}
           </h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage bibliography references and import directly from Zotero.
+            {t("citation.subtitle")}
           </p>
         </div>
 
-        {/* <Stats total={citations.length} /> */}
-
-        <div className="flex flex-1 min-h-0 flex-col rounded-2xl bg-muted/20 overflow-hidden">
-          <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
-            <div className="text-sm font-medium">Bibliography Actions</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-muted/20">
+          <div className="flex shrink-0 flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm font-medium">
+              {t("citation.actions")}
+            </div>
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setIsAddOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Citation
+                {t("citation.add")}
               </Button>
 
               <Button variant="outline" onClick={openZoteroImport}>
                 <Zotero className="mr-2 h-2 w-2" />
-                Import from Zotero
+                {t("citation.import_zotero")}
               </Button>
             </div>
           </div>
 
-          <div className="px-4 pb-3 shrink-0">
+          <div className="shrink-0 px-4 pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
               <Input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search from ${citations.length} citations...`}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("citation.search", {
+                  count: citations.length,
+                })}
                 className="h-10 w-full rounded-xl border-0 bg-background/70 pl-10 pr-4 text-sm outline-none ring-1 ring-transparent transition focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 px-2 pb-2 overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-hidden px-2 pb-2">
             {filtered.length === 0 ? (
               <div className="flex h-full items-center justify-center rounded-xl text-sm text-muted-foreground">
-                No citations available.
+                {t("citation.empty")}
               </div>
             ) : (
-              <div className="h-full overflow-y-auto rounded-xl divide-y divide-muted/40">
+              <div className="h-full divide-y divide-muted/40 overflow-y-auto rounded-xl">
                 {filtered.map((cite) => (
                   <div
                     key={cite.getId()}
-                    className="px-3 py-2 hover:bg-muted/30 transition"
+                    className="px-3 py-2 transition hover:bg-muted/30"
                   >
-                    <Row
+                    <CitationRow
                       cite={cite}
                       onDelete={deleteCitation}
                       onCopy={copyCitation}
@@ -440,21 +466,23 @@ export const Citation = () => {
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent
           showCloseButton
-          className="max-w-none! w-[70vw] h-[85vh] flex flex-col overflow-hidden"
+          className="max-w-none! flex h-[85vh] w-[70vw] flex-col overflow-hidden"
         >
-          <DialogHeader className="border-b px-6 py-5 flex-none">
-            <DialogTitle>Import Citation</DialogTitle>
+          <DialogHeader className="flex-none border-b px-6 py-5">
+            <DialogTitle>{t("citation.import_title")}</DialogTitle>
 
             <DialogDescription>
-              Paste BibTeX content or upload a .bib file.
+              {t("citation.import_description")}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="px-6 py-4 border-b flex items-center justify-between gap-3 flex-none">
-            <label className="text-sm font-medium">BibTeX Content</label>
+          <div className="flex flex-none items-center justify-between gap-3 border-b px-6 py-4">
+            <label className="text-sm font-medium">
+              {t("citation.bibtex_content")}
+            </label>
 
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs font-medium transition hover:bg-muted">
-              Upload .bib
+              {t("citation.upload_bib")}
               <input
                 type="file"
                 accept=".bib,application/x-bibtex,text/x-bibtex"
@@ -464,18 +492,17 @@ export const Citation = () => {
             </label>
           </div>
 
-          <div className="flex-1 min-h-0 px-6 py-5 flex flex-col gap-4 overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 py-5">
             <Textarea
               value={bibText}
-              onChange={(e) => setBibText(e.target.value)}
-              placeholder="@article{...}"
-              className="flex-1 min-h-0 resize-none font-mono text-sm"
+              onChange={(event) => setBibText(event.target.value)}
+              placeholder={t("citation.bibtex_placeholder")}
+              className="min-h-0 flex-1 resize-none font-mono text-sm"
             />
 
-            <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm flex-none">
+            <div className="flex flex-none items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm">
               <div className="text-muted-foreground">
-                Only valid citations with title, year, and author/editor are
-                imported.
+                {t("citation.validation_description")}
               </div>
 
               <Badge variant="secondary">BibTeX</Badge>
@@ -483,7 +510,7 @@ export const Citation = () => {
 
             {feedback && (
               <div
-                className={`rounded-xl border px-4 py-3 text-sm flex-none ${
+                className={`flex-none rounded-xl border px-4 py-3 text-sm ${
                   feedbackType === "success"
                     ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
                     : "border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
@@ -494,12 +521,14 @@ export const Citation = () => {
             )}
           </div>
 
-          <DialogFooter className="border-t px-6 py-4 flex-none">
+          <DialogFooter className="flex-none border-t px-6 py-4">
             <Button variant="outline" onClick={closeModal}>
-              Cancel
+              {t("common.cancel")}
             </Button>
 
-            <Button onClick={addCitation}>Import citations</Button>
+            <Button onClick={addCitation}>
+              {t("citation.import")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -507,18 +536,17 @@ export const Citation = () => {
       <Dialog open={isZoteroOpen} onOpenChange={setIsZoteroOpen}>
         <DialogContent
           showCloseButton
-          className="max-w-none! w-[70vw] h-[85vh] flex flex-col gap-0 overflow-hidden"
+          className="max-w-none! flex h-[85vh] w-[70vw] flex-col gap-0 overflow-hidden"
         >
-          <DialogHeader className="border-b px-6 py-4 shrink-0">
+          <DialogHeader className="shrink-0 border-b px-6 py-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <DialogTitle className="text-xl">
-                  Import from Zotero
+                  {t("citation.zotero.title")}
                 </DialogTitle>
 
                 <DialogDescription className="mt-1">
-                  Browse and import references directly from your local Zotero
-                  library.
+                  {t("citation.zotero.description")}
                 </DialogDescription>
               </div>
 
@@ -527,17 +555,17 @@ export const Citation = () => {
                 className="mt-1"
               >
                 {zoteroConnected === null
-                  ? "Checking"
+                  ? t("citation.zotero.checking")
                   : zoteroConnected
-                    ? "Connected"
-                    : "Disconnected"}
+                    ? t("citation.zotero.connected")
+                    : t("citation.zotero.disconnected")}
               </Badge>
             </div>
           </DialogHeader>
 
-          <div className="border-b px-6 py-3 flex items-center justify-between gap-4 shrink-0 bg-muted/30">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b bg-muted/30 px-6 py-3">
             <div className="text-sm text-muted-foreground">
-              Zotero Local API
+              {t("citation.zotero.local_api")}
             </div>
 
             <Button
@@ -546,7 +574,9 @@ export const Citation = () => {
               disabled={zoteroLoading}
               onClick={refreshZoteroConnection}
             >
-              {zoteroLoading ? "Refreshing..." : "Refresh"}
+              {zoteroLoading
+                ? t("citation.zotero.refreshing")
+                : t("citation.zotero.refresh")}
             </Button>
           </div>
 
@@ -557,42 +587,43 @@ export const Citation = () => {
           )}
 
           <div className="flex-1 overflow-hidden px-6 py-4">
-            <div className="h-full overflow-hidden rounded-xl border bg-background flex flex-col">
-              <div className="grid grid-cols-[1fr_120px_100px_70px] gap-4 border-b px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
-                <div>Title</div>
-                <div>Type</div>
-                <div>Year</div>
-                <div></div>
+            <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-background">
+              <div className="grid shrink-0 grid-cols-[1fr_120px_100px_70px] gap-4 border-b px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <div>{t("citation.zotero.title_column")}</div>
+                <div>{t("citation.zotero.type_column")}</div>
+                <div>{t("citation.zotero.year_column")}</div>
+                <div />
               </div>
 
               <ScrollArea className="flex-1">
                 {zoteroLoading ? (
                   <div className="p-6 text-sm text-muted-foreground">
-                    Loading references...
+                    {t("citation.zotero.loading")}
                   </div>
                 ) : zoteroItems.length === 0 ? (
                   <div className="p-6 text-sm text-muted-foreground">
-                    No references found.
+                    {t("citation.zotero.empty")}
                   </div>
                 ) : (
                   zoteroItems.map((item) => (
                     <div
                       key={item.key}
-                      className="grid grid-cols-[1fr_120px_100px_70px] gap-4 items-center border-b px-4 py-3 hover:bg-muted/40 transition"
+                      className="grid grid-cols-[1fr_120px_100px_70px] items-center gap-4 border-b px-4 py-3 transition hover:bg-muted/40"
                     >
                       <div className="min-w-0">
                         <div className="truncate text-sm font-medium">
                           {item.title || item.key}
                         </div>
 
-                        <div className="mt-1 text-xs text-muted-foreground font-mono truncate">
+                        <div className="mt-1 truncate font-mono text-xs text-muted-foreground">
                           {item.key}
                         </div>
                       </div>
 
                       <div>
                         <Badge variant="secondary" className="rounded-md">
-                          {item.itemType ?? "Reference"}
+                          {item.itemType ??
+                            t("citation.zotero.reference")}
                         </Badge>
                       </div>
 
@@ -615,16 +646,19 @@ export const Citation = () => {
             </div>
           </div>
 
-          <DialogFooter className="border-t px-6 py-4 shrink-0">
-            <Button variant="outline" onClick={() => setIsZoteroOpen(false)}>
-              Cancel
+          <DialogFooter className="shrink-0 border-t px-6 py-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsZoteroOpen(false)}
+            >
+              {t("common.cancel")}
             </Button>
 
             <Button
               onClick={importSelectedZoteroItems}
               disabled={zoteroLoading || zoteroItems.length === 0}
             >
-              Import Selected
+              {t("citation.zotero.import_selected")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -633,7 +667,17 @@ export const Citation = () => {
   );
 };
 
-const Row = ({ cite, onDelete, onCopy }: any) => {
+type CitationRowProps = {
+  cite: CiteUtils;
+  onDelete: (id: string) => void;
+  onCopy: (text: string) => void;
+};
+
+const CitationRow = ({
+  cite,
+  onDelete,
+  onCopy,
+}: CitationRowProps) => {
   return (
     <div className="group flex items-start justify-between gap-4 px-4 py-4 transition hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
       <div className="min-w-0 flex-1">
@@ -646,29 +690,35 @@ const Row = ({ cite, onDelete, onCopy }: any) => {
         </div>
 
         <div className="mt-2 pl-6">
-          <div className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
+          <div className="truncate text-sm text-neutral-500 dark:text-neutral-400">
             {cite.getTitle()}
           </div>
 
-          <div className="mt-3 rounded-xl bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-800 p-3">
-            <pre className="text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400 whitespace-pre-wrap break-all">
+          <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+            <pre className="break-all whitespace-pre-wrap text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
               {cite.toCite()}
             </pre>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+      <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
         <button
+          type="button"
           onClick={() => onCopy(cite.toCite())}
-          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          aria-label={t("citation.copy")}
+          title={t("citation.copy")}
         >
           <Copy className="h-4 w-4 text-neutral-500" />
         </button>
 
         <button
+          type="button"
           onClick={() => onDelete(cite.getId())}
-          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-red-50 dark:hover:bg-red-900/20"
+          aria-label={t("citation.delete")}
+          title={t("citation.delete")}
         >
           <Trash className="h-4 w-4 text-neutral-500 hover:text-red-500" />
         </button>

@@ -42,11 +42,13 @@ import {
 import { toast } from "sonner";
 import { cleanUnusedProgress } from "@/utils/clean-unused-data";
 import { HighTexDB } from "@/editor/storage/hightex-db";
+import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 
 export const Settings = () => {
   const [config, setConfig] = useState<ConfigShape | null>(null);
 
   const [theme, setTheme] = useState<ThemeMode>("system");
+  const [language, setLanguage] = useState<SupportedLanguage>("en");
 
   useEffect(() => {
     const init = window.config.get();
@@ -54,11 +56,13 @@ export const Settings = () => {
     if (init) {
       setConfig(init);
       setTheme(init.theme);
+      setLanguage(init.language ?? "en");
     }
 
     return window.config.onChange((cnfg) => {
       setConfig(cnfg);
       setTheme(cnfg.theme);
+      setLanguage(cnfg.language ?? "en");
     });
   }, []);
 
@@ -76,30 +80,65 @@ export const Settings = () => {
     });
   };
 
+  const changeLanguage = async (mode: SupportedLanguage) => {
+    setLanguage(mode);
+
+    await patchConfig({
+      language: mode,
+    });
+  };
+
   if (!config) return null;
 
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Settings</h1>
+        <h1 className="text-xl font-semibold text-foreground">
+          {t("settings.title")}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Manage your application preferences
+          {t("settings.subtitle")}
         </p>
       </div>
       <AppInfoSection />
       <ProfileSection />
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Theme and visual preferences</CardDescription>
+          <CardTitle>{t("settings.appearance")}</CardTitle>
+          <CardDescription>
+            {t("settings.appearance.description")}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Theme</Label>
+              <Label>{t("settings.language")}</Label>
               <p className="text-xs text-muted-foreground">
-                Choose application theme mode
+                {t("settings.language.description")}
+              </p>
+            </div>
+
+            <Select value={language} onValueChange={changeLanguage}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>{t("settings.theme")}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.theme.description")}
               </p>
             </div>
 
@@ -112,21 +151,21 @@ export const Settings = () => {
                 <SelectItem value="light">
                   <div className="flex items-center gap-2">
                     <Sun size={14} />
-                    Light
+                    {t("common.light")}
                   </div>
                 </SelectItem>
 
                 <SelectItem value="dark">
                   <div className="flex items-center gap-2">
                     <Moon size={14} />
-                    Dark
+                    {t("common.dark")}
                   </div>
                 </SelectItem>
 
                 <SelectItem value="system">
                   <div className="flex items-center gap-2">
                     <Monitor size={14} />
-                    System
+                    {t("common.system")}
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -136,13 +175,15 @@ export const Settings = () => {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Editor</CardTitle>
-          <CardDescription>Writing and editing behavior</CardDescription>
+          <CardTitle>{t("settings.editor")}</CardTitle>
+          <CardDescription>
+            {t("settings.editor.description")}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label="Spell Check"
+            label={t("editor.spell_check")}
             value={config.editor?.spellCheck ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -157,19 +198,18 @@ export const Settings = () => {
           <SettingSwitch
             label={
               <>
-                <span>Prefer Cloud Profile</span>{" "}
+                <span>{t("profile.cloud_profile")}</span>{" "}
                 <Tooltip>
                   <TooltipTrigger>
                     <InfoIcon size={12} />
                   </TooltipTrigger>
                   <TooltipPanel>
-                    If you enable this, when you connected to the cloud profile,
-                    the all documents will using cloud profile
+                    {t("profile.cloud_tooltip")}
                   </TooltipPanel>
                 </Tooltip>
               </>
             }
-            description="Use cloud profile as primary identity"
+            description={t("profile.cloud_profile_description")}
             value={config.editor?.preferCloudProfile ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -185,14 +225,16 @@ export const Settings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Export</CardTitle>
-          <CardDescription>Configure how exports are saved</CardDescription>
+          <CardTitle>{t("settings.export")}</CardTitle>
+          <CardDescription>
+            {t("settings.export.description")}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label="Enable save dialog"
-            description="Show a save dialog when exporting a HighTex package"
+            label={t("settings.export")}
+            description={t("settings.export.description")}
             value={config.export?.saveDialog ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -340,7 +382,7 @@ export const Settings = () => {
 
         <CardContent className="space-y-4">
           <DangerAction
-            label="Clear Cache"
+            label={t("settings.data.clearcache")}
             description="Remove temporary stored data"
             action="Clear"
             onClick={async () => {
@@ -396,7 +438,7 @@ export const Settings = () => {
           <Separator />
 
           <DangerAction
-            label="Clear Data"
+            label={t("settings.data.cleardata")}
             description="Delete all of your documents"
             action="Clear"
             onClick={async () => {
@@ -766,8 +808,8 @@ const AppInfoSection = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>About</CardTitle>
-        <CardDescription>Application info and updates</CardDescription>
+        <CardTitle>{t("settings.about")}</CardTitle>
+        <CardDescription>{t("settings.main.header")}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -775,7 +817,7 @@ const AppInfoSection = () => {
           <div className="space-y-0.5">
             <Label>Version</Label>
             <p className="text-xs text-muted-foreground">
-              Currently installed version
+              {t("settings.version.info.title")}
             </p>
           </div>
           <span className="font-mono text-sm text-foreground">
@@ -809,7 +851,7 @@ const AppInfoSection = () => {
                 checking || status?.status === "checking" ? "animate-spin" : ""
               }
             />
-            Check for Updates
+            {t("settings.checkforupdate")}
           </Button>
         </div>
       </CardContent>
