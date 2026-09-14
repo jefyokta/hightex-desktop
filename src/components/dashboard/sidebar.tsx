@@ -16,6 +16,8 @@ import { formatDistanceToNow } from "date-fns";
 import { useUser } from "../../hooks/use-user";
 import { useLogoutModal } from "../../context/logout-modal-context";
 import { useAuthModal } from "../../context/auth-modal-context";
+import * as locales from "date-fns/locale";
+import { useLocale } from "@/hooks/use-locale";
 type Props = {
   recent?: HighTexDocument[];
 };
@@ -32,10 +34,9 @@ export const Sidebar = ({ recent = [] }: Props) => {
     <button
       onClick={() => navigate(path)}
       className={`flex w-full items-center gap-2 text-xs p-2 rounded-lg transition
-        ${
-          isActive(path)
-            ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-            : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        ${isActive(path)
+          ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+          : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         }
       `}
     >
@@ -43,6 +44,11 @@ export const Sidebar = ({ recent = [] }: Props) => {
       {label}
     </button>
   );
+
+  const { locale } = useLocale()
+
+
+
 
   return (
     <div
@@ -95,8 +101,10 @@ export const Sidebar = ({ recent = [] }: Props) => {
               {recent.slice(0, 5).map((doc) => {
                 const time = doc.updatedAt
                   ? formatDistanceToNow(new Date(doc.updatedAt), {
-                      addSuffix: true,
-                    })
+                    addSuffix: true,
+                    //@ts-ignore
+                    locale: locales[locale]
+                  })
                   : null;
 
                 return (

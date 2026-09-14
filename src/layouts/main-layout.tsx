@@ -19,6 +19,7 @@ import { confirm } from "@/utils/confirm";
 import { isMac } from "@/utils/is-mac";
 import { applyLanguage } from "@/utils/lang";
 import { Copy } from "lucide-react";
+import { LocaleProvider } from "@/context/locale-context";
 
 const UPDATER_TOAST_ID = "hightex-updater";
 const mb = (bytes: number) => {
@@ -239,30 +240,32 @@ export const MainLayout = () => {
   }, []);
 
   return (
-    <ErrorProvider>
-      <ConfirmProvider>
-        <AskProvider>
-          <OpenFileSlave />
-          <CliDocumentsSlave />
-          <UpdaterStatusListener />
-          <TooltipProvider>
-            <UserProvider>
-              <AuthModalProvider>
-                <LogoutModalProvider>
-                  <ErrorSlave />
-                  <LoginModal />
-                  <Outlet />
-                </LogoutModalProvider>
-              </AuthModalProvider>
-            </UserProvider>
-            <Toaster
-              position="bottom-right"
-              theme={window.config.get()?.theme || "system"}
-              className="flex justify-between toasta"
-            />
-          </TooltipProvider>
-        </AskProvider>
-      </ConfirmProvider>
-    </ErrorProvider>
+    <LocaleProvider>
+      <ErrorProvider>
+        <ConfirmProvider>
+          <AskProvider>
+            <OpenFileSlave />
+            <CliDocumentsSlave />
+            <UpdaterStatusListener />
+            <TooltipProvider>
+              <UserProvider>
+                <AuthModalProvider>
+                  <LogoutModalProvider>
+                    <ErrorSlave />
+                    <LoginModal />
+                    <Outlet />
+                  </LogoutModalProvider>
+                </AuthModalProvider>
+              </UserProvider>
+              <Toaster
+                position="bottom-right"
+                theme={window.config.get()?.theme || "system"}
+                className="flex justify-between toasta"
+              />
+            </TooltipProvider>
+          </AskProvider>
+        </ConfirmProvider>
+      </ErrorProvider>
+    </LocaleProvider>
   );
 };
