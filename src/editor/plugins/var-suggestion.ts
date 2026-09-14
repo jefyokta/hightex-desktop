@@ -100,8 +100,9 @@ export const VariableSuggestion = (editor: Editor) =>
 
     shouldShow({ query }) {
       if (query.length == 0) {
-        return false;
+        return true;
       }
+      // console.log(query)
       return QUERY_REGEX.test(query);
     },
 
