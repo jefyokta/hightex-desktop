@@ -12,9 +12,30 @@
 
 @custom-variant dark (&:is(.dark *));
 
-button {
-  cursor: pointer;
+.has-scrollbar {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: red !important;
 }
+
+.has-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+  height: 6px;
+}
+
+.has-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.has-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: red !important;
+}
+.has-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}
+
 * {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -22,7 +43,9 @@ button {
 *::-webkit-scrollbar {
   display: none;
 }
-
+button {
+  cursor: pointer;
+}
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: "Geist Variable", sans-serif;

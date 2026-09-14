@@ -51,7 +51,7 @@ export default defineConfig({
   },
   server:{
     watch:{
-      ignored:"src/locales/*.json"
+      ignored:["src/locales/*.json"]
     }
   }
 });

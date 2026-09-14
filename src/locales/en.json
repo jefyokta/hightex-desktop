@@ -97,6 +97,7 @@
   "editor.danger.clear_data": "Clear Data",
   "editor.danger.delete_documents": "Delete all of your documents",
   "editor.danger.confirm_delete": "Are you sure you want to delete all documents?",
+  "editor.scrollbar":"Editor's Scrollbar",
 
   "remote.login_required": "Login Required",
   "remote.login_description": "Connect your cloud workspace to access remote documents",

@@ -97,6 +97,8 @@
   "editor.danger.clear_data": "Hapus Data",
   "editor.danger.delete_documents": "Hapus semua dokumen Anda",
   "editor.danger.confirm_delete": "Apakah Anda yakin ingin menghapus semua dokumen?",
+    "editor.scrollbar":"Scrollbar Editor",
+
 
   "remote.login_required": "Perlu Login",
   "remote.login_description": "Hubungkan ruang kerja cloud Anda untuk mengakses dokumen jarak jauh",

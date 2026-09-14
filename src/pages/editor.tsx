@@ -34,6 +34,7 @@ export const Editor: React.FC = () => {
   const { id, version, chapter } = useParams<EditorParams>();
 
   const [loaded, setLoaded] = useState(false);
+  const [config, setConfig] = useState<ConfigShape|null>(null)
 
   useEffect(() => {
     let alive = true;
@@ -49,7 +50,11 @@ export const Editor: React.FC = () => {
         throw new ChapterNotFound(chapter);
       }
       Document.setCurrentChapter(currentChapter);
+      // window
+      if ('config' in window) {
+        setConfig(window.config.get())
 
+      }
       if (!alive) return;
       setLoaded(true);
     };
@@ -64,7 +69,7 @@ export const Editor: React.FC = () => {
   return (
     <div className="max-h-full w-screen overflow-scroll bg-[#f1f3f5] dark:bg-black ">
       <div
-        className="w-full overflow-scroll h-full justify-between pt-4 scrollbar-none"
+        className={`w-full overflow-scroll h-full justify-between pt-4 ${config?.editor.scrollBar && "has-scrollbar"}`}
         id="main-scroll"
       >
         <NavBar />
@@ -72,7 +77,7 @@ export const Editor: React.FC = () => {
         <div
           id="container"
           ref={containerRef}
-          className="flex flex-col items-center py-3 space-y-2 scrollbar-none px-5"
+          className="flex flex-col items-center py-3 space-y-2 px-5"
         >
           <ContextMenuPopup />
           <ZoomUI
@@ -242,11 +247,10 @@ const ZoomUI = ({
 }) => {
   return (
     <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${
-        visible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-3 pointer-events-none"
-      }`}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${visible
+        ? "opacity-100 translate-y-0"
+        : "opacity-0 translate-y-3 pointer-events-none"
+        }`}
     >
       <div className="flex items-center gap-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 shadow-xl shadow-black/5 dark:shadow-black/30 rounded-2xl px-3 py-2 transition-colors duration-300">
         <button

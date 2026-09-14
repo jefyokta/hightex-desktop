@@ -193,6 +193,20 @@ export const Settings = () => {
                 },
               });
             }}
+
+          />
+          <SettingSwitch
+            label={t("editor.scrollbar")}
+            value={config.editor?.scrollBar?? false}
+            onChange={async (val) => {
+              await patchConfig({
+                editor: {
+                  ...config.editor,
+                  scrollBar:val,
+                },
+              });
+            }}
+
           />
 
           <SettingSwitch
