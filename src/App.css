@@ -15,7 +15,7 @@
 .has-scrollbar {
   -ms-overflow-style: auto;
   scrollbar-width: thin;
-  scrollbar-color: red !important;
+  scrollbar-color: var(--muted-foreground) transparent !important;
 }
 
 .has-scrollbar::-webkit-scrollbar {
@@ -30,10 +30,9 @@
 
 .has-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: red !important;
 }
 .has-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--foreground);
+  background: var(--muted-foreground);
 }
 
 * {

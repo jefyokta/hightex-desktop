@@ -19,7 +19,6 @@
         "label": "Bersihkan Cache",
         "description": "Hapus data sementara yang tersimpan",
         "progress": {
-          "resetting_config": "Mereset konfigurasi...",
           "clean_unused": "Membersihkan data yang tidak terpakai",
           "start": "Membersihkan: 0/{chaptesCount} bab, 0/${imageCount} gambar",
           "deleting": "Menghapus {name}: {index}/{total}",
@@ -36,6 +35,11 @@
           "progress": "Menghapus {deleted}/{total}: {identifier}",
           "done": "{total} dokumen berhasil dihapus"
         }
+      },
+    
+      "config":{
+        "label":"Konfigurasi",
+        "description":"Mereset konfigurasi aplikasi anda"
       }
     },
     "main": {

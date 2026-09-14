@@ -19,7 +19,6 @@
         "label": "Clear Cache",
         "description": "Remove temporary stored data",
         "progress": {
-          "resetting_config": "Resetting config...",
           "clean_unused": "Cleaning unused data",
           "start": "Cleaning: 0/{chaptesCount} chapters, 0/${imageCount} images",
           "deleting": "Deleting {name}: {index}/{total}",
@@ -36,6 +35,10 @@
           "progress": "Deleting {deleted}/{total}: {identifier}",
           "done": "{total} documents deleted successfully"
         }
+      },
+      "config":{
+        "label":"Config",
+        "description":"Reseting all of your application config"
       }
     },
     "main": {

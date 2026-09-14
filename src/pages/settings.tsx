@@ -175,7 +175,7 @@ export const Settings = () => {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>{t("settings.editor")}</CardTitle>
+          <CardTitle>{t("settings.editor.title")}</CardTitle>
           <CardDescription>
             {t("settings.editor.description")}
           </CardDescription>
@@ -396,11 +396,9 @@ export const Settings = () => {
             description={t("settings.data.clear_cache.description")}
             action="Clear"
             onClick={async () => {
-              const id = toast.loading(t("settings.data.clear_cache.progress.resetting_config"));
+              const id = toast.loading("Loading...");
 
               try {
-                await window.config.reset();
-
                 toast.loading(t("settings.data.clear_cache.progress.clean_unused"), {
                   id,
                 });
@@ -444,6 +442,30 @@ export const Settings = () => {
                   // fallback: show generic message
                   toast.error(t("settings.data.clear_cache.progress.failed"), { id });
                 }
+              } catch (error) {
+                toast.error(
+                  error instanceof Error ? error.message : t("settings.data.clear_cache.progress.failed"),
+                  {
+                    id,
+                  },
+                );
+              }
+            }}
+          />
+
+          <Separator />
+          <DangerAction
+            label={t("settings.data.config.label")}
+            description={t("settings.data.config.description")}
+            action="Reset"
+            onClick={async () => {
+              const id = toast.loading("Loading...");
+
+              try {
+
+                await window.config.reset();
+                toast.success("Done", { id })
+
               } catch (error) {
                 toast.error(
                   error instanceof Error ? error.message : t("settings.data.clear_cache.progress.failed"),
