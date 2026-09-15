@@ -77,10 +77,7 @@ function decorateTable(
 
   const headers: HeaderCell[] = [];
 
-  /**
-   * Cari semua tableHeader dan tentukan
-   * sampai baris logis mana dia membentang.
-   */
+
   for (const row of rows) {
     let cellOffset = 0;
 
@@ -122,17 +119,7 @@ function decorateTable(
     return;
   }
 
-  /**
-   * Tandai TR-nya, bukan TH/TD.
-   *
-   * Jadi hasil DOM:
-   *
-   * <tr class="...">
-   *   <td>...</td>
-   * </tr>
-   *
-   * tetap bisa diberi border oleh CSS.
-   */
+  
   decorations.push(
     Decoration.node(
       targetRow.pos,
