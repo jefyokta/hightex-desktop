@@ -46,7 +46,7 @@ export const ExpandableSideBar = () => {
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="flex h-full flex-col overflow-hidden border-l bg-background"
           >
-            <div className="relative flex overflow-x-scroll items-center border-b px-2 py-2">
+            <div className="relative flex overflow-x-scroll has-scrollbar items-center border-b px-2 py-2">
               <motion.div
                 className="absolute top-2 bottom-2 rounded-md bg-muted"
                 animate={{
