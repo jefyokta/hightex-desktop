@@ -158,7 +158,11 @@
     "done": "selesai",
     "join": "Gabung",
     "ready": "Siap",
-    "offline_ready": "Ringan • Siap offline"
+    "offline_ready": "Ringan • Siap offline",
+    "cancel":"Batal",
+    "thesis":"Tugas Akhir",
+    "proposal":"Proposal",
+    "intern":"Kerja Praktek"
   },
 
   "dashboard": {

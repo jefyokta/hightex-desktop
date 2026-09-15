@@ -3,6 +3,7 @@ import {
   TableRow,
   TableCell,
   TableHeader,
+  TableKit,
 } from "@tiptap/extension-table";
 
 import { CommandProps } from "@tiptap/react";
@@ -99,13 +100,22 @@ const CustomTableHeader = TableHeader.extend({
   },
 });
 
+
+const kit = TableKit.configure({
+  table:{
+    resizable:true,
+  },
+  tableHeader:false,
+  tableRow:false
+})
 const CustomTable = Table.extend({
   addCommands(): Partial<any> {
     return {
       ...this.parent?.(),
     };
   },
-}).configure({
+})
+.configure({
   resizable: true,
 });
 const CustomTableRow = TableRow.extend({});
@@ -113,6 +123,6 @@ const CustomTableRow = TableRow.extend({});
 export {
   CustomTableCell as TableCell,
   CustomTableHeader as TableHeader,
-  CustomTable as Table,
+  kit as Table,
   CustomTableRow,
 };

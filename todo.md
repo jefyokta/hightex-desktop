@@ -1,4 +1,11 @@
 # Task: Dynamic Front Pages Based on Category Variant
+## Pinned
+- Table bugs
+- Add button for latex creation
+- always show button in document list (currently should be hovered)
+- add ref to attachement headers
+- line between names
+- multiple advisor
 
 ## Context
 `Category` currently uses a `min?: boolean` flag to distinguish thesis vs proposal documents. This is being replaced with a single `variant` field to also support a third document type (kerja praktek / intern report). The `Category` type itself has **not been updated yet** — do that first.

@@ -247,7 +247,7 @@ export const Settings = () => {
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label={t("settings.export")}
+            label={t("settings.export.export")}
             description={t("settings.export.description")}
             value={config.export?.saveDialog ?? false}
             onChange={async (val) => {

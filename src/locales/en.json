@@ -157,7 +157,11 @@
     "done": "done",
     "join": "Join",
     "ready": "Ready",
-    "offline_ready": "Lightweight • Offline-ready"
+    "offline_ready": "Lightweight • Offline-ready",
+    "cancel":"Cancel",
+    "thesis":"Thesis",
+    "proposal":"Proposal",
+    "intern":"Intern"
   },
 
   "dashboard": {

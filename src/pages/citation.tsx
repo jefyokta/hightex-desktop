@@ -209,8 +209,8 @@ export const Citation = () => {
         skipped:
           invalidEntries.length > 0
             ? t("citation.skipped_invalid", {
-                count: invalidEntries.length,
-              })
+              count: invalidEntries.length,
+            })
             : "",
       }),
     );
@@ -510,11 +510,10 @@ export const Citation = () => {
 
             {feedback && (
               <div
-                className={`flex-none rounded-xl border px-4 py-3 text-sm ${
-                  feedbackType === "success"
+                className={`flex-none rounded-xl border px-4 py-3 text-sm ${feedbackType === "success"
                     ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
                     : "border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
-                }`}
+                  }`}
               >
                 {feedback}
               </div>
@@ -595,7 +594,7 @@ export const Citation = () => {
                 <div />
               </div>
 
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 !overflow-scroll">
                 {zoteroLoading ? (
                   <div className="p-6 text-sm text-muted-foreground">
                     {t("citation.zotero.loading")}
