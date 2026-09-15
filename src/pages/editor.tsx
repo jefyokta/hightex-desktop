@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { NavBar } from "../components/editor/navbar";
 import { EditorContent, useEditor } from "@tiptap/react";
 
@@ -18,6 +18,7 @@ import { Document } from "@/editor/document";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
 import { FrameManager } from "@/frame/manager";
 import { ContextMenuPopup } from "@/components/context-menu";
+import { FindReplaceBar } from "@/components/editor/find-replace-bar";
 import { getContextMenuItems } from "@/editor/context-menu";
 import { openContextMenu } from "@/hooks/use-context-menu";
 import { Eye, TrashIcon } from "lucide-react";
@@ -65,6 +66,39 @@ export const Editor: React.FC = () => {
     };
   }, [id, version, chapter]);
 
+  
+  const [showFind, setShowFind] = useState(false);
+  const [showReplace, setShowReplace] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setShowFind(false);
+    setShowReplace(false);
+  }, []);
+
+  const handleToggleReplace = useCallback(() => {
+    setShowReplace((v) => !v);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+
+      if (mod && e.key === "f") {
+        e.preventDefault();
+        setShowFind(true);
+      }
+
+      if (mod && e.key === "h") {
+        e.preventDefault();
+        setShowFind(true);
+        setShowReplace(true);
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   return (
     <div className="max-h-full w-screen overflow-scroll bg-[#f1f3f5] dark:bg-black ">
       <div
@@ -79,6 +113,12 @@ export const Editor: React.FC = () => {
           className="flex flex-col items-center py-3 space-y-2 px-5"
         >
           <ContextMenuPopup />
+          <FindReplaceBar
+            visible={showFind}
+            showReplace={showReplace}
+            onClose={handleClose}
+            onToggleReplace={handleToggleReplace}
+          />
           <ZoomUI
             zoom={zoom}
             visible={showZoomUI}
