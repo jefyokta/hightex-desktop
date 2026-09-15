@@ -59,7 +59,6 @@
       },
       "choose_folder": "Choose Folder"
     },
-
     "zotero": {
       "zotero": "Zotero",
       "description": "Connect to your local Zotero client for direct reference import.",
@@ -129,7 +128,6 @@
       "check": "Check For Update"
     }
   },
-
   "common": {
     "light": "Light",
     "dark": "Dark",
@@ -163,7 +161,6 @@
     "proposal": "Proposal",
     "intern": "Intern"
   },
-
   "dashboard": {
     "loading": "Loading HighTex...",
     "your_documents": "Your Documents",
@@ -174,7 +171,6 @@
     "import_from_cloud": "Import from Cloud",
     "no_documents": "No documents yet. Create your first document to start writing."
   },
-
   "splash": {
     "preparing": "Preparing HighTex...",
     "tagline_1": "just focus on your ideas",
@@ -185,7 +181,6 @@
     "lightweight": "Lightweight • Offline-ready",
     "thanks_to": "From Jepi Okta Mipa, Thanks to"
   },
-
   "present": {
     "title": "Presentation Planner",
     "subtitle": "Let them judge your document!",
@@ -197,27 +192,22 @@
     "loading": "Loading",
     "no_documents": "No documents available."
   },
-
   "forms": {
     "title": "Forms Generation",
     "subtitle": "One click download for your complete thesis forms",
     "coming_soon": "Coming soon"
   },
-
   "sharing": {
     "advising": "Advising",
     "proposal_seminar": "Proposal Seminar",
     "final_defense": "Final Defense",
     "uncategorized": "Uncategorized"
   },
-
   "language": {
     "english": "English",
     "indonesian": "Bahasa Indonesia"
   },
-
   "profile": {},
-
   "editor": {
     "expandable": {
       "citation": {
@@ -313,9 +303,16 @@
       "delete_figure_table": "Delete figure table",
       "delete_math": "Delete math",
       "remove_quote": "Remove quote"
+    },
+    "findReplace": {
+      "find": "Find...",
+      "replace": "Replace...",
+      "replaceAll": "Replace All",
+      "caseSensitive": "Case Sensitive",
+      "matchCount": "{current} of {total}",
+      "noResults": "No results"
     }
   },
-
   "remote": {
     "login_required": "Login Required",
     "login_description": "Connect your cloud workspace to access remote documents",
@@ -357,7 +354,6 @@
     "no_local_documents_found": "No local documents found",
     "pull_latest": "Pull Latest"
   },
-
   "error": {
     "category": {
       "missing": "Categories is missing!",
@@ -373,16 +369,13 @@
       "not_sharing": "You are not sharing any document!"
     }
   },
-
   "back": "Back",
-
   "sheet": {
     "statement": "Statement Sheet",
     "presentation": "Presentation Sheet",
     "foreword": "Foreword Sheet",
     "attachment": "Attachment"
   },
-
   "split": {
     "ensure_signed_stammped": "Ensure it's signed and stammped",
     "title": "Split Your Document",
@@ -438,7 +431,6 @@
     "start": "Start Split",
     "ready": "Let's start splitting"
   },
-
   "citation": {
     "title": "Citation Library",
     "subtitle": "Manage bibliography references and import directly from Zotero.",
@@ -489,7 +481,6 @@
       "imported": "Imported {count} reference(s)."
     }
   },
-
   "snapshots": {
     "title": "Snapshots",
     "description": "Saved sharing sessions. Open one to inspect the rendered document and comments.",
