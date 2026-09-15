@@ -176,9 +176,7 @@ export const Settings = () => {
       <Card>
         <CardHeader>
           <CardTitle>{t("settings.editor.title")}</CardTitle>
-          <CardDescription>
-            {t("settings.editor.description")}
-          </CardDescription>
+          <CardDescription>{t("settings.editor.description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -193,7 +191,6 @@ export const Settings = () => {
                 },
               });
             }}
-
           />
           <SettingSwitch
             label={t("settings.editor.scrollbar")}
@@ -206,7 +203,6 @@ export const Settings = () => {
                 },
               });
             }}
-
           />
 
           <SettingSwitch
@@ -240,9 +236,7 @@ export const Settings = () => {
       <Card>
         <CardHeader>
           <CardTitle>{t("settings.export.export")}</CardTitle>
-          <CardDescription>
-            {t("settings.export.description")}
-          </CardDescription>
+          <CardDescription>{t("settings.export.description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -263,9 +257,9 @@ export const Settings = () => {
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-0.5">
-                <Label>{t('settings.export.default_folder.label')}</Label>
+                <Label>{t("settings.export.default_folder.label")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {t('settings.export.default_folder.description')}
+                  {t("settings.export.default_folder.description")}
                 </p>
               </div>
 
@@ -306,15 +300,13 @@ export const Settings = () => {
       <Card>
         <CardHeader>
           <CardTitle>Zotero</CardTitle>
-          <CardDescription>
-            {t("settings.zotero.description")}
-          </CardDescription>
+          <CardDescription>{t("settings.zotero.description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <SettingSwitch
-            label={t('settings.zotero.enable.label')}
-            description={t('settings.zotero.enable.description')}
+            label={t("settings.zotero.enable.label")}
+            description={t("settings.zotero.enable.description")}
             value={config.zotero?.enabled ?? false}
             onChange={async (val) => {
               await patchConfig({
@@ -328,9 +320,10 @@ export const Settings = () => {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-0.5">
-              <Label>{t('settings.zotero.host.label')}</Label>
+              <Label>{t("settings.zotero.host.label")}</Label>
               <p className="text-xs text-muted-foreground">
-                {t('settings.zotero.host.description')}              </p>
+                {t("settings.zotero.host.description")}{" "}
+              </p>
             </div>
             <Input
               value={config.zotero?.host ?? "127.0.0.1"}
@@ -349,7 +342,8 @@ export const Settings = () => {
             <div className="space-y-0.5">
               <Label>{t("settings.zotero.port.label")}</Label>
               <p className="text-xs text-muted-foreground">
-                {t("settings.zotero.port.description")}              </p>
+                {t("settings.zotero.port.description")}{" "}
+              </p>
             </div>
             <Input
               type="number"
@@ -370,7 +364,9 @@ export const Settings = () => {
           <Separator />
 
           <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
-            <p className="font-semibold">{t("settings.zotero.how_to_enable.label")}</p>
+            <p className="font-semibold">
+              {t("settings.zotero.how_to_enable.label")}
+            </p>
             <p className="mt-2 text-xs text-muted-foreground">
               {t("settings.zotero.how_to_enable.description")}
             </p>
@@ -399,40 +395,47 @@ export const Settings = () => {
               const id = toast.loading("Loading...");
 
               try {
-                toast.loading(t("settings.data.clear_cache.progress.clean_unused"), {
-                  id,
-                });
+                toast.loading(
+                  t("settings.data.clear_cache.progress.clean_unused"),
+                  {
+                    id,
+                  },
+                );
 
                 try {
                   for await (const ev of cleanUnusedProgress()) {
                     if (ev.type === "start") {
                       toast.loading(
-                        t("settings.data.clear_cache.progress.start",
-                          {
-                            chaptersCount: ev.totals.chapters,
-                            imagesCount: ev.totals.images
-                          }
-                        ),
+                        t("settings.data.clear_cache.progress.start", {
+                          chaptersCount: ev.totals.chapters,
+                          imagesCount: ev.totals.images,
+                        }),
                         { id },
                       );
                     } else if (ev.type === "chapter") {
                       toast.loading(
-                        t("settings.data.clear_cache.progress.deleting",
-                          { name: "chapters", index: ev.index, total: ev.total }
-                        ),
+                        t("settings.data.clear_cache.progress.deleting", {
+                          name: "chapters",
+                          index: ev.index,
+                          total: ev.total,
+                        }),
                         { id },
                       );
                     } else if (ev.type === "image") {
                       toast.loading(
-                        t("settings.data.clear_cache.progress.deleting",
-                          { name: "images", index: ev.index, total: ev.total }
-                        ), { id },
+                        t("settings.data.clear_cache.progress.deleting", {
+                          name: "images",
+                          index: ev.index,
+                          total: ev.total,
+                        }),
+                        { id },
                       );
                     } else if (ev.type === "done") {
                       const { deletedChapters, deletedImages } = ev;
                       toast.success(
                         t("settings.data.clear_cache.progress.done", {
-                          deletedChapters, deletedImages
+                          deletedChapters,
+                          deletedImages,
                         }),
                         { id },
                       );
@@ -440,11 +443,15 @@ export const Settings = () => {
                   }
                 } catch (err) {
                   // fallback: show generic message
-                  toast.error(t("settings.data.clear_cache.progress.failed"), { id });
+                  toast.error(t("settings.data.clear_cache.progress.failed"), {
+                    id,
+                  });
                 }
               } catch (error) {
                 toast.error(
-                  error instanceof Error ? error.message : t("settings.data.clear_cache.progress.failed"),
+                  error instanceof Error
+                    ? error.message
+                    : t("settings.data.clear_cache.progress.failed"),
                   {
                     id,
                   },
@@ -462,13 +469,13 @@ export const Settings = () => {
               const id = toast.loading("Loading...");
 
               try {
-
                 await window.config.reset();
-                toast.success("Done", { id })
-
+                toast.success("Done", { id });
               } catch (error) {
                 toast.error(
-                  error instanceof Error ? error.message : t("settings.data.clear_cache.progress.failed"),
+                  error instanceof Error
+                    ? error.message
+                    : t("settings.data.clear_cache.progress.failed"),
                   {
                     id,
                   },
@@ -484,13 +491,13 @@ export const Settings = () => {
             description={t("settings.data.clear_data.description")}
             action="Clear"
             onClick={async () => {
-              const confirmed = confirm(
-                t("settings.data.clear_data.confirm"),
-              );
+              const confirmed = confirm(t("settings.data.clear_data.confirm"));
 
               if (!confirmed) return;
 
-              const id = toast.loading(t("settings.data.clear_data.deleting.start"));
+              const id = toast.loading(
+                t("settings.data.clear_data.deleting.start"),
+              );
 
               try {
                 const docs = await HighTexDB.getDocuments();
@@ -500,8 +507,9 @@ export const Settings = () => {
                 for (const doc of docs) {
                   toast.loading(
                     t("settings.data.clear_data.deleting.start", {
-                      deleted: deleted + 1, total: docs.length
-                      , identifier: doc.title || doc.id
+                      deleted: deleted + 1,
+                      total: docs.length,
+                      identifier: doc.title || doc.id,
                     }),
                     // `Deleting ${deleted + 1}/${docs.length}: ${doc.title || doc.id}`,
                     { id },
@@ -512,9 +520,12 @@ export const Settings = () => {
                   deleted++;
                 }
 
-                toast.success(t("settings.data.clear_data.deleting.done", { deleted }), {
-                  id,
-                });
+                toast.success(
+                  t("settings.data.clear_data.deleting.done", { deleted }),
+                  {
+                    id,
+                  },
+                );
               } catch (error) {
                 toast.error(
                   error instanceof Error
@@ -643,9 +654,7 @@ const ProfileSection = () => {
               <InfoIcon size={12} />
             </TooltipTrigger>
 
-            <TooltipPanel>
-              {t("settings.profile.tooltip")}
-            </TooltipPanel>
+            <TooltipPanel>{t("settings.profile.tooltip")}</TooltipPanel>
           </Tooltip>
         </CardDescription>
       </CardHeader>
@@ -735,7 +744,9 @@ const ProfileSection = () => {
 
             <div className="flex justify-end pt-4">
               <Button onClick={saveProfile} disabled={saving}>
-                {saving ? t("settings.profile.saving") : t("settings.profile.save")}
+                {saving
+                  ? t("settings.profile.saving")
+                  : t("settings.profile.save")}
               </Button>
             </div>
           </>
@@ -837,11 +848,7 @@ const AppInfoSection = () => {
               })}
             </div>
 
-            <Button
-              size="sm"
-              className="h-7 text-xs"
-              onClick={handleInstall}
-            >
+            <Button size="sm" className="h-7 text-xs" onClick={handleInstall}>
               {t("settings.updater.restart_install")}
             </Button>
           </div>
@@ -872,9 +879,7 @@ const AppInfoSection = () => {
     <Card>
       <CardHeader>
         <CardTitle>{t("settings.about.title")}</CardTitle>
-        <CardDescription>
-          {t("settings.about.header")}
-        </CardDescription>
+        <CardDescription>{t("settings.about.header")}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -898,9 +903,7 @@ const AppInfoSection = () => {
           <div className="space-y-0.5">
             <Label>{t("settings.updater.label")}</Label>
 
-            <div className="mt-1">
-              {renderUpdateStatus()}
-            </div>
+            <div className="mt-1">{renderUpdateStatus()}</div>
           </div>
 
           <Button
@@ -918,9 +921,7 @@ const AppInfoSection = () => {
             <RefreshCw
               size={13}
               className={
-                checking || status?.status === "checking"
-                  ? "animate-spin"
-                  : ""
+                checking || status?.status === "checking" ? "animate-spin" : ""
               }
             />
 

@@ -43,7 +43,7 @@ declare global {
     editor: {
       spellCheck?: boolean;
       preferCloudProfile?: boolean;
-      scrollBar?:boolean,
+      scrollBar?: boolean;
     };
     export: {
       saveDialog: boolean;

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import en from "@/locales/en.json";
@@ -8,12 +7,7 @@ export const SUPPORTED_LANGUAGES = ["en", "id"] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-type TranslationValue =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined;
+type TranslationValue = string | number | boolean | null | undefined;
 
 type TranslationValues = Record<string, TranslationValue>;
 
@@ -42,10 +36,7 @@ const flattenTranslations = (
   return result;
 };
 
-const LOCALE_MESSAGES: Record<
-  SupportedLanguage,
-  Record<string, string>
-> = {
+const LOCALE_MESSAGES: Record<SupportedLanguage, Record<string, string>> = {
   en: flattenTranslations(en as TranslationObject),
   id: flattenTranslations(id as TranslationObject),
 };
@@ -70,9 +61,7 @@ export const getLanguageLabel = (
   language: SupportedLanguage = "en",
 ): string => {
   return (
-    LANGUAGE_OPTIONS.find(
-      (item) => item.value === language,
-    )?.label ?? "English"
+    LANGUAGE_OPTIONS.find((item) => item.value === language)?.label ?? "English"
   );
 };
 
@@ -97,9 +86,7 @@ export const getCurrentLanguage = (): SupportedLanguage => {
 export const setCurrentLanguage = (
   language: SupportedLanguage = "en",
 ): void => {
-  currentLanguage = SUPPORTED_LANGUAGES.includes(language)
-    ? language
-    : "en";
+  currentLanguage = SUPPORTED_LANGUAGES.includes(language) ? language : "en";
 
   if (typeof document === "undefined") {
     return;
@@ -117,10 +104,7 @@ export const useAppLanguage = (): SupportedLanguage => {
   );
 
   useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !window.config?.onChange
-    ) {
+    if (typeof window === "undefined" || !window.config?.onChange) {
       return;
     }
 
@@ -143,56 +127,40 @@ export const useAppLanguage = (): SupportedLanguage => {
   return language;
 };
 
-const interpolate = (
-  message: string,
-  values?: TranslationValues,
-): string => {
+const interpolate = (message: string, values?: TranslationValues): string => {
   if (!values) {
     return message;
   }
 
-  return message.replace(
-    /\{(\w+)\}/g,
-    (placeholder, key: string) => {
-      if (!(key in values)) {
-        return placeholder;
-      }
+  return message.replace(/\{(\w+)\}/g, (placeholder, key: string) => {
+    if (!(key in values)) {
+      return placeholder;
+    }
 
-      const value = values[key];
+    const value = values[key];
 
-      if (value === null || value === undefined) {
-        return "";
-      }
+    if (value === null || value === undefined) {
+      return "";
+    }
 
-      return String(value);
-    },
-  );
+    return String(value);
+  });
 };
 
-export const t = (
-  key: string,
-  values?: TranslationValues,
-): string => {
+export const t = (key: string, values?: TranslationValues): string => {
   const language = getCurrentLanguage();
 
   const message =
-    LOCALE_MESSAGES[language]?.[key] ??
-    LOCALE_MESSAGES.en[key] ??
-    key;
+    LOCALE_MESSAGES[language]?.[key] ?? LOCALE_MESSAGES.en[key] ?? key;
 
   return interpolate(message, values);
 };
 
-export const applyLanguage = (
-  language: SupportedLanguage = "en",
-): void => {
+export const applyLanguage = (language: SupportedLanguage = "en"): void => {
   setCurrentLanguage(language);
 };
 
-if (
-  typeof window !== "undefined" &&
-  window.config?.onChange
-) {
+if (typeof window !== "undefined" && window.config?.onChange) {
   window.config.onChange((config) => {
     const configuredLanguage = config.language;
 
@@ -205,4 +173,3 @@ if (
     setCurrentLanguage(language);
   });
 }
-

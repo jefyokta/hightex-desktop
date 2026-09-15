@@ -98,7 +98,9 @@ export const Present = () => {
   }, [activeSession]);
 
   if (!initialized) {
-    return <div className="flex justify-center py-10">{t("common.loading")}</div>;
+    return (
+      <div className="flex justify-center py-10">{t("common.loading")}</div>
+    );
   }
 
   if (activeSession) {

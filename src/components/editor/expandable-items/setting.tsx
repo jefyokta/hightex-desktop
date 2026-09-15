@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { FileWarningIcon, Save, X } from "lucide-react";
 
@@ -110,7 +109,9 @@ export const Setting = () => {
           >
             <Save className="h-3 w-3" />
 
-            {loading ? t("editor.expandable.setting.saving") : t("editor.expandable.setting.save")}
+            {loading
+              ? t("editor.expandable.setting.saving")
+              : t("editor.expandable.setting.save")}
           </Button>
         </div>
       </TabHeader>
@@ -159,7 +160,7 @@ export const Setting = () => {
                       ...prev!.config,
                       intern:
                         nextCategory?.variant === "intern"
-                          ? prev!.config?.intern ?? {}
+                          ? (prev!.config?.intern ?? {})
                           : prev!.config?.intern,
                     },
                   };
@@ -167,7 +168,9 @@ export const Setting = () => {
               }
             >
               <SelectTrigger className="w-full mt-1">
-                <SelectValue placeholder={t("editor.expandable.setting.select_category")} />
+                <SelectValue
+                  placeholder={t("editor.expandable.setting.select_category")}
+                />
               </SelectTrigger>
 
               <SelectContent>
@@ -218,7 +221,9 @@ export const Setting = () => {
           />
         </Section>
 
-        <Section title={t("editor.expandable.setting.thesis_examination_committee")}>
+        <Section
+          title={t("editor.expandable.setting.thesis_examination_committee")}
+        >
           <Field
             label={t("editor.expandable.setting.leaded_by")}
             value={doc.config.leader ?? ""}

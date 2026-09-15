@@ -166,9 +166,7 @@ export const Citation = () => {
       return 0;
     }
 
-    const validEntries = entries.filter((entry) =>
-      isCitationValid(entry.cite),
-    );
+    const validEntries = entries.filter((entry) => isCitationValid(entry.cite));
 
     const invalidEntries = entries.filter(
       (entry) => !isCitationValid(entry.cite),
@@ -209,8 +207,8 @@ export const Citation = () => {
         skipped:
           invalidEntries.length > 0
             ? t("citation.skipped_invalid", {
-              count: invalidEntries.length,
-            })
+                count: invalidEntries.length,
+              })
             : "",
       }),
     );
@@ -263,8 +261,7 @@ export const Citation = () => {
 
       return true;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       setZoteroConnected(false);
       setZoteroError(message);
@@ -291,8 +288,7 @@ export const Citation = () => {
         setZoteroError(t("citation.zotero.no_references"));
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       setZoteroError(message);
     } finally {
@@ -370,8 +366,7 @@ export const Citation = () => {
       setFeedbackType("success");
       setIsZoteroOpen(false);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       setZoteroError(message);
     }
@@ -406,9 +401,7 @@ export const Citation = () => {
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-muted/20">
           <div className="flex shrink-0 flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm font-medium">
-              {t("citation.actions")}
-            </div>
+            <div className="text-sm font-medium">{t("citation.actions")}</div>
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setIsAddOpen(true)}>
@@ -510,10 +503,11 @@ export const Citation = () => {
 
             {feedback && (
               <div
-                className={`flex-none rounded-xl border px-4 py-3 text-sm ${feedbackType === "success"
+                className={`flex-none rounded-xl border px-4 py-3 text-sm ${
+                  feedbackType === "success"
                     ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
                     : "border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
-                  }`}
+                }`}
               >
                 {feedback}
               </div>
@@ -525,9 +519,7 @@ export const Citation = () => {
               {t("common.cancel")}
             </Button>
 
-            <Button onClick={addCitation}>
-              {t("citation.import")}
-            </Button>
+            <Button onClick={addCitation}>{t("citation.import")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -621,8 +613,7 @@ export const Citation = () => {
 
                       <div>
                         <Badge variant="secondary" className="rounded-md">
-                          {item.itemType ??
-                            t("citation.zotero.reference")}
+                          {item.itemType ?? t("citation.zotero.reference")}
                         </Badge>
                       </div>
 
@@ -646,10 +637,7 @@ export const Citation = () => {
           </div>
 
           <DialogFooter className="shrink-0 border-t px-6 py-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsZoteroOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsZoteroOpen(false)}>
               {t("common.cancel")}
             </Button>
 
@@ -672,11 +660,7 @@ type CitationRowProps = {
   onCopy: (text: string) => void;
 };
 
-const CitationRow = ({
-  cite,
-  onDelete,
-  onCopy,
-}: CitationRowProps) => {
+const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
   return (
     <div className="group flex items-start justify-between gap-4 px-4 py-4 transition hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
       <div className="min-w-0 flex-1">

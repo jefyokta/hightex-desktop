@@ -43,7 +43,7 @@ export const Dashboard = () => {
 
     const doc: HighTexDocument = {
       id: crypto.randomUUID(),
-    title: t("common.untitled_document"),
+      title: t("common.untitled_document"),
       altTitle: "",
       category: defaultCategory.id.toString(),
       keywords: { indonesian: [], english: [] },

@@ -1,4 +1,3 @@
-
 import { FileText, FileUp, Library } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -156,7 +155,7 @@ export const Splitter = () => {
         if (!file) {
           file =
             inputs.doc.type === "pdf"
-              ? inputs.doc.file ?? undefined
+              ? (inputs.doc.file ?? undefined)
               : undefined;
         }
 
@@ -320,10 +319,7 @@ export const Splitter = () => {
             await sleep(100);
           }
 
-          const copiedPages = await target.copyPages(
-            source,
-            pageIndexes,
-          );
+          const copiedPages = await target.copyPages(source, pageIndexes);
 
           for (const page of copiedPages) {
             target.addPage(page);
@@ -335,10 +331,7 @@ export const Splitter = () => {
         await copyRange(
           {
             start: 4,
-            end:
-              context.payload.detail[
-                Number(publicChapters[0])
-              ].start - 1,
+            end: context.payload.detail[Number(publicChapters[0])].start - 1,
           },
           context.original,
           context.publicPdf,
@@ -377,9 +370,7 @@ export const Splitter = () => {
           "public.pdf": publicPdf,
           "private.pdf": privatePdf,
           "original.pdf": originalPdf,
-          "payload.json": strToU8(
-            JSON.stringify(context.payload ?? {}),
-          ),
+          "payload.json": strToU8(JSON.stringify(context.payload ?? {})),
         });
 
         setProgress(t("split.saving_archive"));
@@ -413,9 +404,7 @@ export const Splitter = () => {
             </div>
 
             <div className="flex-1">
-              <h3 className="font-medium">
-                {t("split.main_document.title")}
-              </h3>
+              <h3 className="font-medium">{t("split.main_document.title")}</h3>
 
               <p className="mt-1 text-sm text-muted-foreground">
                 {t("split.main_document.description")}
@@ -443,20 +432,14 @@ export const Splitter = () => {
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="pdf" id="main-pdf" />
 
-                  <Label
-                    htmlFor="main-pdf"
-                    className="flex items-center gap-2"
-                  >
+                  <Label htmlFor="main-pdf" className="flex items-center gap-2">
                     <FileUp className="h-4 w-4" />
                     {t("split.main_document.pdf")}
                   </Label>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <RadioGroupItem
-                    value="hightex"
-                    id="main-hightex"
-                  />
+                  <RadioGroupItem value="hightex" id="main-hightex" />
 
                   <Label
                     htmlFor="main-hightex"
@@ -478,8 +461,7 @@ export const Splitter = () => {
                         ...previous,
                         doc: {
                           type: "pdf",
-                          file:
-                            event.target.files?.[0] ?? null,
+                          file: event.target.files?.[0] ?? null,
                         },
                       }))
                     }
@@ -489,9 +471,7 @@ export const Splitter = () => {
                 <div className="mt-5">
                   <Select
                     onValueChange={(id) => {
-                      const document = docs.find(
-                        (doc) => doc.id === id,
-                      );
+                      const document = docs.find((doc) => doc.id === id);
 
                       if (!document) {
                         return;
@@ -508,21 +488,14 @@ export const Splitter = () => {
                   >
                     <SelectTrigger>
                       <SelectValue
-                        placeholder={t(
-                          "split.main_document.select",
-                        )}
+                        placeholder={t("split.main_document.select")}
                       />
                     </SelectTrigger>
 
                     <SelectContent>
                       {docs.map((doc) => (
-                        <SelectItem
-                          key={doc.id}
-                          value={doc.id}
-                        >
-                          <ParsedItalic
-                            text={truncate(doc.title)}
-                          />
+                        <SelectItem key={doc.id} value={doc.id}>
+                          <ParsedItalic text={truncate(doc.title)} />
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -535,19 +508,14 @@ export const Splitter = () => {
 
         <div className="space-y-4">
           {documents.map((document) => (
-            <div
-              key={document.key}
-              className="rounded-xl border p-5"
-            >
+            <div key={document.key} className="rounded-xl border p-5">
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-primary/10 p-2">
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="font-medium">
-                    {document.title}
-                  </h3>
+                  <h3 className="font-medium">{document.title}</h3>
 
                   <p className="mt-1 text-sm text-muted-foreground">
                     {document.description}
@@ -560,8 +528,7 @@ export const Splitter = () => {
                       onChange={(event) =>
                         setInputs((previous) => ({
                           ...previous,
-                          [document.key]:
-                            event.target.files?.[0] ?? null,
+                          [document.key]: event.target.files?.[0] ?? null,
                         }))
                       }
                     />
@@ -580,12 +547,9 @@ export const Splitter = () => {
             setProgress(t("split.success"));
 
             toast.success(t("split.success_title"), {
-              description: translate(
-                "split.success_description",
-                {
-                  path: result,
-                },
-              ),
+              description: translate("split.success_description", {
+                path: result,
+              }),
             });
           }}
           onError={(_, err) => {
@@ -606,12 +570,8 @@ export const Splitter = () => {
           <p
             className={cn(
               "text-center transition-all duration-300 ease-in-out",
-              error
-                ? "text-destructive"
-                : "text-muted-foreground",
-              started &&
-                !error &&
-                "animate-pulse",
+              error ? "text-destructive" : "text-muted-foreground",
+              started && !error && "animate-pulse",
             )}
           >
             {error && typeof error === "string"

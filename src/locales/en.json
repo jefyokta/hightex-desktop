@@ -36,9 +36,9 @@
           "done": "{total} documents deleted successfully"
         }
       },
-      "config":{
-        "label":"Config",
-        "description":"Reseting all of your application config"
+      "config": {
+        "label": "Config",
+        "description": "Reseting all of your application config"
       }
     },
     "main": {
@@ -158,10 +158,10 @@
     "join": "Join",
     "ready": "Ready",
     "offline_ready": "Lightweight • Offline-ready",
-    "cancel":"Cancel",
-    "thesis":"Thesis",
-    "proposal":"Proposal",
-    "intern":"Intern"
+    "cancel": "Cancel",
+    "thesis": "Thesis",
+    "proposal": "Proposal",
+    "intern": "Intern"
   },
 
   "dashboard": {
@@ -219,7 +219,6 @@
   "profile": {},
 
   "editor": {
-
     "expandable": {
       "citation": {
         "title": "Citation",
@@ -282,15 +281,15 @@
         "header": "Paged document rendering preview"
       }
     },
-    "error":{
-      "pagging_stopped":{
-        "title":"Pagging Stopped",
-        "description":"content page limit cause an error. Adjust content in the previous page or split it into a new page."
+    "error": {
+      "pagging_stopped": {
+        "title": "Pagging Stopped",
+        "description": "content page limit cause an error. Adjust content in the previous page or split it into a new page."
       }
     },
-    "context_menu":{
-      "see_in_preview":"See in Preview",
-      "delete":"Delete",
+    "context_menu": {
+      "see_in_preview": "See in Preview",
+      "delete": "Delete",
       "split_cell": "Split cell",
       "align_left": "Align Left",
       "align_center": "Align Center",
@@ -313,7 +312,8 @@
       "delete_image": "Delete image",
       "delete_figure_table": "Delete figure table",
       "delete_math": "Delete math",
-      "remove_quote": "Remove quote"    }
+      "remove_quote": "Remove quote"
+    }
   },
 
   "remote": {

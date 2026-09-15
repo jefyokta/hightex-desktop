@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -89,7 +88,10 @@ export function Scanner() {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <TabHeader title={t("editor.expandable.scanner.title")} desc={t("editor.expandable.scanner.description")}>
+      <TabHeader
+        title={t("editor.expandable.scanner.title")}
+        desc={t("editor.expandable.scanner.description")}
+      >
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={scan} disabled={loading}>
             {loading ? (
@@ -261,7 +263,8 @@ function ErrorGroup({ name, items }: { name: string; items: any[] }) {
 
               {err.range && (
                 <div className="text-[10px] opacity-60">
-                  {t("editor.expandable.scanner.range")}: {err.range.start} - {err.range.end}
+                  {t("editor.expandable.scanner.range")}: {err.range.start} -{" "}
+                  {err.range.end}
                 </div>
               )}
             </div>

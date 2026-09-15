@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
+import { createTable } from "@tiptap/extension-table";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -165,75 +166,7 @@ export const NavBar: React.FC = () => {
                   editor
                     .chain()
                     ?.focus()
-                    .insertContent({
-                      type: "grid",
-                      content: [
-                        {
-                          type: "gridRow",
-                          content: [
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                        {
-                          type: "gridRow",
-                          content: [
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    })
+                    .insertContent(createTable(editor.schema,3,3,false))
                     .run()
                 }
               />
@@ -361,11 +294,10 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
+        ${active
+              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+              : ""
+            }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

@@ -299,7 +299,10 @@ export const Validity = () => {
                         width: "min-content",
                       }}
                     >
-                      {doc.config.member_1 ? name(doc.config.member_1) : ""}                    </td>
+                      {doc.config.member_1
+                        ? name(doc.config.member_1)
+                        : ""}{" "}
+                    </td>
 
                     <td
                       style={{

@@ -1,9 +1,11 @@
-import { Table, TableView } from "@tiptap/extension-table";
-import { TableCell, CustomTableRow as TableRow } from "../table";
+import { TableView } from "@tiptap/extension-table";
+import { TableCell, CustomTableRow as TableRow , Table} from "../table";
+import { createColumnResizing } from "@/editor/plugins/column-resizing";
 
 export const Grid = Table.extend({
   name: "grid",
   content: "gridRow+",
+  // tableRole:"grid",
 
   addAttributes() {
     return {
@@ -20,7 +22,16 @@ export const Grid = Table.extend({
     return [{ tag: "table[data-type='grid']" }];
   },
   addProseMirrorPlugins() {
-    return [];
+    return [
+      createColumnResizing({
+        tableTypeName: "grid",
+        cellTypeNames: ["gridCell"],
+      }),
+      //   createColumnResizing({
+      //   tableTypeName: "table",
+      //   cellTypeNames: ["tableCell", "tableHeader"],
+      // }),
+    ];
   },
 
   addNodeView() {
@@ -31,12 +42,15 @@ export const Grid = Table.extend({
       return view;
     };
   },
-}).configure({ resizable: true });
+}).configure({ resizable: false });
 export const GridRow = TableRow.extend({
   name: "gridRow",
   content: "gridCell+",
-});
+    // tableRole:undefined,
 
+});
 export const GridCell = TableCell.extend({
   name: "gridCell",
+    // tableRole:undefined,
+
 });

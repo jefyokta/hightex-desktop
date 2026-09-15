@@ -31,7 +31,10 @@ export const ChapteTree = () => {
 
   return (
     <div className="w-full h-full overflow-auto ">
-      <TabHeader title="Chapters" desc={t("editor.expandable.chapters.header")} />
+      <TabHeader
+        title="Chapters"
+        desc={t("editor.expandable.chapters.header")}
+      />
       <Files>
         {doc?.chapters.map((chapter) => (
           <ChapterNode key={chapter.getId()} chapter={chapter} />

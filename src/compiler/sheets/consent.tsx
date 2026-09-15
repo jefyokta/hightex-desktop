@@ -5,8 +5,8 @@ import { name } from "@/utils/name";
 
 export const Constent = () => {
   const { document, profile } = usePrintable();
-  if (!document ) return null;
-  console.log(profile?.advisorName)
+  if (!document) return null;
+  console.log(profile?.advisorName);
 
   return (
     <section className="introduction page-break new-page">
