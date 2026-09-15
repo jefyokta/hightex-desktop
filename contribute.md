@@ -1,10 +1,3 @@
-# Contribute  Guide
- - always write the types, this is ts
- - DRY
- - put files in right folder
- - consistent naming function/files, etc
-
-
 # Contributing Guide
 
 Thank you for contributing to **HighTex Desktop**. Please follow the conventions below to keep the codebase consistent, maintainable, and easy to review.
@@ -265,3 +258,7 @@ const currentVersion = version;
 ```
 
 If code requires extensive comments to explain what it does, consider whether the implementation can be simplified.
+
+
+> Thanks, 
+>  jefyokta
