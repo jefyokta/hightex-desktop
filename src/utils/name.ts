@@ -1,2 +1,2 @@
-export const name = (name:string)=>
-    name.endsWith(".") ? name: `${name}.`
+export const name = (name?:string)=>
+    !name ? "" : (name.endsWith(".") ? name: `${name}.`)
