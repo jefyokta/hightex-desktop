@@ -175,8 +175,8 @@ col {
   counter-reset: h3-counter;
 }
 
-.content table,
-.attachment table {
+.content figure table,
+.attachment figure table {
   /* max-width: 100% !important; */
   border-bottom: 1px solid black;
   border-collapse: collapse;
@@ -198,7 +198,7 @@ td[colspan] {
 }
 
 .content li {
-  padding-left: 6pt;
+  margin-left: 6pt;
 }
 
 .content h4 {
@@ -367,14 +367,14 @@ figure[data-type="figureTable"] > table {
 .presentation ol {
   list-style-position: outside;
   list-style-type: decimal;
-  margin-left: 2.5em;
+  margin-left: .5em;
 }
 
 .content ul,
 .foreword ul,
 .presentation ul {
   list-style-type: disc;
-  margin-left: 2.5em;
+  margin-left: .9em;
 }
 
 .content {
@@ -544,11 +544,11 @@ th.right p {
   text-align: right !important;
 }
 
-thead tr:first-child {
+figure thead tr:first-child {
   border-top: 1px solid black !important;
 }
 
-thead tr:last-child {
+figure thead tr:last-child {
   border-bottom: 1px solid black !important;
 }
 

@@ -266,7 +266,7 @@ tr:first-of-type {
 
 .page ul {
   list-style-type: disc;
-  margin-left: 2.5em;
+  margin-left: .5em;
 }
 
 .page ol {
