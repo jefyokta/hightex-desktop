@@ -12,6 +12,7 @@ import {
 import { useCurrentEditor } from "@/hooks/use-editor";
 import { t } from "@/utils/lang";
 import { AnimatePresence, motion } from "motion/react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 type FindReplaceBarProps = {
   visible: boolean;
@@ -309,24 +310,28 @@ const BarButton: React.FC<{
   children: React.ReactNode;
 }> = ({ onClick, title, disabled, active, children }) => {
   return (
-    <button
-      onClick={onClick}
-      title={title}
-      disabled={disabled}
-      className={`
-        flex items-center justify-center
-        w-6 h-6
-        rounded-md
-        transition-colors duration-100
-        disabled:opacity-30 disabled:cursor-not-allowed
-        ${
-          active
-            ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white"
-            : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200"
-        }
-      `}
-    >
-      {children}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={onClick}
+          disabled={disabled}
+          className={`
+            flex items-center justify-center
+            w-6 h-6
+            rounded-md
+            transition-colors duration-100
+            disabled:opacity-30 disabled:cursor-not-allowed
+            ${
+              active
+                ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white"
+                : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200"
+            }
+          `}
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      {title && <TooltipContent>{title}</TooltipContent>}
+    </Tooltip>
   );
 };

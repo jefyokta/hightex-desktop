@@ -86,6 +86,7 @@ export class ChapterExtensions {
       CustomCodeBlock,
       Dots,
       Variable,
+      SearchReplace,
     ];
   }
 
