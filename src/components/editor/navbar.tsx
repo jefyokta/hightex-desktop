@@ -12,6 +12,7 @@ import {
   Quote,
   Redo2,
   ScanText,
+  Sigma,
   Strikethrough,
   Table,
   Underline,
@@ -28,6 +29,7 @@ import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
 import { createTable } from "@tiptap/extension-table";
+import { createMathBlock } from "@/editor/utils/create-math-block";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -49,6 +51,7 @@ export const NavBar: React.FC = () => {
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
       isImage: ctx.editor?.isActive("imageFigure"),
+      isMath: ctx.editor?.isActive("blockMath") ?? false
     }),
   });
 
@@ -159,6 +162,18 @@ export const NavBar: React.FC = () => {
 
             <ButtonGroup>
               <Button
+                title="math"
+                icon={Sigma}
+                active={state?.isGrid}
+                onClick={() =>
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent(createMathBlock())
+                    .run()
+                }
+              />
+              <Button
                 title="grid"
                 icon={Table}
                 active={state?.isGrid}
@@ -166,7 +181,7 @@ export const NavBar: React.FC = () => {
                   editor
                     .chain()
                     ?.focus()
-                    .insertContent(createTable(editor.schema,3,3,false))
+                    .insertContent(createTable(editor.schema, 3, 3, false))
                     .run()
                 }
               />
