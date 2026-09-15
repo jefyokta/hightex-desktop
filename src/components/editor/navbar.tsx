@@ -17,6 +17,7 @@ import {
   Table,
   Underline,
   Undo2,
+  Search,
 } from "lucide-react";
 
 import React, { PropsWithChildren } from "react";
@@ -220,6 +221,19 @@ export const NavBar: React.FC = () => {
                 onClick={() => {
                   setContent("scanner");
                   setOpen(true);
+                }}
+              />
+              <Button
+                icon={Search}
+                title="search & replace"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                      key: "f",
+                      ctrlKey: true,
+                      bubbles: true,
+                    }),
+                  );
                 }}
               />
               <Button

@@ -16,7 +16,7 @@ import { FigureTable } from "../extensions/figure-table";
 import { MathBlock, MathInline } from "../extensions/math";
 import { NodeShortcut } from "../extensions/node-shortcut";
 import {  TableKit } from "@tiptap/extension-table";
-import { Grid, GridCell, GridRow } from "../extensions/grid";
+import { SearchReplace } from "../extensions/search-replace";
 import { CustomCodeBlock } from "../extensions/code-block";
 import { Dots } from "../extensions/dots";
 import { Variable } from "../extensions/variable";
@@ -86,10 +86,11 @@ export class ChapterExtensions {
       CustomCodeBlock,
       Dots,
       Variable,
+      SearchReplace,
     ];
   }
 
   private getNonChapter() {
-    return [StarterKit, Variable];
+    return [StarterKit, Variable, SearchReplace];
   }
 }
