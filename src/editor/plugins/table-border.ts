@@ -119,7 +119,7 @@ function decorateTable(
     return;
   }
 
-  
+  git commit -m "fix:decrase margin between nested lists and fix rowspanned table header border-bottom"
   decorations.push(
     Decoration.node(
       targetRow.pos,
