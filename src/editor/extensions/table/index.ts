@@ -8,6 +8,7 @@ import {
 
 import { CommandProps } from "@tiptap/react";
 import { CellSelection, } from "@tiptap/pm/tables";
+import { createTableBorderPlugin } from "@/editor/plugins/table-border";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -129,6 +130,7 @@ const CustomTable = Table.extend({
       return view;
     };
   },
+
 }).configure({
   resizable:true,
 });

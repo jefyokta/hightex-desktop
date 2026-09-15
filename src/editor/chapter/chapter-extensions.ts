@@ -20,6 +20,7 @@ import { Grid, GridCell, GridRow } from "../extensions/grid";
 import { CustomCodeBlock } from "../extensions/code-block";
 import { Dots } from "../extensions/dots";
 import { Variable } from "../extensions/variable";
+import { TableBorder } from "../extensions/table/border";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -76,10 +77,12 @@ export class ChapterExtensions {
         isolating: true,
       })
       // .configure({resizable:true})
+      
       ,
       MathInline,
       MathBlock,
       NodeShortcut,
+      TableBorder,
       // Grid,
       // GridCell,
       // GridRow,
