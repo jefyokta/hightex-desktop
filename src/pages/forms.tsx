@@ -1,7 +1,6 @@
 import { t } from "@/utils/lang";
 
 export const Forms = () => {
-
   return (
     <>
       <div>

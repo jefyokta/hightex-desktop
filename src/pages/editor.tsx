@@ -34,7 +34,7 @@ export const Editor: React.FC = () => {
   const { id, version, chapter } = useParams<EditorParams>();
 
   const [loaded, setLoaded] = useState(false);
-  const [config, setConfig] = useState<ConfigShape|null>(null)
+  const [config, setConfig] = useState<ConfigShape | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -51,9 +51,8 @@ export const Editor: React.FC = () => {
       }
       Document.setCurrentChapter(currentChapter);
       // window
-      if ('config' in window) {
-        setConfig(window.config.get())
-
+      if ("config" in window) {
+        setConfig(window.config.get());
       }
       if (!alive) return;
       setLoaded(true);
@@ -206,12 +205,14 @@ const EditorComponent = () => {
       await Manager.emit("update", {
         editor,
       });
+ 
     },
 
     onContentError: (props) => {
-      console.log(props);
+      console.log(props.editor.getJSON(), props.error);
       throw new EditorContentError(props.editor);
     },
+
 
     enableContentCheck: true,
   });

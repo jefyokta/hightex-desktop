@@ -177,7 +177,7 @@ col {
 
 .content table,
 .attachment table {
-  max-width: 100% !important;
+  /* max-width: 100% !important; */
   border-bottom: 1px solid black;
   border-collapse: collapse;
 }

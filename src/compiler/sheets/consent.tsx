@@ -1,10 +1,12 @@
 import { ParsedItalic } from "@/utils/parse-italic";
 import { usePrintable } from "@/hooks/use-printable";
 import { formatDate } from "@/utils/date";
+import { name } from "@/utils/name";
 
 export const Constent = () => {
   const { document, profile } = usePrintable();
   if (!document) return null;
+  console.log(profile?.advisorName);
 
   return (
     <section className="introduction page-break new-page">
@@ -83,7 +85,7 @@ export const Constent = () => {
             <br />
 
             <span style={{ fontWeight: "bold" }}>
-              Angraini, S.Kom., M.Eng., Ph.D.
+              {name("Angraini, S.Kom., M.Eng., Ph.D.")}
             </span>
 
             <br />
@@ -116,7 +118,7 @@ export const Constent = () => {
 
             <>
               <span style={{ fontWeight: "bold" }}>
-                {profile?.advisorName}.
+                {profile && profile.advisorName && name(profile?.advisorName)}
               </span>
 
               <br />

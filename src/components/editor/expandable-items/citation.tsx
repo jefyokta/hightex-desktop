@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { Copy, Search, Check, BookMarked, ChevronDown } from "lucide-react";
 
@@ -64,11 +63,7 @@ export const Citation = () => {
       const full = (cite.toCite() || "").toLowerCase();
       const authorLower = authorText.toLowerCase();
 
-      return (
-        title.includes(q) ||
-        full.includes(q) ||
-        authorLower.includes(q)
-      );
+      return title.includes(q) || full.includes(q) || authorLower.includes(q);
     });
   }, [query, cites]);
 
@@ -173,9 +168,7 @@ const CitationItem = ({ cite }: CitationItemProps) => {
             {title || t("editor.expandable.citation.untitled")}
           </h2>
 
-          <p className="mt-1 text-xs text-muted-foreground">
-            {author}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{author}</p>
         </div>
 
         <div className="flex items-center">

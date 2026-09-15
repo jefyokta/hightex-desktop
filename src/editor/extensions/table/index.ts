@@ -3,10 +3,11 @@ import {
   TableRow,
   TableCell,
   TableHeader,
+  TableView,
 } from "@tiptap/extension-table";
 
 import { CommandProps } from "@tiptap/react";
-import { CellSelection } from "@tiptap/pm/tables"
+import { CellSelection, } from "@tiptap/pm/tables";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -100,13 +101,36 @@ const CustomTableHeader = TableHeader.extend({
 });
 
 const CustomTable = Table.extend({
+
   addCommands(): Partial<any> {
     return {
       ...this.parent?.(),
     };
   },
+  addNodeView() {
+    return ({ node ,getPos,editor}) => {
+      const view = new TableView(node, this.options.cellMinWidth);
+    if (typeof getPos === "function") {
+      const pos = getPos()
+  
+      if(pos) {
+        const $pos = editor.state.doc.resolve(pos)
+        const parent = $pos.node($pos.depth)
+        if (parent.type.name !== "figureTable") {
+          view.dom.classList.add("node-grid");
+          view.table.setAttribute("data-type",'grid')
+          return view
+        }
+      }
+    }      
+      view.table.setAttribute("data-type", "table");
+      view.dom.classList.add("node-table");
+     
+      return view;
+    };
+  },
 }).configure({
-  resizable: true,
+  resizable:true,
 });
 const CustomTableRow = TableRow.extend({});
 

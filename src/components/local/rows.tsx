@@ -26,6 +26,7 @@ import { ParsedItalic } from "@/utils/parse-italic";
 import { Button } from "../ui/button";
 import { truncate } from "@/utils/truncate";
 import { ApplicationError } from "@/exception/interfaces/application-error";
+import { t } from "@/utils/lang";
 
 interface Props {
   doc: HighTexDocument;
@@ -231,7 +232,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     <SelectGroup>
                       {categories.map((c) => (
                         <SelectItem key={c.id} value={String(c.id)}>
-                          {c.name} - {c.variant}
+                          {c.name} - {t(`common.${c.variant}`)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -368,7 +369,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     ...doc,
                     altTitle,
                     keywords: { indonesian: keywordsId, english: keywordsEn },
-                    category:category ?? doc.category
+                    category: category ?? doc.category,
                   });
                   toast.success("Saved");
                 }}

@@ -174,7 +174,6 @@ export class CLIService {
     }
     if (result) return result.value;
 
-
     return this.unstrippedArgs[pos];
   }
 }

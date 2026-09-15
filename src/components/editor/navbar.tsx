@@ -12,6 +12,7 @@ import {
   Quote,
   Redo2,
   ScanText,
+  Sigma,
   Strikethrough,
   Table,
   Underline,
@@ -27,6 +28,8 @@ import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
+import { createTable } from "@tiptap/extension-table";
+import { createMathBlock } from "@/editor/utils/create-math-block";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -48,6 +51,7 @@ export const NavBar: React.FC = () => {
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
       isImage: ctx.editor?.isActive("imageFigure"),
+      isMath: ctx.editor?.isActive("blockMath") ?? false
     }),
   });
 
@@ -158,6 +162,18 @@ export const NavBar: React.FC = () => {
 
             <ButtonGroup>
               <Button
+                title="math"
+                icon={Sigma}
+                active={state?.isGrid}
+                onClick={() =>
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent(createMathBlock())
+                    .run()
+                }
+              />
+              <Button
                 title="grid"
                 icon={Table}
                 active={state?.isGrid}
@@ -165,75 +181,7 @@ export const NavBar: React.FC = () => {
                   editor
                     .chain()
                     ?.focus()
-                    .insertContent({
-                      type: "grid",
-                      content: [
-                        {
-                          type: "gridRow",
-                          content: [
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                        {
-                          type: "gridRow",
-                          content: [
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                            {
-                              type: "gridCell",
-                              content: [
-                                {
-                                  type: "paragraph",
-                                  content: [{ type: "text", text: "a cell" }],
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    })
+                    .insertContent(createTable(editor.schema, 3, 3, false))
                     .run()
                 }
               />
@@ -361,11 +309,10 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
+        ${active
+              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+              : ""
+            }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

@@ -166,9 +166,7 @@ export const Citation = () => {
       return 0;
     }
 
-    const validEntries = entries.filter((entry) =>
-      isCitationValid(entry.cite),
-    );
+    const validEntries = entries.filter((entry) => isCitationValid(entry.cite));
 
     const invalidEntries = entries.filter(
       (entry) => !isCitationValid(entry.cite),
@@ -263,8 +261,7 @@ export const Citation = () => {
 
       return true;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       setZoteroConnected(false);
       setZoteroError(message);
@@ -291,8 +288,7 @@ export const Citation = () => {
         setZoteroError(t("citation.zotero.no_references"));
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       setZoteroError(message);
     } finally {
@@ -370,8 +366,7 @@ export const Citation = () => {
       setFeedbackType("success");
       setIsZoteroOpen(false);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       setZoteroError(message);
     }
@@ -406,9 +401,7 @@ export const Citation = () => {
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-muted/20">
           <div className="flex shrink-0 flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm font-medium">
-              {t("citation.actions")}
-            </div>
+            <div className="text-sm font-medium">{t("citation.actions")}</div>
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setIsAddOpen(true)}>
@@ -526,9 +519,7 @@ export const Citation = () => {
               {t("common.cancel")}
             </Button>
 
-            <Button onClick={addCitation}>
-              {t("citation.import")}
-            </Button>
+            <Button onClick={addCitation}>{t("citation.import")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -595,7 +586,7 @@ export const Citation = () => {
                 <div />
               </div>
 
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 !overflow-scroll">
                 {zoteroLoading ? (
                   <div className="p-6 text-sm text-muted-foreground">
                     {t("citation.zotero.loading")}
@@ -622,8 +613,7 @@ export const Citation = () => {
 
                       <div>
                         <Badge variant="secondary" className="rounded-md">
-                          {item.itemType ??
-                            t("citation.zotero.reference")}
+                          {item.itemType ?? t("citation.zotero.reference")}
                         </Badge>
                       </div>
 
@@ -647,10 +637,7 @@ export const Citation = () => {
           </div>
 
           <DialogFooter className="shrink-0 border-t px-6 py-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsZoteroOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsZoteroOpen(false)}>
               {t("common.cancel")}
             </Button>
 
@@ -673,11 +660,7 @@ type CitationRowProps = {
   onCopy: (text: string) => void;
 };
 
-const CitationRow = ({
-  cite,
-  onDelete,
-  onCopy,
-}: CitationRowProps) => {
+const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
   return (
     <div className="group flex items-start justify-between gap-4 px-4 py-4 transition hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
       <div className="min-w-0 flex-1">

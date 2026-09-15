@@ -36,10 +36,10 @@
           "done": "{total} dokumen berhasil dihapus"
         }
       },
-    
-      "config":{
-        "label":"Konfigurasi",
-        "description":"Mereset konfigurasi aplikasi anda"
+
+      "config": {
+        "label": "Konfigurasi",
+        "description": "Mereset konfigurasi aplikasi anda"
       }
     },
     "main": {
@@ -158,7 +158,11 @@
     "done": "selesai",
     "join": "Gabung",
     "ready": "Siap",
-    "offline_ready": "Ringan • Siap offline"
+    "offline_ready": "Ringan • Siap offline",
+    "cancel": "Batal",
+    "thesis": "Tugas Akhir",
+    "proposal": "Proposal",
+    "intern": "Kerja Praktek"
   },
 
   "dashboard": {
@@ -216,7 +220,6 @@
   "profile": {},
 
   "editor": {
-
     "expandable": {
       "citation": {
         "title": "Sitasi",
@@ -279,15 +282,15 @@
         "header": "Pratinjau tampilan dokumen berhalaman"
       }
     },
-    "error":{
-      "pagging_stopped":{
-        "title":"Penghalaman Terhenti",
-        "description":"Batas halaman konten bikin error. Sesuaikan konten di halaman sebelumnya atau pecah jadi halaman baru."
+    "error": {
+      "pagging_stopped": {
+        "title": "Penghalaman Terhenti",
+        "description": "Batas halaman konten bikin error. Sesuaikan konten di halaman sebelumnya atau pecah jadi halaman baru."
       }
     },
-    "context_menu":{
-      "see_in_preview":"Lihat di Pratinjau",
-      "delete":"Hapus",
+    "context_menu": {
+      "see_in_preview": "Lihat di Pratinjau",
+      "delete": "Hapus",
       "split_cell": "Pecah sel",
       "align_left": "Rata Kiri",
       "align_center": "Rata Tengah",
@@ -308,9 +311,10 @@
       "toggle_bullet_list": "Nyalakan/matikan daftar poin",
       "toggle_ordered_list": "Nyalakan/matikan daftar berurutan",
       "delete_image": "Hapus gambar",
-      "delete_figure_table": "Hapus tabel gambar",
+      "delete_figure_table": "Hapus tabel",
       "delete_math": "Hapus rumus matematika",
-      "remove_quote": "Hapus kutipan"    }
+      "remove_quote": "Hapus kutipan"
+    }
   },
 
   "remote": {

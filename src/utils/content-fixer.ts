@@ -4,7 +4,7 @@ type Input = JSONContent | JSONContent[] | null | undefined;
 
 export const ContentFixer = (
   content: Input,
-  schema: Editor['schema'] ,
+  schema: Editor["schema"],
 ): JSONContent => {
   let json: any = content;
 
@@ -32,29 +32,29 @@ export const ContentFixer = (
   const fixNode = (node: any, parentType: string | null = null): any => {
     if (!node || typeof node !== "object") return null;
 
-    if (node.type === "table" && parentType !== "figureTable") {
-      return {
-        type: "figureTable",
-        content: [
-          {
-            type: "figcaption",
-            content: [
-              {
-                type: "text",
-                text: "Table Caption",
-              },
-            ],
-          },
-          {
-            type: "table",
-            content:
-              node.content
-                ?.map((c: any) => fixNode(c, "table"))
-                .filter(Boolean) || [],
-          },
-        ],
-      };
-    }
+    // if (node.type === "table" && parentType !== "figureTable") {
+    //   return {
+    //     type: "figureTable",
+    //     content: [
+    //       {
+    //         type: "figcaption",
+    //         content: [
+    //           {
+    //             type: "text",
+    //             text: "Table Caption",
+    //           },
+    //         ],
+    //       },
+    //       {
+    //         type: "table",
+    //         content:
+    //           node.content
+    //             ?.map((c: any) => fixNode(c, "table"))
+    //             .filter(Boolean) || [],
+    //       },
+    //     ],
+    //   };
+    // }
     if (node.type !== "doc" && !(schema.nodes?.[node.type] ?? false)) {
       return {
         type: "paragraph",

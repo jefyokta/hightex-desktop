@@ -93,9 +93,7 @@ export const Snapshot = () => {
       throw new ShouldNotified({
         message: t("snapshots.delete_error"),
         description:
-          err instanceof Error
-            ? err.message
-            : t("snapshots.delete_failed"),
+          err instanceof Error ? err.message : t("snapshots.delete_failed"),
       });
     } finally {
       setDeletingId(null);

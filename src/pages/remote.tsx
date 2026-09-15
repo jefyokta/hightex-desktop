@@ -83,11 +83,11 @@ export const RemoteDocuments = () => {
             <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 text-center">
               {t("remote.login_required")}
             </div>
- 
+
             <div className="text-xs text-neutral-400 dark:text-neutral-500 text-center mt-1">
               {t("remote.login_description")}
             </div>
- 
+
             {!online && (
               <div className="mt-3 text-[11px] text-red-500 text-center">
                 {t("remote.offline")}
@@ -136,9 +136,11 @@ export const RemoteDocuments = () => {
         <>
           <div className="mb-5 flex flex-col space-y-2">
             <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
-              <ParsedItalic text={document.title || t("common.untitled_document")} />
+              <ParsedItalic
+                text={document.title || t("common.untitled_document")}
+              />
             </div>
- 
+
             <div className="flex items-center gap-2 ">
               <button
                 onClick={() => {
@@ -153,7 +155,7 @@ export const RemoteDocuments = () => {
                 <GitCompare size={14} />
                 {t("remote.override_local")}
               </button>
- 
+
               <button
                 onClick={() => {
                   const id = toast.loading(t("remote.pulling_document"));
@@ -187,7 +189,7 @@ export const RemoteDocuments = () => {
                       if (_e instanceof ShouldNotified) {
                         throw _e;
                       }
- 
+
                       throw new ShouldNotified({
                         message: t("remote.pull_failed"),
                         description: ApplicationError.normilize(_e),
@@ -213,7 +215,10 @@ export const RemoteDocuments = () => {
 
             <InfoRow label={t("remote.title_label")} value={document.title} />
             {/* @ts-ignore */}
-            <InfoRow label={t("remote.english_title")} value={document.en_title} />
+            <InfoRow
+              label={t("remote.english_title")}
+              value={document.en_title}
+            />
             <InfoRow
               label={t("remote.category")}
               value={
@@ -247,13 +252,13 @@ const Stats = ({ online, document }: any) => {
         label={t("remote.connection")}
         value={online ? t("remote.connected") : t("remote.offline_label")}
       />
- 
+
       <Stat
         icon={<Database size={14} />}
         label={t("remote.workspace")}
         value={t("remote.remote_sync")}
       />
- 
+
       <Stat
         icon={<Folder size={14} />}
         label={t("remote.document")}
@@ -298,7 +303,8 @@ const SyncBanner = ({
           </div>
 
           <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-            <span>{t("remote.document")}</span> <ParsedItalic text={cloudDoc!.title} />
+            <span>{t("remote.document")}</span>{" "}
+            <ParsedItalic text={cloudDoc!.title} />
             {` ${t("remote.local_available_message_suffix")}`}
             <Link
               className="font-semibold underline"
@@ -320,7 +326,7 @@ const SyncBanner = ({
         <div className="text-xs font-medium text-amber-700 dark:text-amber-400">
           {t("remote.different_local_document")}
         </div>
- 
+
         <div className="text-xs text-amber-600 dark:text-amber-500 mt-1">
           {t("remote.different_local_document_message")}
         </div>
@@ -477,7 +483,9 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
         <div className="p-5 border-b border-neutral-100">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium">{t("remote.override_local_document")}</div>
+              <div className="text-sm font-medium">
+                {t("remote.override_local_document")}
+              </div>
 
               <div className="text-xs text-neutral-400 mt-1">
                 {t("remote.override_local_document_description")}

@@ -1,6 +1,7 @@
 import { ParsedItalic } from "@/utils/parse-italic";
 import { usePrintable } from "@/hooks/use-printable";
 import { formatDate } from "@/utils/date";
+import { name } from "@/utils/name";
 
 export const Validity = () => {
   const { document, profile } = usePrintable();
@@ -134,7 +135,7 @@ export const Validity = () => {
 
                   <tr>
                     <td style={{ fontWeight: "bold" }}>
-                      Dr. Yuslenita Muda, S.Si., M.Sc.
+                      {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
                     </td>
 
                     <td></td>
@@ -145,7 +146,7 @@ export const Validity = () => {
                         textAlign: "left",
                       }}
                     >
-                      Angraini, S.Kom., M.Eng., Ph.D.
+                      {name("Angraini, S.Kom., M.Eng., Ph.D.")}
                     </td>
                   </tr>
 
@@ -222,7 +223,7 @@ export const Validity = () => {
                         width: "min-content",
                       }}
                     >
-                      {doc.config.leader!}
+                      {doc.config.leader ? name(doc.config.leader!) : ""}
                     </td>
 
                     <td
@@ -261,7 +262,7 @@ export const Validity = () => {
                         width: "min-content",
                       }}
                     >
-                      {profile?.advisorName}
+                      {profile?.advisorName ? name(profile?.advisorName) : ""}
                     </td>
 
                     <td></td>
@@ -298,7 +299,9 @@ export const Validity = () => {
                         width: "min-content",
                       }}
                     >
-                      {doc.config.member_1!}
+                      {doc.config.member_1
+                        ? name(doc.config.member_1)
+                        : ""}{" "}
                     </td>
 
                     <td
@@ -335,7 +338,7 @@ export const Validity = () => {
                         width: "min-content",
                       }}
                     >
-                      {doc.config.member_2!}
+                      {doc.config.member_2 ? name(doc.config.member_2) : ""}
                     </td>
 
                     <td></td>

@@ -15,6 +15,7 @@ import {
 } from "@tiptap/react";
 import { Copy, Delete } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const FigureTableComponent: React.FC<NodeViewProps> = ({
   node,
@@ -27,6 +28,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
     if (typeof window === "undefined") return;
 
     window.navigator.clipboard.writeText(`@figureTable[${node.attrs.id}]`);
+    toast.success("table's ref copied")
   };
 
   useEffect(() => {

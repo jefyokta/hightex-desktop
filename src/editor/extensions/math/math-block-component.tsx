@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { Copy, Trash2 } from "lucide-react";
 
 import TextareaAutosize from "react-textarea-autosize";
+import { toast } from "sonner";
 
 export const MathBlockComponent = ({
   node,
@@ -100,7 +101,7 @@ export const MathBlockComponent = ({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => navigator.clipboard.writeText(node.attrs.id)}
+                onClick={() => navigator.clipboard.writeText(node.attrs.id).then(_ => toast.success("equation copied!"))}
               >
                 <Copy className="w-4 h-4 mr-1" />
                 Quote

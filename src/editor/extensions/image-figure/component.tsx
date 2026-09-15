@@ -1,6 +1,7 @@
 import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Quote, Trash } from "lucide-react";
 import { NodeActionButton } from "@/editor/components/node-action-button";
+import { toast } from "sonner";
 
 export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
   const copy = () => {
@@ -13,8 +14,9 @@ export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
       Icon: Quote,
       onClick: () => {
         copy();
+        toast.success("image's ref copied!")
       },
-      label: "Quote",
+      label: "Copy Ref",
     },
     {
       Icon: Trash,
