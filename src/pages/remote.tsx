@@ -217,7 +217,7 @@ export const RemoteDocuments = () => {
             {/* @ts-ignore */}
             <InfoRow
               label={t("remote.english_title")}
-              value={(document as any).en_title}
+              value={document.en_title}
             />
             <InfoRow
               label={t("remote.category")}

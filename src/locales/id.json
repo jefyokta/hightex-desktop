@@ -36,6 +36,7 @@
           "done": "{total} dokumen berhasil dihapus"
         }
       },
+
       "config": {
         "label": "Konfigurasi",
         "description": "Mereset konfigurasi aplikasi anda"
@@ -59,6 +60,7 @@
       },
       "choose_folder": "Pilih Folder"
     },
+
     "zotero": {
       "zotero": "Zotero",
       "description": "Hubungkan ke Zotero lokal kamu untuk impor referensi langsung.",
@@ -128,6 +130,7 @@
       "check": "Cek Pembaruan"
     }
   },
+
   "common": {
     "light": "Terang",
     "dark": "Gelap",
@@ -161,6 +164,7 @@
     "proposal": "Proposal",
     "intern": "Kerja Praktek"
   },
+
   "dashboard": {
     "loading": "Memuat HighTex...",
     "your_documents": "Dokumen Kamu",
@@ -171,6 +175,7 @@
     "import_from_cloud": "Impor dari Cloud",
     "no_documents": "Belum ada dokumen. Buat dokumen pertamamu buat mulai nulis."
   },
+
   "splash": {
     "preparing": "Preparing HighTex...",
     "tagline_1": "just focus on your ideas",
@@ -181,6 +186,7 @@
     "lightweight": "Lightweight • Offline-ready",
     "thanks_to": "From Jepi Okta Mipa, Thanks to"
   },
+
   "present": {
     "title": "Perencana Presentasi",
     "subtitle": "Biar mereka nilai dokumen kamu!",
@@ -192,22 +198,27 @@
     "loading": "Memuat",
     "no_documents": "Tidak ada dokumen yang tersedia."
   },
+
   "forms": {
     "title": "Pembuatan Formulir",
     "subtitle": "Sekali klik buat unduh semua formulir skripsi kamu",
     "coming_soon": "Segera hadir"
   },
+
   "sharing": {
     "advising": "Bimbingan",
     "proposal_seminar": "Seminar Proposal",
     "final_defense": "Sidang Akhir",
     "uncategorized": "Tanpa Kategori"
   },
+
   "language": {
     "english": "Inggris",
     "indonesian": "Bahasa Indonesia"
   },
+
   "profile": {},
+
   "editor": {
     "expandable": {
       "citation": {
@@ -303,16 +314,9 @@
       "delete_figure_table": "Hapus tabel",
       "delete_math": "Hapus rumus matematika",
       "remove_quote": "Hapus kutipan"
-    },
-    "findReplace": {
-      "find": "Cari...",
-      "replace": "Ganti...",
-      "replaceAll": "Ganti Semua",
-      "caseSensitive": "Cocokkan Huruf Besar/Kecil",
-      "matchCount": "{current} dari {total}",
-      "noResults": "Tidak ada hasil"
     }
   },
+
   "remote": {
     "login_required": "Login Diperlukan",
     "login_description": "Hubungkan ruang kerja cloud kamu buat mengakses dokumen remote",
@@ -354,6 +358,7 @@
     "no_local_documents_found": "Dokumen lokal tidak ditemukan",
     "pull_latest": "Tarik Versi Terbaru"
   },
+
   "error": {
     "category": {
       "missing": "Kategori tidak ditemukan!",
@@ -369,13 +374,16 @@
       "not_sharing": "Kamu belum membagikan dokumen apa pun!"
     }
   },
+
   "back": "Kembali",
+
   "sheet": {
     "statement": "Lembar Pernyataan",
     "presentation": "Lembar Presentasi",
     "foreword": "Lembar Kata Pengantar",
     "attachment": "Lampiran"
   },
+
   "split": {
     "ensure_signed_stammped": "Pastikan sudah ditandatangani dan distempel",
     "title": "Pecah Dokumen Kamu",
@@ -431,6 +439,7 @@
     "start": "Mulai Pecah",
     "ready": "Yuk, mulai pecah dokumennya"
   },
+
   "citation": {
     "title": "Perpustakaan Sitasi",
     "subtitle": "Kelola referensi bibliografi dan impor langsung dari Zotero.",
@@ -481,6 +490,7 @@
       "imported": "Berhasil mengimpor {count} referensi."
     }
   },
+
   "snapshots": {
     "title": "Snapshot",
     "description": "Sesi berbagi yang tersimpan. Buka salah satu buat lihat tampilan dokumen dan komentarnya.",
