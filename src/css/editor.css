@@ -435,29 +435,3 @@ tr:last-of-type {
 .calendar * {
   border: 0 !important;
 }
-
-
-/* Find & Replace – Search Highlights */
-.search-highlight {
-  background-color: #fde68a;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.3);
-}
-
-.search-highlight-active {
-  background-color: #fb923c;
-  color: white;
-  border-radius: 2px;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.4);
-}
-
-:is(.dark) .search-highlight {
-  background-color: #854d0e;
-  box-shadow: 0 0 0 1px rgba(133, 77, 14, 0.4);
-}
-
-:is(.dark) .search-highlight-active {
-  background-color: #ea580c;
-  color: white;
-  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.5);
-}
