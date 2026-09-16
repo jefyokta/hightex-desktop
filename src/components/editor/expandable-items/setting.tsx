@@ -370,7 +370,7 @@ export const Setting = () => {
 
           <DatePickerInput
             label={t("editor.expandable.setting.statement_date")}
-            date={doc.config.validityDate}
+            date={doc.config.statementDate}
             setDate={(date) => {
               setDoc((prv) => {
                 return {

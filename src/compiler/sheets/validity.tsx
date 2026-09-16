@@ -135,7 +135,7 @@ export const Validity = () => {
 
                   <tr>
                     <td style={{ fontWeight: "bold" }}>
-                      {name(doc.config.dekan?.name || "Dr. Yuslenita Muda, S.Si., M.Sc.")}
+                      {name(doc.config.dekan?.name)}
                     </td>
 
                     <td></td>
@@ -146,21 +146,23 @@ export const Validity = () => {
                         textAlign: "left",
                       }}
                     >
-                      {name(doc.config.kaprodi?.name || "Angraini, S.Kom., M.Eng., Ph.D.")}
+                      {name(doc.config.kaprodi?.name)}
                     </td>
                   </tr>
 
                   <tr>
                     <td style={{ fontWeight: "bold" }}>
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                          paddingTop: "1px",
-                          display: "inline-block",
-                        }}
-                      >
-                        NIP. {doc.config.dekan?.nip || "197701032007102001"}
-                      </span>
+                      {doc.config.dekan?.nip ? (
+                        <span
+                          style={{
+                            fontWeight: "bold",
+                            paddingTop: "1px",
+                            display: "inline-block",
+                          }}
+                        >
+                          NIP. {doc.config.dekan.nip}
+                        </span>
+                      ) : null}
                     </td>
 
                     <td></td>
@@ -171,15 +173,17 @@ export const Validity = () => {
                         textAlign: "left",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                          paddingTop: "1px",
-                          display: "inline-block",
-                        }}
-                      >
-                        NIP. {doc.config.kaprodi?.nip || "198408212009012008"}
-                      </span>
+                      {doc.config.kaprodi?.nip ? (
+                        <span
+                          style={{
+                            fontWeight: "bold",
+                            paddingTop: "1px",
+                            display: "inline-block",
+                          }}
+                        >
+                          NIP. {doc.config.kaprodi.nip}
+                        </span>
+                      ) : null}
                     </td>
                   </tr>
                 </tbody>
