@@ -2,11 +2,39 @@ import { ParsedItalic } from "@/utils/parse-italic";
 import { usePrintable } from "@/hooks/use-printable";
 import { formatDate } from "@/utils/date";
 import { name } from "@/utils/name";
+import React from "react";
 
 export const Validity = () => {
   const { document, profile } = usePrintable();
   const doc = document?.getDocument();
   if (!doc) return null;
+
+  const members: { role: string; name: string }[] = [
+    {
+      name: doc.config.leader || "",
+      role: "Ketua",
+    },
+    {
+      name: profile?.advisorName || "",
+      role: "Sekretaris",
+    },
+    ...(profile?.secondAdvisor
+      ? [
+        {
+          name: profile.secondAdvisor.name,
+          role: "Anggota 1",
+        },
+      ]
+      : []),
+    {
+      name: doc.config.member_1 || "",
+      role: profile?.secondAdvisor ? "Anggota 2" : "Anggota 1",
+    },
+    {
+      name: doc.config.member_2 || "",
+      role: profile?.secondAdvisor ? "Anggota 3" : "Anggota 2",
+    },
+  ];
 
   return (
     <section className="introduction page-break new-page">
@@ -99,24 +127,34 @@ export const Validity = () => {
                   }}
                 >
                   <br />
-                  <div style={{ fontWeight: "bold", marginTop: "15pt" }}>Dekan</div>
+                  <div style={{ fontWeight: "bold", marginTop: "15pt" }}>
+                    Dekan
+                  </div>
                   <div className="spacer" style={{ height: "70pt" }}></div>
-                  <div>     <span style={{
-                    textDecoration: "underline",
-                    textUnderlineOffset: "2pt",
-                    fontWeight:"bold"
-                  }}>
-                    {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
-                  </span></div>
-                  <div>                      <span
-                    style={{
-                      fontWeight: "bold",
-                      paddingTop: "1px",
-                      display: "inline-block",
-                    }}
-                  >
-                    NIP. 197701032007102001
-                  </span></div>
+                  <div>
+                    {" "}
+                    <span
+                      style={{
+                        textDecoration: "underline",
+                        textUnderlineOffset: "2pt",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
+                    </span>
+                  </div>
+                  <div>
+                    {" "}
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        paddingTop: "1px",
+                        display: "inline-block",
+                      }}
+                    >
+                      NIP. 197701032007102001
+                    </span>
+                  </div>
                 </div>
 
                 <div>
@@ -125,137 +163,36 @@ export const Validity = () => {
                     <br />
                     Mengesahkan
                   </div>
-                  <div style={{ fontWeight: "bold", marginTop: "10pt" }}>Ketua Program Studi</div>
+                  <div style={{ fontWeight: "bold", marginTop: "10pt" }}>
+                    Ketua Program Studi
+                  </div>
                   <div className="spacer" style={{ height: "70pt" }}></div>
 
-                  <div style={{ fontWeight: "bold" }}>         <span style={{
-                    textDecoration: "underline",
-                    textUnderlineOffset: "2pt"
-                  }}>
-                    {name("Angraini, S.Kom., M.Eng., Ph.D.")}
-                  </span></div>
-                  <div>                      <span
-                    style={{
-                      fontWeight: "bold",
-                      paddingTop: "1px",
-                      display: "inline-block",
-                    }}
-                  >
-                    NIP. 198408212009012008
-                  </span></div>
+                  <div style={{ fontWeight: "bold" }}>
+                    {" "}
+                    <span
+                      style={{
+                        textDecoration: "underline",
+                        textUnderlineOffset: "2pt",
+                      }}
+                    >
+                      {name("Angraini, S.Kom., M.Eng., Ph.D.")}
+                    </span>
+                  </div>
+                  <div>
+                    {" "}
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        paddingTop: "1px",
+                        display: "inline-block",
+                      }}
+                    >
+                      NIP. 198408212009012008
+                    </span>
+                  </div>
                 </div>
               </div>
-              {/* <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                }}
-              >
-                <tbody>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td style={{ textAlign: "left" }}>
-                      Pekanbaru, {formatDate(doc.config.validityDate!)}
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td style={{ textAlign: "left" }}>Mengesahkan,</td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ height: "20px" }}></td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Dekan</td>
-
-                    <td></td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        textAlign: "left",
-                      }}
-                    >
-                      Ketua Program Studi
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ height: "80px" }}></td>
-                    <td style={{ width: "80px" }}></td>
-                    <td></td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>
-                      <span style={{
-                        textDecoration: "underline",
-                        textUnderlineOffset: "2pt"
-                      }}>
-                        {name("Dr. Yus")}
-                      </span>
-                    </td>
-
-                    <td></td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        textAlign: "left",
-                      }}
-                    >
-                      <span style={{
-                        textDecoration: "underline",
-                        textUnderlineOffset: "2pt"
-                      }}>
-
-                        {name("An.")}
-                      </span>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                          paddingTop: "1px",
-                          display: "inline-block",
-                        }}
-                      >
-                        NIP. 197
-                      </span>
-                    </td>
-
-                    <td></td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        textAlign: "left",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                          paddingTop: "1px",
-                          display: "inline-block",
-                        }}
-                      >
-                        NIP. 19
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table> */}
-
               <br />
               <br />
 
@@ -276,153 +213,69 @@ export const Validity = () => {
                     <td colSpan={5} style={{ height: "30px" }}></td>
                   </tr>
 
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Ketua</td>
+                  {members.map((member, index) => {
+                    const isLeftSignature = index % 2 === 0;
 
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        paddingRight: "2px",
-                      }}
-                    >
-                      :
-                    </td>
+                    return (
+                      <React.Fragment key={`${member.role}-${index}`}>
+                        <tr>
+                          <td style={{ fontWeight: "bold" }}>
+                            {member.role}
+                          </td>
 
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        width: "min-content",
-                      }}
-                    >
-                      {doc.config.leader ? name(doc.config.leader!) : ""}
-                    </td>
+                          <td
+                            style={{
+                              fontWeight: "bold",
+                              paddingRight: "2px",
+                            }}
+                          >
+                            :
+                          </td>
 
-                    <td
-                      style={{
-                        borderBottom: "1px solid #000",
-                        width: "70px",
-                      }}
-                    >
-                      <p></p>
-                    </td>
+                          <td
+                            style={{
+                              fontWeight: "bold",
+                              width: "min-content",
+                            }}
+                          >
+                            {member.name ? name(member.name) : ""}
+                          </td>
 
-                    <td>
-                      <p> </p>
-                    </td>
-                  </tr>
+                          <td
+                            style={
+                              isLeftSignature
+                                ? {
+                                  borderBottom: "1px solid #000",
+                                  width: "70px",
+                                }
+                                : undefined
+                            }
+                          >
+                            <p></p>
+                          </td>
 
-                  <tr>
-                    <td colSpan={5} style={{ height: "30px" }}></td>
-                  </tr>
+                          <td
+                            style={
+                              !isLeftSignature
+                                ? {
+                                  borderBottom: "1px solid #000",
+                                  width: "70px",
+                                }
+                                : undefined
+                            }
+                          >
+                            <p></p>
+                          </td>
+                        </tr>
 
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Sekretaris</td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        paddingRight: "2px",
-                      }}
-                    >
-                      :
-                    </td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        width: "min-content",
-                      }}
-                    >
-                      {profile?.advisorName ? name(profile?.advisorName) : ""}
-                    </td>
-
-                    <td></td>
-
-                    <td
-                      style={{
-                        borderBottom: "1px solid #000",
-                        width: "70px",
-                      }}
-                    >
-                      <p></p>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td colSpan={5} style={{ height: "30px" }}></td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Anggota 1</td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        paddingRight: "2px",
-                      }}
-                    >
-                      :
-                    </td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        width: "min-content",
-                      }}
-                    >
-                      {doc.config.member_1
-                        ? name(doc.config.member_1)
-                        : ""}{" "}
-                    </td>
-
-                    <td
-                      style={{
-                        borderBottom: "1px solid #000",
-                        width: "70px",
-                      }}
-                    >
-                      <p></p>
-                    </td>
-
-                    <td></td>
-                  </tr>
-
-                  <tr>
-                    <td colSpan={5} style={{ height: "30px" }}></td>
-                  </tr>
-
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Anggota 2</td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        paddingRight: "2px",
-                      }}
-                    >
-                      :
-                    </td>
-
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        width: "min-content",
-                      }}
-                    >
-                      {doc.config.member_2 ? name(doc.config.member_2) : ""}
-                    </td>
-
-                    <td></td>
-
-                    <td
-                      style={{
-                        borderBottom: "1px solid #000",
-                        width: "70px",
-                      }}
-                    >
-                      <p></p>
-                    </td>
-                  </tr>
+                        {index < members.length - 1 && (
+                          <tr>
+                            <td colSpan={5} style={{ height: "30px" }}></td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </td>

@@ -102,6 +102,18 @@
           "description": "Nomor induk pegawai pembimbing kamu"
         }
       },
+      "second_advisor": {
+        "enable_label": "Pembimbing Kedua",
+        "enable_description": "Aktifkan jika Anda memiliki pembimbing kedua",
+        "name": {
+          "label": "Nama Pembimbing Kedua",
+          "description": "Nama pembimbing kedua Anda"
+        },
+        "nip": {
+          "label": "NIP Pembimbing Kedua",
+          "description": "Nomor identitas pembimbing kedua Anda"
+        }
+      },
       "save": "Simpan Profil",
       "saving": "Menyimpan...",
       "cloud_profile": "Utamakan Profil Cloud",

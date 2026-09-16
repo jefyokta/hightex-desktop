@@ -14,7 +14,7 @@ export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
       Icon: Quote,
       onClick: () => {
         copy();
-        toast.success("image's ref copied!")
+        toast.success("image's ref copied!");
       },
       label: "Copy Ref",
     },

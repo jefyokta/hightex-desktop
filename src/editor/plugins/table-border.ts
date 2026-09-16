@@ -1,12 +1,10 @@
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { Node as PMNode } from "@tiptap/pm/model";
-import {
-  Decoration,
-  DecorationSet,
-} from "@tiptap/pm/view";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
-const tableBorderPluginKey =
-  new PluginKey<DecorationSet>("table-header-border");
+const tableBorderPluginKey = new PluginKey<DecorationSet>(
+  "table-header-border",
+);
 
 interface TableRow {
   node: PMNode;
@@ -40,10 +38,7 @@ export function createTableBorderPlugin() {
 
     props: {
       decorations(state) {
-        return (
-          tableBorderPluginKey.getState(state) ??
-          DecorationSet.empty
-        );
+        return tableBorderPluginKey.getState(state) ?? DecorationSet.empty;
       },
     },
   });
@@ -78,57 +73,38 @@ function decorateTable(
         continue;
       }
 
-      const rowspan = Math.max(
-        1,
-        Number(cell.node.attrs.rowspan ?? 1),
-      );
+      const rowspan = Math.max(1, Number(cell.node.attrs.rowspan ?? 1));
 
       if (rowspan <= 1) {
         continue;
       }
 
+      const targetRowIndex = row.index + rowspan - 1;
 
-      const targetRowIndex =
-        row.index + rowspan - 1;
-
-      const targetRow =
-        rows[targetRowIndex];
+      const targetRow = rows[targetRowIndex];
 
       if (!targetRow) {
         continue;
       }
 
-      decorateRow(
-        targetRow,
-        decorations,
-      );
+      decorateRow(targetRow, decorations);
     }
   }
 }
 
-function decorateRow(
-  row: TableRow,
-  decorations: Decoration[],
-) {
+function decorateRow(row: TableRow, decorations: Decoration[]) {
   const cells = getCells(row);
 
   for (const cell of cells) {
     decorations.push(
-      Decoration.node(
-        cell.pos,
-        cell.pos + cell.node.nodeSize,
-        {
-          class: "table-header-like",
-        },
-      ),
+      Decoration.node(cell.pos, cell.pos + cell.node.nodeSize, {
+        class: "table-header-like",
+      }),
     );
   }
 }
 
-function getRows(
-  table: PMNode,
-  tablePos: number,
-): TableRow[] {
+function getRows(table: PMNode, tablePos: number): TableRow[] {
   const rows: TableRow[] = [];
 
   let offset = 0;
@@ -151,19 +127,14 @@ function getRows(
   return rows;
 }
 
-function getCells(
-  row: TableRow,
-): TableCell[] {
+function getCells(row: TableRow): TableCell[] {
   const cells: TableCell[] = [];
 
   let offset = 0;
   let index = 0;
 
   row.node.forEach((cell) => {
-    if (
-      cell.type.name !== "tableCell" &&
-      cell.type.name !== "tableHeader"
-    ) {
+    if (cell.type.name !== "tableCell" && cell.type.name !== "tableHeader") {
       offset += cell.nodeSize;
       return;
     }

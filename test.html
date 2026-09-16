@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Lembar Persetujuan</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1a1a1a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a1a1a;
+      --text: #eaeaea;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1a1a;
+    --text: #eaeaea;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Times New Roman", Times, serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.5;
+  }
+  .center {
+    text-align: center;
+  }
+  h1 {
+    font-size: 14pt;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-bottom: 0;
+  }
+  .subtitle {
+    font-size: 14pt;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-top: 1.5cm;
+  }
+  .oleh {
+    margin-top: 1cm;
+  }
+  .nama {
+    text-transform: uppercase;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-top: 1cm;
+  }
+  .nim {
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  .approval-text {
+    font-size: 12pt;
+    margin-top: 1.5cm;
+  }
+  table {
+    margin: 1.5cm auto 0 auto;
+    border-collapse: collapse;
+  }
+  table td {
+    text-align: center;
+    vertical-align: top;
+    padding: 0 2cm;
+    font-weight: bold;
+  }
+  .underline {
+    text-decoration: underline;
+  }
+  .spacer-row td {
+    height: 1.5cm;
+  }
+  .kaprodi-block {
+    margin-top: 1cm;
+    text-align: center;
+    font-weight: bold;
+  }
+  .kaprodi-block .spacer {
+    height: 1.5cm;
+  }
+  [contenteditable="true"] {
+    outline: 1px dashed #999;
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="center">
+  <h1 contenteditable="true" data-var="judul">JUDUL TUGAS AKHIR ANDA DI SINI</h1>
+
+  <div class="subtitle">Tugas Akhir</div>
+
+  <div class="oleh">Oleh:</div>
+  <div class="nama" contenteditable="true" data-var="penulis">Nama Penulis</div>
+  <div class="nim" contenteditable="true" data-var="nim">NIM. 00000000</div>
+
+  <div class="approval-text">
+    Telah diperiksa dan disetujui sebagai laporan tugas akhir<br>
+    di <span contenteditable="true" data-var="kota">Kota</span>, pada tanggal
+    <span contenteditable="true" data-var="tanggalPersetujuan">DD Bulan YYYY</span>
+  </div>
+
+  <table>
+    <tr>
+      <td>Pembimbing I</td>
+      <td></td>
+      <td>Pembimbing II</td>
+    </tr>
+    <tr class="spacer-row"><td></td><td></td><td></td></tr>
+    <tr>
+      <td class="underline" contenteditable="true" data-var="pembimbingpertama">Nama Pembimbing I</td>
+      <td></td>
+      <td class="underline" contenteditable="true" data-var="pembimbingkedua">Nama Pembimbing II</td>
+    </tr>
+    <tr>
+      <td contenteditable="true" data-var="pembimbingpertamanip">NIP. 000000000000000000</td>
+      <td></td>
+      <td contenteditable="true" data-var="pembimbingkeduanip">NIP. 000000000000000000</td>
+    </tr>
+  </table>
+
+  <div class="kaprodi-block">
+    <div>Ketua Program Studi</div>
+    <div class="spacer"></div>
+    <div class="underline" contenteditable="true" data-var="kaprodi">Nama Ketua Program Studi</div>
+    <div contenteditable="true" data-var="kaprodinip">NIP. 000000000000000000</div>
+  </div>
+</div>
+
+</body>
+</html>

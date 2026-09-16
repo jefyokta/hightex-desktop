@@ -168,12 +168,16 @@ const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
         icon: <Grid2x2X className="h-4 w-4" />,
         onClick: () => editor.commands.deleteColumn(),
       },
-      ...(!editor.isActive("figureTable") ? [{
-        label: t("editor.context_menu.delete_grid"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteTable()
-      }] : [])
+      ...(!editor.isActive("figureTable")
+        ? [
+            {
+              label: t("editor.context_menu.delete_grid"),
+              danger: true,
+              icon: <Grid2x2X className="h-4 w-4" />,
+              onClick: () => editor.commands.deleteTable(),
+            },
+          ]
+        : []),
     ];
   }
 
@@ -203,7 +207,6 @@ const HeadingContextMenuItems = (editor: Editor): ContextMenuAction[] => {
         icon: <Heading4 className="h-4 w-4" />,
         onClick: () => editor.chain().focus().setHeading({ level: 4 }).run(),
       },
-
     ];
   }
 

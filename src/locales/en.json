@@ -102,6 +102,19 @@
           "description": "Your advisor's identifier number"
         }
       },
+      "second_advisor": {
+        "enable_label": "Second Advisor",
+        "enable_description": "Enable if u have second advisor",
+        "name": {
+          "label": "Second Advisor Name",
+          "description": "Your second advisor's name"
+        },
+        "nip": {
+          "label": "Second Advisor's NIP",
+          "description": "Your second advisor's identifier number"
+        }
+      },
+
       "save": "Save Profile",
       "saving": "Saving...",
       "cloud_profile": "Prefer Cloud Profile",

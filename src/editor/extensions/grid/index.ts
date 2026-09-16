@@ -1,5 +1,5 @@
 import { TableView } from "@tiptap/extension-table";
-import { TableCell, CustomTableRow as TableRow , Table} from "../table";
+import { TableCell, CustomTableRow as TableRow, Table } from "../table";
 import { createColumnResizing } from "@/editor/plugins/column-resizing";
 
 export const Grid = Table.extend({
@@ -46,11 +46,9 @@ export const Grid = Table.extend({
 export const GridRow = TableRow.extend({
   name: "gridRow",
   content: "gridCell+",
-    // tableRole:undefined,
-
+  // tableRole:undefined,
 });
 export const GridCell = TableCell.extend({
   name: "gridCell",
-    // tableRole:undefined,
-
+  // tableRole:undefined,
 });

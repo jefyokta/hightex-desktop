@@ -16,8 +16,8 @@ declare global {
     imgSrc: string;
   }
 
-  interface EquationGraph extends Graph{
-    latex:string
+  interface EquationGraph extends Graph {
+    latex: string;
   }
 
   interface TableGraph extends Graph {}
@@ -25,7 +25,7 @@ declare global {
     headings: HeadingGraph[];
     images: ImageGraph[];
     tables: TableGraph[];
-    equations: EquationGraph[]
+    equations: EquationGraph[];
   }
 }
 

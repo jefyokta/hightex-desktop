@@ -27,7 +27,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
   const copy = () => {
     if (typeof window === "undefined") return;
     window.navigator.clipboard.writeText(`@figureTable[${node.attrs.id}]`);
-    toast.success("table's ref copied")
+    toast.success("table's ref copied");
   };
 
   useEffect(() => {
@@ -93,11 +93,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
       if (cell.type.name !== "tableHeader") {
         const cellPos = figurePos + 1 + firstRowPos + 1 + cellOffset;
 
-        tr.setNodeMarkup(
-          cellPos,
-          editor.schema.nodes.tableHeader,
-          cell.attrs,
-        );
+        tr.setNodeMarkup(cellPos, editor.schema.nodes.tableHeader, cell.attrs);
       }
 
       cellOffset += cell.nodeSize;
@@ -120,8 +116,9 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
     >
       <DropdownMenu>
         <DropdownMenuTrigger
-          className={`absolute ${insideNode ? "visible opacity-100" : "invisible opacity-0"
-            } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
+          className={`absolute ${
+            insideNode ? "visible opacity-100" : "invisible opacity-0"
+          } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

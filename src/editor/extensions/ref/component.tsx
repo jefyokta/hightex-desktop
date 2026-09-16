@@ -38,9 +38,10 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
     >
       {type === "imageFigure" ? (
         <ImageRef reference={reference} />
+      ) : type === "figureTable" ? (
+        <TableRef reference={reference} />
       ) : (
-        type === "figureTable" ?
-          <TableRef reference={reference} /> : <HeadRef reference={reference} />
+        <HeadRef reference={reference} />
       )}
     </NodeViewWrapper>
   );
@@ -50,16 +51,21 @@ type RefProps = {
 };
 
 const HeadRef = ({ reference }: RefProps) => {
-  const [head, setHead] = useState<HeadingGraph>()
+  const [head, setHead] = useState<HeadingGraph>();
   useEffect(() => {
     const resolveHead = async (doc: Document) => {
       const h = (await doc.getHeadings())
-        .filter(h => h.chapterId === Document.instance?.id+".attachment" && h.level === 1)
-        .find(h => h.id == reference)
-      if (!h) throw new NodeNotFound("missing referenced heading #" + reference)
+        .filter(
+          (h) =>
+            h.chapterId === Document.instance?.id + ".attachment" &&
+            h.level === 1,
+        )
+        .find((h) => h.id == reference);
+      if (!h)
+        throw new NodeNotFound("missing referenced heading #" + reference);
 
-      setHead(h)
-    }
+      setHead(h);
+    };
     const doc = Document.instance;
     if (doc?.ready) {
       resolveHead(doc);
@@ -76,13 +82,12 @@ const HeadRef = ({ reference }: RefProps) => {
       off();
       offChapter();
     };
+  });
 
-  })
-
-
-  const num = typeof head?.numbering !== "undefined" ? Number(head.numbering) : 0
-  return <span>LAMPIRAN {Counter.getAlpha(num)}</span>
-}
+  const num =
+    typeof head?.numbering !== "undefined" ? Number(head.numbering) : 0;
+  return <span>LAMPIRAN {Counter.getAlpha(num)}</span>;
+};
 
 const ImageRef = ({ reference }: RefProps) => {
   const [image, setImage] = useState<ImageGraph>();

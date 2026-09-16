@@ -11,6 +11,10 @@ declare global {
     nim: string;
     advisorName: string;
     advisorNip: string;
+    secondAdvisor?: {
+      name: string;
+      nip: string;
+    };
   }
 
   interface DocumentProfile extends Profile {
