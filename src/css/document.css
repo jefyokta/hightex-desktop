@@ -351,6 +351,13 @@ figure[data-type="figureTable"] > table {
 .content {
   max-width: 14cm !important;
 }
+figure thead th {
+  border-bottom: 1px solid black;
+}
+
+figure thead td {
+  border-bottom: 1px solid black;
+}
 
 .foreword {
   width: 100% !important;

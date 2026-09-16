@@ -10,7 +10,6 @@ interface StatementPageProps {
 
 export const Statement: React.FC<StatementPageProps> = ({
   config,
-  underlineStyle = true,
 }) => {
   const { profile } = usePrintable();
   if (!profile) return null;
@@ -64,7 +63,8 @@ export const Statement: React.FC<StatementPageProps> = ({
               <h4
                 style={{
                   marginBottom: "1px",
-                  textDecoration: underlineStyle ? "underline" : "none",
+                  textDecoration: "underline",
+                  textUnderlineOffset: "2pt"
                 }}
               >
                 {profile.name}

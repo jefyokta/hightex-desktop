@@ -4,6 +4,7 @@ import { Editor } from "@tiptap/core";
 import { Range } from "@tiptap/react";
 import { Document } from "../document";
 import { renderNodeToText } from "@/components/editor/text-renderer";
+import { Counter } from "tjsn-parser";
 
 type SlashItem = {
   label: string;
@@ -116,6 +117,39 @@ const commands: SlashCommand[] = [
       return resolved;
     },
   },
+  {
+    name:"head",
+    match:(q)=>q.startsWith("head"),
+    search:async(query,editor)=>{
+        let keyword = query.slice(4).toLowerCase()
+        if (keyword[0] == ".") {
+        keyword = keyword.slice(1);
+      }
+
+      const allHeads = (await Document.instance?.getHeadings())?.filter(h=>h.chapterId === Document.instance?.id+'.attachment' && h.level ===1) || []
+
+     const resolver = await Promise.all(allHeads.map((h)=>{
+        return {
+          label:"Lampiran "+Counter.getAlpha(Number(h.numbering)),
+            onClick(range: Range) {
+                editor
+                  .chain()
+                  .focus()
+                  .deleteRange(range)
+                  .insertContent({
+                    type: "refComponent",
+                    attrs: {
+                      link: h.id,
+                      ref: "head",
+                    },
+                  })
+                  .run();
+              },
+        }
+      }))
+      return resolver
+    }
+  }
 ];
 
 const resolveSearch = async (query: string, editor: Editor) => {

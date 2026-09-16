@@ -135,7 +135,12 @@ export const Validity = () => {
 
                   <tr>
                     <td style={{ fontWeight: "bold" }}>
-                      {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
+                      <span style={{
+                        textDecoration: "underline",
+                        textUnderlineOffset: "2pt"
+                      }}>
+                        {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
+                      </span>
                     </td>
 
                     <td></td>
@@ -146,7 +151,13 @@ export const Validity = () => {
                         textAlign: "left",
                       }}
                     >
-                      {name("Angraini, S.Kom., M.Eng., Ph.D.")}
+                      <span style={{
+                        textDecoration: "underline",
+                        textUnderlineOffset: "2pt"
+                      }}>
+
+                        {name("Angraini, S.Kom., M.Eng., Ph.D.")}
+                      </span>
                     </td>
                   </tr>
 

@@ -16,6 +16,7 @@ import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Counter } from "tjsn-parser";
 
 export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
   const type = node.attrs.ref || "imageFigure";
@@ -38,15 +39,51 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
       {type === "imageFigure" ? (
         <ImageRef reference={reference} />
       ) : (
-        <TableRef reference={reference} />
+        type === "figureTable" ?
+          <TableRef reference={reference} /> : <HeadRef reference={reference} />
       )}
     </NodeViewWrapper>
   );
 };
-
 type RefProps = {
   reference?: string;
 };
+
+const HeadRef = ({ reference }: RefProps) => {
+  const [head, setHead] = useState<HeadingGraph>()
+  useEffect(() => {
+    const resolveHead = async (doc: Document) => {
+      const h = (await doc.getHeadings())
+        .filter(h => h.chapterId === Document.instance?.id+".attachment" && h.level === 1)
+        .find(h => h.id == reference)
+      if (!h) throw new NodeNotFound("missing referenced heading #" + reference)
+
+      setHead(h)
+    }
+    const doc = Document.instance;
+    if (doc?.ready) {
+      resolveHead(doc);
+    }
+
+    const off = Manager.app.on("document:warmed", async ({ document }) => {
+      await resolveHead(document);
+    });
+    const offChapter = Manager.app.on("chapter:update", async () => {
+      await resolveHead(Document.instance!);
+    });
+
+    return () => {
+      off();
+      offChapter();
+    };
+
+  })
+
+
+  const num = typeof head?.numbering !== "undefined" ? Number(head.numbering) : 0
+  return <span>LAMPIRAN {Counter.getAlpha(num)}</span>
+}
+
 const ImageRef = ({ reference }: RefProps) => {
   const [image, setImage] = useState<ImageGraph>();
   const [src, setSrc] = useState<string>();

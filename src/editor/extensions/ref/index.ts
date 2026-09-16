@@ -61,7 +61,7 @@ export const Ref = Node.create({
         props: {
           handlePaste(view, _, slice) {
             const text = slice.content.textBetween(0, slice.content.size, "\n");
-            const pasteRegex = /@(imageFigure|figureTable)\[([^\]]+)\]/g;
+            const pasteRegex = /@(imageFigure|figureTable|head)\[([^\]]+)\]/g;
             let lastIndex = 0;
             let match;
             const { tr, schema } = view.state;
