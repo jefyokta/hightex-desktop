@@ -85,7 +85,67 @@ export const Validity = () => {
         <tbody>
           <tr>
             <td>
-              <table
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <br />
+                  <div style={{ fontWeight: "bold", marginTop: "15pt" }}>Dekan</div>
+                  <div className="spacer" style={{ height: "70pt" }}></div>
+                  <div>     <span style={{
+                    textDecoration: "underline",
+                    textUnderlineOffset: "2pt",
+                    fontWeight:"bold"
+                  }}>
+                    {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
+                  </span></div>
+                  <div>                      <span
+                    style={{
+                      fontWeight: "bold",
+                      paddingTop: "1px",
+                      display: "inline-block",
+                    }}
+                  >
+                    NIP. 197701032007102001
+                  </span></div>
+                </div>
+
+                <div>
+                  <div>
+                    Pekanbaru, 9 September 2026
+                    <br />
+                    Mengesahkan
+                  </div>
+                  <div style={{ fontWeight: "bold", marginTop: "10pt" }}>Ketua Program Studi</div>
+                  <div className="spacer" style={{ height: "70pt" }}></div>
+
+                  <div style={{ fontWeight: "bold" }}>         <span style={{
+                    textDecoration: "underline",
+                    textUnderlineOffset: "2pt"
+                  }}>
+                    {name("Angraini, S.Kom., M.Eng., Ph.D.")}
+                  </span></div>
+                  <div>                      <span
+                    style={{
+                      fontWeight: "bold",
+                      paddingTop: "1px",
+                      display: "inline-block",
+                    }}
+                  >
+                    NIP. 198408212009012008
+                  </span></div>
+                </div>
+              </div>
+              {/* <table
                 style={{
                   width: "100%",
                   borderCollapse: "collapse",
@@ -135,10 +195,12 @@ export const Validity = () => {
 
                   <tr>
                     <td style={{ fontWeight: "bold" }}>
-                      {name(
-                        doc.config.dekan?.name ||
-                          "Dr. Yuslenita Muda, S.Si., M.Sc.",
-                      )}
+                      <span style={{
+                        textDecoration: "underline",
+                        textUnderlineOffset: "2pt"
+                      }}>
+                        {name("Dr. Yus")}
+                      </span>
                     </td>
 
                     <td></td>
@@ -149,10 +211,13 @@ export const Validity = () => {
                         textAlign: "left",
                       }}
                     >
-                      {name(
-                        doc.config.kaprodi?.name ||
-                          "Angraini, S.Kom., M.Eng., Ph.D.",
-                      )}
+                      <span style={{
+                        textDecoration: "underline",
+                        textUnderlineOffset: "2pt"
+                      }}>
+
+                        {name("An.")}
+                      </span>
                     </td>
                   </tr>
 
@@ -165,7 +230,7 @@ export const Validity = () => {
                           display: "inline-block",
                         }}
                       >
-                        NIP. {doc.config.dekan?.nip || "197701032007102001"}
+                        NIP. 197
                       </span>
                     </td>
 
@@ -184,12 +249,12 @@ export const Validity = () => {
                           display: "inline-block",
                         }}
                       >
-                        NIP. {doc.config.kaprodi?.nip || "198408212009012008"}
+                        NIP. 19
                       </span>
                     </td>
                   </tr>
                 </tbody>
-              </table>
+              </table> */}
 
               <br />
               <br />

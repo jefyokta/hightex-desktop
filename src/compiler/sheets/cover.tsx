@@ -84,19 +84,22 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
             style={{
               textTransform: "uppercase",
               fontWeight: "bold",
+              borderBottom:"1px solid black",
+              // maxWidth:"max-content"
             }}
           >
             {profile?.name}
           </span>
 
-          <br />
 
+          <div style={{ height:"5pt",width:"100%" }} />
           <span
             style={{
               textTransform: "uppercase",
               fontWeight: "bold",
             }}
           >
+         
             {profile?.nim}
           </span>
         </div>

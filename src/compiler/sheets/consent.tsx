@@ -42,10 +42,14 @@ export const Constent = () => {
               textTransform: "uppercase",
               fontWeight: "bold",
               marginTop: ".3cm",
+              textDecoration: "underline",
+              textUnderlineOffset: "2pt"
+
             }}
           >
             {profile?.name}
           </div>
+          <div style={{ height: "5pt", width: "100%" }} />
           <div
             style={{
               textTransform: "uppercase",
@@ -122,7 +126,10 @@ export const Constent = () => {
             <br />
 
             <>
-              <span style={{ fontWeight: "bold" }}>
+              <span style={{
+                fontWeight: "bold", textDecoration: "underline",
+                textUnderlineOffset: "2pt"
+              }}>
                 {profile && profile.advisorName && name(profile?.advisorName)}
               </span>
 

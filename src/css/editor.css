@@ -64,6 +64,9 @@ th {
 .page table th {
   position: relative;
 }
+.ProseMirror th.table-header-last-row {
+  border-bottom: 1px solid var(--border);
+}
 .page td {
   overflow-wrap: anywhere;
 }
@@ -144,31 +147,41 @@ th.right p {
   text-align: right;
 }
 
-tr:has(th) {
-  border-top: 1px solid black;
-  border-bottom: 0;
-}
-.dark tr:has(th) {
-  border-top: 1px solid white;
-  border-bottom: 0;
-}
-table :not(tr:has(th) + tr:has(th)) {
-  border-bottom: 0;
-}
-tr:has(th) + tr:has(:not(th)) {
-  border-top: 1px solid black;
-}
-.dark tr:has(th) + tr:has(:not(th)) {
-  border-top: 1px solid white;
-}
-tr:has(th) + tr:has(th) {
-  border-top: 0;
-}
-tr:last-of-type {
+ tr:last-of-type {
   border-bottom: 1px solid black;
 }
 .dark tr:last-of-type {
   border-bottom: 1px solid white;
+}
+tr:first-of-type {
+    border-top: 1px solid black;
+}
+
+tr:has(.table-header-like) {
+  border-bottom: 1px solid black ;
+}
+
+tr:has(th):first-of-type {
+  border-bottom: 1px solid black;
+}
+.dark tr:has(th):first-of-type {
+  border-bottom: 1px solid white;
+}
+/* tr:has(th) {
+   border-bottom: 1px solid black ;
+} */
+.dark tr:has(.table-header-like) {
+  border-bottom: 1px solid white!important;
+}
+tr:has(th[rowspan]:not([rowspan="1"])) {
+  border-bottom: 1px solid black;
+}
+.table-header-like{
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+.dark  tr:first-of-type {
+    border-top: 1px solid white;
 }
 
 .page h2::before {
@@ -258,12 +271,12 @@ tr:last-of-type {
 .page ol {
   list-style-position: outside;
   list-style-type: decimal;
-  margin-left: 2.5em;
+  margin-left: .5em;
 }
 
 .page ul {
   list-style-type: disc;
-  margin-left: 2.5em;
+  margin-left: .5em;
 }
 
 .page ol {
@@ -429,8 +442,11 @@ tr:last-of-type {
 .static-chapter h1 {
   text-transform: uppercase;
 }
-.abstract {
+.abstract-en {
   font-style: italic !important;
+}
+.abstract p {
+  text-indent: 0 !important;
 }
 .calendar * {
   border: 0 !important;
