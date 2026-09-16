@@ -2,7 +2,11 @@ name: Test
 
 on:
   push:
-    branches: main
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   test:
@@ -19,6 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
       - name: Typechecking
         run: bunx tsc --noEmit
 
