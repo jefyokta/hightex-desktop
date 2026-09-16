@@ -7,3 +7,4 @@
 - [ ] equation ref
 - [x] line between names
 - [ ] multiple advisor support
+- [ ]

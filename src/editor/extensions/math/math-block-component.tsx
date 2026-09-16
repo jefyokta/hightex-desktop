@@ -50,7 +50,7 @@ export const MathBlockComponent = ({
 
   useEffect(() => {
     if (!node.attrs.id) {
-      updateAttributes({ id: "eq:" + uniqId() });
+      updateAttributes({ id: "eq-" + uniqId() });
     }
   }, []);
 

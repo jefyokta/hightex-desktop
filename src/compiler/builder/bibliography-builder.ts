@@ -9,7 +9,7 @@ export class BibliographyBuilder {
     this.root = document.createElement("section");
     this.header = document.createElement("h1");
     this.root.classList.add("content", "static-chapter");
-    this.header.textContent = "DAFTAR ISI";
+    this.header.textContent = "DAFTAR PUSTAKA";
     this.header.style.fontSize = "14pt";
     this.header.id = "biblio";
     this.header.style.fontWeight = "700";

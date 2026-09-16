@@ -8,6 +8,7 @@ export class ChapterGraph {
     headings: [],
     images: [],
     tables: [],
+    equations:[]
   };
 
   constructor(private chapter: Chapter) {}
@@ -71,6 +72,7 @@ export class ChapterGraph {
       headings: [],
       images: [],
       tables: [],
+      equations:[]
     };
 
     const counter = {
@@ -81,6 +83,7 @@ export class ChapterGraph {
         h2: 0,
         h3: 0,
       },
+      equation:0
     };
 
     const nodes = Array.isArray(content) ? content : content?.content;

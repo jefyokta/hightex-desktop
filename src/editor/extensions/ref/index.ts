@@ -2,7 +2,6 @@ import { Node, ReactNodeViewRenderer } from "@tiptap/react";
 import { RefComponent } from "./component";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { SlashSuggestion } from "@/editor/plugins/slash-suggestion";
-
 export const Ref = Node.create({
   name: "refComponent",
   inline: true,

@@ -147,15 +147,6 @@ th.right p {
   text-align: right;
 }
 
-
-
-tr.table-last-header{
-  border-bottom: 1px solid black ;
-}
-.dark tr.table-last-header{
-  border-bottom: 1px solid white ;
-}
-
  tr:last-of-type {
   border-bottom: 1px solid black;
 }
@@ -164,6 +155,23 @@ tr.table-last-header{
 }
 tr:first-of-type {
     border-top: 1px solid black;
+}
+
+tr:has(.table-header-like) {
+  border-bottom: 1px solid black ;
+}
+
+tr:has(th):first-of-type {
+  border-bottom: 1px solid black;
+}
+.dark tr:has(th):first-of-type {
+  border-bottom: 1px solid white;
+}
+/* tr:has(th) {
+   border-bottom: 1px solid black ;
+} */
+.dark tr:has(.table-header-like) {
+  border-bottom: 1px solid white!important;
 }
 tr:has(th[rowspan]:not([rowspan="1"])) {
   border-bottom: 1px solid black;
