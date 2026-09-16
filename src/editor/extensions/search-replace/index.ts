@@ -243,8 +243,7 @@ export const SearchReplace = Extension.create<object, SearchReplaceStorage>({
             if (newResults.length === 0) {
               s.currentIndex = -1;
             } else {
-              s.currentIndex =
-                savedIndex >= newResults.length ? 0 : savedIndex;
+              s.currentIndex = savedIndex >= newResults.length ? 0 : savedIndex;
             }
             tr.setMeta(searchReplacePluginKey, { type: "replace" });
 

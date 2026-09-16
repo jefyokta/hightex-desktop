@@ -52,7 +52,7 @@ export const NavBar: React.FC = () => {
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
       isImage: ctx.editor?.isActive("imageFigure"),
-      isMath: ctx.editor?.isActive("blockMath") ?? false
+      isMath: ctx.editor?.isActive("blockMath") ?? false,
     }),
   });
 
@@ -167,11 +167,7 @@ export const NavBar: React.FC = () => {
                 icon={Sigma}
                 active={state?.isGrid}
                 onClick={() =>
-                  editor
-                    .chain()
-                    ?.focus()
-                    .insertContent(createMathBlock())
-                    .run()
+                  editor.chain()?.focus().insertContent(createMathBlock()).run()
                 }
               />
               <Button
@@ -323,10 +319,11 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${active
-              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-              : ""
-            }
+        ${
+          active
+            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+            : ""
+        }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

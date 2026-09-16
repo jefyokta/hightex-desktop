@@ -374,14 +374,14 @@ figure thead td {
 .presentation ol {
   list-style-position: outside;
   list-style-type: decimal;
-  margin-left: .5em;
+  margin-left: 0.5em;
 }
 
 .content ul,
 .foreword ul,
 .presentation ul {
   list-style-type: disc;
-  margin-left: .9em;
+  margin-left: 0.9em;
 }
 
 .content {

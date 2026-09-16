@@ -598,6 +598,7 @@ const ProfileSection = () => {
     nim: "",
     advisorName: "",
     advisorNip: "",
+    secondAdvisor: undefined,
   });
 
   const [loading, setLoading] = useState(false);
@@ -619,6 +620,7 @@ const ProfileSection = () => {
           nim: prof?.nim ?? "",
           advisorName: prof?.advisorName ?? "",
           advisorNip: prof?.advisorNip ?? "",
+          secondAdvisor: prof.secondAdvisor,
         });
       } finally {
         if (mounted) setLoading(false);
@@ -741,7 +743,76 @@ const ProfileSection = () => {
                 }
               />
             </div>
+            <div className="grid w-full  items-center gap-4">
+              <SettingSwitch
+                onChange={(e) => {
+                  if (e) {
+                    setProfile((prev) => ({
+                      ...prev,
+                      secondAdvisor: { name: "", nip: "" },
+                    }));
+                    return;
+                  }
+                  setProfile((prev) => ({ ...prev, secondAdvisor: undefined }));
+                }}
+                value={typeof profile.secondAdvisor !== "undefined"}
+                description={t(
+                  "settings.profile.second_advisor.enable_description",
+                )}
+                label={t("settings.profile.second_advisor.enable_label")}
+              />
+            </div>
+            {typeof profile.secondAdvisor !== "undefined" && (
+              <>
+                <div className="grid w-full grid-cols-2 items-center gap-4">
+                  <div className="space-y-0.5">
+                    <Label>
+                      {t("settings.profile.second_advisor.name.label")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {t("settings.profile.second_advisor.name.description")}
+                    </p>
+                  </div>
 
+                  <Input
+                    value={profile.secondAdvisor.name}
+                    onChange={(e) =>
+                      setProfile((prev) => ({
+                        ...prev,
+                        secondAdvisor: {
+                          nip: prev.secondAdvisor?.nip || "",
+                          name: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="grid w-full grid-cols-2 items-center gap-4">
+                  <div className="space-y-0.5">
+                    <Label>
+                      {t("settings.profile.second_advisor.nip.label")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {t("settings.profile.second_advisor.nip.description")}
+                    </p>
+                  </div>
+
+                  <Input
+                    value={profile.secondAdvisor.nip}
+                    onChange={(e) =>
+                      setProfile((prev) => ({
+                        ...prev,
+                        secondAdvisor: {
+                          name: prev.secondAdvisor?.name || "",
+                          nip: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </>
+            )}
             <div className="flex justify-end pt-4">
               <Button onClick={saveProfile} disabled={saving}>
                 {saving

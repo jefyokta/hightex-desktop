@@ -56,18 +56,14 @@ const randomLatex = [
   "\\varphi = \\frac{1+\\sqrt5}{2}",
   "\\pi \\approx 3.14159",
   "e \\approx 2.71828",
-  "\\LaTeX"
-]
-export const createMathBlock = ()=>{
-
-
-    return {
-        type:"blockMath",
-        attrs:{
-            //ini pake random latex aja
-            latex:randomLatex[
-        Math.floor(Math.random() * randomLatex.length)
-    ]
-        }
-    }
-}
+  "\\LaTeX",
+];
+export const createMathBlock = () => {
+  return {
+    type: "blockMath",
+    attrs: {
+      //ini pake random latex aja
+      latex: randomLatex[Math.floor(Math.random() * randomLatex.length)],
+    },
+  };
+};

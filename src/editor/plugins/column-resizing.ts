@@ -38,10 +38,7 @@ function findCellInfo(
   for (let depth = $pos.depth; depth > 0; depth--) {
     const node = $pos.node(depth);
 
-    if (
-      cellPos === -1 &&
-      opts.cellTypeNames.includes(node.type.name)
-    ) {
+    if (cellPos === -1 && opts.cellTypeNames.includes(node.type.name)) {
       cellPos = $pos.before(depth);
     }
 
@@ -62,15 +59,11 @@ function findCellInfo(
   };
 }
 
-export function createColumnResizing(
-  opts: ColumnResizingOptions,
-) {
+export function createColumnResizing(opts: ColumnResizingOptions) {
   const cellMinWidth = opts.cellMinWidth ?? 40;
   const handleWidth = opts.handleWidth ?? 6;
 
-  const pluginKey = new PluginKey(
-    `columnResizing_${opts.tableTypeName}`,
-  );
+  const pluginKey = new PluginKey(`columnResizing_${opts.tableTypeName}`);
 
   let dragLine: HTMLDivElement | null = null;
   let dragging: DragState | null = null;
@@ -108,10 +101,7 @@ export function createColumnResizing(
     hoveredCell = null;
   }
 
-  function isNearRightEdge(
-    cellEl: HTMLElement,
-    clientX: number,
-  ) {
+  function isNearRightEdge(cellEl: HTMLElement, clientX: number) {
     const rect = cellEl.getBoundingClientRect();
 
     return Math.abs(clientX - rect.right) <= handleWidth;
@@ -207,26 +197,19 @@ export function createColumnResizing(
 
           const map = TableMap.get(tableNode);
 
-          const cellStart =
-            info.cellPos - info.tablePos - 1;
+          const cellStart = info.cellPos - info.tablePos - 1;
 
-          const cellNode =
-            view.state.doc.nodeAt(info.cellPos);
+          const cellNode = view.state.doc.nodeAt(info.cellPos);
 
           if (!cellNode) {
             return true;
           }
 
-          const colspan =
-            cellNode.attrs.colspan ?? 1;
+          const colspan = cellNode.attrs.colspan ?? 1;
 
-          const colIndex =
-            map.colCount(cellStart) +
-            colspan -
-            1;
+          const colIndex = map.colCount(cellStart) + colspan - 1;
 
-          const rect =
-            info.cellEl.getBoundingClientRect();
+          const rect = info.cellEl.getBoundingClientRect();
 
           dragging = {
             view,
@@ -246,24 +229,15 @@ export function createColumnResizing(
               return;
             }
 
-            const delta =
-              moveEvent.clientX -
-              dragging.startX;
+            const delta = moveEvent.clientX - dragging.startX;
 
-            dragLine.style.left =
-              `${dragging.rectRight + delta}px`;
+            dragLine.style.left = `${dragging.rectRight + delta}px`;
           };
 
           const onUp = (upEvent: MouseEvent) => {
-            window.removeEventListener(
-              "mousemove",
-              onMove,
-            );
+            window.removeEventListener("mousemove", onMove);
 
-            window.removeEventListener(
-              "mouseup",
-              onUp,
-            );
+            window.removeEventListener("mouseup", onUp);
 
             removeDragLine();
             clearHover();
@@ -275,51 +249,31 @@ export function createColumnResizing(
             const currentDrag = dragging;
             dragging = null;
 
-            const delta =
-              upEvent.clientX -
-              currentDrag.startX;
+            const delta = upEvent.clientX - currentDrag.startX;
 
             const newWidth = Math.max(
               cellMinWidth,
-              Math.round(
-                currentDrag.startWidth + delta,
-              ),
+              Math.round(currentDrag.startWidth + delta),
             );
 
-            const {
-              view: currentView,
-              tablePos,
-              colIndex,
-            } = currentDrag;
+            const { view: currentView, tablePos, colIndex } = currentDrag;
 
-            const table =
-              currentView.state.doc.nodeAt(
-                tablePos,
-              );
+            const table = currentView.state.doc.nodeAt(tablePos);
 
             if (!table) {
               return;
             }
 
-            const tableMap =
-              TableMap.get(table);
+            const tableMap = TableMap.get(table);
 
-            const tr =
-              currentView.state.tr;
+            const tr = currentView.state.tr;
 
             const updatedCells = new Set<number>();
 
-            for (
-              let row = 0;
-              row < tableMap.height;
-              row++
-            ) {
-              const mapIndex =
-                row * tableMap.width +
-                colIndex;
+            for (let row = 0; row < tableMap.height; row++) {
+              const mapIndex = row * tableMap.width + colIndex;
 
-              const relPos =
-                tableMap.map[mapIndex];
+              const relPos = tableMap.map[mapIndex];
 
               /*
                * A rowspan cell appears in multiple rows
@@ -327,67 +281,45 @@ export function createColumnResizing(
                */
               if (
                 row > 0 &&
-                tableMap.map[
-                  mapIndex - tableMap.width
-                ] === relPos
+                tableMap.map[mapIndex - tableMap.width] === relPos
               ) {
                 continue;
               }
 
-              if (
-                updatedCells.has(relPos)
-              ) {
+              if (updatedCells.has(relPos)) {
                 continue;
               }
 
               updatedCells.add(relPos);
 
-              const absPos =
-                tablePos +
-                1 +
-                relPos;
+              const absPos = tablePos + 1 + relPos;
 
-              const node =
-                currentView.state.doc.nodeAt(
-                  absPos,
-                );
+              const node = currentView.state.doc.nodeAt(absPos);
 
               if (!node) {
                 continue;
               }
 
-              const span =
-                node.attrs.colspan ?? 1;
+              const span = node.attrs.colspan ?? 1;
 
-              const leftCol =
-                tableMap.colCount(relPos);
+              const leftCol = tableMap.colCount(relPos);
 
-              const localIndex =
-                colIndex - leftCol;
+              const localIndex = colIndex - leftCol;
 
-              if (
-                localIndex < 0 ||
-                localIndex >= span
-              ) {
+              if (localIndex < 0 || localIndex >= span) {
                 continue;
               }
 
-              const widths: number[] =
-                node.attrs.colwidth
-                  ? [...node.attrs.colwidth]
-                  : new Array(span).fill(0);
+              const widths: number[] = node.attrs.colwidth
+                ? [...node.attrs.colwidth]
+                : new Array(span).fill(0);
 
-              widths[localIndex] =
-                newWidth;
+              widths[localIndex] = newWidth;
 
-              tr.setNodeMarkup(
-                absPos,
-                undefined,
-                {
-                  ...node.attrs,
-                  colwidth: widths,
-                },
-              );
+              tr.setNodeMarkup(absPos, undefined, {
+                ...node.attrs,
+                colwidth: widths,
+              });
             }
 
             if (tr.docChanged) {
@@ -395,15 +327,9 @@ export function createColumnResizing(
             }
           };
 
-          window.addEventListener(
-            "mousemove",
-            onMove,
-          );
+          window.addEventListener("mousemove", onMove);
 
-          window.addEventListener(
-            "mouseup",
-            onUp,
-          );
+          window.addEventListener("mouseup", onUp);
 
           return true;
         },
@@ -411,15 +337,9 @@ export function createColumnResizing(
     },
 
     destroy() {
-      window.removeEventListener(
-        "mousemove",
-        () => {},
-      );
+      window.removeEventListener("mousemove", () => {});
 
-      window.removeEventListener(
-        "mouseup",
-        () => {},
-      );
+      window.removeEventListener("mouseup", () => {});
 
       removeDragLine();
       clearHover();

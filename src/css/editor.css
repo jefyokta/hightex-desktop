@@ -147,18 +147,18 @@ th.right p {
   text-align: right;
 }
 
- tr:last-of-type {
+tr:last-of-type {
   border-bottom: 1px solid black;
 }
 .dark tr:last-of-type {
   border-bottom: 1px solid white;
 }
 tr:first-of-type {
-    border-top: 1px solid black;
+  border-top: 1px solid black;
 }
 
 tr:has(.table-header-like) {
-  border-bottom: 1px solid black ;
+  border-bottom: 1px solid black;
 }
 
 tr:has(th):first-of-type {
@@ -171,17 +171,17 @@ tr:has(th):first-of-type {
    border-bottom: 1px solid black ;
 } */
 .dark tr:has(.table-header-like) {
-  border-bottom: 1px solid white!important;
+  border-bottom: 1px solid white !important;
 }
 tr:has(th[rowspan]:not([rowspan="1"])) {
   border-bottom: 1px solid black;
 }
-.table-header-like{
+.table-header-like {
   border-bottom: 1px solid black;
   border-top: 1px solid black;
 }
-.dark  tr:first-of-type {
-    border-top: 1px solid white;
+.dark tr:first-of-type {
+  border-top: 1px solid white;
 }
 
 .page h2::before {
@@ -271,12 +271,12 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 .page ol {
   list-style-position: outside;
   list-style-type: decimal;
-  margin-left: .5em;
+  margin-left: 0.5em;
 }
 
 .page ul {
   list-style-type: disc;
-  margin-left: .5em;
+  margin-left: 0.5em;
 }
 
 .page ol {
@@ -451,7 +451,6 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 .calendar * {
   border: 0 !important;
 }
-
 
 /* Find & Replace – Search Highlights */
 .search-highlight {

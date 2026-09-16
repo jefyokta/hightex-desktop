@@ -89,7 +89,7 @@ declare global {
 
   interface ChapterGraph {
     id: string;
-    data: ChapterGraphData
+    data: ChapterGraphData;
   }
 
   interface ImageRecord {

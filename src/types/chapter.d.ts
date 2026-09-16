@@ -11,7 +11,7 @@ declare global {
         h2: number;
         h3: number;
       };
-      equation:number
+      equation: number;
     };
     chapter: Chapter;
   }

@@ -11,11 +11,16 @@ import { Image } from "../extensions/image";
 import { ImageFigure } from "../extensions/image-figure";
 import { FigureCaption } from "../extensions/figure-caption";
 import { Ref } from "../extensions/ref";
-import { CustomTableRow, TableCell, TableHeader,Table} from "../extensions/table";
+import {
+  CustomTableRow,
+  TableCell,
+  TableHeader,
+  Table,
+} from "../extensions/table";
 import { FigureTable } from "../extensions/figure-table";
 import { MathBlock, MathInline } from "../extensions/math";
 import { NodeShortcut } from "../extensions/node-shortcut";
-import {  TableKit } from "@tiptap/extension-table";
+import { TableKit } from "@tiptap/extension-table";
 import { SearchReplace } from "../extensions/search-replace";
 import { CustomCodeBlock } from "../extensions/code-block";
 import { Dots } from "../extensions/dots";
@@ -75,10 +80,9 @@ export class ChapterExtensions {
       }),
       Table.extend({
         isolating: true,
-      })
+      }),
       // .configure({resizable:true})
-      
-      ,
+
       MathInline,
       MathBlock,
       NodeShortcut,

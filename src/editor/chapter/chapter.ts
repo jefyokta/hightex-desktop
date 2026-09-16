@@ -169,8 +169,12 @@ export class Chapter {
       return "attachment-chapter";
     }
     if (this.query.isStaticChapter()) {
-      if (this.getChapter() == "abstract-en" || this.getChapter() == "abstract" || this.getChapter() == 'abstract-id') {
-        return  `static-chapter abstract ${this.getChapter()}`;
+      if (
+        this.getChapter() == "abstract-en" ||
+        this.getChapter() == "abstract" ||
+        this.getChapter() == "abstract-id"
+      ) {
+        return `static-chapter abstract ${this.getChapter()}`;
       }
       return "static-chapter";
     }

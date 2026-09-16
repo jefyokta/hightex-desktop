@@ -118,38 +118,45 @@ const commands: SlashCommand[] = [
     },
   },
   {
-    name:"head",
-    match:(q)=>q.startsWith("head"),
-    search:async(query,editor)=>{
-        let keyword = query.slice(4).toLowerCase()
-        if (keyword[0] == ".") {
+    name: "head",
+    match: (q) => q.startsWith("head"),
+    search: async (query, editor) => {
+      let keyword = query.slice(4).toLowerCase();
+      if (keyword[0] == ".") {
         keyword = keyword.slice(1);
       }
 
-      const allHeads = (await Document.instance?.getHeadings())?.filter(h=>h.chapterId === Document.instance?.id+'.attachment' && h.level ===1) || []
+      const allHeads =
+        (await Document.instance?.getHeadings())?.filter(
+          (h) =>
+            h.chapterId === Document.instance?.id + ".attachment" &&
+            h.level === 1,
+        ) || [];
 
-     const resolver = await Promise.all(allHeads.map((h)=>{
-        return {
-          label:"Lampiran "+Counter.getAlpha(Number(h.numbering)),
+      const resolver = await Promise.all(
+        allHeads.map((h) => {
+          return {
+            label: "Lampiran " + Counter.getAlpha(Number(h.numbering)),
             onClick(range: Range) {
-                editor
-                  .chain()
-                  .focus()
-                  .deleteRange(range)
-                  .insertContent({
-                    type: "refComponent",
-                    attrs: {
-                      link: h.id,
-                      ref: "head",
-                    },
-                  })
-                  .run();
-              },
-        }
-      }))
-      return resolver
-    }
-  }
+              editor
+                .chain()
+                .focus()
+                .deleteRange(range)
+                .insertContent({
+                  type: "refComponent",
+                  attrs: {
+                    link: h.id,
+                    ref: "head",
+                  },
+                })
+                .run();
+            },
+          };
+        }),
+      );
+      return resolver;
+    },
+  },
 ];
 
 const resolveSearch = async (query: string, editor: Editor) => {
