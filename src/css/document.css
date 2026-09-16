@@ -279,6 +279,9 @@ figure[data-type="figureTable"] > table {
   word-break: break-word;
 }
 
+.content thead {
+  border-bottom: 1px solid black;
+}
 .content th,
 .content td {
   text-align: left;
