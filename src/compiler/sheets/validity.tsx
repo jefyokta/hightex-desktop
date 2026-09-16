@@ -135,7 +135,7 @@ export const Validity = () => {
 
                   <tr>
                     <td style={{ fontWeight: "bold" }}>
-                      {name("Dr. Yuslenita Muda, S.Si., M.Sc.")}
+                      {name(doc.config.dekan?.name || "Dr. Yuslenita Muda, S.Si., M.Sc.")}
                     </td>
 
                     <td></td>
@@ -146,7 +146,7 @@ export const Validity = () => {
                         textAlign: "left",
                       }}
                     >
-                      {name("Angraini, S.Kom., M.Eng., Ph.D.")}
+                      {name(doc.config.kaprodi?.name || "Angraini, S.Kom., M.Eng., Ph.D.")}
                     </td>
                   </tr>
 
@@ -159,7 +159,7 @@ export const Validity = () => {
                           display: "inline-block",
                         }}
                       >
-                        NIP. 197701032007102001
+                        NIP. {doc.config.dekan?.nip || "197701032007102001"}
                       </span>
                     </td>
 
@@ -178,7 +178,7 @@ export const Validity = () => {
                           display: "inline-block",
                         }}
                       >
-                        NIP. 198408212009012008
+                        NIP. {doc.config.kaprodi?.nip || "198408212009012008"}
                       </span>
                     </td>
                   </tr>

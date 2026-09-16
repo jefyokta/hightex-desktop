@@ -61,6 +61,14 @@ declare global {
       };
       validity?: Date;
     };
+    kaprodi?: {
+      name?: string;
+      nip?: string;
+    };
+    dekan?: {
+      name?: string;
+      nip?: string;
+    };
   }
   interface HighTexDocument {
     id: string;
