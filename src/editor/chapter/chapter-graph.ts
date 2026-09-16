@@ -98,6 +98,11 @@ export class ChapterGraph {
     return (await this.sync()).headings;
   }
 
+
+  async getEquations(){
+    return (await this.sync()).equations
+  }
+
   private walk(nodes: JSONContent[], ctx: WalkContext) {
     for (const node of nodes) {
       this.handleNode(node, ctx);
@@ -165,6 +170,19 @@ export class ChapterGraph {
           : `${Counter.getAlpha(ctx.counter.heading.h1)}.${ctx.counter.table}`,
         chapterId: ctx.chapter.getId(),
       });
+    }
+
+    if(node.type === "blockMath"){
+      ctx.counter.equation++
+      ctx.graph.equations.push({
+        id:node.attrs?.id ||'',
+        chapterId:ctx.chapter.getId(),
+        numbering:ctx.counter.equation.toString(),
+        latex:node.attrs?.latex || "",
+        pos: ctx.counter.equation,
+        text:[]
+      })
+
     }
   }
 

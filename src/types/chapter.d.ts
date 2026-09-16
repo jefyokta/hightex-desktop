@@ -2,11 +2,7 @@ import { Chapter } from "@/editor/chapter";
 
 declare global {
   interface WalkContext {
-    graph: {
-      headings: HeadingGraph[];
-      images: ImageGraph[];
-      tables: TableGraph[];
-    };
+    graph: ChapterGraphData;
     counter: {
       image: number;
       table: number;
@@ -15,6 +11,7 @@ declare global {
         h2: number;
         h3: number;
       };
+      equation:number
     };
     chapter: Chapter;
   }
