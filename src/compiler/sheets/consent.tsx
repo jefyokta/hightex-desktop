@@ -85,22 +85,25 @@ export const Constent = () => {
             <br />
 
             <span style={{ fontWeight: "bold" }}>
-              {name(document.getDocument().config.kaprodi?.name)}
+              {name(
+                document.getDocument().config.kaprodi?.name ||
+                  "Angraini, S.Kom., M.Eng., Ph.D.",
+              )}
             </span>
 
             <br />
 
-            {document.getDocument().config.kaprodi?.nip ? (
-              <span
-                style={{
-                  fontWeight: "bold",
-                  paddingTop: "1px",
-                  display: "inline-block",
-                }}
-              >
-                NIP. {document.getDocument().config.kaprodi?.nip}
-              </span>
-            ) : null}
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP.{" "}
+              {document.getDocument().config.kaprodi?.nip ||
+                "198408212009012008"}
+            </span>
           </div>
 
           <div
