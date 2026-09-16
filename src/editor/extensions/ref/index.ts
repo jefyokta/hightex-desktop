@@ -2,7 +2,6 @@ import { Node, ReactNodeViewRenderer } from "@tiptap/react";
 import { RefComponent } from "./component";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { SlashSuggestion } from "@/editor/plugins/slash-suggestion";
-
 export const Ref = Node.create({
   name: "refComponent",
   inline: true,
@@ -61,7 +60,7 @@ export const Ref = Node.create({
         props: {
           handlePaste(view, _, slice) {
             const text = slice.content.textBetween(0, slice.content.size, "\n");
-            const pasteRegex = /@(imageFigure|figureTable)\[([^\]]+)\]/g;
+            const pasteRegex = /@(imageFigure|figureTable|head)\[([^\]]+)\]/g;
             let lastIndex = 0;
             let match;
             const { tr, schema } = view.state;

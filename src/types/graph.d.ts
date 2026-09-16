@@ -16,11 +16,16 @@ declare global {
     imgSrc: string;
   }
 
+  interface EquationGraph extends Graph{
+    latex:string
+  }
+
   interface TableGraph extends Graph {}
   interface ChapterGraphData {
     headings: HeadingGraph[];
     images: ImageGraph[];
     tables: TableGraph[];
+    equations: EquationGraph[]
   }
 }
 

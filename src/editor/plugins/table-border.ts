@@ -14,11 +14,10 @@ interface TableRow {
   index: number;
 }
 
-interface HeaderCell {
-  rowIndex: number;
-  rowPos: number;
-  cellPos: number;
-  cellNode: PMNode;
+interface TableCell {
+  node: PMNode;
+  pos: number;
+  index: number;
 }
 
 export function createTableBorderPlugin() {
@@ -71,63 +70,59 @@ function decorateTable(
 ) {
   const rows = getRows(table, tablePos);
 
-  if (!rows.length) {
-    return;
-  }
-
-  const headers: HeaderCell[] = [];
-
-
   for (const row of rows) {
-    let cellOffset = 0;
+    const cells = getCells(row);
 
-    row.node.forEach((cell) => {
-      if (cell.type.name === "tableHeader") {
-      
-
-        headers.push({
-          rowIndex: row.index,
-          rowPos: row.pos,
-          cellPos: row.pos + 1 + cellOffset,
-          cellNode: cell,
-        });
+    for (const cell of cells) {
+      if (cell.node.type.name !== "tableHeader") {
+        continue;
       }
 
-      cellOffset += cell.nodeSize;
-    });
-  }
-
-  if (!headers.length) {
-    return;
-  }
-
-
-  const lastHeaderRow = Math.max(
-    ...headers.map((header) => {
       const rowspan = Math.max(
         1,
-        Number(header.cellNode.attrs.rowspan ?? 1),
+        Number(cell.node.attrs.rowspan ?? 1),
       );
 
-      return header.rowIndex + rowspan - 1;
-    }),
-  );
+      if (rowspan <= 1) {
+        continue;
+      }
 
-  const targetRow = rows[lastHeaderRow];
 
-  if (!targetRow) {
-    return;
+      const targetRowIndex =
+        row.index + rowspan - 1;
+
+      const targetRow =
+        rows[targetRowIndex];
+
+      if (!targetRow) {
+        continue;
+      }
+
+      decorateRow(
+        targetRow,
+        decorations,
+      );
+    }
   }
+}
 
-  decorations.push(
-    Decoration.node(
-      targetRow.pos,
-      targetRow.pos + targetRow.node.nodeSize,
-      {
-        class: "table-last-header",
-      },
-    ),
-  );
+function decorateRow(
+  row: TableRow,
+  decorations: Decoration[],
+) {
+  const cells = getCells(row);
+
+  for (const cell of cells) {
+    decorations.push(
+      Decoration.node(
+        cell.pos,
+        cell.pos + cell.node.nodeSize,
+        {
+          class: "table-header-like",
+        },
+      ),
+    );
+  }
 }
 
 function getRows(
@@ -154,4 +149,34 @@ function getRows(
   });
 
   return rows;
+}
+
+function getCells(
+  row: TableRow,
+): TableCell[] {
+  const cells: TableCell[] = [];
+
+  let offset = 0;
+  let index = 0;
+
+  row.node.forEach((cell) => {
+    if (
+      cell.type.name !== "tableCell" &&
+      cell.type.name !== "tableHeader"
+    ) {
+      offset += cell.nodeSize;
+      return;
+    }
+
+    cells.push({
+      node: cell,
+      pos: row.pos + 1 + offset,
+      index,
+    });
+
+    index++;
+    offset += cell.nodeSize;
+  });
+
+  return cells;
 }

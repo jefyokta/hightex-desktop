@@ -147,15 +147,6 @@ th.right p {
   text-align: right;
 }
 
-
-
-tr.table-last-header{
-  border-bottom: 1px solid black ;
-}
-.dark tr.table-last-header{
-  border-bottom: 1px solid white ;
-}
-
  tr:last-of-type {
   border-bottom: 1px solid black;
 }
@@ -165,13 +156,32 @@ tr.table-last-header{
 tr:first-of-type {
     border-top: 1px solid black;
 }
-/* tr:has(th[rowspan]:not([rowspan="1"])) {
+
+tr:has(.table-header-like) {
+  border-bottom: 1px solid black ;
+}
+
+tr:has(th):first-of-type {
   border-bottom: 1px solid black;
+}
+.dark tr:has(th):first-of-type {
+  border-bottom: 1px solid white;
+}
+/* tr:has(th) {
+   border-bottom: 1px solid black ;
 } */
+.dark tr:has(.table-header-like) {
+  border-bottom: 1px solid white!important;
+}
+tr:has(th[rowspan]:not([rowspan="1"])) {
+  border-bottom: 1px solid black;
+}
+.table-header-like{
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
 .dark  tr:first-of-type {
     border-top: 1px solid white;
-
-
 }
 
 .page h2::before {
@@ -432,8 +442,11 @@ tr:first-of-type {
 .static-chapter h1 {
   text-transform: uppercase;
 }
-.abstract {
+.abstract-en {
   font-style: italic !important;
+}
+.abstract p {
+  text-indent: 0 !important;
 }
 .calendar * {
   border: 0 !important;

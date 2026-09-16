@@ -43,7 +43,8 @@ export const Foreword = () => {
                 textTransform: "uppercase",
               }}
             >
-              <h4 style={{ marginBottom: "1px" }}>{profile?.name}</h4>
+              <h4 style={{ marginBottom: "1px",  textDecoration: "underline",
+              textUnderlineOffset: "2pt" }}>{profile?.name}</h4>
             </td>
           </tr>
           <tr>

@@ -8,6 +8,7 @@ export class ChapterGraph {
     headings: [],
     images: [],
     tables: [],
+    equations:[]
   };
 
   constructor(private chapter: Chapter) {}
@@ -71,6 +72,7 @@ export class ChapterGraph {
       headings: [],
       images: [],
       tables: [],
+      equations:[]
     };
 
     const counter = {
@@ -81,6 +83,7 @@ export class ChapterGraph {
         h2: 0,
         h3: 0,
       },
+      equation:0
     };
 
     const nodes = Array.isArray(content) ? content : content?.content;
@@ -93,6 +96,11 @@ export class ChapterGraph {
   }
   async getHeadings() {
     return (await this.sync()).headings;
+  }
+
+
+  async getEquations(){
+    return (await this.sync()).equations
   }
 
   private walk(nodes: JSONContent[], ctx: WalkContext) {
@@ -162,6 +170,19 @@ export class ChapterGraph {
           : `${Counter.getAlpha(ctx.counter.heading.h1)}.${ctx.counter.table}`,
         chapterId: ctx.chapter.getId(),
       });
+    }
+
+    if(node.type === "blockMath"){
+      ctx.counter.equation++
+      ctx.graph.equations.push({
+        id:node.attrs?.id ||'',
+        chapterId:ctx.chapter.getId(),
+        numbering:ctx.counter.equation.toString(),
+        latex:node.attrs?.latex || "",
+        pos: ctx.counter.equation,
+        text:[]
+      })
+
     }
   }
 
