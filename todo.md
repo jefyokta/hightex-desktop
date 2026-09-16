@@ -1,5 +1,3 @@
-# Task: Dynamic Front Pages Based on Category Variant
-
 ## Pinned
 
 - [x] Table bugs // note : update tjsn-parser to fix header rowspan issue

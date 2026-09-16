@@ -26,7 +26,6 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
   const [insideNode, setInsideNode] = useState(false);
   const copy = () => {
     if (typeof window === "undefined") return;
-
     window.navigator.clipboard.writeText(`@figureTable[${node.attrs.id}]`);
     toast.success("table's ref copied")
   };
@@ -52,9 +51,62 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
   }, [editor, getPos, node.nodeSize]);
 
   useEffect(() => {
-    // EventBus.emit(`${node.type.name}:${node.attrs.id}`)
-  }, []);
+    const table = node.content.content[1];
 
+    if (!table || table.type.name !== "table") {
+      return;
+    }
+
+    const firstRow = table.content.content[0];
+
+    if (!firstRow || firstRow.type.name !== "tableRow") {
+      return;
+    }
+
+    const figurePos = getPos();
+
+    if (typeof figurePos !== "number") {
+      return;
+    }
+
+    const { state, view } = editor;
+    const { tr } = state;
+
+    let firstRowPos = -1;
+
+    node.descendants((child, pos) => {
+      if (child === firstRow) {
+        firstRowPos = pos;
+        return false;
+      }
+
+      return true;
+    });
+
+    if (firstRowPos < 0) {
+      return;
+    }
+
+    let cellOffset = 0;
+
+    for (const cell of firstRow.content.content) {
+      if (cell.type.name !== "tableHeader") {
+        const cellPos = figurePos + 1 + firstRowPos + 1 + cellOffset;
+
+        tr.setNodeMarkup(
+          cellPos,
+          editor.schema.nodes.tableHeader,
+          cell.attrs,
+        );
+      }
+
+      cellOffset += cell.nodeSize;
+    }
+
+    if (tr.docChanged) {
+      view.dispatch(tr);
+    }
+  }, [editor, getPos, node]);
   return (
     <NodeViewWrapper
       style={{ overflow: "visible" }}
@@ -68,9 +120,8 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
     >
       <DropdownMenu>
         <DropdownMenuTrigger
-          className={`absolute ${
-            insideNode ? "visible opacity-100" : "invisible opacity-0"
-          } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
+          className={`absolute ${insideNode ? "visible opacity-100" : "invisible opacity-0"
+            } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
