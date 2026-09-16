@@ -265,6 +265,10 @@
         "internship_advisor_name": "Nama Pembimbing Magang",
         "internship_advisor_nip": "NIP Pembimbing Magang",
         "intern_validity_date": "Tanggal Berlaku Magang",
+        "kaprodi_name": "Nama Kaprodi",
+        "kaprodi_nip": "NIP Kaprodi",
+        "dekan_name": "Nama Dekan",
+        "dekan_nip": "NIP Dekan",
         "add_keyword": "Tambah kata kunci..."
       },
       "preview": {

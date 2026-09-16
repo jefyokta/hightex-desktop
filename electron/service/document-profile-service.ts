@@ -13,9 +13,9 @@ export class DocumentProfileService {
         user.advisors?.find((advisor) => advisor.role === "primary");
       return {
         name: user.name,
-        nim: user.identity_number,
+        nim: user.identity_number || "",
         advisorName: advisor?.name || "Advisor",
-        advisorNip: advisor.identity_number,
+        advisorNip: advisor?.identity_number || "1111",
         isCloud: true,
       };
     }

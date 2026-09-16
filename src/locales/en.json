@@ -265,6 +265,10 @@
         "internship_advisor_name": "Internship Advisor Name",
         "internship_advisor_nip": "Internship Advisor NIP",
         "intern_validity_date": "Intern Validity Date",
+        "kaprodi_name": "Head of Study Program Name",
+        "kaprodi_nip": "Head of Study Program NIP",
+        "dekan_name": "Dean Name",
+        "dekan_nip": "Dean NIP",
         "add_keyword": "Add keyword..."
       },
       "preview": {

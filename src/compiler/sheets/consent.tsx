@@ -88,11 +88,11 @@ export const Constent = () => {
             <br />
             <br />
 
-            <span style={{
-              fontWeight: "bold", textDecoration: "underline",
-              textUnderlineOffset: "2pt"
-            }}>
-              {name("Angraini, S.Kom., M.Eng., Ph.D.")}
+            <span style={{ fontWeight: "bold" }}>
+              {name(
+                document.getDocument().config.kaprodi?.name ||
+                  "Angraini, S.Kom., M.Eng., Ph.D.",
+              )}
             </span>
 
             <br />
@@ -104,7 +104,9 @@ export const Constent = () => {
                 display: "inline-block",
               }}
             >
-              NIP. 198408212009012008
+              NIP.{" "}
+              {document.getDocument().config.kaprodi?.nip ||
+                "198408212009012008"}
             </span>
           </div>
 

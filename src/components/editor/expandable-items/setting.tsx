@@ -265,6 +265,74 @@ export const Setting = () => {
               }))
             }
           />
+
+          <Field
+            label={t("editor.expandable.setting.kaprodi_name")}
+            value={doc.config.kaprodi?.name ?? ""}
+            onChange={(name) =>
+              setDoc((prev) => ({
+                ...prev!,
+                config: {
+                  ...prev?.config,
+                  kaprodi: {
+                    ...prev?.config?.kaprodi,
+                    name,
+                  },
+                },
+              }))
+            }
+          />
+
+          <Field
+            label={t("editor.expandable.setting.kaprodi_nip")}
+            value={doc.config.kaprodi?.nip ?? ""}
+            onChange={(nip) =>
+              setDoc((prev) => ({
+                ...prev!,
+                config: {
+                  ...prev?.config,
+                  kaprodi: {
+                    ...prev?.config?.kaprodi,
+                    nip,
+                  },
+                },
+              }))
+            }
+          />
+
+          <Field
+            label={t("editor.expandable.setting.dekan_name")}
+            value={doc.config.dekan?.name ?? ""}
+            onChange={(name) =>
+              setDoc((prev) => ({
+                ...prev!,
+                config: {
+                  ...prev?.config,
+                  dekan: {
+                    ...prev?.config?.dekan,
+                    name,
+                  },
+                },
+              }))
+            }
+          />
+
+          <Field
+            label={t("editor.expandable.setting.dekan_nip")}
+            value={doc.config.dekan?.nip ?? ""}
+            onChange={(nip) =>
+              setDoc((prev) => ({
+                ...prev!,
+                config: {
+                  ...prev?.config,
+                  dekan: {
+                    ...prev?.config?.dekan,
+                    nip,
+                  },
+                },
+              }))
+            }
+          />
         </Section>
 
         <Section title={t("editor.expandable.setting.thesis_dates")}>
@@ -302,7 +370,7 @@ export const Setting = () => {
 
           <DatePickerInput
             label={t("editor.expandable.setting.statement_date")}
-            date={doc.config.validityDate}
+            date={doc.config.statementDate}
             setDate={(date) => {
               setDoc((prv) => {
                 return {
