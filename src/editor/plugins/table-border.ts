@@ -2,7 +2,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
-const tableBorderPluginKey = new PluginKey<DecorationSet>(
+export const tableBorderPluginKey = new PluginKey<DecorationSet>(
   "table-header-border",
 );
 
@@ -97,9 +97,14 @@ function decorateRow(row: TableRow, decorations: Decoration[]) {
 
   for (const cell of cells) {
     decorations.push(
-      Decoration.node(cell.pos, cell.pos + cell.node.nodeSize, {
-        class: "table-header-like",
-      }),
+      Decoration.node(
+        cell.pos,
+        cell.pos + cell.node.nodeSize,
+        {
+          class: "table-header-like",
+          tableHeaderLike: '1',
+        },
+      ),
     );
   }
 }

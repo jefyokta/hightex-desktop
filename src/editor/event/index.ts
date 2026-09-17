@@ -3,6 +3,7 @@ import { ensureUniqueId } from "../extensions/utilites";
 import { EditorState } from "@tiptap/pm/state";
 import { Chapter } from "../chapter/chapter";
 import { ContentFixer } from "@/utils/content-fixer";
+import { convertTableHeaderLikeCells } from "@/utils/convert-table-header-like";
 export const events = {
   create: ({ editor }: { editor: Editor }) => {
     queueMicrotask(async () => {
@@ -23,6 +24,7 @@ export const events = {
       };
 
       let content = isEmpty() ? emptyDoc : ch;
+
       content = ContentFixer(content, editor.state.schema as any);
 
       if (editor.isDestroyed) return;
@@ -43,10 +45,13 @@ export const events = {
       editor.commands.focus();
 
       ensureUniqueId(editor);
+      convertTableHeaderLikeCells(editor)
     });
   },
   update: async ({ editor }: { editor: Editor }) => {
+    convertTableHeaderLikeCells(editor)
     await Chapter.instance?.setContent(editor.getJSON().content);
+
   },
 } as const;
 
