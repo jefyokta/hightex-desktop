@@ -31,6 +31,7 @@ import { getCliArgs, isCliInvocation } from "./cli-args";
 import { HightexProtocol } from "@main/server/hightex-protocol";
 import { IPCMain } from "@main/utilities/ipc-main";
 import { firstInstalled } from "@main/utilities/first-installed";
+import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -314,6 +315,7 @@ export class Application {
     PluginScannerHandler.register();
     SnapshotHandler.register();
     ZoteroHandler.register();
+    DocumentErrorHandler.register();
     SharingHandler.register();
   }
 

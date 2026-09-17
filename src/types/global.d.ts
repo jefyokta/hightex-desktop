@@ -1,4 +1,5 @@
 import { Chapter } from "@/editor/chapter";
+import { JSONContent } from "@tiptap/core";
 import { CiteUtils } from "bibtex.js";
 
 export {};
@@ -138,7 +139,6 @@ declare global {
       onChange?: (cb: (u: User | false) => void) => () => void;
     };
     file: FileApi;
-
     hightex: {
       document(): Promise<{ document: HighTexDocument }>;
       prefetch(): Promise<void>;
@@ -156,6 +156,7 @@ declare global {
         title: string;
         description: string;
       }): Promise<unknown>;
+      saveContentError(props:{content:JSONContent,fileName:string,error?:any}):Promise<void>;
     };
 
     config: ConfigAPI;
@@ -234,6 +235,8 @@ declare global {
       scan(): Promise<WifiInformation[]>;
     };
   }
+
+
 
   interface FileApi {
     save(fileName: string, file: Uint8Array): Promise<string>;

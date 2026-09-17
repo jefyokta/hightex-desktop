@@ -88,6 +88,9 @@ contextBridge.exposeInMainWorld("hightex", {
   reportError(payload) {
     return ipcRenderer.invoke("hightex:report-error", payload);
   },
+  async saveContentError(props) {
+    ipcRenderer.invoke("content:error",props);
+  },
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
   user: () => {

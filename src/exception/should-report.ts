@@ -42,10 +42,10 @@ function ReportIssueAction({ description }: { description: string }) {
 }
 
 export class ShouldReport extends ShouldNotified {
-  constructor(description: string) {
+  constructor(description: string,prevErr?:any) {
     super({
       message: "Unexpected Error",
-      description,
+      description:description + "\n"+ApplicationError.normilize(prevErr),
       action: React.createElement(ReportIssueAction, { description }),
     });
   }
