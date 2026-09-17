@@ -21,6 +21,10 @@ export class Document {
   public scheme?: Category["chapters"];
   public chapters: Chapter[] = [];
 
+  public counters={
+    equations:0
+  }
+
   constructor(documentId: string, version?: string) {
     this.table = HighTexDB.getInstance().documents;
     this.id = documentId;
@@ -97,6 +101,16 @@ export class Document {
   async getTables(): Promise<TableGraph[]> {
     const graphs = await this.getGraphs();
     return graphs.flatMap((g) => g.tables);
+  }
+
+  async getEquations():Promise<EquationGraph[]>{
+    const graphs = await this.getGraphs();
+    let counter=0;
+    return graphs.flatMap((g) => g.equations).map((eq)=>
+    {
+      counter++;
+      return {...eq,numbering:counter.toString(),pos:counter}
+    });
   }
 
   private async ensureWarmed() {

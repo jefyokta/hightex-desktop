@@ -23,6 +23,14 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
 
   const reference = node.attrs.link;
 
+  const nodeByType: Record<string, React.FC<RefProps>> = {
+    "head": HeadRef,
+    "imageFigure": ImageRef,
+    "figureTable": TableRef
+  } as const
+
+  const Component = nodeByType[type as keyof typeof nodeByType]
+
   return (
     <NodeViewWrapper
       className="ref-component
@@ -36,13 +44,7 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
       data-ref={reference}
       data-type="ref-component"
     >
-      {type === "imageFigure" ? (
-        <ImageRef reference={reference} />
-      ) : type === "figureTable" ? (
-        <TableRef reference={reference} />
-      ) : (
-        <HeadRef reference={reference} />
-      )}
+      <Component reference={reference}/>
     </NodeViewWrapper>
   );
 };
@@ -52,6 +54,10 @@ type RefProps = {
 
 const HeadRef = ({ reference }: RefProps) => {
   const [head, setHead] = useState<HeadingGraph>();
+  const nav = useNavigate();
+  const { setParams } = useParams();
+
+
   useEffect(() => {
     const resolveHead = async (doc: Document) => {
       const h = (await doc.getHeadings())
@@ -67,7 +73,7 @@ const HeadRef = ({ reference }: RefProps) => {
       setHead(h);
     };
     const doc = Document.instance;
-    if (doc?.ready) {
+    if (doc && doc?.ready) {
       resolveHead(doc);
     }
 
@@ -86,7 +92,17 @@ const HeadRef = ({ reference }: RefProps) => {
 
   const num =
     typeof head?.numbering !== "undefined" ? Number(head.numbering) : 0;
-  return <span>LAMPIRAN {Counter.getAlpha(num)}</span>;
+  return <span onClick={(e) => {
+    e.preventDefault();
+    if (head?.chapterId == Document.current?.getId()) {
+      Manager.scrollTo(reference!);
+      return;
+    }
+    setParams([reference]);
+    nav(`/document/${head?.chapterId.replace(".", "/")}`);
+  }
+  }
+  >LAMPIRAN {Counter.getAlpha(num)}</span>;
 };
 
 const ImageRef = ({ reference }: RefProps) => {

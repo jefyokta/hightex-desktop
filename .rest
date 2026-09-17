@@ -1,0 +1,2 @@
+GET https://hightex.jefyokta.my.id/api/categories 
+Content-Type: application/json
