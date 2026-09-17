@@ -157,6 +157,41 @@ const commands: SlashCommand[] = [
       return resolver;
     },
   },
+    {
+    name: "eq",
+    match: (q) => q.startsWith("eq"),
+    search: async (query, editor) => {
+      let keyword = query.slice(2).toLowerCase();
+      if (keyword[0] == ".") {
+        keyword = keyword.slice(1);
+      }
+      const allEqs = (await Document.instance?.getEquations())||[]
+
+
+      const resolver = await Promise.all(
+        allEqs.map((h) => {
+          return {
+            label: "Persamaan " + h.numbering,
+            onClick(range: Range) {
+              editor
+                .chain()
+                .focus()
+                .deleteRange(range)
+                .insertContent({
+                  type: "refComponent",
+                  attrs: {
+                    link: h.id,
+                    ref: "equation",
+                  },
+                })
+                .run();
+            },
+          };
+        }),
+      );
+      return resolver;
+    },
+  },
 ];
 
 const resolveSearch = async (query: string, editor: Editor) => {

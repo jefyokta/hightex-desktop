@@ -4,6 +4,7 @@ import {
   PreviewCardTrigger,
 } from "@/components/animate-ui/primitives/base/preview-card";
 import { TextRenderer } from "@/components/editor/text-renderer";
+import { Katex } from "@/editor/components/katex";
 
 import { Document } from "@/editor/document";
 import { Manager } from "@/editor/manager";
@@ -18,6 +19,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Counter } from "tjsn-parser";
 
+type RefProps = {
+  reference?: string;
+};
 export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
   const type = node.attrs.ref || "imageFigure";
 
@@ -26,7 +30,8 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
   const nodeByType: Record<string, React.FC<RefProps>> = {
     "head": HeadRef,
     "imageFigure": ImageRef,
-    "figureTable": TableRef
+    "figureTable": TableRef,
+    "equation": EquationRef
   } as const
 
   const Component = nodeByType[type as keyof typeof nodeByType]
@@ -44,13 +49,12 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
       data-ref={reference}
       data-type="ref-component"
     >
-      <Component reference={reference}/>
+      {Component &&
+        <Component reference={reference} />}
     </NodeViewWrapper>
   );
 };
-type RefProps = {
-  reference?: string;
-};
+
 
 const HeadRef = ({ reference }: RefProps) => {
   const [head, setHead] = useState<HeadingGraph>();
@@ -88,7 +92,7 @@ const HeadRef = ({ reference }: RefProps) => {
       off();
       offChapter();
     };
-  });
+  }, []);
 
   const num =
     typeof head?.numbering !== "undefined" ? Number(head.numbering) : 0;
@@ -227,6 +231,84 @@ const ImageRef = ({ reference }: RefProps) => {
             <span>{image ? `Gambar ${image.numbering} ` : ""}</span>
 
             <TextRenderer texts={image?.text ?? []} />
+          </div>
+        </div>
+      </PreviewCardPanel>
+    </PreviewCard>
+  );
+};
+
+const EquationRef = ({ reference }: RefProps) => {
+  const [equation, setEquation] = useState<EquationGraph>();
+
+  const nav = useNavigate();
+  const { setParams } = useParams();
+  useEffect(() => {
+    const resolveEqu = async (doc: Document) => {
+      const eq = (await doc.getEquations())
+        .find((h) => h.id == reference);
+      if (!eq)
+        throw new NodeNotFound("missing referenced heading #" + reference);
+
+      setEquation(eq);
+    };
+    const doc = Document.instance;
+    if (doc && doc?.ready) {
+      resolveEqu(doc);
+    }
+
+    const off = Manager.app.on("document:warmed", async ({ document }) => {
+      await resolveEqu(document);
+    });
+    const offChapter = Manager.app.on("chapter:update", async () => {
+      await resolveEqu(Document.instance!);
+    });
+
+    return () => {
+      off();
+      offChapter();
+    };
+  }, []);
+
+
+  const href = equation
+    ? `/document/${equation.chapterId.replace(".", "/")}?target=${reference}`
+    : "";
+
+  return (
+    <PreviewCard>
+      <PreviewCardTrigger
+        render={
+          <a
+            data-ref={reference}
+            data-href={href}
+            onClick={() => {
+              if (!equation) return;
+
+              if (equation.chapterId === Document.current?.getId()) {
+                Manager.scrollTo(reference!);
+                return;
+              }
+
+              setParams([reference]);
+
+              nav(href);
+            }}
+          >
+            {equation ? `Persamaan ${equation.numbering}` : "Loading"}
+          </a>
+        }
+      />
+
+      <PreviewCardPanel>
+        <div className="flex flex-col gap-2">
+
+          <div className="text-xs text-center">
+            <span>{equation ? `Persamaan ${equation.numbering} ` : ""}</span>
+
+            <div className="rounded border my-2">
+              <Katex latex={equation?.latex} />
+            </div>
           </div>
         </div>
       </PreviewCardPanel>
