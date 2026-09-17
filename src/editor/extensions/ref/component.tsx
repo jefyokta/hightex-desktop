@@ -106,7 +106,7 @@ const HeadRef = ({ reference }: RefProps) => {
     nav(`/document/${head?.chapterId.replace(".", "/")}`);
   }
   }
-  >LAMPIRAN {Counter.getAlpha(num)}</span>;
+  >Lampiran {Counter.getAlpha(num)}</span>;
 };
 
 const ImageRef = ({ reference }: RefProps) => {
