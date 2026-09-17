@@ -98,6 +98,16 @@ const CustomTableHeader = TableHeader.extend({
       setCellAlignmentCenter: () => TableCommands.setCellAlignment("center"),
     };
   },
+  parseHTML() {
+    return [
+      {
+        tag: "th",
+      },
+      {
+        tag: "td.table-header-like",
+      },
+    ];
+  },
 });
 
 const CustomTable = Table.extend({

@@ -15,12 +15,12 @@ export function RegisterMainError(tag: string) {
 
 export function reconstructMainError(
   err: unknown,
-  fallback: (message: string) => ApplicationError,
+  fallback: (message: string,err?:unknown) => ApplicationError,
 ): ApplicationError {
   const tag = ApplicationError.getMainErrorName(err);
   const rawMessage = ApplicationError.normilize(err);
   const Found = registry.get(tag || "");
-  if (!Found) return fallback(rawMessage);
+  if (!Found) return fallback(rawMessage,err);
 
   const message = rawMessage.split(":").slice(3).join(":");
   const e = new Found(message);

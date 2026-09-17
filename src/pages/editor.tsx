@@ -4,6 +4,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 
 import "./../css/editor.css";
 import "katex/dist/katex.css";
+
 import { useParams } from "react-router-dom";
 import { useParams as param } from "@/hooks/use-params";
 
@@ -170,6 +171,7 @@ const EditorComponent = () => {
     onCreate: async ({ editor }) => {
       let timer: any;
 
+      // Document.current?.setContent(fixed as any)
       const target = params.pop();
       if (target) {
         setTimeout(() => {
@@ -246,8 +248,9 @@ const EditorComponent = () => {
       });
     },
 
-    onContentError: (props) => {
+    onContentError: async (props) => {
       console.log(props.editor.getJSON(), props.error);
+      await window.hightex.saveContentError({content:props.editor.getJSON(),fileName:`${Document.instance?.id}-${Chapter.instance?.getId()}.json`})
       throw new EditorContentError(props.editor);
     },
 

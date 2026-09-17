@@ -121,7 +121,7 @@ export class HighTexImporter {
 
   async importChapters(documentId: string) {
     const keys = Object.keys(this.entries);
-
+    console.log(keys)
     const chapterKeys = keys.filter((k) => k.startsWith("files/chapters/"));
 
     for (const key of chapterKeys) {
@@ -134,6 +134,7 @@ export class HighTexImporter {
       );
 
       const content = normalizeChapterContent(JSON.parse(strFromU8(entry)));
+      console.log(content)
 
       const chapterId = `${documentId}.${chapterName}`;
 
