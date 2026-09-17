@@ -8,19 +8,21 @@ const SERVER_INFO_URL =
 
     const response = await fetch(SERVER_INFO_URL, {
       cache: "no-store",
+  
+      
     });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     }
+    // console.log(await response.text())
     const info = (await response.json()) as any;
-
+    console.log(info);
     const host:string|undefined =info.serverHost;
 
     if (!host) {
       throw new Error("serverHost is missing from info.json");
     }
-
-    
+    const paths= host+ ( host.endsWith("/") ? "" :"/")+"categories";
     const json =await fetch(host+(host.endsWith("/") ? "" :"/")+"/categories",{
         headers:{
             "content-type":"application/json"
