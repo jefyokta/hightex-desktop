@@ -22,11 +22,15 @@ const SERVER_INFO_URL =
     if (!host) {
       throw new Error("serverHost is missing from info.json");
     }
-    const json =await fetch(host+(host.endsWith("/") ? "" :"/")+"/categories",{
+    const paths= host+ ( host.endsWith("/") ? "" :"/")+"categories";
+    // console.log(paths)
+    const json =await fetch(paths,{
         headers:{
             "content-type":"application/json"
         }
-    }).then(r=>r.json());
+    }).then(r=>{
+      console.log(r)
+      return r.json()});
 
   const folder = path.resolve(process.cwd(), "resources");
   const output = path.join(folder, "category-backup.json");
