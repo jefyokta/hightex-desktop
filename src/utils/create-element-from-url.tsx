@@ -1,9 +1,7 @@
 export const createElementFromUrl = async (
   url: string,
 ): Promise<HTMLStyleElement | HTMLScriptElement | undefined> => {
-  console.log(url);
   const response = await fetch(url);
-
   if (!response.ok) return undefined;
 
   const contentType = response.headers.get("content-type") || "";

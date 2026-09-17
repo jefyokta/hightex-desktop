@@ -6,5 +6,5 @@
 - [ ] add ref to attachement headers
 - [ ] equation ref
 - [x] line between names
-- [ ] multiple advisor support
+- [x] multiple advisor support
 - [ ]

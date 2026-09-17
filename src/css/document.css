@@ -1,4 +1,5 @@
 /* pge */
+@import "katex/dist/katex.min.css";
 
 @page introduction {
   @bottom-center {
@@ -628,7 +629,6 @@ cite {
 .static-chapter h1 {
   text-transform: uppercase;
 }
-
 @media print {
   .no-print {
     display: none !important;
