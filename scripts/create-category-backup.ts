@@ -22,7 +22,6 @@ const SERVER_INFO_URL =
     if (!host) {
       throw new Error("serverHost is missing from info.json");
     }
-    const paths= host+ ( host.endsWith("/") ? "" :"/")+"categories";
     const json =await fetch(host+(host.endsWith("/") ? "" :"/")+"/categories",{
         headers:{
             "content-type":"application/json"
