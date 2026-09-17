@@ -515,5 +515,21 @@
     "delete_error": "Gagal menghapus snapshot",
     "delete_failed": "Snapshot tidak bisa dihapus.",
     "delete_snapshot": "Hapus snapshot"
+  },
+  "error": {
+    "unexpected": "Kesalahan Tidak Terduga",
+    "report": "Laporkan",
+    "reporting": "Melaporkan...",
+    "report_sent": "Laporan error berhasil dikirim",
+    "report_failed": "Gagal mengirim laporan error otomatis",
+    "manual_report_title": "Pelaporan Error Manual",
+    "manual_report_desc": "Laporan otomatis gagal dikirim ke server. Anda dapat menyalin detail error di bawah ini dan melaporkannya ke GitHub Issues agar segera diperbaiki.",
+    "copy_error": "Salin Pesan Error",
+    "copied": "Tersalin",
+    "copied_toast": "Detail error berhasil disalin ke clipboard!",
+    "copy_failed": "Gagal menyalin ke clipboard",
+    "report_to_github": "Laporkan ke GitHub Issues",
+    "close": "Tutup",
+    "no_description": "Tidak ada deskripsi error tersedia"
   }
 }
