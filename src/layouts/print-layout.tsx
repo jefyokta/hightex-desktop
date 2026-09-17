@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import css from "@/css/document.css?url";
 import tocCss from "@/css/toc.css?url";
 import fontCss from "@/assets/fonts/style.css?url";
-import katexCSS from "katex/dist/katex.css?url";
+import katexCSS from "katex/dist/katex.min.css?url";
 import codeCss from "highlight.js/styles/github-dark.css?url";
 import { PrintableProvider } from "@/hooks/use-printable";
 import { createElementFromUrl } from "@/utils/create-element-from-url";

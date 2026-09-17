@@ -1,4 +1,5 @@
 /* pge */
+@import "katex/dist/katex.min.css";
 
 @page introduction {
   @bottom-center {
@@ -54,6 +55,9 @@ img {
 }
 pre code * {
   white-space: pre !important;
+}
+a.equation::before {
+  content: "" !important;
 }
 
 /* .attachment h1 {} */
@@ -279,6 +283,9 @@ figure[data-type="figureTable"] > table {
   word-break: break-word;
 }
 
+.content thead {
+  border-bottom: 1px solid black;
+}
 .content th,
 .content td {
   text-align: left;
@@ -567,7 +574,7 @@ figure thead tr:last-child {
   content: "" !important;
 }
 
-.content .equation::before {
+.content div.equation::before {
   content: "(" counter(eq-counter) ")";
   height: 100%;
   display: flex;
@@ -625,7 +632,6 @@ cite {
 .static-chapter h1 {
   text-transform: uppercase;
 }
-
 @media print {
   .no-print {
     display: none !important;

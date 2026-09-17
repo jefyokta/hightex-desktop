@@ -12,6 +12,7 @@ import { Copy, Trash2 } from "lucide-react";
 
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { Document } from "@/editor/document";
 
 export const MathBlockComponent = ({
   node,
@@ -23,6 +24,8 @@ export const MathBlockComponent = ({
 
   const [latex, setLatex] = useState(node.attrs.latex ?? "");
   const [open, setOpen] = useState(false);
+
+  const [pos, setPos] = useState(0)
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -40,6 +43,24 @@ export const MathBlockComponent = ({
       editor.view.dom.blur();
     });
   }, [open]);
+
+  const handler = async () => {
+    const eqs = await Document.instance?.getEquations();
+
+    const graph = eqs?.find(e => e.id === node.attrs.id);
+    if (graph) {
+      setPos(graph.pos)
+    }
+
+  }
+  useEffect(() => {
+    editor.on("update", handler);
+    return () => { editor.off("update", handler) }
+  }, [])
+
+  useEffect(()=>{
+    handler()
+  },[])
   const update = () => {
     return setTimeout(() => {
       if (latex !== node.attrs.latex) {
@@ -71,7 +92,7 @@ export const MathBlockComponent = ({
                   ref={containerRef}
                   className="pointer-events-none select-none"
                 />
-                <span className="text-sm text-neutral-500">(1)</span>
+                <span className="text-sm text-neutral-500">({pos})</span>
               </div>
             </button>
           </PopoverTrigger>

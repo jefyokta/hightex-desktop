@@ -14,6 +14,10 @@
     {
       "from": "public.key",
       "to": "public.key"
+    },
+    {
+      "from": "resources/category-backup.json",
+      "to": "category-backup.json"
     }
   ],
 
