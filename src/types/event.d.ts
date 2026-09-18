@@ -1,5 +1,6 @@
 import type { Chapter } from "@/editor/chapter";
 import { Document } from "@/editor/document";
+import { JSONContent } from "@tiptap/core";
 
 declare global {
   interface ChapterUpdateEvent extends ChapterEvent {
@@ -25,6 +26,11 @@ declare global {
     name: string;
     value: string;
   }
+  interface MigratingDeprecation {
+    fixed:number,
+    node:JSONContent,
+    id:string
+  }
   interface AppEvents {
     "chapter:update": ChapterUpdateEvent;
     "chapter:created": ChapterCreatedEvent;
@@ -33,6 +39,7 @@ declare global {
     "chapter:commit": ChapterCommitEvent;
     "document:updated": DocumentUpdatedEvent;
     "var:updated": VarUpdated;
+    "migrating:deprecation":MigratingDeprecation
   }
 }
 

@@ -29,6 +29,7 @@ import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { TableMenu } from "@/editor/components/table-menu";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
+import { toast } from "sonner";
 
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
@@ -37,6 +38,17 @@ export const Editor: React.FC = () => {
 
   const [loaded, setLoaded] = useState(false);
   const [config, setConfig] = useState<ConfigShape | null>(null);
+
+  useEffect(() => {
+    const off = Manager.app.on("migrating:deprecation", ({ fixed, node, id }) => {
+      toast.info(`Auto Migrating for deprecated nodes`, { 
+        id,
+        description:`found '${node.type}', found ${fixed} in totals`
+       })
+    })
+
+    return () => { off() }
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -250,7 +262,7 @@ const EditorComponent = () => {
 
     onContentError: async (props) => {
       console.log(props.editor.getJSON(), props.error);
-      await window.hightex.saveContentError({content:props.editor.getJSON(),fileName:`${Document.instance?.id}-${Chapter.instance?.getId()}.json`})
+      await window.hightex.saveContentError({ content: props.editor.getJSON(), fileName: `${Document.instance?.id}-${Chapter.instance?.getId()}.json` })
       throw new EditorContentError(props.editor);
     },
 
@@ -288,11 +300,10 @@ const ZoomUI = ({
 }) => {
   return (
     <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${
-        visible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-3 pointer-events-none"
-      }`}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${visible
+        ? "opacity-100 translate-y-0"
+        : "opacity-0 translate-y-3 pointer-events-none"
+        }`}
     >
       <div className="flex items-center gap-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 shadow-xl shadow-black/5 dark:shadow-black/30 rounded-2xl px-3 py-2 transition-colors duration-300">
         <button

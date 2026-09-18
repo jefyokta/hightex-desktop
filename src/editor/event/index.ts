@@ -4,6 +4,7 @@ import { EditorState } from "@tiptap/pm/state";
 import { Chapter } from "../chapter/chapter";
 import { ContentFixer } from "@/utils/content-fixer";
 import { convertTableHeaderLikeCells } from "@/utils/convert-table-header-like";
+import { migrateGridToTable } from "@/utils/migrate-grid-to-table";
 export const events = {
   create: ({ editor }: { editor: Editor }) => {
     queueMicrotask(async () => {
@@ -25,7 +26,9 @@ export const events = {
 
       let content = isEmpty() ? emptyDoc : ch;
 
+      content = await migrateGridToTable(Array.isArray(content)? content : [content])
       content = ContentFixer(content, editor.state.schema as any);
+
 
       if (editor.isDestroyed) return;
       editor.commands.setContent(content, {
