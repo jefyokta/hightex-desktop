@@ -24,7 +24,6 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
       className="cover"
       {...props}
     >
-      {" "}
       <div>
         <div
           style={{
@@ -32,7 +31,7 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
             fontWeight: "bold",
             textTransform: "uppercase",
             lineHeight: "16.8pt",
-            marginBottom: "1.5cm",
+            marginBottom: "1.2cm",
           }}
         >
           <ParsedItalic text={doc.title} />
@@ -44,7 +43,7 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
             fontWeight: "bold",
             textTransform: "uppercase",
             lineHeight: "19.2pt",
-            marginBottom: "1.5cm",
+            marginBottom: "1.2cm",
           }}
         >
           {docType == "intern"
@@ -58,7 +57,7 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
           id="sel"
           style={{
             fontSize: "11pt",
-            marginBottom: "1.5cm",
+            marginBottom: "1.2cm",
             lineHeight: "13.2pt",
           }}
         >
@@ -72,11 +71,11 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
         <div
           style={{
             fontSize: "13.5pt",
-            marginBottom: "1cm",
+            marginBottom: "0",
             lineHeight: "16.2pt",
           }}
         >
-          <div style={{ marginBottom: "1cm" }}>Oleh:</div>
+          <div style={{ marginBottom: "0.8cm" }}>Oleh:</div>
 
           <span
             id="cover-author"
@@ -105,7 +104,10 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           justifyContent: "center",
+          flex: 1,
+          width: "100%",
         }}
       >
         <img
@@ -113,8 +115,9 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
           data-static-image="logo-uin"
           alt="uin-suska"
           style={{
-            width: "5.2cm",
-            height: "5.2cm",
+            width: "5cm",
+            height: "5cm",
+            objectFit: "contain",
           }}
         />
       </div>
@@ -123,6 +126,7 @@ export const Cover = ({ ...props }: HTMLAttributes<any>) => {
           fontSize: "13.5pt",
           textTransform: "uppercase",
           fontWeight: "bold",
+          lineHeight: "17pt",
         }}
       >
         FAKULTAS SAINS DAN TEKNOLOGI
