@@ -1,6 +1,12 @@
 # Contributing Guide
 
 Thank you for contributing to **HighTex Desktop**. Please follow the conventions below to keep the codebase consistent, maintainable, and easy to review.
+## Pinned
+
+Please stop prompting such like `find any issue in this project and make a PR to fix it` to your agent!
+
+It's not forbidden to use AI, but please make sure you really understand the problem and how it should be fixed before making a PR.
+
 
 ## Code Quality
 
