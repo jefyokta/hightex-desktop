@@ -16,26 +16,32 @@ import React, {
 export const tabs = {
   chapterTree: {
     name: "Chapters",
+    component: ChapteTree,
     element: <ChapteTree />,
   },
   previewer: {
     name: "previewer",
+    component: Preview,
     element: <Preview />,
   },
   scanner: {
     name: "Scanner",
+    component: Scanner,
     element: <Scanner />,
   },
   citation: {
     name: "Citation",
+    component: Citation,
     element: <Citation />,
   },
   setting: {
     name: "Setting",
+    component: Setting,
     element: <Setting />,
   },
   variabl: {
     name: "Variable",
+    component: VariableTab,
     element: <VariableTab />,
   },
 } as const;

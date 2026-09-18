@@ -47,15 +47,15 @@ export const ChapteTree = () => {
 const ChapterNode = ({ chapter }: { chapter: Chapter }) => {
   const nav = useNavigate();
   const [headings, setHeadings] = useState<HeadingGraph[]>(
-    chapter.graph.data.headings || [],
+    chapter.graph?.data?.headings || [],
   );
 
   useEffect(() => {
     const off = Manager.app.on("chapter:update", async ({ chapterId }) => {
       if (chapterId !== chapter.getId()) return;
 
-      const data = await chapter.graph.sync();
-      setHeadings([...(data.headings || [])]);
+      const data = await chapter.graph?.sync();
+      setHeadings([...(data?.headings || [])]);
     });
 
     return () => off();
@@ -76,15 +76,15 @@ const ChapterNode = ({ chapter }: { chapter: Chapter }) => {
       <FolderTrigger>
         <span className="text-xs truncate!">
           {chapter.query.isNormalChapter()
-            ? `${chapter.getChapter()}. ${chapter.title}`
-            : chapter.title.toUpperCase()}
+            ? `${chapter.getChapter()}. ${chapter.title || ""}`
+            : (chapter.title || "").toUpperCase()}
         </span>
       </FolderTrigger>
 
       <FolderContent>
         <SubFiles>
           {tree.map((node) => (
-            <TreeNode key={node.id} node={node} />
+            <TreeNode key={node.id || `tree-${node.numbering}`} node={node} />
           ))}
         </SubFiles>
       </FolderContent>
@@ -95,31 +95,38 @@ const ChapterNode = ({ chapter }: { chapter: Chapter }) => {
 type Tree = HeadingGraph & { children: Tree[] };
 
 const TreeNode = ({ node }: { node: Tree }) => {
-  const hasChildren = node.children?.length > 0;
+  const hasChildren = (node.children?.length ?? 0) > 0;
   const { setParams } = useParams();
   const nav = useNavigate();
 
   const handleClick = (_: React.MouseEvent) => {
     if (node.chapterId == Document.current?.getId()) {
-      Manager.scrollTo(node.id);
+      if (node.id) Manager.scrollTo(node.id);
       return;
     }
-    setParams([node.id]);
-    const target = "/document/" + node.chapterId.replace(".", "/");
+    if (node.id) setParams([node.id]);
+    const target = "/document/" + (node.chapterId || "").replace(".", "/");
     nav(target);
   };
 
+  const isAttachmentH1 =
+    (node.chapterId?.includes(".attachment") ||
+      node.chapterId?.split?.(".")?.[1] === "attachment") &&
+    node.level === 1;
+
+  const numbering = isAttachmentH1
+    ? `LAMPIRAN ${Counter.getAlpha(Number(node.numbering) || 1)}`
+    : (node.numbering ?? "");
+
+  const nodeId = node.id || `node-${numbering}-${node.level}`;
+
   if (!hasChildren) {
-    const numbering =
-      node.chapterId.split(".")[1] == "attachment" && node.level == 1
-        ? `LAMPIRAN ${Counter.getAlpha(Number(node.numbering))}`
-        : node.numbering;
     return (
       <div onClick={handleClick} className="cursor-pointer text-xs!">
         <FileItem>
           <div className="flex gap-2 truncate">
-            <span>{numbering}</span>
-            <TextRenderer texts={node.text} />
+            {numbering ? <span>{numbering}</span> : null}
+            <TextRenderer texts={node.text || []} />
           </div>
         </FileItem>
       </div>
@@ -128,18 +135,18 @@ const TreeNode = ({ node }: { node: Tree }) => {
 
   return (
     <div onClick={handleClick} className="cursor-pointer text-xs!">
-      <FolderItem value={node.id}>
+      <FolderItem value={nodeId}>
         <FolderTrigger onClick={(e) => e.stopPropagation()}>
           <div className="flex gap-2 truncate">
-            <span>{node.numbering}</span>
-            <TextRenderer texts={node.text} />
+            {numbering ? <span>{numbering}</span> : null}
+            <TextRenderer texts={node.text || []} />
           </div>
         </FolderTrigger>
 
         <FolderContent>
           <SubFiles>
             {node.children.map((child: any) => (
-              <TreeNode key={child.id} node={child} />
+              <TreeNode key={child.id || `child-${Math.random()}`} node={child} />
             ))}
           </SubFiles>
         </FolderContent>
@@ -152,8 +159,9 @@ const buildTree = (list: HeadingGraph[]) => {
   const root: any[] = [];
   const stack: any[] = [];
 
-  for (const item of list) {
-    const node = { ...item, children: [] };
+  for (const item of list || []) {
+    if (!item) continue;
+    const node = { ...item, level: item.level || 1, children: [] };
 
     while (stack.length && stack[stack.length - 1].level >= node.level) {
       stack.pop();
