@@ -8,9 +8,9 @@ figcaption {
 .page li {
   margin-left: 6pt;
 }
-.page h4 {
+/* .page h4 {
   margin-left: 1.27cm;
-}
+} */
 .node-grid * {
   border: 0 !important;
 }
@@ -149,6 +149,9 @@ th.right p {
 
 tr:last-of-type {
   border-bottom: 1px solid black;
+}
+.page h4 ,.page h4 *, .page h4 p{
+  text-indent: 0 !important;
 }
 .dark tr:last-of-type {
   border-bottom: 1px solid white;
