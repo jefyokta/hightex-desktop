@@ -313,7 +313,7 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   padding: 3cm 3cm 4cm 4cm;
   font-family: "Times New Roman", serif;
   line-height: 1.5;
-  overflow-y: hidden;
+  overflow: visible; /* Fix issue #36: prevent content from disappearing */
   box-sizing: border-box;
   page-break-after: always;
   font-size: 12pt;
