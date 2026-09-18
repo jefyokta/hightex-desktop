@@ -24,8 +24,10 @@ import {
 import {
   AlertCircle,
   CheckCircle,
+  Clock,
   Download,
   Folder,
+  HardDrive,
   InfoIcon,
   Loader2,
   Monitor,
@@ -33,6 +35,7 @@ import {
   RefreshCw,
   Sun,
 } from "lucide-react";
+import { AutoBackupService } from "@/services/auto-backup-service";
 import { Input } from "@/components/ui/input";
 import {
   Tooltip,
@@ -49,6 +52,7 @@ export const Settings = () => {
 
   const [theme, setTheme] = useState<ThemeMode>("system");
   const [language, setLanguage] = useState<SupportedLanguage>("en");
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
   useEffect(() => {
     const init = window.config.get();
@@ -86,6 +90,39 @@ export const Settings = () => {
     await patchConfig({
       language: mode,
     });
+  };
+
+  const handleManualBackup = async () => {
+    setIsBackingUp(true);
+    const toastId = toast.loading(t("settings.backup.backing_up"));
+    try {
+      const result = await AutoBackupService.performBackup({
+        isManual: true,
+        notify: false,
+      });
+
+      if (result.success) {
+        toast.success(
+          t("settings.backup.notify_success", { count: result.count }),
+          {
+            id: toastId,
+            description: result.folder,
+            action: result.folder
+              ? {
+                  label: t("settings.backup.open_folder"),
+                  onClick: () => window.file?.openPath?.(result.folder!),
+                }
+              : undefined,
+          },
+        );
+      } else {
+        toast.error(result.error || "Backup failed", { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Backup failed", { id: toastId });
+    } finally {
+      setIsBackingUp(false);
+    }
   };
 
   if (!config) return null;
@@ -293,6 +330,180 @@ export const Settings = () => {
                 });
               }}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.backup.title")}</CardTitle>
+          <CardDescription>
+            {t("settings.backup.description")}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <SettingSwitch
+            label={t("settings.backup.enable.label")}
+            description={t("settings.backup.enable.description")}
+            value={config.backup?.enabled ?? false}
+            onChange={async (val) => {
+              await patchConfig({
+                backup: {
+                  ...config.backup!,
+                  enabled: val,
+                },
+              });
+            }}
+          />
+
+          <div className="space-y-2">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label>{t("settings.backup.folder.label")}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t("settings.backup.folder.description")}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const folder = await window.dialog.selectFolder();
+                  if (folder) {
+                    await patchConfig({
+                      backup: {
+                        ...config.backup!,
+                        folder,
+                      },
+                    });
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-neutral-800 text-white px-3 py-2 text-xs hover:bg-neutral-800 dark:hover:bg-neutral-700 transition"
+              >
+                <Folder size={14} />
+                {t("settings.backup.choose_folder")}
+              </button>
+            </div>
+
+            <Input
+              value={config.backup?.folder ?? ""}
+              onChange={async (e) => {
+                await patchConfig({
+                  backup: {
+                    ...config.backup!,
+                    folder: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>{t("settings.backup.interval.label")}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.backup.interval.description")}
+              </p>
+            </div>
+
+            <Select
+              value={String(config.backup?.intervalMinutes ?? 30)}
+              onValueChange={async (val) => {
+                await patchConfig({
+                  backup: {
+                    ...config.backup!,
+                    intervalMinutes: Number(val) || 30,
+                  },
+                });
+              }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">
+                  {t("settings.backup.intervals.10")}
+                </SelectItem>
+                <SelectItem value="30">
+                  {t("settings.backup.intervals.30")}
+                </SelectItem>
+                <SelectItem value="60">
+                  {t("settings.backup.intervals.60")}
+                </SelectItem>
+                <SelectItem value="120">
+                  {t("settings.backup.intervals.120")}
+                </SelectItem>
+                <SelectItem value="360">
+                  {t("settings.backup.intervals.360")}
+                </SelectItem>
+                <SelectItem value="1440">
+                  {t("settings.backup.intervals.1440")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <SettingSwitch
+            label={t("settings.backup.timestamp.label")}
+            description={t("settings.backup.timestamp.description")}
+            value={config.backup?.includeTimestamp ?? false}
+            onChange={async (val) => {
+              await patchConfig({
+                backup: {
+                  ...config.backup!,
+                  includeTimestamp: val,
+                },
+              });
+            }}
+          />
+
+          <SettingSwitch
+            label={t("settings.backup.notify.label")}
+            description={t("settings.backup.notify.description")}
+            value={config.backup?.notifyOnSuccess ?? false}
+            onChange={async (val) => {
+              await patchConfig({
+                backup: {
+                  ...config.backup!,
+                  notifyOnSuccess: val,
+                },
+              });
+            }}
+          />
+
+          <Separator />
+
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock size={14} />
+              <span>
+                {t("settings.backup.last_backup")}:{" "}
+                {config.backup?.lastBackupAt
+                  ? new Date(config.backup.lastBackupAt).toLocaleString()
+                  : t("settings.backup.never")}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isBackingUp}
+              onClick={handleManualBackup}
+              className="gap-2"
+            >
+              {isBackingUp ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  {t("settings.backup.backing_up")}
+                </>
+              ) : (
+                <>
+                  <HardDrive size={14} />
+                  {t("settings.backup.backup_now")}
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>

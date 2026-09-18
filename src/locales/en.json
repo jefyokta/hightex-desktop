@@ -59,6 +59,45 @@
       },
       "choose_folder": "Choose Folder"
     },
+    "backup": {
+      "title": "Automatic Backup",
+      "description": "Automatically backup project documents in the background for data security.",
+      "enable": {
+        "label": "Enable Automatic Backup",
+        "description": "Periodically export all local documents to the designated backup folder without prompts."
+      },
+      "folder": {
+        "label": "Backup Storage Folder",
+        "description": "Directory where project backup files will be saved."
+      },
+      "choose_folder": "Choose Folder",
+      "open_folder": "Open Folder",
+      "interval": {
+        "label": "Backup Interval",
+        "description": "How often HighTex automatically performs document backup."
+      },
+      "timestamp": {
+        "label": "Include Timestamp in Filename",
+        "description": "Save separate dated snapshots instead of overwriting the previous file."
+      },
+      "notify": {
+        "label": "Completion Notification",
+        "description": "Show a notification whenever an automatic backup completes successfully."
+      },
+      "notify_success": "{count} documents successfully backed up",
+      "backup_now": "Backup Now",
+      "backing_up": "Backing up...",
+      "last_backup": "Last backup",
+      "never": "Never",
+      "intervals": {
+        "10": "Every 10 minutes",
+        "30": "Every 30 minutes",
+        "60": "Every 1 hour",
+        "120": "Every 2 hours",
+        "360": "Every 6 hours",
+        "1440": "Every 24 hours"
+      }
+    },
     "zotero": {
       "zotero": "Zotero",
       "description": "Connect to your local Zotero client for direct reference import.",

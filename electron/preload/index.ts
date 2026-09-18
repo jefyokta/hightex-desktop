@@ -248,4 +248,10 @@ contextBridge.exposeInMainWorld("file", {
   async save(fileName: string, file: Uint8Array) {
     return ipcRenderer.invoke("file:save", fileName, file);
   },
+  showInFolder(filePath: string) {
+    return ipcRenderer.invoke("file:showInFolder", filePath);
+  },
+  openPath(filePath: string) {
+    return ipcRenderer.invoke("file:openPath", filePath);
+  },
 } satisfies Window["file"]);

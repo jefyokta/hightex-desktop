@@ -20,6 +20,7 @@ declare global {
 
   interface DocumentProfile extends Profile {
     isCloud: boolean;
+    advisors?: Mentor[];
   }
 
   interface ProfileAPI {
@@ -58,6 +59,14 @@ declare global {
       enabled: boolean;
       host: string;
       port: number;
+    };
+    backup?: {
+      enabled: boolean;
+      folder: string;
+      intervalMinutes: number;
+      includeTimestamp: boolean;
+      notifyOnSuccess: boolean;
+      lastBackupAt?: number;
     };
   };
 
@@ -240,5 +249,7 @@ declare global {
 
   interface FileApi {
     save(fileName: string, file: Uint8Array): Promise<string>;
+    showInFolder(filePath: string): Promise<boolean>;
+    openPath(filePath: string): Promise<boolean>;
   }
 }

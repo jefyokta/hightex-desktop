@@ -59,6 +59,45 @@
       },
       "choose_folder": "Pilih Folder"
     },
+    "backup": {
+      "title": "Pencadangan Otomatis",
+      "description": "Cadangkan dokumen proyek secara berkala di latar belakang untuk menjaga keamanan data.",
+      "enable": {
+        "label": "Aktifkan Pencadangan Otomatis",
+        "description": "Mengekspor seluruh dokumen lokal ke folder penyimpanan secara berkala tanpa dialog konfirmasi."
+      },
+      "folder": {
+        "label": "Folder Penyimpanan Cadangan",
+        "description": "Direktori tempat berkas cadangan proyek akan disimpan."
+      },
+      "choose_folder": "Pilih Folder",
+      "open_folder": "Buka Folder",
+      "interval": {
+        "label": "Interval Pencadangan",
+        "description": "Frekuensi HighTex melakukan pencadangan otomatis dokumen."
+      },
+      "timestamp": {
+        "label": "Sertakan Waktu pada Nama Berkas",
+        "description": "Simpan riwayat salinan terpisah dengan tanggal dan waktu daripada menimpa berkas sebelumnya."
+      },
+      "notify": {
+        "label": "Pemberitahuan Selesai",
+        "description": "Tampilkan pemberitahuan setiap kali proses pencadangan otomatis selesai."
+      },
+      "notify_success": "{count} dokumen berhasil dicadangkan",
+      "backup_now": "Cadangkan Sekarang",
+      "backing_up": "Mencadangkan...",
+      "last_backup": "Pencadangan terakhir",
+      "never": "Belum pernah",
+      "intervals": {
+        "10": "Setiap 10 menit",
+        "30": "Setiap 30 menit",
+        "60": "Setiap 1 jam",
+        "120": "Setiap 2 jam",
+        "360": "Setiap 6 jam",
+        "1440": "Setiap 24 jam"
+      }
+    },
     "zotero": {
       "zotero": "Zotero",
       "description": "Hubungkan ke Zotero lokal kamu untuk impor referensi langsung.",
