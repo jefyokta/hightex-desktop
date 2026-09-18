@@ -41,7 +41,10 @@ export const Setting = () => {
     let mounted = true;
 
     const load = async () => {
-      const initial = await db.documents.get(Document.instance!.id);
+      const docId = Document.instance?.id ?? Document.current?.getDocumentId();
+      if (!docId) return;
+
+      const initial = await db.documents.get(docId);
 
       if (!initial || !mounted) return;
 
@@ -49,7 +52,7 @@ export const Setting = () => {
 
       if (!mounted) return;
 
-      setCategories(ct);
+      setCategories(ct || []);
       setDoc(initial);
       setOriginal(JSON.stringify(initial));
     };
@@ -83,11 +86,14 @@ export const Setting = () => {
 
   if (!doc) return null;
 
+  const docConfig = doc.config ?? ({} as NonNullable<HighTexDocument["config"]>);
+  const docKeywords = doc.keywords ?? { indonesian: [], english: [] };
+
   const selectedCategory = categories.find(
     (category) => String(category.id) === String(doc.category),
   );
   const isInternDoc =
-    selectedCategory?.variant === "intern" || Boolean(doc.config?.intern);
+    selectedCategory?.variant === "intern" || Boolean(docConfig?.intern);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -146,7 +152,7 @@ export const Setting = () => {
             </label>
 
             <Select
-              value={doc.category?.toString() ?? 1}
+              value={String(doc.category ?? "1")}
               onValueChange={(value) =>
                 setDoc((prev) => {
                   const nextCategory = categories.find(
@@ -180,7 +186,7 @@ export const Setting = () => {
                       key={category.id}
                       value={category.id.toString()}
                     >
-                      {category.name}
+                      {category.name}{category.variant ? ` - ${t(`common.${category.variant}`)}` : ""}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -192,7 +198,7 @@ export const Setting = () => {
         <Section title={t("editor.expandable.setting.keywords")}>
           <KeywordBox
             label={t("editor.expandable.setting.indonesian")}
-            values={doc.keywords.indonesian}
+            values={docKeywords.indonesian ?? []}
             onChange={(values) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -207,7 +213,7 @@ export const Setting = () => {
 
           <KeywordBox
             label={t("editor.expandable.setting.english")}
-            values={doc.keywords.english}
+            values={docKeywords.english ?? []}
             onChange={(values) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -226,7 +232,7 @@ export const Setting = () => {
         >
           <Field
             label={t("editor.expandable.setting.leaded_by")}
-            value={doc.config.leader ?? ""}
+            value={docConfig.leader ?? ""}
             onChange={(leader) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -240,7 +246,7 @@ export const Setting = () => {
 
           <Field
             label={t("editor.expandable.setting.primary_examiner_name")}
-            value={doc.config.member_1 ?? ""}
+            value={docConfig.member_1 ?? ""}
             onChange={(member_1) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -254,7 +260,7 @@ export const Setting = () => {
 
           <Field
             label={t("editor.expandable.setting.secondary_examiner_name")}
-            value={doc.config.member_2 ?? ""}
+            value={docConfig.member_2 ?? ""}
             onChange={(member_2) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -268,7 +274,7 @@ export const Setting = () => {
 
           <Field
             label={t("editor.expandable.setting.kaprodi_name")}
-            value={doc.config.kaprodi?.name ?? ""}
+            value={docConfig.kaprodi?.name ?? ""}
             onChange={(name) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -285,7 +291,7 @@ export const Setting = () => {
 
           <Field
             label={t("editor.expandable.setting.kaprodi_nip")}
-            value={doc.config.kaprodi?.nip ?? ""}
+            value={docConfig.kaprodi?.nip ?? ""}
             onChange={(nip) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -302,7 +308,7 @@ export const Setting = () => {
 
           <Field
             label={t("editor.expandable.setting.dekan_name")}
-            value={doc.config.dekan?.name ?? ""}
+            value={docConfig.dekan?.name ?? ""}
             onChange={(name) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -319,7 +325,7 @@ export const Setting = () => {
 
           <Field
             label={t("editor.expandable.setting.dekan_nip")}
-            value={doc.config.dekan?.nip ?? ""}
+            value={docConfig.dekan?.nip ?? ""}
             onChange={(nip) =>
               setDoc((prev) => ({
                 ...prev!,
@@ -338,7 +344,7 @@ export const Setting = () => {
         <Section title={t("editor.expandable.setting.thesis_dates")}>
           <DatePickerInput
             label={t("editor.expandable.setting.consent_date")}
-            date={doc.config.consentDate}
+            date={docConfig.consentDate}
             setDate={(date) => {
               setDoc((prv) => {
                 return {
@@ -354,7 +360,7 @@ export const Setting = () => {
 
           <DatePickerInput
             label={t("editor.expandable.setting.validity_date")}
-            date={doc.config.validityDate}
+            date={docConfig.validityDate}
             setDate={(date) => {
               setDoc((prv) => {
                 return {
@@ -370,7 +376,7 @@ export const Setting = () => {
 
           <DatePickerInput
             label={t("editor.expandable.setting.statement_date")}
-            date={doc.config.statementDate}
+            date={docConfig.statementDate}
             setDate={(date) => {
               setDoc((prv) => {
                 return {
@@ -389,7 +395,7 @@ export const Setting = () => {
           <Section title={t("editor.expandable.setting.intern_document_info")}>
             <Field
               label={t("editor.expandable.setting.onsite_location")}
-              value={doc.config.intern?.onsite_at ?? ""}
+              value={docConfig.intern?.onsite_at ?? ""}
               onChange={(onsite_at) =>
                 setDoc((prev) => ({
                   ...prev!,
@@ -406,7 +412,7 @@ export const Setting = () => {
 
             <Field
               label={t("editor.expandable.setting.internship_advisor_name")}
-              value={doc.config.intern?.advisor?.name ?? ""}
+              value={docConfig.intern?.advisor?.name ?? ""}
               onChange={(name) =>
                 setDoc((prev) => ({
                   ...prev!,
@@ -426,7 +432,7 @@ export const Setting = () => {
 
             <Field
               label={t("editor.expandable.setting.internship_advisor_nip")}
-              value={doc.config.intern?.advisor?.nip ?? ""}
+              value={docConfig.intern?.advisor?.nip ?? ""}
               onChange={(nip) =>
                 setDoc((prev) => ({
                   ...prev!,
@@ -446,7 +452,7 @@ export const Setting = () => {
 
             <DatePickerInput
               label={t("editor.expandable.setting.intern_validity_date")}
-              date={doc.config.intern?.validity}
+              date={docConfig.intern?.validity}
               setDate={(date) => {
                 setDoc((prv) => ({
                   ...prv!,
@@ -509,33 +515,34 @@ const Field = ({
 
 const KeywordBox = ({
   label,
-  values,
+  values = [],
   onChange,
   render,
 }: {
   label: string;
-  values: string[];
+  values?: string[];
   onChange: (values: string[]) => void;
   render: (value: string) => React.ReactNode;
 }) => {
   const [input, setInput] = useState("");
+  const list = Array.isArray(values) ? values : [];
 
   const add = () => {
     const value = input.trim();
 
     if (!value) return;
 
-    if (values.includes(value)) return;
+    if (list.includes(value)) return;
 
-    if (values.length >= 5) return;
+    if (list.length >= 5) return;
 
-    onChange([...values, value]);
+    onChange([...list, value]);
 
     setInput("");
   };
 
   const remove = (value: string) => {
-    onChange(values.filter((item) => item !== value));
+    onChange(list.filter((item) => item !== value));
   };
 
   return (
@@ -543,7 +550,7 @@ const KeywordBox = ({
       <label className="text-xs text-muted-foreground">{label}</label>
 
       <div className="flex flex-wrap gap-2">
-        {values.map((value) => (
+        {list.map((value) => (
           <Badge key={value} variant="secondary" className="gap-1 px-2 py-1">
             {render(value)}
 

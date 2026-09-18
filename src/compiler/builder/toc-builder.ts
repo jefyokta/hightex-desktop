@@ -111,10 +111,12 @@ export class TocBuilder {
       );
       if (pagedHeading) {
         const pagedPage = pagedHeading.closest<HTMLElement>(".pagedjs_page");
+        const pageNumEl =
+          pagedPage?.querySelector(
+            ".pagedjs_margin-bottom-center.hasContent .pagedjs_margin-content, .pagedjs_margin-bottom-right.hasContent .pagedjs_margin-content, .hasContent .pagedjs_margin-content",
+          ) ?? pagedPage?.querySelector(".hasContent");
 
-        pageEl.textContent = (
-          pagedPage?.querySelector(".hasContent")?.textContent ?? ""
-        ).trim();
+        pageEl.textContent = (pageNumEl?.textContent ?? "").trim();
       }
     });
     await TocBuilder.fillLeaders();

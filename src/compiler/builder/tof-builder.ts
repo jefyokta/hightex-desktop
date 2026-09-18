@@ -105,9 +105,12 @@ export class TOFBuilder {
 
       if (pagedCaption) {
         const pagedPage = pagedCaption.closest<HTMLElement>(".pagedjs_page");
-        pageEl.textContent = (
-          pagedPage?.querySelector(".hasContent")?.textContent ?? ""
-        ).trim();
+        const pageNumEl =
+          pagedPage?.querySelector(
+            ".pagedjs_margin-bottom-center.hasContent .pagedjs_margin-content, .pagedjs_margin-bottom-right.hasContent .pagedjs_margin-content, .hasContent .pagedjs_margin-content",
+          ) ?? pagedPage?.querySelector(".hasContent");
+
+        pageEl.textContent = (pageNumEl?.textContent ?? "").trim();
       }
     });
 

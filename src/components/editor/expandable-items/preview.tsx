@@ -213,12 +213,13 @@ export const Preview = () => {
           key={frameKey}
           src={
             scope === "current"
-              ? `/print/${Document.current!.getId()}`
-              : `/document/${Document.instance!.id}/print`
+              ? `/print/${Document.current?.getId() ?? Document.instance?.chapters?.[0]?.getId() ?? ""}`
+              : `/document/${Document.instance?.id ?? Document.current?.getDocumentId() ?? ""}/print`
           }
           ref={frameRef}
           onLoad={async () => {
-            const win = frameRef.current!.contentWindow!;
+            const win = frameRef.current?.contentWindow;
+            if (!win) return;
             const doc = win.document;
 
             doc.body.style.zoom = (zoom / 100).toString();
@@ -230,7 +231,7 @@ export const Preview = () => {
               win.hightex = window.hightex;
             }
             win.inFrame = true;
-            win.current = Document.current!;
+            win.current = Document.current ?? Document.instance?.chapters?.[0]!;
             win.cites = await HighTexDB.getInstance().cite.toArray();
             doc.body.style.background = "white";
             doc.body.classList.add("preview");

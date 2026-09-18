@@ -8,7 +8,9 @@ import { Engine } from "@/compiler/engine";
 import { Chapter } from "@/editor/chapter";
 import { cn } from "@/lib/utils";
 
-Paged.registerHandlers(BaseHandler);
+if (!Paged.registeredHandlers.includes(BaseHandler as any)) {
+  Paged.registerHandlers(BaseHandler);
+}
 
 export const Single = () => {
   const { chapterId } = useParams();

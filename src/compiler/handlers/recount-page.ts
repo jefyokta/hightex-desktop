@@ -11,9 +11,11 @@ export default class RecountPage {
       if (a.closest(".pagedjs_margin-top")) {
         return;
       }
-      const el = a.firstChild;
+      const el = (a.querySelector(".pagedjs_margin-content") || a.firstChild || a) as HTMLElement;
       const num = this.getPageNumber(a);
-      el && el?.appendChild(document.createTextNode(num));
+      if (el) {
+        el.textContent = num;
+      }
     });
 
     document.querySelectorAll(".page-num").forEach((e) => {
@@ -24,8 +26,9 @@ export default class RecountPage {
         if (target) {
           const pageNum = this.getPageNumber(target as HTMLElement);
 
-          e.nextSibling &&
-            e.nextSibling.appendChild(document.createTextNode(pageNum));
+          if (e.nextSibling) {
+            e.nextSibling.textContent = pageNum;
+          }
         }
       }
     });

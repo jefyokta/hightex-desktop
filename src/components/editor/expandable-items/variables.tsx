@@ -26,11 +26,14 @@ export const VariableTab = () => {
 
   const db = HighTexDB.getInstance();
 
+  const getDocId = () => Document.instance?.id ?? Document.current?.getDocumentId();
+
   const load = async () => {
-    if (!Document.instance) return;
+    const docId = getDocId();
+    if (!docId) return;
 
     setLoading(true);
-    const data = await db.getVarsOnlyOn(Document.instance.id);
+    const data = await db.getVarsOnlyOn(docId);
     setVars(data);
     setLoading(false);
   };
@@ -61,7 +64,10 @@ export const VariableTab = () => {
         description: `\`${parsed.name}\` is static variable`,
       });
 
-    await db.setVar(parsed.name, parsed.value, Document.instance!.id);
+    const docId = getDocId();
+    if (!docId) return;
+
+    await db.setVar(parsed.name, parsed.value, docId);
     Manager.app.dispatch("var:updated", parsed);
 
     setNewLine("");
@@ -75,7 +81,10 @@ export const VariableTab = () => {
         "Variable name cannot be same as static variable Name",
       );
 
-    await db.setVar(name, draft, Document.instance!.id);
+    const docId = getDocId();
+    if (!docId) return;
+
+    await db.setVar(name, draft, docId);
     Manager.app.dispatch("var:updated", { name, value: draft });
 
     setEditing(null);
@@ -86,7 +95,10 @@ export const VariableTab = () => {
     if (isStaticVar(name))
       throw new ShouldNotified("Cannot Delete static vars");
 
-    await db.deleteVar(name, Document.instance!.id);
+    const docId = getDocId();
+    if (!docId) return;
+
+    await db.deleteVar(name, docId);
     Manager.app.dispatch("var:updated", { name, value: "" });
 
     await load();

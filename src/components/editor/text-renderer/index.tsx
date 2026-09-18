@@ -14,6 +14,8 @@ interface Props {
 }
 
 export const TextRenderer = ({ texts }: Props) => {
+  if (!texts || !Array.isArray(texts)) return null;
+
   return (
     <>
       {texts.map((node, i) => (
