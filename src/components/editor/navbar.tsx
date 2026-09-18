@@ -18,6 +18,7 @@ import {
   Underline,
   Undo2,
   Search,
+  Loader2,
 } from "lucide-react";
 
 import React, { PropsWithChildren } from "react";
@@ -25,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { Document } from "@/editor/document";
+import { Chapter } from "@/editor/chapter";
 import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -36,6 +38,9 @@ export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
   const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
+  const [exportingPdf, setExportingPdf] = React.useState(false);
+  const [pdfProgress, setPdfProgress] = React.useState<number>(0);
+  const [pdfStatus, setPdfStatus] = React.useState<string>("");
 
   const state = useEditorState({
     editor,
@@ -52,7 +57,7 @@ export const NavBar: React.FC = () => {
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
       isImage: ctx.editor?.isActive("imageFigure"),
-      isMath: ctx.editor?.isActive("blockMath") ?? false,
+      isMath: ctx.editor?.isActive("blockMath") ?? false
     }),
   });
 
@@ -167,7 +172,11 @@ export const NavBar: React.FC = () => {
                 icon={Sigma}
                 active={state?.isGrid}
                 onClick={() =>
-                  editor.chain()?.focus().insertContent(createMathBlock()).run()
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent(createMathBlock())
+                    .run()
                 }
               />
               <Button
@@ -233,30 +242,111 @@ export const NavBar: React.FC = () => {
                 }}
               />
               <Button
-                title="download pdf"
-                icon={DownloadCloudIcon}
+                title={
+                  exportingPdf
+                    ? `${pdfStatus || "Mengekspor PDF"} (${pdfProgress}%)`
+                    : "download pdf"
+                }
+                icon={exportingPdf ? Loader2 : DownloadCloudIcon}
+                disabled={exportingPdf}
                 onClick={async () => {
-                  const toastId = toast.loading("Preparing PDF export...");
+                  if (exportingPdf) return;
+                  setExportingPdf(true);
+                  setPdfProgress(5);
+                  setPdfStatus("Menyiapkan ekspor PDF...");
+
+                  const docId =
+                    Document.instance?.id ?? Chapter.instance?.document.id;
+                  if (!docId) {
+                    toast.error("Document ID not found");
+                    setExportingPdf(false);
+                    return;
+                  }
+
+                  const renderProgressToast = (
+                    status: string,
+                    progress: number,
+                  ) => (
+                    <div className="flex flex-col gap-1.5 w-full min-w-[240px]">
+                      <div className="flex justify-between items-center text-xs font-semibold">
+                        <span className="truncate pr-2">{status}</span>
+                        <span className="text-neutral-500 font-mono">
+                          {progress}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-neutral-200 dark:bg-neutral-700 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-black dark:bg-white h-full transition-all duration-300 rounded-full"
+                          style={{ width: `${Math.max(progress, 5)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+
+                  const toastId = toast.loading(
+                    renderProgressToast("Menyiapkan ekspor PDF...", 5),
+                  );
+
                   const unsubscribe = window.hightex.onPdfProgress((update) => {
-                    toast(update.status, { id: toastId });
+                    const prog = update.progress ?? 0;
+                    setPdfProgress(prog);
+                    setPdfStatus(update.status);
+
+                    toast.loading(renderProgressToast(update.status, prog), {
+                      id: toastId,
+                    });
                   });
 
                   try {
                     const result = await window.ipcRenderer.invoke(
                       "hightex:pdf",
-                      Document.instance?.id,
+                      docId,
                     );
 
                     if (!result) {
                       toast.dismiss(toastId);
+                      toast.info("Ekspor PDF dibatalkan", { duration: 3000 });
                       return;
                     }
 
-                    toast.success(`Saved ${result.filename}`, { id: toastId });
+                    toast.success(
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-sm">
+                          PDF Berhasil Disimpan!
+                        </span>
+                        <span className="text-xs text-neutral-500 truncate max-w-[240px]">
+                          {result.filename}
+                        </span>
+                      </div>,
+                      {
+                        id: toastId,
+                        duration: 15000,
+                        action: {
+                          label: "Buka File",
+                          onClick: () => window.file?.openPath?.(result.path),
+                        },
+                        cancel: {
+                          label: "Buka Folder",
+                          onClick: () =>
+                            window.file?.showInFolder?.(result.path),
+                        },
+                      },
+                    );
                   } catch (error) {
-                    toast.error("Error while exporting PDF", { id: toastId });
+                    const msg =
+                      error instanceof Error
+                        ? error.message
+                        : "Error while exporting PDF";
+                    toast.error("Gagal mengekspor PDF", {
+                      description: msg,
+                      id: toastId,
+                      duration: 8000,
+                    });
                   } finally {
                     unsubscribe();
+                    setExportingPdf(false);
+                    setPdfProgress(0);
+                    setPdfStatus("");
                   }
                 }}
               />
@@ -319,15 +409,14 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
+        ${active
+              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+              : ""
+            }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >
-          <Icon className="w-3 h-3" />
+          <Icon className={`w-3 h-3 ${disabled ? "animate-spin" : ""}`} />
           {children}
         </button>
       </TooltipTrigger>

@@ -106,7 +106,8 @@ export const CompanyConsent = () => {
             >
               NIP.{" "}
               {document.getDocument().config.intern?.advisor?.nip ??
-                "198408212009012008"}
+                profile?.advisorNip ??
+                ""}
             </span>
           </div>
         </div>

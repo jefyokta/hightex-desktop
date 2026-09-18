@@ -26,6 +26,16 @@ export class PDFService {
       },
     });
 
+    this.window.webContents.on(
+      "console-message",
+      (_event, level, message, line, sourceId) => {
+        LoggerService.write(
+          { level, message, line, sourceId },
+          "pdf:render:console",
+        );
+      },
+    );
+
     return this.window;
   }
 

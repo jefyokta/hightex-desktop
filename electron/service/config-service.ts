@@ -1,4 +1,5 @@
 import { app } from "electron";
+import path from "path";
 import Store from "electron-store";
 
 const DEFAULT_CONFIG: ConfigShape = {
@@ -28,6 +29,13 @@ const DEFAULT_CONFIG: ConfigShape = {
     host: "127.0.0.1",
     port: 23119,
   },
+  backup: {
+    enabled: false,
+    folder: path.join(app.getPath("documents"), "HighTex Backups"),
+    intervalMinutes: 30,
+    includeTimestamp: false,
+    notifyOnSuccess: false,
+  },
 };
 
 export class ConfigService {
@@ -54,6 +62,10 @@ export class ConfigService {
       zotero: {
         ...DEFAULT_CONFIG.zotero,
         ...(saved?.zotero || {}),
+      },
+      backup: {
+        ...DEFAULT_CONFIG.backup!,
+        ...(saved?.backup || {}),
       },
     };
   }
@@ -83,6 +95,10 @@ export class ConfigService {
       zotero: {
         ...current.zotero,
         ...(patch.zotero || {}),
+      },
+      backup: {
+        ...(current.backup || DEFAULT_CONFIG.backup!),
+        ...(patch.backup || {}),
       },
     };
 

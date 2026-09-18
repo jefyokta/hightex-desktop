@@ -1,6 +1,6 @@
 import fs, { writeFileSync } from "fs";
 import path from "path";
-import { app, dialog } from "electron";
+import { app, dialog, shell } from "electron";
 import Store from "electron-store";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
@@ -52,6 +52,18 @@ export class HighTexHandler {
       );
       writeFileSync(filePath, file);
       return filePath;
+    });
+    IPCMain.handle("file:showInFolder", async (_event, filePath: string) => {
+      if (filePath) {
+        shell.showItemInFolder(filePath);
+      }
+      return true;
+    });
+    IPCMain.handle("file:openPath", async (_event, filePath: string) => {
+      if (filePath) {
+        await shell.openPath(filePath);
+      }
+      return true;
     });
     IPCMain.handle("hightex:pdf", async (event, id: string, wm = false) => {
       if (!id) {
@@ -172,7 +184,9 @@ export class HighTexHandler {
           const result = await dialog.showSaveDialog({
             title: "Export HighTex package",
             defaultPath: path.join(defaultFolder, targetName),
-            filters: [{ name: "HighTex Archive", extensions: ["hightex"] }],
+            filters: [
+              { name: "HighTex Archive", extensions: ["ht", "hightex", "htx"] },
+            ],
           });
 
           if (result.canceled || !result.filePath) {
@@ -180,6 +194,9 @@ export class HighTexHandler {
           }
 
           try {
+            await fs.promises.mkdir(path.dirname(result.filePath), {
+              recursive: true,
+            });
             await fs.promises.writeFile(result.filePath, Buffer.from(bytes));
             return { canceled: false, filePath: result.filePath };
           } catch (err) {
@@ -189,6 +206,7 @@ export class HighTexHandler {
         }
 
         try {
+          await fs.promises.mkdir(defaultFolder, { recursive: true });
           const filePath = path.join(defaultFolder, targetName);
           await fs.promises.writeFile(filePath, Buffer.from(bytes));
           return { canceled: false, filePath };

@@ -7,6 +7,12 @@ import { JSONContent } from "@tiptap/core";
 import { zipSync } from "fflate";
 import { isStaticVar } from "../is-static-var";
 
+export interface ExporterOptions extends ExportOptions {
+  showDialog?: boolean;
+  defaultFolder?: string;
+  fileName?: string;
+}
+
 /**
  * export to ht | htx | hightex file
  */
@@ -15,7 +21,7 @@ export class Exporter {
   private scheme: Schema<2>;
   constructor(
     private documentId: string,
-    private options: ExportOptions = {
+    private options: ExporterOptions = {
       format: "json",
       ext: "hightex",
     },
@@ -61,11 +67,16 @@ export class Exporter {
 
     const buffer = zipSync(this.scheme.writter.getEntries(), { level: 9 });
     const configExport = window.config.get()?.export;
-    const fileName = `${document.title.replace(/[^a-zA-Z0-9-_\. ]/g, "-")}.${this.options.ext}`;
+    const defaultFileName = `${document.title.replace(/[^a-zA-Z0-9-_\. ]/g, "-")}.${this.options.ext}`;
+    const fileName = this.options.fileName || defaultFileName;
+    const showDialog =
+      this.options.showDialog ?? (configExport?.saveDialog ?? false);
+    const defaultFolder =
+      this.options.defaultFolder || configExport?.saveFolder;
 
     return await window.ipcRenderer.invoke("hightex:export", buffer, fileName, {
-      showDialog: configExport?.saveDialog ?? false,
-      defaultFolder: configExport?.saveFolder,
+      showDialog,
+      defaultFolder,
     });
   }
 

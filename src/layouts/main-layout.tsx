@@ -13,6 +13,7 @@ import { ErrorSlave } from "@/slaves/error";
 import { toast, Toaster } from "sonner";
 import { OpenFileSlave } from "@/slaves/open-file";
 import { CliDocumentsSlave } from "@/slaves/cli-documents";
+import { AutoBackupSlave } from "@/slaves/auto-backup";
 import { ConfirmProvider } from "@/context/confrim-context";
 import { AskProvider } from "@/context/ask-context";
 import { confirm } from "@/utils/confirm";
@@ -246,6 +247,7 @@ export const MainLayout = () => {
           <AskProvider>
             <OpenFileSlave />
             <CliDocumentsSlave />
+            <AutoBackupSlave />
             <UpdaterStatusListener />
             <TooltipProvider>
               <UserProvider>
