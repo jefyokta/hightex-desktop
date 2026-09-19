@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import { cleanUnusedProgress } from "@/utils/clean-unused-data";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
+import { executeInteractively } from "@/utils/execute-interactively";
 
 export const Settings = () => {
   const [config, setConfig] = useState<ConfigShape | null>(null);
@@ -636,8 +637,6 @@ const ProfileSection = () => {
     try {
       setSaving(true);
       await window.profile.set(profile);
-    } catch (err) {
-      console.error("Failed to save profile:", err);
     } finally {
       setSaving(false);
     }
@@ -814,7 +813,7 @@ const ProfileSection = () => {
               </>
             )}
             <div className="flex justify-end pt-4">
-              <Button onClick={saveProfile} disabled={saving}>
+              <Button onClick={() => executeInteractively(saveProfile, { successMessage: "Saved" })} disabled={saving}>
                 {saving
                   ? t("settings.profile.saving")
                   : t("settings.profile.save")}
