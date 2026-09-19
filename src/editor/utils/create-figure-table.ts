@@ -3,7 +3,7 @@ import { JSONContent } from "@tiptap/core";
 export function createFigureTable(
   rowCount = 3,
   columnCount = 3,
-  caption?: string,
+  caption = "Tabel Caption",
 ): JSONContent {
   const content: JSONContent[] = [];
 
@@ -17,10 +17,10 @@ export function createFigureTable(
   };
 }
 
-function createFigcaption(text?: string): JSONContent {
+function createFigcaption(text: string): JSONContent {
   return {
     type: "figcaption",
-    content: [{ type: "text", text }],
+    content: [{ type: "text", text}],
   };
 }
 
