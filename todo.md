@@ -7,9 +7,9 @@
 - [x] equation ref
 - [x] line between names
 - [x] multiple advisor support
-- [ ] intern sheets didnt updated
+- [x] intern sheets didnt updated
 - [x] table icon error
-- [ ] add .ht option in download button at editor page
+- [x] add .ht option in download button at editor page
 - [ ] add toast on saved
 - [x] keyword creation in editor
 - [ ] daftar singkatan

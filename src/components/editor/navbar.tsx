@@ -19,7 +19,14 @@ import {
   Undo2,
   Search,
 } from "lucide-react";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import React, { PropsWithChildren } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
@@ -31,6 +38,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
 import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
+import { Exporter } from "@/utils/htx/exporter";
+import { t } from "@/utils/lang";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -239,34 +249,67 @@ export const NavBar: React.FC = () => {
                   );
                 }}
               />
-              <Button
-                title="download pdf"
-                icon={DownloadCloudIcon}
-                onClick={async () => {
-                  const toastId = toast.loading("Preparing PDF export...");
-                  const unsubscribe = window.hightex.onPdfProgress((update) => {
-                    toast(update.status, { id: toastId });
-                  });
+              <DropdownMenu>
+                <DropdownMenuTrigger  >
+                  <Button
+                    title="download "
+                    icon={DownloadCloudIcon}
 
-                  try {
-                    const result = await window.ipcRenderer.invoke(
-                      "hightex:pdf",
-                      Document.instance?.id,
-                    );
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Download As</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        const toastId = toast.loading("Preparing PDF export...");
+                        const unsubscribe = window.hightex.onPdfProgress((update) => {
+                          toast(update.status, { id: toastId });
+                        });
 
-                    if (!result) {
-                      toast.dismiss(toastId);
-                      return;
-                    }
+                        try {
+                          const result = await window.ipcRenderer.invoke(
+                            "hightex:pdf",
+                            Document.instance?.id,
+                          );
 
-                    toast.success(`Saved ${result.filename}`, { id: toastId });
-                  } catch (error) {
-                    toast.error("Error while exporting PDF", { id: toastId });
-                  } finally {
-                    unsubscribe();
-                  }
-                }}
-              />
+                          if (!result) {
+                            toast.dismiss(toastId);
+                            return;
+                          }
+
+                          toast.success(`Saved ${result.filename}`, { id: toastId });
+                        } catch (error) {
+                          toast.error("Error while exporting PDF", { id: toastId });
+                        } finally {
+                          unsubscribe();
+                        }
+                      }}
+                    >PDF</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={async () => {
+                        if (!Document.instance) throw new ShouldNotified("Document hasnt created")
+                        const toastId = toast.loading(`${t("common.export")} HighTex...`);
+                        const exporter = new Exporter(Document.instance.id)
+                        try {
+                          const result = await exporter.export();
+                          if (result.canceled) {
+                            toast.dismiss(toastId);
+                            return;
+                          }
+                          toast.success(t("common.export_success"), { id: toastId });
+                        } catch (err) {
+                          console.error("Export failed", err);
+                          toast.error(t("common.export_failed"), { id: toastId });
+                        }
+                      }}
+
+                    >Hightex File</DropdownMenuItem>
+                  </DropdownMenuGroup>
+
+                </DropdownMenuContent>
+              </DropdownMenu>
+
             </ButtonGroup>
           </div>
         </div>
