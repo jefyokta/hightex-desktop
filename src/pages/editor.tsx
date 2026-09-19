@@ -41,10 +41,10 @@ export const Editor: React.FC = () => {
 
   useEffect(() => {
     const off = Manager.app.on("migrating:deprecation", ({ fixed, node, id }) => {
-      toast.info(`Auto Migrating for deprecated nodes`, { 
+      toast.info(`Auto Migrating for deprecated nodes`, {
         id,
-        description:`found '${node.type}', found ${fixed} in totals`
-       })
+        description: `found '${node.type}', found ${fixed} in totals`
+      })
     })
 
     return () => { off() }
@@ -282,6 +282,7 @@ const EditorComponent = () => {
         spellCheck={window.config.get()?.editor?.spellCheck || false}
         editor={editor}
       />
+      {(() => Chapter.instance?.getDecorator())()}
       <TableMenu editor={editor} />
     </div>
   );

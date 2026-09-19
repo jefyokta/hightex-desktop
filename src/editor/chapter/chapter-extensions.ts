@@ -26,10 +26,18 @@ import { CustomCodeBlock } from "../extensions/code-block";
 import { Dots } from "../extensions/dots";
 import { Variable } from "../extensions/variable";
 import { TableBorder } from "../extensions/table/border";
+import { Placeholder } from "@tiptap/extensions";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
-
+  public  placeHolder:Record<string,string> ={
+  
+      "abstract-en":"200 words maximum",
+      "abstract":"Maksimal 200 kata",
+      "presentation":"Maksimal 1 halam",
+      "foreword":"Maksimal 2 halaman"
+  
+  }
   get() {
     const isNonChapter = [
       "abstract",
@@ -98,6 +106,10 @@ export class ChapterExtensions {
   }
 
   private getNonChapter() {
-    return [StarterKit, Variable, SearchReplace];
+    const hasPlaceholder = this.placeHolder[this.chapter.getChapter()]
+    console.log(hasPlaceholder)
+    return [StarterKit, Variable, SearchReplace,
+       ...(hasPlaceholder ? [Placeholder.configure({placeholder:hasPlaceholder})]:[]) 
+      ];
   }
 }

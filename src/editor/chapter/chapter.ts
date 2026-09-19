@@ -8,6 +8,8 @@ import { ChapterQuery } from "./chapter-query";
 import { Manager } from "../manager";
 import { Document } from "../document";
 import { useChapterStore } from "@/hooks/use-chapter";
+import { AbstractDecoratorEN, AbstractDecoratorID } from "@/components/editor/docorator/abstract";
+import { createElement } from "react";
 
 export class Chapter {
   static instance?: Chapter;
@@ -24,6 +26,8 @@ export class Chapter {
 
   readonly document: Document;
 
+  readonly hasDecorator = ["abstract","abstract-en"]
+
   constructor(chapterId: string, isolate?: boolean);
   constructor(option: ChapterOptions);
   constructor(chapter: string | number, documentId: string, version?: string);
@@ -33,6 +37,7 @@ export class Chapter {
 
     this.chapterId = chapterId;
     this.document = document;
+    console.log(chapterId)
 
     const shouldRegister = isolated !== true;
 
@@ -208,5 +213,18 @@ export class Chapter {
         },
       ],
     };
+  }
+
+  getDecorator(){
+    const chapterName =this.getChapter()
+    if(this.hasDecorator.includes(chapterName)){
+      if(chapterName == "abstract") {
+        return createElement(AbstractDecoratorID)
+      }
+      return createElement(AbstractDecoratorEN)
+
+    }
+
+    return null;
   }
 }
