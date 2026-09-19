@@ -9,217 +9,267 @@ import { CategoryEmpty } from "@/exception/categories-empty";
 import { t } from "@/utils/lang";
 
 import logo from "@/assets/hightex.svg";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 const Marquee = ({ items }: { items: string[] }) => {
-  return (
-    <div className="relative w-full overflow-hidden">
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-linear-to-r from-white dark:from-neutral-950 to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-linear-to-l from-white dark:from-neutral-950 to-transparent z-10" />
+    return (
+        <div className="relative w-full overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-linear-to-r from-white dark:from-neutral-950 to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-linear-to-l from-white dark:from-neutral-950 to-transparent z-10" />
 
-      <motion.div
-        className="flex w-max gap-8 whitespace-nowrap"
-        animate={{ x: "-50%" }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-      >
-        <div className="flex gap-8 pr-8">
-          {items.map((t, i) => (
-            <span
-              key={`a-${i}`}
-              className="text-sm text-neutral-500 dark:text-neutral-400"
+            <motion.div
+                className="flex w-max gap-8 whitespace-nowrap"
+                animate={{ x: "-50%" }}
+                transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear",
+                }}
             >
-              {t}
-            </span>
-          ))}
-        </div>
+                <div className="flex gap-8 pr-8">
+                    {items.map((t, i) => (
+                        <span
+                            key={`a-${i}`}
+                            className="text-sm text-neutral-500 dark:text-neutral-400"
+                        >
+                            {t}
+                        </span>
+                    ))}
+                </div>
 
-        <div className="flex gap-8 pr-8">
-          {items.map((t, i) => (
-            <span
-              key={`b-${i}`}
-              className="text-sm text-neutral-500 dark:text-neutral-400"
-            >
-              {t}
-            </span>
-          ))}
+                <div className="flex gap-8 pr-8">
+                    {items.map((t, i) => (
+                        <span
+                            key={`b-${i}`}
+                            className="text-sm text-neutral-500 dark:text-neutral-400"
+                        >
+                            {t}
+                        </span>
+                    ))}
+                </div>
+            </motion.div>
         </div>
-      </motion.div>
-    </div>
-  );
+    );
 };
 
 export const Splash: React.FC = () => {
-  const navigate = useNavigate();
-  const { user } = useUser();
-  const { openLogin } = useAuthModal();
-  const online = useOnline();
+    const navigate = useNavigate();
+    const { user } = useUser();
+    const { openLogin } = useAuthModal();
+    const online = useOnline();
 
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("");
-  const [version, setVersion] = useState("");
-  useEffect(() => {
-    window.hightex.categories().then((e) => {
-      if (!e?.length) {
-        throw CategoryEmpty;
-      }
-    });
-  });
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      if (!online) return;
-
-      setLoading(true);
-      const version = await window.hightex.version();
-      setVersion(version);
-      try {
-        window.hightex.onPrefetchProgress?.((data: any) => {
-          if (cancelled) return;
-          setProgress(data.progress ?? 0);
-          setStatus(data.status ?? "");
+    const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [status, setStatus] = useState("");
+    const [version, setVersion] = useState("");
+    useEffect(() => {
+        window.hightex.categories().then((e) => {
+            if (!e?.length) {
+                throw CategoryEmpty;
+            }
         });
+    });
+    useEffect(() => {
+        let cancelled = false;
 
-        await window.hightex.prefetch();
+        const run = async () => {
+            if (!online) return;
 
-        if (!cancelled) {
-          setProgress(100);
-          setStatus("done");
-          setTimeout(() => setLoading(false), 200);
-        }
-      } catch (e) {
-        if (!cancelled) setLoading(false);
-      }
-    };
+            setLoading(true);
+            const version = await window.hightex.version();
+            setVersion(version);
+            try {
+                window.hightex.onPrefetchProgress?.((data: any) => {
+                    if (cancelled) return;
+                    setProgress(data.progress ?? 0);
+                    setStatus(data.status ?? "");
+                });
 
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [online]);
+                await window.hightex.prefetch();
 
-  if (online && loading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-black">
-        <div className="w-[320px] space-y-4 text-center">
-          <div className="text-sm text-neutral-500 dark:text-neutral-400">
-            {status || t("splash.preparing")}
-          </div>
+                if (!cancelled) {
+                    setProgress(100);
+                    setStatus("done");
+                    setTimeout(() => setLoading(false), 200);
+                }
+            } catch (e) {
+                if (!cancelled) setLoading(false);
+            }
+        };
 
-          <div className="w-full h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-            <div
-              className="h-full bg-neutral-900 dark:bg-white transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+        run();
+        return () => {
+            cancelled = true;
+        };
+    }, [online]);
 
-          <div className="text-xs text-neutral-400">
-            {Math.round(progress)}%
-          </div>
-        </div>
-      </div>
-    );
-  }
+    if (online && loading) {
+        return (
+            <div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-black">
+                <div className="w-[320px] space-y-4 text-center">
+                    <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                        {status || t("splash.preparing")}
+                    </div>
 
-  return (
-    <div className="h-screen w-screen flex items-center justify-center   dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors">
-      <div className="text-center relative space-y-10 w-full max-w-2xl h-screen flex flex-col justify-center px-6 h">
-        <div className="">
-          <div className="flex justify-center my-2">
-            <img src={logo} alt="" className="w-24" />
-          </div>
-          <div className="text-4xl font-semibold tracking-tight ">HighTex</div>
+                    <div className="w-full h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+                        <div
+                            className="h-full bg-neutral-900 dark:bg-white transition-all duration-300"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
 
-          <div className="flex-justify-center">
-            <span className="text-xs font-extralight">
-              {t("common.version")} {version}
-            </span>
-          </div>
-        </div>
-
-        <div className="py-2">
-          <Marquee
-            items={[
-              t("splash.tagline_1"),
-              t("splash.tagline_2"),
-              t("splash.tagline_3"),
-              t("splash.tagline_4"),
-              t("splash.tagline_5"),
-            ]}
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          {user ? (
-            <div className="space-y-2">
-              <div className="text-sm text-neutral-500">
-                {t("common.hi")} {user.name.split(" ")[0]}
-              </div>
-
-              <div className="flex gap-2 justify-center">
-                <button
-                  onClick={() => navigate("/dashboard")}
-                  className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
-                >
-                  {t("common.start")}
-                </button>
-
-                <button
-                  onClick={async () => await window.session.logout()}
-                  className="px-5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800"
-                >
-                  {t("common.logout")}
-                </button>
-              </div>
+                    <div className="text-xs text-neutral-400">
+                        {Math.round(progress)}%
+                    </div>
+                </div>
             </div>
-          ) : (
-            <>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="px-5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700"
-              >
-                {t("common.continue_as_guest")}
-              </button>
+        );
+    }
 
-              <button
-                onClick={openLogin}
-                className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
-              >
-                {t("common.login")}
-              </button>
-            </>
-          )}
-        </div>
+    return (
+        <div className="h-screen w-screen flex items-center justify-center   dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors">
+            <div className="text-center relative space-y-10 w-full max-w-2xl h-screen flex flex-col justify-center px-6 h">
+                <div className="">
+                    <div className="flex justify-center my-2">
+                        <img src={logo} alt="" className="w-24" />
+                    </div>
+                    <div className="text-4xl font-semibold tracking-tight ">HighTex</div>
 
-        <p className="text-xs text-neutral-400">{t("splash.lightweight")}</p>
-        <div className="pt-6 self-end w-full border-t flex justify-center border-neutral-200 dark:border-neutral-800">
-          <LayoutTextFlip
-            text={t("splash.thanks_to")}
-            words={[
-              {
-                name: "Tengku Khairil Ahsyar",
-                role: "Lovely Mentor",
-              },
-              {
-                name: "Bintang Aditiya",
-                role: "The First User",
-              },
-              {
-                name: "Rafiki Syahputra",
-                role: "Testing Partner",
-              },
-              {
-                name: "Irvandi Kurniawan",
-                role: "Best of The Best Friend",
-              },
-            ]}
-          />
+                    <div className="flex justify-center">
+                        <span className="text-xs font-extralight">
+                            {t("common.version")} {version}
+                        </span>
+                    </div>
+                    <div className="flex justify-center mt-1">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Badge
+                                    variant="secondary"
+                                    className="cursor-pointer text-xs font-normal"
+                                >
+                                    Contributor
+                                </Badge>
+                            </DialogTrigger>
+
+                            <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Contributors</DialogTitle>
+                                    <DialogDescription>
+                                        People who contributed to this project until version v{version}
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="space-y-5">
+                                    <section>
+                                        <h3 className="mb-2 text-sm font-medium">Core</h3>
+
+                                        <div className="divide-y rounded-md border">
+                                            <div className="flex items-center justify-between px-3 py-2.5">
+                                            
+                                                <span className="text-sm">
+                                                    Jepi Okta Mipa
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </section>
+                                    <section>
+                                        <h3 className="mb-2 text-sm font-medium">New Contributor</h3>
+
+                                        <div className="divide-y rounded-md border">
+                                            <div className="flex items-center justify-between px-3 py-2.5">
+                                               
+                                                <span className="text-sm">
+                                                    Muhammad Habib Rafi
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
+
+                <div className="py-2">
+                    <Marquee
+                        items={[
+                            t("splash.tagline_1"),
+                            t("splash.tagline_2"),
+                            t("splash.tagline_3"),
+                            t("splash.tagline_4"),
+                            t("splash.tagline_5"),
+                        ]}
+                    />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    {user ? (
+                        <div className="space-y-2">
+                            <div className="text-sm text-neutral-500">
+                                {t("common.hi")} {user.name.split(" ")[0]}
+                            </div>
+
+                            <div className="flex gap-2 justify-center">
+                                <button
+                                    onClick={() => navigate("/dashboard")}
+                                    className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
+                                >
+                                    {t("common.start")}
+                                </button>
+
+                                <button
+                                    onClick={async () => await window.session.logout()}
+                                    className="px-5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800"
+                                >
+                                    {t("common.logout")}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => navigate("/dashboard")}
+                                className="px-5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700"
+                            >
+                                {t("common.continue_as_guest")}
+                            </button>
+
+                            <button
+                                onClick={openLogin}
+                                className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
+                            >
+                                {t("common.login")}
+                            </button>
+                        </>
+                    )}
+                </div>
+
+                <p className="text-xs text-neutral-400">{t("splash.lightweight")}</p>
+                <div className="pt-6 self-end w-full border-t flex justify-center border-neutral-200 dark:border-neutral-800">
+                    <LayoutTextFlip
+                        text={t("splash.thanks_to")}
+                        words={[
+                            {
+                                name: "Tengku Khairil Ahsyar",
+                                role: "Lovely Mentor",
+                            },
+                            {
+                                name: "Bintang Aditiya",
+                                role: "The First User",
+                            },
+                            {
+                                name: "Rafiki Syahputra",
+                                role: "Testing Partner",
+                            },
+                            {
+                                name: "Irvandi Kurniawan",
+                                role: "Best of The Best Friend",
+                            },
+                        ]}
+                    />
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
