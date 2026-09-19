@@ -10,7 +10,7 @@
 - [x] intern sheets didnt updated
 - [x] table icon error
 - [x] add .ht option in download button at editor page
-- [ ] add toast on saved
+- [x] add toast on saved
 - [x] keyword creation in editor
 - [ ] daftar singkatan
 - [ ] bibliography

@@ -221,8 +221,8 @@ const EditorComponent = () => {
                 const frame = document.querySelector("iframe");
                 if (!frame) {
                   throw new FrameNotOpened({
-                    message: t("frame.not.opened"),
-                    description: t("frame.not.opened.desc"),
+                    message: t("error.frame.not.opened"),
+                    description: t("error.frame.not.opened.desc"),
                     action: (
                       <Button
                         onClick={() => {

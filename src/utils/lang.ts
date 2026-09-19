@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 
 import en from "@/locales/en.json";
 import id from "@/locales/id.json";
+type TranslationKey<T> = {
+  [K in keyof T & string]:
+    T[K] extends Record<string, unknown>
+      ? `${K}.${TranslationKey<T[K]>}`
+      : K;
+}[keyof T & string];
+
+export type LocaleKey = TranslationKey<typeof en>;
 
 export const SUPPORTED_LANGUAGES = ["en", "id"] as const;
 
@@ -147,7 +155,7 @@ const interpolate = (message: string, values?: TranslationValues): string => {
   });
 };
 
-export const t = (key: string, values?: TranslationValues): string => {
+export const t = (key: LocaleKey, values?: TranslationValues): string => {
   const language = getCurrentLanguage();
 
   const message =

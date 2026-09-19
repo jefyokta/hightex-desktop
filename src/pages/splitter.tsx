@@ -51,7 +51,7 @@ const translate = (
   key: string,
   replacements: Record<string, string | number> = {},
 ) => {
-  let value = t(key);
+  let value = t(key as any);
 
   for (const [name, replacement] of Object.entries(replacements)) {
     value = value.replace(
