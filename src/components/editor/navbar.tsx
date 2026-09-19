@@ -18,34 +18,29 @@ import {
   Underline,
   Undo2,
   Search,
+  Loader2,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
 import React, { PropsWithChildren } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { Document } from "@/editor/document";
+import { Chapter } from "@/editor/chapter";
 import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
 import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
-import { Exporter } from "@/utils/htx/exporter";
-import { t } from "@/utils/lang";
-import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
   const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
+  const [exportingPdf, setExportingPdf] = React.useState(false);
+  const [pdfProgress, setPdfProgress] = React.useState<number>(0);
+  const [pdfStatus, setPdfStatus] = React.useState<string>("");
 
   const state = useEditorState({
     editor,
@@ -62,7 +57,7 @@ export const NavBar: React.FC = () => {
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
       isImage: ctx.editor?.isActive("imageFigure"),
-      isMath: ctx.editor?.isActive("blockMath") ?? false,
+      isMath: ctx.editor?.isActive("blockMath") ?? false
     }),
   });
 
@@ -177,7 +172,11 @@ export const NavBar: React.FC = () => {
                 icon={Sigma}
                 active={state?.isGrid}
                 onClick={() =>
-                  editor.chain()?.focus().insertContent(createMathBlock()).run()
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent(createMathBlock())
+                    .run()
                 }
               />
               <Button
@@ -196,19 +195,12 @@ export const NavBar: React.FC = () => {
                 title="table"
                 icon={Table}
                 active={state?.isTable}
-                onClick={() => {
-                  try {
-                    editor
-                      .chain()
-                      ?.focus()
-                      .insertContent(createFigureTable())
-                      .run()
-                  } catch (error) {
-                    console.error(error)
-
-                  }
-
-                }
+                onClick={() =>
+                  editor
+                    .chain()
+                    ?.focus()
+                    .insertContent(createFigureTable())
+                    .run()
                 }
               />
               <Button
@@ -249,67 +241,115 @@ export const NavBar: React.FC = () => {
                   );
                 }}
               />
-              <DropdownMenu>
-                <DropdownMenuTrigger  >
-                  <Button
-                    title="download "
-                    icon={DownloadCloudIcon}
+              <Button
+                title={
+                  exportingPdf
+                    ? `${pdfStatus || "Mengekspor PDF"} (${pdfProgress}%)`
+                    : "download pdf"
+                }
+                icon={exportingPdf ? Loader2 : DownloadCloudIcon}
+                disabled={exportingPdf}
+                onClick={async () => {
+                  if (exportingPdf) return;
+                  setExportingPdf(true);
+                  setPdfProgress(5);
+                  setPdfStatus("Menyiapkan ekspor PDF...");
 
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Download As</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onSelect={async () => {
-                        const toastId = toast.loading("Preparing PDF export...");
-                        const unsubscribe = window.hightex.onPdfProgress((update) => {
-                          toast(update.status, { id: toastId });
-                        });
+                  const docId =
+                    Document.instance?.id ?? Chapter.instance?.document.id;
+                  if (!docId) {
+                    toast.error("Document ID not found");
+                    setExportingPdf(false);
+                    return;
+                  }
 
-                        try {
-                          const result = await window.ipcRenderer.invoke(
-                            "hightex:pdf",
-                            Document.instance?.id,
-                          );
+                  const renderProgressToast = (
+                    status: string,
+                    progress: number,
+                  ) => (
+                    <div className="flex flex-col gap-1.5 w-full min-w-[240px]">
+                      <div className="flex justify-between items-center text-xs font-semibold">
+                        <span className="truncate pr-2">{status}</span>
+                        <span className="text-neutral-500 font-mono">
+                          {progress}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-neutral-200 dark:bg-neutral-700 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-black dark:bg-white h-full transition-all duration-300 rounded-full"
+                          style={{ width: `${Math.max(progress, 5)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
 
-                          if (!result) {
-                            toast.dismiss(toastId);
-                            return;
-                          }
+                  const toastId = toast.loading(
+                    renderProgressToast("Menyiapkan ekspor PDF...", 5),
+                  );
 
-                          toast.success(`Saved ${result.filename}`, { id: toastId });
-                        } catch (error) {
-                          toast.error("Error while exporting PDF", { id: toastId });
-                        } finally {
-                          unsubscribe();
-                        }
-                      }}
-                    >PDF</DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={async () => {
-                        if (!Document.instance) throw new ShouldNotified("Document hasnt created")
-                        const toastId = toast.loading(`${t("common.export")} HighTex...`);
-                        const exporter = new Exporter(Document.instance.id)
-                        try {
-                          const result = await exporter.export();
-                          if (result.canceled) {
-                            toast.dismiss(toastId);
-                            return;
-                          }
-                          toast.success(t("common.export_success"), { id: toastId });
-                        } catch (err) {
-                          console.error("Export failed", err);
-                          toast.error(t("common.export_failed"), { id: toastId });
-                        }
-                      }}
+                  const unsubscribe = window.hightex.onPdfProgress((update) => {
+                    const prog = update.progress ?? 0;
+                    setPdfProgress(prog);
+                    setPdfStatus(update.status);
 
-                    >Hightex File</DropdownMenuItem>
-                  </DropdownMenuGroup>
+                    toast.loading(renderProgressToast(update.status, prog), {
+                      id: toastId,
+                    });
+                  });
 
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  try {
+                    const result = await window.ipcRenderer.invoke(
+                      "hightex:pdf",
+                      docId,
+                    );
 
+                    if (!result) {
+                      toast.dismiss(toastId);
+                      toast.info("Ekspor PDF dibatalkan", { duration: 3000 });
+                      return;
+                    }
+
+                    toast.success(
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-sm">
+                          PDF Berhasil Disimpan!
+                        </span>
+                        <span className="text-xs text-neutral-500 truncate max-w-[240px]">
+                          {result.filename}
+                        </span>
+                      </div>,
+                      {
+                        id: toastId,
+                        duration: 15000,
+                        action: {
+                          label: "Buka File",
+                          onClick: () => window.file?.openPath?.(result.path),
+                        },
+                        cancel: {
+                          label: "Buka Folder",
+                          onClick: () =>
+                            window.file?.showInFolder?.(result.path),
+                        },
+                      },
+                    );
+                  } catch (error) {
+                    const msg =
+                      error instanceof Error
+                        ? error.message
+                        : "Error while exporting PDF";
+                    toast.error("Gagal mengekspor PDF", {
+                      description: msg,
+                      id: toastId,
+                      duration: 8000,
+                    });
+                  } finally {
+                    unsubscribe();
+                    setExportingPdf(false);
+                    setPdfProgress(0);
+                    setPdfStatus("");
+                  }
+                }}
+              />
             </ButtonGroup>
           </div>
         </div>
@@ -376,7 +416,7 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >
-          <Icon className="w-3 h-3" />
+          <Icon className={`w-3 h-3 ${disabled ? "animate-spin" : ""}`} />
           {children}
         </button>
       </TooltipTrigger>

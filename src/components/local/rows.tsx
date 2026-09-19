@@ -122,10 +122,30 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
     : null;
 
   const generatePdf = async (waterMark: boolean = false) => {
-    const toastId = toast.loading("Preparing PDF export...");
+    const renderProgressToast = (status: string, progress: number) => (
+      <div className="flex flex-col gap-1.5 w-full min-w-[240px]">
+        <div className="flex justify-between items-center text-xs font-semibold">
+          <span className="truncate pr-2">{status}</span>
+          <span className="text-neutral-500 font-mono">{progress}%</span>
+        </div>
+        <div className="w-full bg-neutral-200 dark:bg-neutral-700 h-2 rounded-full overflow-hidden">
+          <div
+            className="bg-black dark:bg-white h-full transition-all duration-300 rounded-full"
+            style={{ width: `${Math.max(progress, 5)}%` }}
+          />
+        </div>
+      </div>
+    );
+
+    const toastId = toast.loading(
+      renderProgressToast("Menyiapkan ekspor PDF...", 5),
+    );
 
     const unsubscribe = window.hightex.onPdfProgress((update) => {
-      toast(update.status, { id: toastId });
+      const prog = update.progress ?? 0;
+      toast.loading(renderProgressToast(update.status, prog), {
+        id: toastId,
+      });
     });
 
     try {
@@ -137,22 +157,41 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
 
       if (!result) {
         toast.dismiss(toastId);
+        toast.info("Ekspor PDF dibatalkan", { duration: 3000 });
         return;
       }
 
-      toast.success(`Saved ${result.filename}`, {
-        id: toastId,
-      });
+      toast.success(
+        <div className="flex flex-col gap-1">
+          <span className="font-semibold text-sm">PDF Berhasil Disimpan!</span>
+          <span className="text-xs text-neutral-500 truncate max-w-[240px]">
+            {result.filename}
+          </span>
+        </div>,
+        {
+          id: toastId,
+          duration: 15000,
+          action: {
+            label: "Buka File",
+            onClick: () => window.file?.openPath?.(result.path),
+          },
+          cancel: {
+            label: "Buka Folder",
+            onClick: () => window.file?.showInFolder?.(result.path),
+          },
+        },
+      );
     } catch (e) {
       if (e instanceof Error) {
         const t = e.message.split(":");
         e = t[t.length - 1] || e.message;
       }
-      toast.error("Error while exporting PDF", {
+      toast.error("Gagal mengekspor PDF", {
         description() {
           return truncate(ApplicationError.normilize(e), 150);
         },
         id: toastId,
+        duration: 8000,
       });
     } finally {
       unsubscribe();
@@ -261,7 +300,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 ">
+        <div className="flex items-center gap-1">
           <Dropdown
             align="right"
             width="max-content"
@@ -278,7 +317,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
               <DropdownItem onClick={() => onExport(doc.id)}>
                 <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileJson size={14} />
-                  Export .ht
+                  Export .hightex
                 </div>
               </DropdownItem>
 
