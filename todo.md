@@ -8,7 +8,7 @@
 - [x] line between names
 - [x] multiple advisor support
 - [ ] intern sheets didnt updated
-- [ ] table icon error
+- [x] table icon error
 - [ ] add .ht option in download button at editor page
 - [ ] add toast on saved
 - [x] keyword creation in editor

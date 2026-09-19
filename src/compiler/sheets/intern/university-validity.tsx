@@ -1,6 +1,7 @@
 import { usePrintable } from "@/hooks/use-printable";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { formatDate } from "@/utils/date";
+import { name } from "@/utils/name";
 
 export const UniversityConsent = () => {
   const { document, profile } = usePrintable();
@@ -87,8 +88,8 @@ export const UniversityConsent = () => {
             <br />
 
             <span style={{ fontWeight: "bold" }}>
-              {document.getDocument().config.intern?.advisor?.name ??
-                profile?.advisorName}
+              {name(
+                profile?.advisorName)}
             </span>
 
             <br />
@@ -100,7 +101,7 @@ export const UniversityConsent = () => {
                 display: "inline-block",
               }}
             >
-              NIP. 198408212009012008
+              NIP. {profile?.advisorName}
             </span>
           </div>
         </div>
