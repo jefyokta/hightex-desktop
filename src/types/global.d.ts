@@ -240,5 +240,7 @@ declare global {
 
   interface FileApi {
     save(fileName: string, file: Uint8Array): Promise<string>;
+    openPath?(path: string): Promise<string>;
+    showInFolder?(path: string): void;
   }
 }
