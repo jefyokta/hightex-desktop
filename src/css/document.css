@@ -32,7 +32,7 @@ img {
     content: page;
   }
 
-  margin: 30mm 30mm 40mm 40mm;
+  margin: 30mm 30mm 40mm 30mm;
 }
 
 @page attachment {
@@ -43,11 +43,11 @@ img {
   margin-top: 30mm;
   margin-right: 30mm;
   margin-bottom: 40mm;
-  margin-left: 40mm;
+  margin-left: 30mm;
 }
 
 @page biblio {
-  margin: 30mm 30mm 40mm 40mm;
+  margin: 30mm 30mm 40mm 30mm;
 }
 
 .attachment {
