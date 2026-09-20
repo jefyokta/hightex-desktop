@@ -20,7 +20,9 @@ declare global {
     chapter: string | number;
     documentId: string;
     version?: string;
+    //should be removed, unused
     isolated?: boolean;
+    frozen?:boolean
   }
 }
 export {};

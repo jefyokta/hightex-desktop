@@ -34,9 +34,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
 import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
+import { useChapterStore } from "@/hooks/use-chapter";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
+  const {chapter} = useChapterStore()
   const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
@@ -62,7 +64,7 @@ export const NavBar: React.FC = () => {
     }),
   });
 
-  if (!editor) return null;
+  if (!editor || chapter?.frozen) return null;
 
   return (
     <div
@@ -268,7 +270,7 @@ export const NavBar: React.FC = () => {
                     status: string,
                     progress: number,
                   ) => (
-                    <div className="flex flex-col gap-1.5 w-full min-w-[240px]">
+                    <div className="flex flex-col gap-1.5 w-full min-w-60">
                       <div className="flex justify-between items-center text-xs font-semibold">
                         <span className="truncate pr-2">{status}</span>
                         <span className="text-neutral-500 font-mono">
@@ -315,7 +317,7 @@ export const NavBar: React.FC = () => {
                         <span className="font-semibold text-sm">
                           PDF Berhasil Disimpan!
                         </span>
-                        <span className="text-xs text-neutral-500 truncate max-w-[240px]">
+                        <span className="text-xs text-neutral-500 truncate max-w-60">
                           {result.filename}
                         </span>
                       </div>,

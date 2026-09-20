@@ -60,13 +60,15 @@ export class TocBuilder {
     const heads = Array.from(
       document.querySelectorAll(".introduction h1"),
     ).filter((h) => {
-      return h.id && h.id !== "tof" && h.id != "tot";
+      return h.id && h.id !== "tof" && h.id != "tot" && h.id !== 'toa';
     });
     const selfHeading = wrapper.querySelector("#toc")!;
     heads.push(
       selfHeading,
       document.getElementById("tot")!,
       document.getElementById("tof")!,
+      document.getElementById("toa")!,
+
     );
     heads.push(
       ...headings,

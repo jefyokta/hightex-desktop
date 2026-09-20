@@ -10,6 +10,7 @@ export class HighTexDB extends Dexie {
   chapterGraphs!: Table<ChapterGraph, string>;
   images!: Table<ImageRecord, string>;
   variables!: Table<Variable, string>;
+  aliases!:Table<Alias,string>
 
   private static instance?: HighTexDB;
 
@@ -23,6 +24,8 @@ export class HighTexDB extends Dexie {
       chapterGraphs: "id",
       images: "id, documentId",
       variables: "name, documentId",
+      //key = {documentId}.{key}
+      aliases:"key, documentId"
     });
     this.cite.bulkPut(defaulBib);
     this.createGlobalVars();
@@ -147,5 +150,16 @@ export class HighTexDB extends Dexie {
       value,
       documentId,
     });
+  }
+
+  async getAliases(documentId:string){
+
+   return (await this.aliases.where("documentId").equals(documentId).toArray()).map(e=>{
+      const prefix = `${e.documentId}.`
+      return {
+        key:e.key.slice(prefix.length),
+        value:e.value
+      }
+    }) 
   }
 }

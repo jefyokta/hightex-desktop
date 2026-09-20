@@ -1,2 +1,1 @@
-GET https://hightex.jefyokta.my.id/api/categories 
-Content-Type: application/json
+GET https://api.github.com/repos/jefyokta/hightex-desktop/collaborators

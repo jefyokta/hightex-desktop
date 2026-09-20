@@ -260,7 +260,7 @@ async function main() {
 
   await run`git add package.json`;
 
-  await run`git commit -m ${`chore: release ${nextVersion}`}`;
+  await run`git commit -m ${`chore(release): release ${nextVersion}`}`;
 
   console.log(`Creating tag ${finalTag}...`);
 

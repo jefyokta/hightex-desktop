@@ -7,6 +7,7 @@ import BaseHandler from "@/compiler/handlers/basehandler";
 import { Engine } from "@/compiler/engine";
 import { Chapter } from "@/editor/chapter";
 import { cn } from "@/lib/utils";
+import { ChapterNotFound } from "@/exception/chapter-not-found";
 
 Paged.registerHandlers(BaseHandler);
 
@@ -25,8 +26,9 @@ export const Single = () => {
     }
 
     const rawChapter = await HighTexDB.getInstance().chapters.get(id);
+    console.log("rawChaper",rawChapter)
 
-    if (!rawChapter) return;
+    if (!rawChapter) throw new ChapterNotFound(id);
 
     const chapter = new Chapter(rawChapter.id);
 
@@ -85,13 +87,6 @@ export const Single = () => {
         }}
       >
         <section ref={sourceRef} className={cn("content")} />
-
-        {/* <div style={{ breakBefore: "always", pageBreakBefore: "always" }}>
-          <section className="biblio new-page">
-            <h1 id="bibliography" className="chapter">DAFTAR PUSTAKA</h1>
-            <div id="cite-entries"></div>
-          </section>
-        </div> */}
       </div>
 
       <div

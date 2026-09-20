@@ -166,7 +166,7 @@ export const Splash: React.FC = () => {
 
                                         <div className="divide-y rounded-md border">
                                             <div className="flex items-center justify-between px-3 py-2.5">
-                                            
+
                                                 <span className="text-sm">
                                                     Jepi Okta Mipa
                                                 </span>
@@ -178,9 +178,16 @@ export const Splash: React.FC = () => {
 
                                         <div className="divide-y rounded-md border">
                                             <div className="flex items-center justify-between px-3 py-2.5">
-                                               
+
                                                 <span className="text-sm">
                                                     Muhammad Habib Rafi
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="divide-y rounded-md border">
+                                            <div className="flex items-center justify-between px-3 py-2.5">
+                                                <span className="text-sm">
+                                                    Kannaya Aurellia Firsiel
                                                 </span>
                                             </div>
                                         </div>

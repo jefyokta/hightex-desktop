@@ -30,6 +30,7 @@ import { TableMenu } from "@/editor/components/table-menu";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
 import { toast } from "sonner";
+import { FrozenChapter } from "@/components/editor/non-tiptap-editor/frozen-chapter";
 
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
@@ -145,7 +146,8 @@ export const Editor: React.FC = () => {
             }}
           >
             {loaded && Chapter.instance ? (
-              <EditorComponent />
+              Chapter.instance.frozen ? <FrozenChapter /> :
+                <EditorComponent />
             ) : (
               <LoadingDocument />
             )}

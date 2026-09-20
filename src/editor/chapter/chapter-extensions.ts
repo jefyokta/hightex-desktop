@@ -39,6 +39,8 @@ export class ChapterExtensions {
   
   }
   get() {
+
+    if(this.chapter.frozen) return []
     const isNonChapter = [
       "abstract",
       "abstract-en",

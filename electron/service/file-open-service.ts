@@ -9,7 +9,7 @@ export class FileOpenManager {
   constructor(
     private readonly callback: FileOpenCallback,
     private readonly onCli?: CliOpenCallback,
-    extensions: string[] = [".hightex", ".htx", ".ht"],
+    extensions: string[] = [".hightex", ".hts", ".ht"],
   ) {
     this.extensions = extensions.map((e) =>
       e.startsWith(".") ? e.toLowerCase() : `.${e.toLowerCase()}`,

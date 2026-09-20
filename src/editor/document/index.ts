@@ -20,7 +20,6 @@ export class Document {
 
   public scheme?: Category["chapters"];
   public chapters: Chapter[] = [];
-
   public counters={
     equations:0
   }
@@ -81,6 +80,7 @@ export class Document {
     const result: ChapterGraphData[] = [];
 
     for (const c of this.chapters) {
+      if(c.frozen) continue;
       const data = c.graph.data;
       if (data) result.push(data);
     }
@@ -211,6 +211,14 @@ export class Document {
         isolated: true,
       }).setTitle("ABSTRACT"),
     );
+    def.push(
+    new Chapter({
+      documentId:this.id,
+      chapter:"abbrevation",
+      // isolated:true,
+      frozen:true
+    }).setTitle("DAFTAR SINGKATAN")
+  )
     return def;
   }
 

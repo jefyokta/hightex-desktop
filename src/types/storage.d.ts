@@ -25,6 +25,13 @@ declare global {
     value: string;
   }
 
+  interface Alias {
+    documentId: string;
+    key: string;
+    value: string;
+
+  }
+
   interface RawCategory extends Category {
     chapters: string;
   }

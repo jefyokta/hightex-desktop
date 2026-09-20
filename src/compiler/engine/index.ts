@@ -79,7 +79,7 @@ export class Engine {
   }
   interactable(value = true) {
     this.isInteractive = value;
-    console.log(this.isInteractive, "mwhehehe mamam eslint");
+    console.log(this.isInteractive, "mwhehehe mamam ni tsc");
 
     return this;
   }

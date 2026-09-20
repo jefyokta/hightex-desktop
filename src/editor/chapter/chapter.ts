@@ -13,6 +13,10 @@ import { createElement } from "react";
 
 export class Chapter {
   static instance?: Chapter;
+  /**
+   * if true, chapter wont use editor
+   */
+  public frozen:boolean = false;
 
   public title = "";
 
@@ -26,6 +30,8 @@ export class Chapter {
 
   readonly document: Document;
 
+  static readonly frozenChapter = ["cv",'abbrevation'];
+
   readonly hasDecorator = ["abstract","abstract-en"]
 
   constructor(chapterId: string, isolate?: boolean);
@@ -33,11 +39,11 @@ export class Chapter {
   constructor(chapter: string | number, documentId: string, version?: string);
 
   constructor(...args: any[]) {
-    const { chapterId, document, isolated } = this.resolve(args);
+    const { chapterId, document, isolated ,frozen} = this.resolve(args);
 
     this.chapterId = chapterId;
     this.document = document;
-    console.log(chapterId)
+    this.frozen = !!frozen;
 
     const shouldRegister = isolated !== true;
 
@@ -49,9 +55,10 @@ export class Chapter {
     chapterId: string;
     document: Document;
     isolated?: boolean;
+    frozen?:boolean
   } {
     if (args.length === 1 && typeof args[0] === "object") {
-      const { chapter, documentId, version, isolated } =
+      const { chapter, documentId, version, isolated,frozen  } =
         args[0] as ChapterOptions;
 
       const chapterName = String(chapter);
@@ -62,6 +69,7 @@ export class Chapter {
           : `${documentId}.${chapterName}`,
         document: Document.instance ?? new Document(documentId, version),
         isolated,
+        frozen,
       };
     }
 

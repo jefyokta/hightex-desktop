@@ -35,7 +35,7 @@ export class ChapterQuery {
     );
   }
   isNormalChapter() {
-    return !this.isStaticChapter() && !this.isAttachmentChapter();
+    return !this.isStaticChapter() && !this.isAttachmentChapter() && !this.chapter.frozen;
   }
 
   async getContent(): Promise<JSONContent[]> {
@@ -53,6 +53,7 @@ export class ChapterQuery {
 
   async getChapterTitle() {
     const chapter = this.chapter.getChapter();
+    if(this.chapter.frozen) return this.chapter.title;
     if (this.isAttachmentChapter()) {
       return "Lampiran".toUpperCase();
     }
