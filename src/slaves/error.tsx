@@ -15,6 +15,7 @@ import type { NavigateFunction } from "react-router-dom";
 import { truncate } from "@/utils/truncate";
 import { reconstructMainError } from "@/decorators/error-name";
 import { ShouldSilent } from "@/exception/should-silent";
+import { t } from "@/utils/lang";
 
 export const ErrorSlave: React.FC = () => {
   const { errors, clear } = useError();
@@ -47,7 +48,7 @@ export const ErrorSlave: React.FC = () => {
     }
 
     if (error instanceof DocumentNotFound) {
-      toast.error(`Document ${error.doc.id} not found!`);
+      toast.error(t("error.document_slave.not_found", { id: error.doc.id }));
       clear(id);
       go("/dashboard/");
       return;

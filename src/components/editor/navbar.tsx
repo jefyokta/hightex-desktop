@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { Document } from "@/editor/document";
+import { t } from "@/utils/lang";
 import { Chapter } from "@/editor/chapter";
 import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
@@ -253,12 +254,12 @@ export const NavBar: React.FC = () => {
                   if (exportingPdf) return;
                   setExportingPdf(true);
                   setPdfProgress(5);
-                  setPdfStatus("Menyiapkan ekspor PDF...");
+                  setPdfStatus(t("common.preparing_pdf"));
 
                   const docId =
                     Document.instance?.id ?? Chapter.instance?.document.id;
                   if (!docId) {
-                    toast.error("Document ID not found");
+                    toast.error(t("error.document.not_found"));
                     setExportingPdf(false);
                     return;
                   }
@@ -337,7 +338,7 @@ export const NavBar: React.FC = () => {
                       error instanceof Error
                         ? error.message
                         : "Error while exporting PDF";
-                    toast.error("Gagal mengekspor PDF", {
+                    toast.error(t("common.export_failed"), {
                       description: msg,
                       id: toastId,
                       duration: 8000,

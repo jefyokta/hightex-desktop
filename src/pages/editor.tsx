@@ -168,9 +168,8 @@ const EditorComponent = () => {
       }
       if (m.type == "layout:error") {
         throw new ShouldNotified({
-          message: "Paging Stopped",
-          description:
-            "content page limit cause an error. Adjust content in the previous page or split it into a new page.",
+          message: t("editor.error.pagging_stopped.title"),
+          description: t("editor.error.pagging_stopped.description"),
         });
       }
     });

@@ -1,6 +1,7 @@
 import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
 import { formatDistanceToNow } from "date-fns";
 import { useEffect, useRef, useState } from "react";
+import { t } from "@/utils/lang";
 import { useParams } from "react-router-dom";
 import { strFromU8, unzipSync } from "fflate";
 import { createMarker } from "@/utils/sharing";
@@ -49,7 +50,7 @@ export const SnapshotViewer = () => {
 
   useEffect(() => {
     if (!id) {
-      throw new ShouldNavigated("Snapshot not found", "/dashboard/snapshots");
+      throw new ShouldNavigated(t("snapshots.not_found"), "/dashboard/snapshots");
     }
 
     blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
@@ -132,7 +133,7 @@ export const SnapshotViewer = () => {
         console.error(err);
         throw new ShouldNotifiedWithNativeComponent(
           ShouldNotifiedWithNativeComponent.normilize(err) ||
-            "Snapshot Not found",
+            t("snapshots.not_found"),
           "/dashboard/snapshots",
         );
       });

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ApplicationError } from "./interfaces/application-error";
 import { ShouldNotified } from "./interfaces/should-notified";
 import { truncate } from "@/utils/truncate";
+import { t } from "@/utils/lang";
 
 function ReportIssueAction({ description }: { description: string }) {
   // const { user } = useUser();
@@ -15,12 +16,12 @@ function ReportIssueAction({ description }: { description: string }) {
     try {
       setSending(true);
       await window.hightex.reportError({
-        title: "Unexpected Error",
+        title: t("error.report.unexpected_error"),
         description,
       });
-      toast.success("Error report sent");
+      toast.success(t("error.report.sent"));
     } catch (error) {
-      toast.error("Unable to report error", {
+      toast.error(t("error.report.send_failed"), {
         description: truncate(ApplicationError.normilize(error), 100),
       });
     } finally {
@@ -37,15 +38,15 @@ function ReportIssueAction({ description }: { description: string }) {
       className:
         "text-sm font-medium border p-1 px-1.5 rounded-sm disabled:opacity-60",
     },
-    sending ? "Reporting..." : "Report",
+    sending ? t("error.report.sending") : t("error.report.button"),
   );
 }
 
 export class ShouldReport extends ShouldNotified {
-  constructor(description: string,prevErr?:any) {
+  constructor(description: string, prevErr?: any) {
     super({
-      message: "Unexpected Error",
-      description:description + "\n"+ApplicationError.normilize(prevErr),
+      message: t("error.report.unexpected_error"),
+      description: description + "\n" + ApplicationError.normilize(prevErr),
       action: React.createElement(ReportIssueAction, { description }),
     });
   }

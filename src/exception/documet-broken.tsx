@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { ShouldNotified } from "./interfaces/should-notified";
 import { HighTexDB } from "@/editor/storage/hightex-db";
+import { t } from "@/utils/lang";
 
 export class DocumentBroken extends ShouldNotified<"error"> {
   level: "error" = "error";
   constructor(documentId: string) {
     super({
-      message: "Document crashed!",
-      description: "Document contains some invalid",
+      message: t("error.document.crashed"),
+      description: t("error.document.invalid_content"),
       action: (
         <div className="flex justify-center space-x-1">
           <Button
@@ -15,7 +16,7 @@ export class DocumentBroken extends ShouldNotified<"error"> {
               location.href = "/";
             }}
           >
-            Back
+            {t("back")}
           </Button>
           <Button
             variant={"destructive"}
@@ -24,7 +25,7 @@ export class DocumentBroken extends ShouldNotified<"error"> {
               location.href = "/";
             }}
           >
-            Delete
+            {t("error.document.delete_button")}
           </Button>
         </div>
       ),

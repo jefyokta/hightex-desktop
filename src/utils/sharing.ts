@@ -1,6 +1,7 @@
 import { truncate } from "@/utils/truncate";
 import { confirm } from "./confirm";
 import { ask } from "./ask";
+import { t } from "@/utils/lang";
 
 export function initials(name: string): string {
   return name
@@ -114,10 +115,15 @@ export const connectToHost = async (invdCode: string) => {
     return { ip: data.ip, port: data.host.split(":")[1], code };
   }
 
-  const confirmed = await confirm("want to join to host network " + ssid + "?");
+  const confirmed = await confirm(
+    t("error.sharing.confirm_join_network", { ssid }),
+  );
   if (!confirmed) throw new Error("Canceled");
 
-  const pass = await ask(`password for ${ssid}`, true);
+  const pass = await ask(
+    t("error.sharing.ask_network_password", { ssid }),
+    true,
+  );
   if (typeof pass == "undefined") throw new Error("Canceled");
   const connetion = await window.sharing.wifi.connect(ssid, pass);
   if (!connetion.changed) throw new Error("Failed to connect");

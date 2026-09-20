@@ -3,6 +3,7 @@ import { ShouldNotified } from "./interfaces/should-notified";
 import { Button } from "@/components/ui/button";
 import { ContentFixer } from "@/utils/content-fixer";
 import { toast } from "sonner";
+import { t } from "@/utils/lang";
 
 export class EditorContentError extends ShouldNotified<"error"> {
   readonly editor: Editor;
@@ -12,8 +13,8 @@ export class EditorContentError extends ShouldNotified<"error"> {
 
   constructor(editor: Editor) {
     super({
-      message: "Content error",
-      description: "Your document scheme contains invalid content",
+      message: t("editor.error.content_error.title"),
+      description: t("editor.error.content_error.description"),
       action: (
         <Button
           onClick={async () => {
@@ -27,14 +28,14 @@ export class EditorContentError extends ShouldNotified<"error"> {
                 }, 1000);
               }),
               {
-                loading: "Fixing document...",
-                success: "Document fixed",
-                error: "Failed to fix document",
+                loading: t("editor.error.content_error.fixing"),
+                success: t("editor.error.content_error.fixed"),
+                error: t("editor.error.content_error.fix_failed"),
               },
             );
           }}
         >
-          Fix
+          {t("editor.error.content_error.fix_button")}
         </Button>
       ),
     });

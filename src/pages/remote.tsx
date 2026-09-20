@@ -145,9 +145,8 @@ export const RemoteDocuments = () => {
               <button
                 onClick={() => {
                   throw new ShouldNotified({
-                    message: "Unimplemented",
-                    description:
-                      "This feature is currently unavailable, planning for next updates",
+                    message: t("remote.unimplemented"),
+                    description: t("remote.unimplemented_desc"),
                   });
                 }}
                 className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2"
@@ -560,8 +559,8 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
                 <div className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition">
                   {doc.updatedAt
                     ? formatDistanceToNow(new Date(doc.updatedAt), {
-                        addSuffix: true,
-                      })
+                      addSuffix: true,
+                    })
                     : "No activity"}
                 </div>
               </button>
