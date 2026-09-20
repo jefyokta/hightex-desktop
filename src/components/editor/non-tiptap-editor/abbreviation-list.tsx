@@ -1,13 +1,12 @@
 
 import { Paper } from "@/components/paper"
+import { Button } from "@/components/ui/button"
 import { Document } from "@/editor/document"
 import { HighTexDB } from "@/editor/storage/hightex-db"
+import { X } from "lucide-react"
 import React, { useEffect, useState } from "react"
 
-type Abbrevation = {
-    key: string
-    value: string
-}
+type Abbrevation = Omit<Alias, "documentId">
 
 export const AbbrevationList = () => {
     const [abbrevations, setAbbrevations] = useState<Abbrevation[]>([])
@@ -101,41 +100,35 @@ export const AbbrevationList = () => {
                 DAFTAR SINGKATAN
             </h1>
 
-            <div 
-                className="mt-6 space-y-2 grid"
-                style={{
-                    gridTemplateColumns: "6.5cm .5cm 7cm"
-                }}
-            >
-                {abbrevations.map((item) => (
-                    <React.Fragment key={item.key}>
-                        <div className="text-elipsis ">{item.key}</div>
-                        <div>:</div>
-                        <div>{item.value}</div>
+            <div className="relative mt-6">
+                <div
+                    className="grid"
+                    style={{
+                        gridTemplateColumns: "6.5cm .5cm 7cm",
+                        width: "14cm !important"
+                    }}
+                >
+                    {abbrevations.map((item) => (
+                        <React.Fragment key={item.key}>
+                            <div className="text-elipsis">
+                                {item.key}
+                            </div>
 
-                    </React.Fragment>
+                            <div>:</div>
 
-                    // <div
-                    //     key={item.key}
-                    //     className="flex items-center gap-4 rounded-md border px-3 py-2"
-                    // >
-                    //     <span className="w-32 shrink-0 font-medium">
-                    //         {item.key}
-                    //     </span>
+                            <div className="relative">{item.value}
+                                <Button
+                                onClick={()=>{
+                                    removeAbbrevation(item)
+                                }}
+                                    className="absolute -right-10 z-10 top-0 w-5 h-5 rounded-full"
+                                    variant={'destructive'}
+                                    ><X className="w-1" width={'16'} height={'16'}/></Button>
+                            </div>
+                        </React.Fragment>
+                    ))}
+                </div>
 
-                    //     <span className="flex-1 text-sm text-muted-foreground">
-                    //         {item.value}
-                    //     </span>
-
-                    //     <button
-                    //         type="button"
-                    //         onClick={() => void removeAbbrevation(item)}
-                    //         className="text-sm text-muted-foreground hover:text-foreground"
-                    //     >
-                    //         ×
-                    //     </button>
-                    // </div>
-                ))}
             </div>
 
             <div className="mt-6 flex items-center gap-2">
@@ -147,7 +140,9 @@ export const AbbrevationList = () => {
                     className="w-32 rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
                 />
 
-                <span className="text-muted-foreground">=</span>
+                <span className="text-muted-foreground">
+                    =
+                </span>
 
                 <input
                     value={value}
@@ -160,4 +155,3 @@ export const AbbrevationList = () => {
         </Paper>
     )
 }
-
