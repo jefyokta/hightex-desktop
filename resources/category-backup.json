@@ -1,0 +1,58 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Rancang Bangun",
+      "chapters": "[{\"chapter\":1,\"title\":\"PENDAHULUAN\"},{\"chapter\":2,\"title\":\"LANDASAN TEORI\"},{\"chapter\":3,\"title\":\"METODOLOGI PENELETIAN\"},{\"chapter\":4,\"title\":\"ANALISA DAN PERANCANGAN\"},{\"chapter\":5,\"title\":\"TESTING DAN IMPLEMENTASI\"},{\"chapter\":6,\"title\":\"PENUTUP\"}]",
+      "created_at": "2026-08-22T05:37:21.000000Z",
+      "updated_at": "2026-08-22T05:37:21.000000Z",
+      "min": 0,
+      "variant": "thesis"
+    },
+    {
+      "id": 2,
+      "name": "Rancang Bangun",
+      "chapters": "[{\"chapter\":1,\"title\":\"PENDAHULUAN\"},{\"chapter\":2,\"title\":\"LANDASAN TEORI\"},{\"chapter\":3,\"title\":\"METODOLOGI PENELETIAN\"},{\"chapter\":4,\"title\":\"ANALISA DAN PERANCANGAN\"},{\"chapter\":5,\"title\":\"TESTING DAN IMPLEMENTASI\"},{\"chapter\":6,\"title\":\"PENUTUP\"}]",
+      "created_at": "2026-08-22T05:37:21.000000Z",
+      "updated_at": "2026-08-22T05:37:21.000000Z",
+      "min": 0,
+      "variant": "proposal"
+    },
+    {
+      "id": 3,
+      "name": "Analisa",
+      "chapters": "[{\"chapter\":1,\"title\":\"PENDAHULUAN\"},{\"chapter\":2,\"title\":\"LANDASAN TEORI\"},{\"chapter\":3,\"title\":\"METODOLOGI PENELETIAN\"},{\"chapter\":4,\"title\":\"HASIL PEMBAHASAN\"},{\"chapter\":5,\"title\":\"PENUTUP\"}]",
+      "created_at": "2026-08-22T05:37:21.000000Z",
+      "updated_at": "2026-08-22T05:37:21.000000Z",
+      "min": 0,
+      "variant": "thesis"
+    },
+    {
+      "id": 4,
+      "name": "Analisa",
+      "chapters": "[{\"chapter\":1,\"title\":\"PENDAHULUAN\"},{\"chapter\":2,\"title\":\"LANDASAN TEORI\"},{\"chapter\":3,\"title\":\"METODOLOGI PENELETIAN\"},{\"chapter\":4,\"title\":\"HASIL PEMBAHASAN\"},{\"chapter\":5,\"title\":\"PENUTUP\"}]",
+      "created_at": "2026-08-22T05:37:21.000000Z",
+      "updated_at": "2026-08-22T05:37:21.000000Z",
+      "min": 0,
+      "variant": "proposal"
+    },
+    {
+      "id": 5,
+      "name": "Rancang Bangun",
+      "chapters": "[{\"chapter\":1,\"title\":\"Pendahuluan\"},{\"chapter\":2,\"title\":\"Landasan Teori\"},{\"chapter\":3,\"title\":\"Metodologi Penelitian\"},{\"chapter\":4,\"title\":\"Analisa Dan Perancangan\"},{\"chapter\":5,\"title\":\"Hasil dan Implementasi\"},{\"chapter\":6,\"title\":\"Penutup\"}]",
+      "created_at": "2026-08-22T06:03:10.000000Z",
+      "updated_at": "2026-09-18T15:05:54.000000Z",
+      "min": 0,
+      "variant": "intern"
+    },
+    {
+      "id": 6,
+      "name": "Analisa",
+      "chapters": "[{\"chapter\":1,\"title\":\"PENDAHULUAN\"},{\"chapter\":2,\"title\":\"LANDASAN TEORI\"},{\"chapter\":3,\"title\":\"METODOLOGI PENELITIAN\"},{\"chapter\":4,\"title\":\"HASIL PEMBAHASAN\"},{\"chapter\":5,\"title\":\"PENUTUP\"}]",
+      "created_at": "2026-08-22T08:01:16.000000Z",
+      "updated_at": "2026-08-22T08:01:16.000000Z",
+      "min": 0,
+      "variant": "intern"
+    }
+  ]
+}
