@@ -21,7 +21,7 @@ export class SnapshotService {
 
     mkdirSync(snapshotDir, { recursive: true });
 
-    const filePath = path.join(snapshotDir, `${id}.htx`);
+    const filePath = path.join(snapshotDir, `${id}.hts`);
 
     const file = this.createFile(snapshot);
     writeFile(filePath, file, (err) => {

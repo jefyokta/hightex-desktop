@@ -33,7 +33,7 @@
         "role": "Editor"
       },
       {
-        "ext": "htx",
+        "ext": "hts",
         "name": "HighTex Snapshot Document",
         "role": "Viewer"
       }
@@ -56,7 +56,7 @@
         "name": "HighTex Dynamic Document"
       },
       {
-        "ext": "htx",
+        "ext": "hts",
         "name": "HighTex Snapshot Document",
         "role": "Viewer"
       }
@@ -73,7 +73,7 @@
         "name": "HighTex Dynamic Document"
       },
       {
-        "ext": "htx",
+        "ext": "hts",
         "name": "HighTex Snapshot Document",
         "role": "Viewer"
       }
