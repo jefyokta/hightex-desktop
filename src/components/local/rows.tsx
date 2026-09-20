@@ -62,8 +62,8 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
       if (!trimmed || keywordsId.includes(trimmed)) return;
       if (keywordsId.length == 5)
         throw new ShouldNotified({
-          message: "Cannot added",
-          description: "Max keywords is 5",
+          message: t("error.keyword.add_failed"),
+          description: t("error.keyword.add_failed_desc", { max: 5 }),
         });
       setKeywordsId((prev) => [...prev, trimmed]);
       setInputId("");
@@ -73,8 +73,8 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
       if (!trimmed || keywordsEn.includes(trimmed)) return;
       if (keywordsEn.length == 5)
         throw new ShouldNotified({
-          message: "Cannot added",
-          description: "Max keywords is 5",
+          message: t("error.keyword.add_failed"),
+          description: t("error.keyword.add_failed_desc", { max: 5 }),
         });
       setKeywordsEn((prev) => [...prev, trimmed]);
       setInputEn("");
@@ -115,10 +115,10 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
 
   const updatedAt = doc.updatedAt
     ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
     : null;
 
   const generatePdf = async (waterMark: boolean = false) => {
@@ -183,10 +183,10 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
       );
     } catch (e) {
       if (e instanceof Error) {
-        const t = e.message.split(":");
-        e = t[t.length - 1] || e.message;
+        const parts = e.message.split(":");
+        e = parts[parts.length - 1] || e.message;
       }
-      toast.error("Gagal mengekspor PDF", {
+      toast.error(t("common.export_failed"), {
         description() {
           return truncate(ApplicationError.normilize(e), 150);
         },
@@ -259,7 +259,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                       toast.success("Category updated");
                     } catch {
                       setCategory(previous);
-                      throw new ShouldNotified("Failed to update category.");
+                      throw new ShouldNotified(t("error.category.update_failed"));
                     }
                   }}
                 >

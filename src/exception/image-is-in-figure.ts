@@ -1,10 +1,11 @@
 import { ShouldNotified } from "./interfaces/should-notified";
+import { t } from "@/utils/lang";
 
 export class ImageIsInFigure extends ShouldNotified {
   constructor() {
     super({
-      message: "Action did'nt needed",
-      description: "The image is already inside a figure",
+      message: t("error.image.in_figure_title"),
+      description: t("error.image.in_figure_desc"),
     });
   }
 }

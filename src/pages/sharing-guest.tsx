@@ -6,6 +6,7 @@ import { useSharing } from "@/hooks/use-sharing";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { SelectionResolver } from "@/compiler/resolver/selection-resolver";
+import { t } from "@/utils/lang";
 
 export const SharingGuest = () => {
   const { connectAnonymous, connectGuest, disconnect, send } = useSharing();
@@ -22,7 +23,9 @@ export const SharingGuest = () => {
           if (!host) missing.push("host");
           if (!port) missing.push("port");
           throw new SharingException(
-            "Missing required params: " + missing.join(", "),
+            t("error.sharing.missing_params", {
+              params: missing.join(", "),
+            }),
           );
         }
 
@@ -39,7 +42,9 @@ export const SharingGuest = () => {
 
         const res = await fetch(`${hostUrl}/snapshot${codeQuery}`);
         if (!res.ok) {
-          throw new SharingException(`Failed to load snapshot (${res.status})`);
+          throw new SharingException(
+            t("error.sharing.failed_load_snapshot", { status: res.status }),
+          );
         }
 
         const data: {
@@ -64,7 +69,10 @@ export const SharingGuest = () => {
             );
             if (!imgRes.ok) {
               throw new SharingException(
-                `Failed to load image ${id} (${imgRes.status})`,
+                t("error.sharing.failed_load_image", {
+                  id,
+                  status: imgRes.status,
+                }),
               );
             }
 

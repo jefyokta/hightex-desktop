@@ -3,6 +3,7 @@ import { strFromU8, unzipSync } from "fflate";
 import { HighTexImportError } from "@/exception/hightex-import";
 import { V2Reader } from "./v2-reader";
 import { V1Reader } from "./v1-reader";
+import { t } from "@/utils/lang";
 
 export class SchemaReader<TVersion extends SchemaVersion = any> {
   private _reader: TVersion extends 1 ? V1Reader : V2Reader;
@@ -29,7 +30,7 @@ export class SchemaReader<TVersion extends SchemaVersion = any> {
     );
 
     if (!manifest) {
-      throw new HighTexImportError("Cannot find the manifest file");
+      throw new HighTexImportError(t("error.htx.manifest_missing"));
     }
 
     try {
@@ -38,7 +39,7 @@ export class SchemaReader<TVersion extends SchemaVersion = any> {
       );
       return manifestObj;
     } catch (error) {
-      throw new HighTexImportError("Manifest file is broken");
+      throw new HighTexImportError(t("error.htx.manifest_broken"));
     }
   }
 

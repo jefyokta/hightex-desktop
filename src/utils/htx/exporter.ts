@@ -6,6 +6,7 @@ import { staticChapter } from "./schema/static";
 import { JSONContent } from "@tiptap/core";
 import { zipSync } from "fflate";
 import { isStaticVar } from "../is-static-var";
+import { t } from "@/utils/lang";
 
 /**
  * export to ht | htx | hightex file
@@ -26,7 +27,9 @@ export class Exporter {
   async export(): Promise<{ canceled: boolean; filePath?: string }> {
     const document = await this.db.documents.get(this.documentId);
     if (!document) {
-      throw new HighTexExportError("Document not found for export.");
+      throw new HighTexExportError(
+        t("error.htx.document_not_found_for_export"),
+      );
     }
     this.scheme.writter.setContentFormat(this.options.format);
     const manifest = this.scheme.createManifest(document, this.options.format);

@@ -1,6 +1,7 @@
 import { Document } from "@/editor/document"
 import { Storage } from "@/editor/storage"
 import { ShouldNotified } from "@/exception/interfaces/should-notified"
+import { t } from "@/utils/lang"
 import { ParsedItalic } from "@/utils/parse-italic"
 import { useEffect, useState } from "react"
 
@@ -22,7 +23,7 @@ const useKeywords = (language: KeywordLanguage) => {
     useEffect(() => {
         const handle = async () => {
             if (!Document.instance) {
-                throw new ShouldNotified("Document hasnt created")
+                throw new ShouldNotified(t("error.document.not_created"))
             }
 
             const document = await Storage.instance.getDocument(Document.instance.id)
@@ -36,13 +37,13 @@ const useKeywords = (language: KeywordLanguage) => {
 
     const update = async (keywords: string[]) => {
         if (!Document.instance) {
-            throw new ShouldNotified("Document hasnt created")
+            throw new ShouldNotified(t("error.document.not_created"))
         }
 
         const document = await Storage.instance.getDocument(Document.instance.id)
 
         if (!document) {
-            throw new ShouldNotified("Document not found")
+            throw new ShouldNotified(t("error.document.not_found"))
         }
 
         await Storage.instance.setDocument({
@@ -63,9 +64,8 @@ const useKeywords = (language: KeywordLanguage) => {
         }
 
         if (keywords.length >= 5) {
-            throw new ShouldNotified(`Maximum ${5} keywords allowed`)
+            throw new ShouldNotified(t("error.keyword.max_reached", { max: 5 }))
         }
-
         const nextKeywords = sortKeywords([...keywords, keyword])
 
         setKeywords(nextKeywords)

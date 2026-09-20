@@ -171,7 +171,8 @@
     "cancel": "Batal",
     "thesis": "Tugas Akhir",
     "proposal": "Proposal",
-    "intern": "Kerja Praktek"
+    "intern": "Kerja Praktek",
+    "preparing_pdf": "Menyiapkan ekspor PDF..."
   },
   "dashboard": {
     "loading": "Memuat HighTex...",
@@ -202,7 +203,8 @@
     "join_description": "Masukin kode aneh dari host kamu.",
     "invitation_code": "kode undangan",
     "loading": "Memuat",
-    "no_documents": "Tidak ada dokumen yang tersedia."
+    "no_documents": "Tidak ada dokumen yang tersedia.",
+    "join_failed": "Gagal bergabung ke sesi berbagi"
   },
   "forms": {
     "title": "Pembuatan Formulir",
@@ -291,6 +293,14 @@
       "pagging_stopped": {
         "title": "Penghalaman Terhenti",
         "description": "Batas halaman konten bikin error. Sesuaikan konten di halaman sebelumnya atau pecah jadi halaman baru."
+      },
+      "content_error": {
+        "title": "Kesalahan konten",
+        "description": "Skema dokumen kamu mengandung konten yang tidak valid",
+        "fix_button": "Perbaiki",
+        "fixing": "Memperbaiki dokumen...",
+        "fixed": "Dokumen berhasil diperbaiki",
+        "fix_failed": "Gagal memperbaiki dokumen"
       }
     },
     "context_menu": {
@@ -368,12 +378,15 @@
     "search_local_documents": "Cari dokumen lokal...",
     "loading_documents": "Memuat dokumen...",
     "no_local_documents_found": "Dokumen lokal tidak ditemukan",
-    "pull_latest": "Tarik Versi Terbaru"
+    "pull_latest": "Tarik Versi Terbaru",
+    "unimplemented": "Belum diimplementasikan",
+    "unimplemented_desc": "Fitur ini belum tersedia, direncanakan untuk pembaruan berikutnya"
   },
   "error": {
     "category": {
       "missing": "Kategori tidak ditemukan!",
-      "missing.desc": "Coba sambungkan ke internet atau pasang ulang aplikasinya"
+      "missing.desc": "Coba sambungkan ke internet atau pasang ulang aplikasinya",
+      "update_failed": "Gagal memperbarui kategori."
     },
     "frame": {
       "not": {
@@ -382,7 +395,67 @@
       }
     },
     "sharing": {
-      "not_sharing": "Kamu belum membagikan dokumen apa pun!"
+      "not_sharing": "Kamu belum membagikan dokumen apa pun!",
+      "connect_failed_host": "Tidak dapat terhubung ke host berbagi {host}:{port}",
+      "server_not_running": "Server berbagi tidak berjalan di port {port}",
+      "connection_rejected": "Koneksi berbagi ditolak",
+      "not_established": "Koneksi berbagi belum tersambung",
+      "not_ready": "Koneksi berbagi belum siap",
+      "missing_params": "Parameter wajib tidak ditemukan: {params}",
+      "failed_load_snapshot": "Gagal memuat snapshot ({status})",
+      "failed_load_image": "Gagal memuat gambar {id} ({status})",
+      "confirm_join_network": "Ingin bergabung ke jaringan host {ssid}?",
+      "ask_network_password": "Kata sandi untuk {ssid}"
+    },
+    "document": {
+      "not_created": "Dokumen belum dibuat",
+      "not_found": "Dokumen tidak ditemukan",
+      "crashed": "Dokumen rusak!",
+      "invalid_content": "Dokumen mengandung konten yang tidak valid",
+      "delete_button": "Hapus"
+    },
+    "keyword": {
+      "max_reached": "Maksimal {max} kata kunci",
+      "add_failed": "Tidak dapat menambahkan",
+      "add_failed_desc": "Maksimal kata kunci adalah {max}"
+    },
+    "var": {
+      "common": "Tidak dapat menghapus variabel statis",
+      "name_conflict": "Nama variabel tidak boleh sama dengan nama variabel statis",
+      "create_failed": "Tidak dapat membuat variabel",
+      "create_failed_desc": "`{name}` adalah variabel statis"
+    },
+    "document_slave": {
+      "not_found": "Dokumen {id} tidak ditemukan!"
+    },
+    "report": {
+      "unexpected_error": "Kesalahan Tak Terduga",
+      "sent": "Laporan error terkirim",
+      "send_failed": "Tidak dapat mengirim laporan error",
+      "sending": "Mengirim laporan...",
+      "button": "Laporkan"
+    },
+    "page_overflow": {
+      "title": "Halaman meluap!",
+      "description": "Ditemukan luapan pada halaman {page}",
+      "see": "Lihat"
+    },
+    "image": {
+      "in_figure_title": "Tindakan tidak diperlukan",
+      "in_figure_desc": "Gambar sudah berada di dalam figure",
+      "convert_error": "Kesalahan Konversi Gambar"
+    },
+    "action_canceled": "Tindakan Dibatalkan",
+    "compiler": {
+      "error": "Kesalahan Kompilasi"
+    },
+    "htx": {
+      "export_failed": "Ekspor HighTex gagal",
+      "document_not_found_for_export": "Dokumen tidak ditemukan untuk diekspor.",
+      "import_failed": "Impor HighTex gagal",
+      "manifest_missing": "File manifest tidak ditemukan",
+      "manifest_broken": "File manifest rusak",
+      "manifest_package_missing": "manifest.json tidak ditemukan dalam paket HighTex."
     }
   },
   "back": "Kembali",
@@ -515,5 +588,14 @@
     "delete_error": "Gagal menghapus snapshot",
     "delete_failed": "Snapshot tidak bisa dihapus.",
     "delete_snapshot": "Hapus snapshot"
-  }
+  },
+  "open_file": {
+    "confirm_overwrite": "Dokumen sudah diimpor, mau ditimpa?",
+    "importing": "Mengimpor dokumen...",
+    "import_success": "Impor Berhasil!",
+    "added": "Menambahkan {title}",
+    "import_failed": "Impor Gagal",
+    "open_failed": "Tidak dapat membuka file"
+  },
+  "open": "Buka"
 }

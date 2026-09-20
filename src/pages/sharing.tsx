@@ -162,7 +162,7 @@ export const Present = () => {
                   } catch (error) {
                     throw new ShouldNotified({
                       description: String(error),
-                      message: "Failed to join sharing",
+                      message: t("present.join_failed"),
                     });
                   } finally {
                     toast.dismiss(id);

@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { isStaticVar } from "@/utils/is-static-var";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { t } from "@/utils/lang";
 import { Manager } from "@/editor/manager";
 
 export const VariableTab = () => {
@@ -57,8 +58,8 @@ export const VariableTab = () => {
 
     if (isStaticVar(parsed.name))
       throw new ShouldNotified({
-        message: `Cannot create variable`,
-        description: `\`${parsed.name}\` is static variable`,
+        message: t("error.var.create_failed"),
+        description: t("error.var.create_failed_desc", { name: parsed.name }),
       });
 
     await db.setVar(parsed.name, parsed.value, Document.instance!.id);
@@ -71,9 +72,7 @@ export const VariableTab = () => {
 
   const saveEdit = async (name: string) => {
     if (isStaticVar(name))
-      throw new ShouldNotified(
-        "Variable name cannot be same as static variable Name",
-      );
+      throw new ShouldNotified(t("error.var.name_conflict"));
 
     await db.setVar(name, draft, Document.instance!.id);
     Manager.app.dispatch("var:updated", { name, value: draft });
@@ -84,7 +83,7 @@ export const VariableTab = () => {
 
   const remove = async (name: string) => {
     if (isStaticVar(name))
-      throw new ShouldNotified("Cannot Delete static vars");
+      throw new ShouldNotified(t("error.var.common"));
 
     await db.deleteVar(name, Document.instance!.id);
     Manager.app.dispatch("var:updated", { name, value: "" });

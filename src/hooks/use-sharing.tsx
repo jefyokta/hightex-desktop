@@ -1,5 +1,6 @@
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { SharingException } from "@/exception/sharing-exception";
+import { t } from "@/utils/lang";
 import { createMarker } from "@/utils/sharing";
 import React, {
   createContext,
@@ -105,7 +106,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
     if (wsRef.current) {
       try {
         wsRef.current.close();
-      } catch {}
+      } catch { }
       wsRef.current = null;
     }
 
@@ -144,7 +145,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
 
           try {
             ws.close();
-          } catch {}
+          } catch { }
 
           reject(new ShouldNotified(message));
         };
@@ -169,9 +170,9 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
           (_e) => {
             setConnecting(false);
             if (isGuest) {
-              fail(`Unable to connect to sharing host ${opt.host}:${opt.port}`);
+              fail(t("error.sharing.connect_failed_host", { host: opt.host, port: opt.port }));
             } else {
-              fail(`Sharing server is not running on port ${opt.port}`);
+              fail(t("error.sharing.server_not_running", { port: opt.port }));
             }
           },
           { once: true },
@@ -182,7 +183,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
             const message: WSMessage<"server"> = JSON.parse(event.data);
 
             if (message?.type === "error") {
-              fail(message.payload.message ?? "Sharing connection rejected");
+              fail(message.payload.message ?? t("error.sharing.connection_rejected"));
               return;
             }
 
@@ -218,7 +219,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
             }
 
             setMessages((prev) => appendBounded(prev, message));
-          } catch {}
+          } catch { }
         });
 
         ws.addEventListener("close", () => {
@@ -258,11 +259,11 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
       const ws = wsRef.current;
 
       if (!ws) {
-        throw new SharingException("Sharing connection is not established");
+        throw new SharingException(t("error.sharing.not_established"));
       }
 
       if (ws.readyState !== WebSocket.OPEN) {
-        throw new SharingException("Sharing connection is not ready");
+        throw new SharingException(t("error.sharing.not_ready"));
       }
 
       const data =

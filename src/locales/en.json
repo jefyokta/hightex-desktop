@@ -114,7 +114,6 @@
           "description": "Your second advisor's identifier number"
         }
       },
-
       "save": "Save Profile",
       "saving": "Saving...",
       "cloud_profile": "Prefer Cloud Profile",
@@ -172,7 +171,8 @@
     "cancel": "Cancel",
     "thesis": "Thesis",
     "proposal": "Proposal",
-    "intern": "Intern"
+    "intern": "Intern",
+    "preparing_pdf": "Preparing PDF export..."
   },
   "dashboard": {
     "loading": "Loading HighTex...",
@@ -203,7 +203,8 @@
     "join_description": "Drop that weirdly text from your host.",
     "invitation_code": "invitation code",
     "loading": "Loading",
-    "no_documents": "No documents available."
+    "no_documents": "No documents available.",
+    "join_failed": "Failed to join sharing"
   },
   "forms": {
     "title": "Forms Generation",
@@ -292,6 +293,14 @@
       "pagging_stopped": {
         "title": "Pagging Stopped",
         "description": "content page limit cause an error. Adjust content in the previous page or split it into a new page."
+      },
+      "content_error": {
+        "title": "Content error",
+        "description": "Your document scheme contains invalid content",
+        "fix_button": "Fix",
+        "fixing": "Fixing document...",
+        "fixed": "Document fixed",
+        "fix_failed": "Failed to fix document"
       }
     },
     "context_menu": {
@@ -369,12 +378,22 @@
     "search_local_documents": "Search local documents...",
     "loading_documents": "Loading documents...",
     "no_local_documents_found": "No local documents found",
-    "pull_latest": "Pull Latest"
+    "pull_latest": "Pull Latest",
+    "unimplemented": "Unimplemented",
+    "unimplemented_desc": "This feature is currently unavailable, planning for next updates"
   },
   "error": {
     "category": {
       "missing": "Categories is missing!",
-      "missing.desc": "Try to get online or reinstall the app"
+      "missing.desc": "Try to get online or reinstall the app",
+      "update_failed": "Failed to update category"
+    },
+    "report": {
+      "unexpected_error": "Unexpected Error",
+      "sent": "Error report sent",
+      "send_failed": "Unable to report error",
+      "sending": "Reporting...",
+      "button": "Report"
     },
     "frame": {
       "not": {
@@ -383,7 +402,60 @@
       }
     },
     "sharing": {
-      "not_sharing": "You are not sharing any document!"
+      "not_sharing": "You are not sharing any document!",
+      "connect_failed_host": "Unable to connect to sharing host {host}:{port}",
+      "server_not_running": "Sharing server is not running on port {port}",
+      "connection_rejected": "Sharing connection rejected",
+      "not_established": "Sharing connection is not established",
+      "not_ready": "Sharing connection is not ready",
+      "missing_params": "Missing required params: {params}",
+      "failed_load_snapshot": "Failed to load snapshot ({status})",
+      "failed_load_image": "Failed to load image {id} ({status})",
+      "confirm_join_network": "Want to join to host network {ssid}?",
+      "ask_network_password": "Password for {ssid}"
+    },
+    "document": {
+      "not_created": "Document hasn't created yet",
+      "not_found": "Document not found",
+      "crashed": "Document crashed!",
+      "invalid_content": "Document contains some invalid",
+      "delete_button": "Delete"
+    },
+    "keyword": {
+      "max_reached": "Maximum {max} keywords allowed",
+      "add_failed": "Cannot added",
+      "add_failed_desc": "Max keywords is {max}"
+    },
+    "var": {
+      "common": "Cannot Delete Static vars",
+      "name_conflict": "Variable name cannot be same as static variable name",
+      "create_failed": "Cannot create variable",
+      "create_failed_desc": "`{name}` is static variable"
+    },
+    "document_slave": {
+      "not_found": "Document {id} not found!"
+    },
+    "page_overflow": {
+      "title": "Page overflow!",
+      "description": "Found overflow on page {page}",
+      "see": "See"
+    },
+    "image": {
+      "in_figure_title": "Action not needed",
+      "in_figure_desc": "The image is already inside a figure",
+      "convert_error": "Image Convert Error"
+    },
+    "action_canceled": "Action Canceled",
+    "compiler": {
+      "error": "Compilation Error"
+    },
+    "htx": {
+      "export_failed": "HighTex export failed",
+      "document_not_found_for_export": "Document not found for export.",
+      "import_failed": "HighTex import failed",
+      "manifest_missing": "Cannot find the manifest file",
+      "manifest_broken": "Manifest file is broken",
+      "manifest_package_missing": "manifest.json not found in HighTex package."
     }
   },
   "back": "Back",
@@ -516,5 +588,14 @@
     "delete_error": "Failed to delete snapshot",
     "delete_failed": "The snapshot could not be deleted.",
     "delete_snapshot": "Delete snapshot"
-  }
+  },
+  "open_file": {
+    "confirm_overwrite": "Document already imported, wanna overwrite it?",
+    "importing": "Importing document...",
+    "import_success": "Import Success!",
+    "added": "Added {title}",
+    "import_failed": "Import Failed",
+    "open_failed": "Unable to open file"
+  },
+  "open": "Open"
 }

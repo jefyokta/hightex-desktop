@@ -6,6 +6,7 @@ import { HighTexImportError } from "@/exception/hightex-import";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
 import { convertImage } from "./images-to-webp";
+import { t } from "@/utils/lang";
 
 export class HighTexImporter {
   public context!: ImportContextV1;
@@ -202,9 +203,7 @@ export class HighTexImporter {
     );
 
     if (!manifestEntryKey) {
-      throw new HighTexImportError(
-        "manifest.json not found in HighTex package.",
-      );
+      throw new HighTexImportError(t("error.htx.manifest_package_missing"));
     }
 
     return JSON.parse(strFromU8(entries[manifestEntryKey])) as HighTexManifest;

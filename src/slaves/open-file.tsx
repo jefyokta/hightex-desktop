@@ -4,6 +4,7 @@ import { truncate } from "@/utils/truncate";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import { t } from "@/utils/lang";
 
 export const OpenFileSlave = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export const OpenFileSlave = () => {
 
         if (importer.exists) {
           const confirmed = confirm(
-            "Document already imported, wanna overwrite it?",
+            t("open_file.confirm_overwrite"),
           );
 
           if (!confirmed) {
@@ -38,32 +39,34 @@ export const OpenFileSlave = () => {
         }
 
         toast.promise(importer.import(), {
-          loading: "Importing document...",
+          loading: t("open_file.importing"),
 
           success: (doc) => ({
-            message: "Import Success!",
+            message: t("open_file.import_success"),
             description: (
               <div className="flex items-center gap-2">
-                <span>Added {truncate(doc.title, 20)}</span>
+                <span>
+                  {t("open_file.added", { title: truncate(doc.title, 20) })}
+                </span>
 
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => navigate(`/document/${doc.id}/1`)}
                 >
-                  Open
+                  {t("open")}
                 </Button>
               </div>
             ),
           }),
 
           error: (error) => ({
-            message: "Import Failed",
+            message: t("open_file.import_failed"),
             description: error instanceof Error ? error.message : String(error),
           }),
         });
       } catch (error) {
-        toast.error("Unable to open file", {
+        toast.error(t("open_file.open_failed"), {
           description: error instanceof Error ? error.message : String(error),
         });
       }
