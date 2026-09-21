@@ -4,6 +4,7 @@ import { usePrintable } from "@/hooks/use-printable";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { useParams } from "react-router-dom";
 import { StaticPages } from "@/compiler/static-pages";
+import { CVPageBuilder } from "@/compiler/builder/cv-builder";
 
 export const FullDocument = () => {
   const sourceRef = useRef<HTMLDivElement | null>(null);
@@ -39,11 +40,13 @@ export const FullDocument = () => {
         waterMark: Boolean(waterMark),
       })
       .interactable()
-      .whenPagesCreated((e) => {
-        window.dispatchEvent(new CustomEvent("document:rendered"));
-        if (e.error) {
-          throw e.error;
-        }
+      .whenPagesCreated(async (e) => {
+        await CVPageBuilder.create(e).then(_ => {
+          window.dispatchEvent(new CustomEvent("document:rendered"));
+          if (e.error) {
+            throw e.error;
+          }
+        })
       })
       .run()
       .then(async (engine) => {
@@ -62,7 +65,6 @@ export const FullDocument = () => {
   if (!document) {
     return null;
   }
-  console.log(document.category);
   const categoryVariant: CategoryVariant =
     document.category?.variant ?? "thesis";
 

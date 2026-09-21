@@ -14,7 +14,7 @@ import { toWebPBlob } from "@/utils/images-to-webp"
 const CV_NOTICE_KEY = "cv-notice-dismissed"
 
 export const Cv = () => {
-    const [showNotice, setShowNotice] = useState(true)
+    const [showNotice, setShowNotice] = useState(false)
 
     const contentRef = useRef<HTMLDivElement>(null)
     const pictureRef = useRef<HTMLDivElement>(null)
@@ -116,30 +116,28 @@ export const Cv = () => {
     return (
         <>
             {showNotice && (
-                <Alert className="my-2 w-[21cm] p-4">
-                    <Info />
+                <Alert className="my-2 w-[21cm] border-amber-200/80 bg-amber-50/70 p-4 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-100">
+                    <Info className="text-amber-600 dark:text-amber-400" />
 
-                    <AlertTitle>
+                    <AlertTitle className="text-amber-900 dark:text-amber-100">
                         This CV belongs to your profile
                     </AlertTitle>
 
-                    <AlertDescription>
-                        This CV is part of your profile and will not be
-                        included when exporting a document to a HighTex file.
-                        All documents will use the same CV.
+                    <AlertDescription className="text-amber-800/80 dark:text-amber-200/80">
+                        This CV is part of your profile and will not be included when
+                        exporting a document to a HighTex file. All documents will use the
+                        same CV.
                     </AlertDescription>
 
                     <AlertAction>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="rounded-full"
+                            className="rounded-full text-amber-700 hover:bg-amber-100 hover:text-amber-900 dark:text-amber-300 dark:hover:bg-amber-900/40 dark:hover:text-amber-100"
                             onClick={dismissNotice}
                         >
                             <span aria-hidden="true">×</span>
-                            <span className="sr-only">
-                                Dismiss notification
-                            </span>
+                            <span className="sr-only">Dismiss notification</span>
                         </Button>
                     </AlertAction>
                 </Alert>
@@ -147,7 +145,7 @@ export const Cv = () => {
 
             <Paper strictHeight={true} className="text-justify">
                 <div className="w-full h-full border">
-                    <h1 className="text-[14pt] font-bold text-center mb-[10pt] mt-[10pt]">
+                    <h1 className="text-[14pt] font-bold text-center mb-[16pt]">
                         DAFTAR RIWAYAT HIDUP
                     </h1>
 

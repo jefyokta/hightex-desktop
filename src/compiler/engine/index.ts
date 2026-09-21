@@ -37,7 +37,7 @@ export type EngineConfig = {
 };
 
 export class Engine {
-  private finishCallback: (engine: Engine) => any = () => {};
+  private finishCallback: (engine: Engine) => Promisable<unknown> = () => {};
 
   public root!: HTMLElement;
   private isInteractive = false;
