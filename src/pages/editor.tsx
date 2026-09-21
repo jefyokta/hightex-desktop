@@ -54,6 +54,7 @@ export const Editor: React.FC = () => {
 
   useEffect(() => {
     return Manager.app.on("document:warmed", async () => {
+      if(!(window.config.get()?.editor.aliasHint)) return
       await prefetchAlias()
     })
   }, [])

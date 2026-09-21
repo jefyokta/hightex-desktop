@@ -26,7 +26,7 @@ export const Single = () => {
     }
 
     const rawChapter = await HighTexDB.getInstance().chapters.get(id);
-    console.log("rawChaper",rawChapter)
+    // console.log("rawChaper",rawChapter)
 
     if (!rawChapter) throw new ChapterNotFound(id);
 

@@ -106,7 +106,7 @@ export class HighTexImporter {
 
   async importChapters(documentId: string) {
     const chapters = this.manifest.structure?.chapters ?? [];
-    console.log(chapters)
+    // console.log(chapters)
 
     for (const chapterMeta of chapters) {
       await this.importChapter(documentId, chapterMeta);
@@ -144,7 +144,7 @@ export class HighTexImporter {
 
     const content = await this.checkImage(dirtyContent);
     const chapterId = `${documentId}.${chapterName}`;
-    console.log(content)
+    // console.log(content)
 
     await this.context.db.chapters.put({
       id: chapterId,

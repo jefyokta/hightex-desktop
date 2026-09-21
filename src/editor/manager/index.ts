@@ -2,6 +2,8 @@ import { MainProcessError } from "@/exception/interfaces/main-process-error";
 import { ApplicationError } from "../../exception/interfaces/application-error";
 import { events } from "../event";
 import { HighTexDB } from "../storage/hightex-db";
+import { Confirm } from "@/decorators/confirm";
+import { truncate } from "@/utils/truncate";
 
 type ErrorPayload = {
   error: unknown;
@@ -99,9 +101,13 @@ export class Manager {
     return fn(...args);
   }
 
+  @Confirm(async (docId,_)=>({
+    title:"Are you sure?",
+    desc:`Document \`${truncate(await HighTexDB.getInstance().documents.get(docId).then(d=>d?.title || "unknown doc"),20)}\` will be deleted`
+  }))
   static async deleteDocument(documentId: string, _version?: string) {
     const db = HighTexDB.getInstance();
-    await db.deleteDocument(documentId);
+   return await db.deleteDocument(documentId);
   }
   static element() {
     const el = document.getElementById("page");

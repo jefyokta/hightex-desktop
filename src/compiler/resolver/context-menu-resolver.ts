@@ -132,7 +132,7 @@ export class ContextMenuResolver {
       }
 
       if (action === "select") {
-        console.log("Add to selection");
+        // console.log("Add to selection");
       }
 
       this.hide();

@@ -12,7 +12,7 @@ export const OpenFileSlave = () => {
   useEffect(() => {
     const off = window.hightex.onOpenFile(async (path) => {
       try {
-        console.log("open file", path);
+        // console.log("open file", path);
 
         const buffer = await window.hightex.readFile(path);
 

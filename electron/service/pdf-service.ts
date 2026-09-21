@@ -11,7 +11,7 @@ import { ConfigService } from "./config-service";
 
 export class PDFService {
   private window: BrowserWindow | null = null;
-
+  static DEFAULT_EXPORT_TIME_OUT = 120000;
   constructor(private waterMark = false) {}
 
   private createWindow() {
@@ -47,11 +47,12 @@ export class PDFService {
         ipcMain.removeAllListeners(channel);
         ipcMain.removeAllListeners(renderedChannel);
       };
+      const usrTimeOut = ConfigService.get().export.exportTimeout 
 
       const timeout = setTimeout(() => {
         cleanup();
         reject(new Error(`Export timeout for docId: ${docId}`));
-      }, 120000);
+      },(isNaN(Number(usrTimeOut)) || usrTimeOut == 0 || Infinity === usrTimeOut) ? PDFService.DEFAULT_EXPORT_TIME_OUT : usrTimeOut);
 
       ipcMain.once(channel, (_event, payload) => {
         cleanup();

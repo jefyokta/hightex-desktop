@@ -73,6 +73,7 @@ export class HighTexDB extends Dexie {
       this.chapters.bulkDelete(chapterIds),
       this.deleteChapterGraphs(chapterIds),
     ]);
+    return true
   }
   async saveImage(blob: Blob, documentId: string): Promise<string> {
     const id = crypto.randomUUID();
@@ -120,7 +121,7 @@ export class HighTexDB extends Dexie {
 
   async getVar(name: string, documentId = "global") {
     const scope = documentId == "global" ? ["global"] : [documentId, "global"];
-    console.log(name);
+    // console.log(name);
     const v = await this.variables
       .where("documentId")
       .anyOf(scope)

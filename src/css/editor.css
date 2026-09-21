@@ -24,7 +24,7 @@
 
 
 .alias::before {
-  content: "Alias for: " "\A" attr(data-value);
+  content:  attr(data-value);
 
   display: none;
   text-indent: 0;

@@ -60,6 +60,7 @@ declare global {
     export: {
       saveDialog: boolean;
       saveFolder: string;
+      exportTimeout?:number
     };
     zotero: {
       enabled: boolean;

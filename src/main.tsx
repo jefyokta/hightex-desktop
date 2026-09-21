@@ -14,7 +14,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 window.ipcRenderer?.on("main-process-message", (_event, message) => {
-  console.log(message);
+  if(false){
+
+    console.log(message);
+  }
 });
 
 window.ipcRenderer?.on("first-installed", (_, data) => console.log(data));

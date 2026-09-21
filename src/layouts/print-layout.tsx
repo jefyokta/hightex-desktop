@@ -37,7 +37,7 @@ export const PrintLayout = () => {
         }
       }
 
-      console.log(els.map((e) => e.nodeName));
+      // console.log(els.map((e) => e.nodeName));
 
       document.head.append(...els);
     })();

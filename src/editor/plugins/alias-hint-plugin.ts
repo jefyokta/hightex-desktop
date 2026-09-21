@@ -87,10 +87,10 @@ export function createAliasPlugin() {
   const documentId = Document.instance?.id ?? ""
   const aliases = aliasMap.get(documentId) ?? []
 
-  console.log("[alias] plugin:", {
-    documentId,
-    aliases,
-  })
+  // console.log("[alias] plugin:", {
+  //   documentId,
+  //   aliases,
+  // })
 
   return new Plugin<AliasPluginState>({
     key: aliasHintPluginKey,

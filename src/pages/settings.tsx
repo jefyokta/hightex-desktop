@@ -247,8 +247,8 @@ export const Settings = () => {
               await patchConfig({
                 editor: {
                   ...config.editor,
-                  aliasHint:val
-                  
+                  aliasHint: val
+
                 },
               });
             }}
@@ -312,6 +312,30 @@ export const Settings = () => {
                   export: {
                     ...config.export,
                     saveFolder: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label>Export timeout</Label>
+                <p className="text-xs text-muted-foreground">
+                  {"Export timeout in millisecond, default 120000ms (120 seconds)"}
+                </p>
+              </div>
+            </div>
+
+            <Input
+              value={config.export?.exportTimeout ?? "120000"}
+              type="number"
+              onChange={async (e) => {
+                await patchConfig({
+                  export: {
+                    ...config.export,
+                    exportTimeout: Number(e.target.value)
                   },
                 });
               }}
