@@ -95,7 +95,6 @@ export abstract class Model<
     );
 
     const sql =`CREATE TABLE IF NOT EXISTS ${this.tableName} (${cols});`;
-    console.log(sql)
     this.connection
       .prepare(sql)
       .run();
