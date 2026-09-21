@@ -1,7 +1,6 @@
 import Database from "better-sqlite3";
 import { Connection } from "./connection";
 import { ColumnDefinition, SchemaBuilder } from "./schema";
-import { Grammar } from "../builder/grammar";
 import { Select } from "../builder/select";
 import { Insert, Update, Delete } from "../builder/mutations";
 import {
@@ -12,7 +11,6 @@ import {
   BelongsToMany,
 } from "../relation";
 
-const grammar = new Grammar();
 
 type UnwrapModel<M> = M extends Model<infer E, any, any> ? E : never;
 
@@ -40,8 +38,10 @@ export abstract class Model<
 > implements Queryable<T> {
   protected static relations: Record<string, Relation> = {};
 
+  protected  static TABLENAME = ''
+
   protected connection: Database.Database = Connection.get();
-  protected tableName: string = grammar.pluralize(this.constructor.name);
+  protected _tableName: string = '';
   protected primaryKeyType: "INTEGER" | "TEXT" = "INTEGER";
   protected serialable = true;
   protected columnMutator: Partial<Record<Col<T>, (val: any) => any>> = {};
@@ -50,6 +50,10 @@ export abstract class Model<
     keyof Omit<T, "id" | "createdAt">,
     ColumnDefinition
   >;
+
+  public get tableName(){
+    return this._tableName
+  }
 
   protected attribute: Partial<T> = {};
 
@@ -89,8 +93,11 @@ export abstract class Model<
       this.primaryKey(),
       this.primaryKeyType,
     );
+
+    const sql =`CREATE TABLE IF NOT EXISTS ${this.tableName} (${cols});`;
+    console.log(sql)
     this.connection
-      .prepare(`CREATE TABLE IF NOT EXISTS ${this.tableName} (${cols})`)
+      .prepare(sql)
       .run();
   };
 

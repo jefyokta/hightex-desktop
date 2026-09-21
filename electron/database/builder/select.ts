@@ -132,7 +132,8 @@ export class Select<
       parts.push("OFFSET ?");
       this._bindings.push(this._offset);
     }
-
+    const sql =parts.join(" ");
+    console.log(sql)
     return parts.join(" ");
   }
 

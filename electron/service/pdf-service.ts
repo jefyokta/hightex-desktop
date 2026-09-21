@@ -15,6 +15,7 @@ export class PDFService {
   constructor(private waterMark = false) {}
 
   private createWindow() {
+    // Application.instance.window.
     this.window = new BrowserWindow({
       show: false,
       width: 1280,
@@ -23,6 +24,7 @@ export class PDFService {
       webPreferences: {
         preload: Application.instance.preloadEntry,
         contextIsolation: true,
+        backgroundThrottling:false
       },
     });
 
