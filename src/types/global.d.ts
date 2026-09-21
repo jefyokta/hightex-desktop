@@ -55,6 +55,7 @@ declare global {
       spellCheck?: boolean;
       preferCloudProfile?: boolean;
       scrollBar?: boolean;
+      aliasHint?:boolean
     };
     export: {
       saveDialog: boolean;

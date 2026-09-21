@@ -31,6 +31,7 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
 import { toast } from "sonner";
 import { FrozenChapter } from "@/components/editor/non-tiptap-editor/frozen-chapter";
+import { prefetchAlias } from "@/editor/plugins/alias-hint-plugin";
 
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
@@ -50,6 +51,12 @@ export const Editor: React.FC = () => {
 
     return () => { off() }
   }, []);
+
+  useEffect(() => {
+    return Manager.app.on("document:warmed", async () => {
+      await prefetchAlias()
+    })
+  }, [])
 
   useEffect(() => {
     let alive = true;

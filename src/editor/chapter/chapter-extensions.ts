@@ -27,6 +27,8 @@ import { Dots } from "../extensions/dots";
 import { Variable } from "../extensions/variable";
 import { TableBorder } from "../extensions/table/border";
 import { Placeholder } from "@tiptap/extensions";
+import { createAliasPlugin } from "../plugins/alias-hint-plugin";
+import { Extension } from "@tiptap/core";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -104,6 +106,14 @@ export class ChapterExtensions {
       Dots,
       Variable,
       SearchReplace,
+      ...(window.config.get()?.editor.aliasHint ? [ Extension.create({
+        name:"plugin-stuff",
+        addProseMirrorPlugins() {
+          return [createAliasPlugin()]
+        },
+      })] :[])
+     
+
     ];
   }
 

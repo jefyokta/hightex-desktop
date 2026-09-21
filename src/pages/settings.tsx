@@ -231,6 +231,28 @@ export const Settings = () => {
               });
             }}
           />
+          <SettingSwitch
+            label={
+              <>
+                {/* 
+              note for translator: alias = singkatan
+               */}
+                <span>Enable Alias Hints</span>
+
+              </>
+            }
+            description={"Show the meaning of words defined in your Aliases List when you hover over them in the editor."}
+            value={config.editor?.aliasHint ?? false}
+            onChange={async (val) => {
+              await patchConfig({
+                editor: {
+                  ...config.editor,
+                  aliasHint:val
+                  
+                },
+              });
+            }}
+          />
         </CardContent>
       </Card>
 

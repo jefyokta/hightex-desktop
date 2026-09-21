@@ -6,7 +6,54 @@
     height: 0;
     pointer-events: none;
 }
+.alias {
+  position: relative;
+}
 
+.alias::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  bottom: 0;
+
+  width: 100%;
+
+  border-bottom: 1px dotted var(--muted-foreground);
+}
+
+
+.alias::before {
+  content: "Alias for: " "\A" attr(data-value);
+
+  display: none;
+  text-indent: 0;
+  font-family: "Geist Variable", sans-serif;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+
+  width: max-content;
+  max-width: 240px;
+
+  padding: 4px 6px;
+
+  color: var(--popover);
+  background: var(--foreground);
+
+  border-radius: 4px;
+
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: normal;
+
+  /* white-space: normal; */
+  z-index: 1000;
+}
+
+.alias:hover::before {
+  display: block;
+}
 #page {
   height: max-content;
 }

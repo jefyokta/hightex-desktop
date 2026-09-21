@@ -65,6 +65,7 @@ export class Document {
         }),
       );
       this.ready = true;
+
       Manager.app.dispatch("document:warmed", { document: this });
 
       return this;

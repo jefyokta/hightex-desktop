@@ -14,3 +14,5 @@
 - [x] keyword creation in editor
 - [x] daftar singkatan
 - [ ] bibliography
+
+// note: alias hint feature deleting all contents when it get hard refresh
