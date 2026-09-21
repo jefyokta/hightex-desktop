@@ -12,5 +12,5 @@
 - [x] add .ht option in download button at editor page
 - [x] add toast on saved
 - [x] keyword creation in editor
-- [ ] daftar singkatan
+- [x] daftar singkatan
 - [ ] bibliography

@@ -15,5 +15,11 @@ export class ProfileHandler {
     IPCMain.handle("profile:reset", () => {
       return ProfileService.clear();
     });
+    IPCMain.handle("profile:picture",()=>{
+      return ProfileService.getProfilePicture()
+    })
+    IPCMain.handle("profile:picture.set",(_,file:Uint8Array)=>{
+      return ProfileService.setProfilePicture(file)
+    })
   }
 }

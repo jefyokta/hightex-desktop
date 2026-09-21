@@ -19,6 +19,7 @@ declare global {
     identity_number: string;
   }
 
+
   interface Variable {
     documentId: string;
     name: string;

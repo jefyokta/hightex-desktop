@@ -213,6 +213,13 @@ contextBridge.exposeInMainWorld("profile", {
   reset() {
     return ipcRenderer.invoke("profile:reset");
   },
+  picture() {
+    return ipcRenderer.invoke("profile:picture")
+  },
+  setPicture(blob){
+     return ipcRenderer.invoke("profile:picture.set",blob)
+  }
+  
 } satisfies Window["profile"]);
 
 contextBridge.exposeInMainWorld("sharing", {

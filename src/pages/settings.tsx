@@ -594,7 +594,7 @@ const DangerAction = ({
 };
 
 const ProfileSection = () => {
-  const [profile, setProfile] = useState<Profile>({
+  const [profile, setProfile] = useState<Omit<Profile, "cv">>({
     name: "",
     nim: "",
     advisorName: "",
@@ -622,6 +622,7 @@ const ProfileSection = () => {
           advisorName: prof?.advisorName ?? "",
           advisorNip: prof?.advisorNip ?? "",
           secondAdvisor: prof.secondAdvisor,
+
         });
       } finally {
         if (mounted) setLoading(false);

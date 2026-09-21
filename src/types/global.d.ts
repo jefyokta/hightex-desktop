@@ -7,8 +7,9 @@ export {};
 declare global {
   type ThemeMode = "light" | "dark" | "system";
   type SupportedLanguage = "en" | "id";
-  interface Profile {
-    name: string;
+
+  interface LegacyProfile {
+     name: string;
     nim: string;
     advisorName: string;
     advisorNip: string;
@@ -16,6 +17,9 @@ declare global {
       name: string;
       nip: string;
     };
+  }
+  interface Profile extends LegacyProfile{
+     cv:string;
   }
 
   interface DocumentProfile extends Profile {
@@ -26,6 +30,8 @@ declare global {
     get: () => Promise<Profile>;
     set: (profile: Partial<Profile>) => Promise<Profile>;
     reset: () => Promise<void>;
+    picture:()=>Promise<Uint8Array|false>,
+    setPicture:(blob:Uint8Array)=>Promise<any>
   }
   type ConfigShape = {
     language: SupportedLanguage;

@@ -1,5 +1,6 @@
 import { AbbrevationList } from "./abbreviation-list"
 import { useChapterStore } from "@/hooks/use-chapter"
+import { Cv } from "./cv"
 
 export const FrozenChapter = () => {
 
@@ -7,5 +8,5 @@ export const FrozenChapter = () => {
 
 
 
-    return <>{chapter?.getChapter() == "abbrevation" ? <AbbrevationList /> : <></>}</>
+    return <>{chapter?.getChapter() == "abbrevation" ? <AbbrevationList /> : <Cv/>}</>
 }
