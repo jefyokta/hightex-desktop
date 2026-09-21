@@ -131,7 +131,7 @@ export async function fromCanvas(
   return HighTexDB.getInstance().saveImage(blob, documentId);
 }
 
-async function toWebPBlob(
+export async function toWebPBlob(
   src: ImageSource,
   opts?: ConvertOptions,
 ): Promise<Blob> {

@@ -96,7 +96,7 @@ export const AbbrevationList = () => {
 
     return (
         <Paper>
-            <h1 className="text-xl font-semibold text-center">
+            <h1 className="text-[14pt] font-bold text-center mb-[10pt] mt-[10pt]">
                 DAFTAR SINGKATAN
             </h1>
 

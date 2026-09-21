@@ -40,8 +40,10 @@ export class Exporter {
       document.id,
       document.category,
     );
+    const aliases =await  this.db.aliases.where("documentId").equals(document.id).toArray();
     this.scheme.writter.putConfig(document.config);
     this.scheme.writter.putReference(cites);
+    this.scheme.writter.putAliases(aliases);
     const vars = await this.db.variables
       .where("documentId")
       .equals(document.id)

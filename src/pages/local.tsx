@@ -9,6 +9,7 @@ import { Exporter } from "@/utils/htx/exporter";
 import { DocumentList } from "@/components/local/document-list";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { t } from "@/utils/lang";
+import { confirm } from "@/utils/confirm";
 
 export const Dashboard = () => {
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
@@ -92,8 +93,13 @@ export const Dashboard = () => {
   };
 
   const deleteDocument = async (id: string) => {
+    const tid =truncate(id, 5)
+    const confirmed = await confirm({ title: "Are you sure", desc: "document " + tid + " will be deleted" })
+    if (!confirmed) return
+
     setDocuments((prev) => prev.filter((d) => d.id !== id));
     await Manager.deleteDocument(id);
+    toast.success(`deleted ${tid}`)
   };
 
   const exportDocument = async (id: string, format: ContentFormat = "json") => {

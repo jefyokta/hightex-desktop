@@ -165,6 +165,15 @@ export class Document {
         isolated: true,
       }).setTitle("Lampiran"),
     );
+    chapters.push(
+      new Chapter({
+        documentId:this.id,
+        chapter:"cv",
+        version:this.version,
+        isolated:true,
+        frozen:true
+      }).setTitle("DAFTAR RIWAYAT HIDUP")
+    )
 
     return chapters;
   }
