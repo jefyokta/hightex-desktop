@@ -7,6 +7,25 @@ if(confirmed){
     runDangerFunction()
 }
 ```
+for method u can also use decoration/annotation
+```ts
+
+class MyClass {
+
+    @Confrim({
+        title:"are u sure",
+        desc:"will delete ..."
+    })
+    public myDangerAction(){
+        deleteSomething();
+    }
+}
+
+const myClass = new MyClass;
+//automatically triger confrimation
+myclass.myDangerAction()
+
+```
 # ask
 ask modal, retrun `Promise<string>`, and throw error `ActionCanceled`.
 ```ts
