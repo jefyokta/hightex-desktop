@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStrictContext } from "@/lib/get-strict-context";
 import { Document } from "@/editor/document";
+import { ApplicationError } from "@/exception/interfaces/application-error";
 
 type PrintablePageMode = "single" | "full" | null;
 
@@ -96,6 +97,12 @@ export const PrintableProvider = ({
         setReady(true);
       } catch (error) {
         console.error("PrintableProvider failed to warm document:", error);
+        if (mounted && !inFrame) {
+          window.ipcRenderer?.send(
+            `page:error:${id}`,
+            `PDF document loading failed (${id}): ${ApplicationError.normilize(error)}`,
+          );
+        }
       }
     };
 
@@ -104,7 +111,7 @@ export const PrintableProvider = ({
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, inFrame]);
 
   useEffect(() => {
     let mounted = true;
@@ -125,6 +132,12 @@ export const PrintableProvider = ({
         setProfile(nextProfile);
       } catch (error) {
         console.error("PrintableProvider failed to load profile:", error);
+        if (mounted && !inFrame) {
+          window.ipcRenderer?.send(
+            `page:error:${document.id}`,
+            `PDF profile loading failed (${document.id}): ${ApplicationError.normilize(error)}`,
+          );
+        }
       }
     };
 
@@ -133,7 +146,7 @@ export const PrintableProvider = ({
     return () => {
       mounted = false;
     };
-  }, [document, pageMode, ready]);
+  }, [document, pageMode, ready, inFrame]);
 
   const value = useMemo(
     () => ({ document, profile, ready, pageMode, inFrame }),

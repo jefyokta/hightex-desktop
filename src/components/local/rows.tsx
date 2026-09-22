@@ -26,6 +26,7 @@ import { ParsedItalic } from "@/utils/parse-italic";
 import { Button } from "../ui/button";
 import { truncate } from "@/utils/truncate";
 import { ApplicationError } from "@/exception/interfaces/application-error";
+import { ShouldReport } from "@/exception/should-report";
 import { t } from "@/utils/lang";
 
 interface Props {
@@ -182,14 +183,12 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
         },
       );
     } catch (e) {
-      if (e instanceof Error) {
-        const parts = e.message.split(":");
-        e = parts[parts.length - 1] || e.message;
-      }
+      const message = ApplicationError.normilize(e);
       toast.error(t("common.export_failed"), {
         description() {
-          return truncate(ApplicationError.normilize(e), 150);
+          return truncate(message, 150);
         },
+        action: new ShouldReport(`PDF export failed (${doc.id}): ${message}`).action,
         id: toastId,
         duration: 8000,
       });

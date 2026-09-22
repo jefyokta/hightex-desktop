@@ -24,7 +24,8 @@ export class PDFService {
       webPreferences: {
         preload: Application.instance.preloadEntry,
         contextIsolation: true,
-        backgroundThrottling:false
+        // Pagination needs animation frames even while the print window is hidden.
+        backgroundThrottling: false,
       },
     });
 
@@ -48,6 +49,7 @@ export class PDFService {
         clearTimeout(timeout);
         ipcMain.removeAllListeners(channel);
         ipcMain.removeAllListeners(renderedChannel);
+        ipcMain.removeAllListeners(errorChannel);
       };
       const usrTimeOut = ConfigService.get().export.exportTimeout 
 

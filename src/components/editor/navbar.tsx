@@ -29,6 +29,7 @@ import { Document } from "@/editor/document";
 import { t } from "@/utils/lang";
 import { Chapter } from "@/editor/chapter";
 import { toast } from "sonner";
+import { ShouldReport } from "@/exception/should-report";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useEditorState } from "@tiptap/react";
@@ -342,6 +343,7 @@ export const NavBar: React.FC = () => {
                         : "Error while exporting PDF";
                     toast.error(t("common.export_failed"), {
                       description: msg,
+                      action: new ShouldReport(`PDF export failed (${docId}): ${msg}`).action,
                       id: toastId,
                       duration: 8000,
                     });

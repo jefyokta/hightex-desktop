@@ -210,7 +210,13 @@ export class Engine {
 
       await this.document.fonts.ready;
 
-      const chunker = await new Paged.Previewer({ auto: false })
+      const previewer = new Paged.Previewer({ auto: false });
+      if (!this.isInFrame()) {
+        // Hidden PDF windows can receive animation frames only once per second.
+        previewer.chunker.q.tick = (callback) =>
+          window.setTimeout(() => callback(performance.now()), 0);
+      }
+      const chunker = await previewer
         .preview(fragment, undefined, renderTo)
         .then(async (c) => {
           new PageNumberResolver().resolve();
