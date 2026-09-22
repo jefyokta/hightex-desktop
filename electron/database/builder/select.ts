@@ -45,6 +45,7 @@ export class Select<
   }
 
   join(table: string, on: string, type: JoinType = "INNER"): this {
+    console.log(table)
     this._joins.push({ type, table, on });
     return this;
   }
@@ -102,6 +103,7 @@ export class Select<
       `SELECT ${this._distinct ? "DISTINCT " : ""}${this._columns.join(", ")}`,
       `FROM ${this._table}`,
     ];
+    console.log(this._joins)
 
     if (this._joins.length) {
       parts.push(
@@ -132,6 +134,7 @@ export class Select<
       parts.push("OFFSET ?");
       this._bindings.push(this._offset);
     }
+    console.log( parts.join(" "))
     return parts.join(" ");
   }
 

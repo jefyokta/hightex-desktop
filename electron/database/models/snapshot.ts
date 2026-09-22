@@ -3,7 +3,7 @@ import { table } from "../core/schema";
 import { HasMany } from "../relation";
 import { Comment } from "./comment";
 
-type SnapshotRelation = {
+export type SnapshotRelation = {
   comments: HasMany<Comment>;
 };
 export class Snapshot extends Model<SnapshotEntity, SnapshotRelation> {

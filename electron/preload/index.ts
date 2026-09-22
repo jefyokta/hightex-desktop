@@ -91,6 +91,15 @@ contextBridge.exposeInMainWorld("hightex", {
   async saveContentError(props) {
     ipcRenderer.invoke("content:error",props);
   },
+  snapshot:{
+    document(documentId) {
+      return ipcRenderer.invoke("snapshots:document",documentId)
+    },
+    all() {
+      return (ipcRenderer.invoke("snapshots")??[] ) as any;
+    },
+
+  }
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
   user: () => {

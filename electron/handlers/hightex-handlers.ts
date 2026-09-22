@@ -115,24 +115,40 @@ export class HighTexHandler {
       return app.getVersion();
     });
 
-    IPCMain.handle(
-      "hightex:report-error",
-      async (_event, payload: { title: string; description: string }) => {
-        try {
-          return await ServerService.request("/issues", {
-            method: "POST",
-            body: JSON.stringify({
-              title: ` ${payload.title}. On desktop app version: ${app.getVersion()}`,
-              description: `${payload.description}`,
-            }),
-          });
-        } catch (err) {
-          LoggerService.write(err, "hightex:report-error");
-          throw err;
-        }
-      },
-    );
+   IPCMain.handle(
+    "hightex:report-error",
+    async (_event, payload: { title: string; description: string }) => {
+      try {
+        const description = `
+  ## Description
 
+  ${payload.description}
+
+  ## Environment
+
+  | Property | Value |
+  | --- | --- |
+  | HighTex Version | ${app.getVersion()} |
+  | Platform | ${process.platform} |
+  | Architecture | ${process.arch} |
+  | Electron | ${process.versions.electron} |
+  | Chrome | ${process.versions.chrome} |
+  | Node.js | ${process.versions.node} |
+  `;
+
+        return await ServerService.request("/issues", {
+          method: "POST",
+          body: JSON.stringify({
+            title: `${payload.title} - HighTex Desktop ${app.getVersion()}`,
+            description,
+          }),
+        });
+      } catch (err) {
+        LoggerService.write(err, "hightex:report-error");
+        throw err;
+      }
+    },
+  );
     IPCMain.handle("dialog:select-folder", async () => {
       const result = await dialog.showOpenDialog({
         title: "Select default export folder",

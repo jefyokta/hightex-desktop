@@ -10,26 +10,8 @@ import {
   HasMany,
   BelongsToMany,
 } from "../relation";
+import { Grammar } from "../builder/grammar";
 
-
-type UnwrapModel<M> = M extends Model<infer E, any, any> ? E : never;
-
-type RelationShape<Rel extends Relation> =
-  Rel extends HasMany<infer M>
-    ? UnwrapModel<M>[]
-    : Rel extends BelongsToMany<infer M>
-      ? UnwrapModel<M>[]
-      : Rel extends HasOne<infer M>
-        ? UnwrapModel<M>
-        : Rel extends BelongsTo<infer M>
-          ? UnwrapModel<M>
-          : never;
-
-type WithRelation<
-  TShape extends Record<string, any>,
-  R extends Record<string, Relation>,
-  K extends keyof R,
-> = TShape & { [P in K]: RelationShape<R[P]> };
 
 export abstract class Model<
   T extends Record<string, any>,
@@ -137,12 +119,12 @@ export abstract class Model<
     } else if (relation instanceof HasOne) {
       const own = relation.ownerId ?? pk;
       const fk =
-        relation.foreignId ?? `${this.constructor.name.toLowerCase()}Id`;
+        relation.foreignId ?? `${new Grammar().singularize(this.tableName.toLowerCase())}Id`;
       this._select.join(other, `${self}.${own} = ${other}.${fk}`);
     } else if (relation instanceof HasMany) {
       const own = relation.ownerId ?? pk;
       const fk =
-        relation.foreignId ?? `${this.constructor.name.toLowerCase()}Id`;
+        relation.foreignId ?? `${new Grammar().singularize(this.tableName.toLowerCase())}Id`;
       this._select.leftJoin(other, `${self}.${own} = ${other}.${fk}`);
     } else if (relation instanceof BelongsToMany) {
       const pivot = relation.pivotTable;
@@ -472,6 +454,7 @@ export abstract class Model<
     }
 
     for (const name of singleNames) {
+      console.log(name)
       if (!row[name] || skipRelations.has(name)) continue;
       row[name] = (loaded.get(name)!.model as Model<any>)._parseRow(row[name]);
     }
