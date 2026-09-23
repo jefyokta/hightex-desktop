@@ -82,7 +82,7 @@ export default class BaseHandler extends Handler {
     this.att.afterRendered();
     this.chapteListener.afterRendered();
 
-    // document.querySelectorAll(".spacer").forEach((e) => e.remove());
+    document.querySelectorAll(".spacer").forEach(e=>e.remove());
 
     this.injectWatermark();
 

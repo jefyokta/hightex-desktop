@@ -225,7 +225,7 @@ export const Preview = () => {
             const win = frameRef.current!.contentWindow!;
             const doc = win.document;
 
-            doc.body.style.zoom = (zoom / 100).toString();
+            // doc.body.style.zoom = (zoom / 100).toString();
 
             win.addEventListener("scrollend", () => {
               setScrollY(win.scrollY);
