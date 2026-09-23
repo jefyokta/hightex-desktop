@@ -37,7 +37,6 @@ export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
   const { id, version, chapter } = useParams<EditorParams>();
-
   const [loaded, setLoaded] = useState(false);
   const [config, setConfig] = useState<ConfigShape | null>(null);
 
@@ -54,10 +53,13 @@ export const Editor: React.FC = () => {
 
   useEffect(() => {
     return Manager.app.on("document:warmed", async () => {
-      if(!(window.config.get()?.editor.aliasHint)) return
-      await prefetchAlias()
+      if (!(window.config.get()?.editor.aliasHint)) return
+      await prefetchAlias();
+
     })
   }, [])
+
+
 
   useEffect(() => {
     let alive = true;
@@ -191,8 +193,6 @@ const EditorComponent = () => {
 
     onCreate: async ({ editor }) => {
       let timer: any;
-
-      // Document.current?.setContent(fixed as any)
       const target = params.pop();
       if (target) {
         setTimeout(() => {
@@ -277,6 +277,7 @@ const EditorComponent = () => {
 
     enableContentCheck: true,
   });
+
 
   return (
     <div

@@ -30,6 +30,7 @@ const formatSnapshotType = (type: string) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
+// duplicate should use @/src/utils/snapshot.ts
 const getSnapshotTitle = (snapshot: SnapshotEntity) => {
   if (snapshot.type === "advising") {
     return `${t("snapshots.advising")} ${new Date(snapshot.createdAt).toLocaleString()}`;

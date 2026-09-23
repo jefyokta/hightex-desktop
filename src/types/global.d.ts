@@ -165,6 +165,7 @@ declare global {
         description: string;
       }): Promise<unknown>;
       saveContentError(props:{content:JSONContent,fileName:string,error?:any}):Promise<void>;
+      snapshot:SnapshotApi
     };
 
     config: ConfigAPI;
@@ -242,6 +243,11 @@ declare global {
       }>;
       scan(): Promise<WifiInformation[]>;
     };
+  }
+
+  interface SnapshotApi {
+    document(documentId:string):Promise<WithRelation<SnapshotEntity,SnapshotEntity,"comments">[]>
+    all():Promise<WithRelation<SnapshotEntity,SnapshotEntity,"comments">[]>
   }
 
 

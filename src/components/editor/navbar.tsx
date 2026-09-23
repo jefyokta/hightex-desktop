@@ -19,9 +19,10 @@ import {
   Undo2,
   Search,
   Loader2,
+  Settings,
 } from "lucide-react";
 
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren,} from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
@@ -35,10 +36,12 @@ import { useEditorState } from "@tiptap/react";
 import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
 import { useChapterStore } from "@/hooks/use-chapter";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
+
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
-  const {chapter} = useChapterStore()
+  const { chapter } = useChapterStore()
   const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
@@ -353,6 +356,16 @@ export const NavBar: React.FC = () => {
                   }
                 }}
               />
+            </ButtonGroup>
+            <ButtonGroup>
+      
+              <Button
+                title="settings"
+                icon={Settings}
+                onClick={()=>{
+                  throw new ShouldNotified(t("remote.unimplemented"))
+                }}
+              ></Button>
             </ButtonGroup>
           </div>
         </div>
