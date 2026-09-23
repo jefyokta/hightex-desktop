@@ -8,7 +8,7 @@ import { ChapterQuery } from "./chapter-query";
 import { Manager } from "../manager";
 import { Document } from "../document";
 import { useChapterStore } from "@/hooks/use-chapter";
-import { AbstractDecoratorEN, AbstractDecoratorID } from "@/components/editor/docorator/abstract";
+import { AbstractDecoratorEN, AbstractDecoratorID } from "@/components/editor/decorator/abstract";
 import { createElement } from "react";
 
 export class Chapter {
