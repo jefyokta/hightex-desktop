@@ -101,7 +101,6 @@ declare global {
     host: string;
     port: number;
   }
-
   interface ZoteroAPI {
     testConnection(host: string, port: number): Promise<ZoteroConnectionResult>;
     listItems(
@@ -167,6 +166,7 @@ declare global {
       saveContentError(props:{content:JSONContent,fileName:string,error?:any}):Promise<void>;
       snapshot:SnapshotApi
     };
+
 
     config: ConfigAPI;
     zotero: ZoteroAPI;
@@ -254,7 +254,8 @@ declare global {
 
   interface FileApi {
     save(fileName: string, file: Uint8Array): Promise<string>;
-    openPath?(path: string): Promise<string>;
-    showInFolder?(path: string): void;
+    openPath(path: string): Promise<string>;
+    showInFolder(path: string): Promise<void>;
+    openFolder(folderPath:string):Promise<void>
   }
 }

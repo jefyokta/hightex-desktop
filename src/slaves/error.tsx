@@ -31,8 +31,8 @@ export const ErrorSlave: React.FC = () => {
     const error: ApplicationError =
       err instanceof ApplicationError
         ? err
-        : reconstructMainError(err, (e) => new ShouldReport(e,err));
-  
+        : reconstructMainError(err, (e) => new ShouldReport(e, err));
+
 
     if (error instanceof ShouldNotified) {
       toast[error.level as NotificationErrorLevel](

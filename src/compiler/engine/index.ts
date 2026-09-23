@@ -40,7 +40,7 @@ export class Engine {
   private finishCallback: (engine: Engine) => Promisable<unknown> = () => {};
 
   public root!: HTMLElement;
-  private isInteractive = false;
+  // private isInteractive = false;
 
   public readonly db = HighTexDB.getInstance();
 
@@ -52,7 +52,7 @@ export class Engine {
 
   constructor() {
     this.pipeline = new EnginePipeline(this);
-
+    
     this.document = this.isInFrame() ? window.parent.document : document;
   }
 
@@ -77,10 +77,12 @@ export class Engine {
 
     return this;
   }
+/**
+ * 
+ * @deprecated
+ */
+  //@ts-ignore
   interactable(value = true) {
-    this.isInteractive = value;
-    console.log(this.isInteractive, "mwhehehe mamam ni tsc");
-
     return this;
   }
 
@@ -102,6 +104,8 @@ export class Engine {
     return this.config.parser;
   }
 
+   
+  
   async run() {
     if (!this.root) {
       throw new CompilerError("Engine root not mounted");

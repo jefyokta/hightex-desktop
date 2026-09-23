@@ -5,6 +5,8 @@ import { HighTexDB } from "../storage/hightex-db";
 import { Confirm } from "@/decorators/confirm";
 import { truncate } from "@/utils/truncate";
 
+import { ExportTimeout } from "@/exception/export-time-out";
+
 type ErrorPayload = {
   error: unknown;
   name: string;
@@ -53,7 +55,16 @@ class App {
       };
     };
     const onMainError = (_: any, e: any) => {
-      callback(normalize(new MainProcessError(e)));
+      if("name" in e && e.name === 'export-timeout'){
+        callback({
+          error: new ExportTimeout(e.error.desc,e.error.logFile)
+          ,
+          name:e.name
+        })
+
+        return
+      }
+            callback(normalize(new MainProcessError(e)));
     };
     const onError = (event: ErrorEvent) => {
       if (event.error instanceof ApplicationError) {
