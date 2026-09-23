@@ -99,7 +99,8 @@ contextBridge.exposeInMainWorld("hightex", {
       return (ipcRenderer.invoke("snapshots")??[] ) as any;
     },
 
-  }
+  },
+
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
   user: () => {
@@ -263,5 +264,16 @@ contextBridge.exposeInMainWorld("sharing", {
 contextBridge.exposeInMainWorld("file", {
   async save(fileName: string, file: Uint8Array) {
     return ipcRenderer.invoke("file:save", fileName, file);
+  },
+  showInFolder(path) {
+  return ipcRenderer.invoke("fs:open.in_folder",path)
+
+  },
+  openPath(path) {
+    return ipcRenderer.invoke("fs:open",path)
+  },
+  openFolder(folderPath) {
+    return ipcRenderer.invoke("fs:folder",folderPath)
+    
   },
 } satisfies Window["file"]);

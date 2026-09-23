@@ -23,4 +23,17 @@ export class LoggerService {
       console.error("Failed writing log", e);
     }
   }
+
+static writeAsync(file: string, message: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    fs.appendFile(file, message, "utf8", (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
 }

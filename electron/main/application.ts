@@ -32,6 +32,7 @@ import { HightexProtocol } from "@main/server/hightex-protocol";
 import { IPCMain } from "@main/utilities/ipc-main";
 import { firstInstalled } from "@main/utilities/first-installed";
 import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
+import { FileSystemHandler } from "@main/handlers/file-system-handler";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -317,6 +318,7 @@ export class Application {
     ZoteroHandler.register();
     DocumentErrorHandler.register();
     SharingHandler.register();
+    FileSystemHandler.register()
   }
 
   private registerUpdater() {
