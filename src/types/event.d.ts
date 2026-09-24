@@ -31,6 +31,10 @@ declare global {
     node:JSONContent,
     id:string
   }
+
+  interface AliaseDeleted {
+    key:string
+  }
   interface AppEvents {
     "chapter:update": ChapterUpdateEvent;
     "chapter:created": ChapterCreatedEvent;
@@ -41,6 +45,7 @@ declare global {
     "document:updated": DocumentUpdatedEvent;
     "var:updated": VarUpdated;
     "migrating:deprecation":MigratingDeprecation
+    "alias:deleted":AliaseDeleted
   }
 }
 

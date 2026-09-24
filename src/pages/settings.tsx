@@ -588,7 +588,7 @@ export const Settings = () => {
     </>
   );
 };
-const SettingSwitch = ({
+export const SettingSwitch = ({
   label,
   description,
   value = false,

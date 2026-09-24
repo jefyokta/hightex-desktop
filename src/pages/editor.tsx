@@ -32,13 +32,14 @@ import { t } from "@/utils/lang";
 import { toast } from "sonner";
 import { FrozenChapter } from "@/components/editor/non-tiptap-editor/frozen-chapter";
 import { BubbleMenu } from "@/components/editor/bubble-menu"
-import { AliasStorage } from "@/editor/storage/aliases";
+import { useConfig } from "@/hooks/use-config";
+import { CommentSlave } from "@/slaves/comment-slave";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
   const { id, version, chapter } = useParams<EditorParams>();
   const [loaded, setLoaded] = useState(false);
-  const [config, setConfig] = useState<ConfigShape | null>(null);
+  const { config } = useConfig()
 
   useEffect(() => {
     const off = Manager.app.on("migrating:deprecation", ({ fixed, node, id }) => {
@@ -51,12 +52,6 @@ export const Editor: React.FC = () => {
     return () => { off() }
   }, []);
 
-  useEffect(() => {
-    return Manager.app.on("document:warmed", async () => {
-      await AliasStorage.instance.prefetch()
-
-    })
-  }, [])
 
 
 
@@ -74,10 +69,7 @@ export const Editor: React.FC = () => {
         throw new ChapterNotFound(chapter);
       }
       Document.setCurrentChapter(currentChapter);
-      // window
-      if ("config" in window) {
-        setConfig(window.config.get());
-      }
+
       if (!alive) return;
       setLoaded(true);
     };
@@ -170,6 +162,7 @@ export const Editor: React.FC = () => {
 const EditorComponent = () => {
   const { setEditor } = useCurrentEditor();
   const { params } = param();
+  const { config } = useConfig()
 
   const { setContent, setOpen } = useExpandableSidebar();
   useEffect(() => {
@@ -188,7 +181,7 @@ const EditorComponent = () => {
 
   const editor = useEditor({
     content: "",
-    extensions: Chapter.instance!.extensions.get(),
+    extensions: Chapter.instance!.extensions.get(config?.editor.aliasHint),
 
     onCreate: async ({ editor }) => {
       let timer: any;
@@ -273,18 +266,6 @@ const EditorComponent = () => {
       await window.hightex.saveContentError({ content: props.editor.getJSON(), fileName: `${Document.instance?.id}-${Chapter.instance?.getId()}.json` })
       throw new EditorContentError(props.editor);
     },
-    // onSelectionUpdate({editor}) {
-    //   const {from,to} = editor.state.selection
-    //     if (from === to) return;
-
-    //   const words = editor.state.doc
-    //     .textBetween(from, to, " ")
-    //     .split(/\s+/)
-    //     .filter(Boolean);
-
-    //   console.log(words);
-
-    // },
 
     enableContentCheck: true,
   });
@@ -300,12 +281,14 @@ const EditorComponent = () => {
       className={`page ${Chapter.instance?.getHtmlClass()} bg-white dark:bg-neutral-900! rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]`}
     >
       <EditorContent
-        spellCheck={window.config.get()?.editor?.spellCheck || false}
+        spellCheck={config?.editor.spellCheck || false}
+        lang={config?.language || "id"}
         editor={editor}
       />
       {(() => Chapter.instance?.getDecorator())()}
       <BubbleMenu editor={editor} />
       <TableMenu editor={editor} />
+      <CommentSlave />
     </div>
   );
 };

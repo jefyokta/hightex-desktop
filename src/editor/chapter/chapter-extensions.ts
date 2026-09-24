@@ -29,6 +29,7 @@ import { TableBorder } from "../extensions/table/border";
 import { Placeholder } from "@tiptap/extensions";
 import { createAliasPlugin } from "../plugins/alias-hint-plugin";
 import { Extension } from "@tiptap/core";
+import { Comment } from "../extensions/comment";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -40,7 +41,7 @@ export class ChapterExtensions {
       "foreword":"Maksimal 2 halaman"
   
   }
-  get() {
+  get(enableAliasHint=false) {
 
     if(this.chapter.frozen) return []
     const isNonChapter = [
@@ -99,19 +100,17 @@ export class ChapterExtensions {
       MathBlock,
       NodeShortcut,
       TableBorder,
-      // Grid,
-      // GridCell,
-      // GridRow,
       CustomCodeBlock,
       Dots,
       Variable,
       SearchReplace,
-      ...(window.config.get()?.editor.aliasHint ? [ Extension.create({
+      ...(enableAliasHint ? [ Extension.create({
         name:"plugin-stuff",
         addProseMirrorPlugins() {
           return [createAliasPlugin()]
         },
-      })] :[])
+      })] :[]),
+      Comment
      
 
     ];

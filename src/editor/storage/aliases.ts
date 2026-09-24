@@ -47,4 +47,9 @@ export class AliasStorage {
     entries(){
         return this.map.entries()
     }
+    del(key:string){
+        if(this.map.has(key)){
+            this.map.delete(key)
+        }
+    }
 }

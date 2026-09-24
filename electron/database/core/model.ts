@@ -454,7 +454,6 @@ export abstract class Model<
     }
 
     for (const name of singleNames) {
-      console.log(name)
       if (!row[name] || skipRelations.has(name)) continue;
       row[name] = (loaded.get(name)!.model as Model<any>)._parseRow(row[name]);
     }

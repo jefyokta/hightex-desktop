@@ -4,6 +4,7 @@ import { EditorProvider } from "@/hooks/use-editor";
 import { ExpandableSideBarContextProvider } from "@/hooks/use-expandable-sidebar";
 import { GraphContextProvider } from "@/hooks/use-graph";
 import { ParamsContextProvider } from "@/hooks/use-params";
+import { AliasSlave } from "@/slaves/alias-slave";
 import { EditorNavigatorSlave } from "@/slaves/editor-navigator";
 import { FrameSlave } from "@/slaves/frame";
 
@@ -19,6 +20,7 @@ export const EditorLayout: React.FC = () => {
               <ExpandableSideBarContextProvider>
                 <div className="flex h-full w-full ">
                   <ExpandableSideBar />
+                  <AliasSlave />
                   <Outlet />
                 </div>
               </ExpandableSideBarContextProvider>

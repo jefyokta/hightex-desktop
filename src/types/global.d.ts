@@ -1,4 +1,5 @@
 import { Chapter } from "@/editor/chapter";
+import { SnapshotRelation } from "@main/database/models/snapshot";
 import { JSONContent } from "@tiptap/core";
 import { CiteUtils } from "bibtex.js";
 
@@ -246,8 +247,9 @@ declare global {
   }
 
   interface SnapshotApi {
-    document(documentId:string):Promise<WithRelation<SnapshotEntity,SnapshotEntity,"comments">[]>
-    all():Promise<WithRelation<SnapshotEntity,SnapshotEntity,"comments">[]>
+    document(documentId:string):Promise<WithRelation<SnapshotEntity,SnapshotRelation,"comments">[]>
+    all():Promise<WithRelation<SnapshotEntity,SnapshotRelation,"comments">[]>
+    get(snapId:string):Promise<WithRelation<SnapshotEntity,SnapshotRelation,"comments"> | undefined>
   }
 
 

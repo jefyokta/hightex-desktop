@@ -1,0 +1,1 @@
+ - use useConfig hooks instead calling window apis, the window config apis should only called in the useConfig hooks/ config context

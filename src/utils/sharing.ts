@@ -238,7 +238,7 @@ function getTextNodesInRange(range: Range) {
   return nodes;
 }
 
-function getRandomColor(seed?: string) {
+export function getRandomColor(seed?: string) {
   const hash = seed
     ? [...seed].reduce((a, c) => a + c.charCodeAt(0), 0)
     : Math.random() * 360;

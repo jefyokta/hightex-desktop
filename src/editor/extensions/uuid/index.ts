@@ -3,12 +3,11 @@ import { uniqId } from "../../../utils/uniq-id";
 
 export const UUID = Node.create({
   name: "uuid",
-  addAttributes: () => {
+  addAttributes()  {
     if (typeof this == "undefined") {
       return UUIDAttributes("node");
     }
-    //@ts-ignore
-    return UUIDAttributes(this!.name);
+    return UUIDAttributes(this.name);
   },
 });
 

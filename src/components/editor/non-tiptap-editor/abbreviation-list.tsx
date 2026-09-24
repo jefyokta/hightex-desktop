@@ -2,6 +2,7 @@
 import { Paper } from "@/components/paper"
 import { Button } from "@/components/ui/button"
 import { Document } from "@/editor/document"
+import { Manager } from "@/editor/manager"
 import { HighTexDB } from "@/editor/storage/hightex-db"
 import { X } from "lucide-react"
 import React, { useEffect, useState } from "react"
@@ -75,6 +76,7 @@ export const AbbrevationList = () => {
             .getInstance()
             .aliases
             .delete(`${documentId}.${item.key}`)
+        Manager.app.dispatch("alias:deleted", { key: item.key })
 
         setAbbrevations((current) =>
             current.filter(
@@ -118,12 +120,12 @@ export const AbbrevationList = () => {
 
                             <div className="relative">{item.value}
                                 <Button
-                                onClick={()=>{
-                                    removeAbbrevation(item)
-                                }}
+                                    onClick={() => {
+                                        removeAbbrevation(item)
+                                    }}
                                     className="absolute -right-10 z-10 top-0 w-5 h-5 rounded-full"
                                     variant={'destructive'}
-                                    ><X className="w-1" width={'16'} height={'16'}/></Button>
+                                ><X className="w-1" width={'16'} height={'16'} /></Button>
                             </div>
                         </React.Fragment>
                     ))}

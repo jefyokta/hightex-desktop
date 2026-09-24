@@ -98,6 +98,9 @@ contextBridge.exposeInMainWorld("hightex", {
     all() {
       return (ipcRenderer.invoke("snapshots")??[] ) as any;
     },
+    get(snapId) {
+      return ipcRenderer.invoke("snapshot",snapId)
+    },
 
   },
 
