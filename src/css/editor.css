@@ -111,7 +111,7 @@ th {
   counter-reset: h3-counter;
 }
 .page table {
-  max-width: 14cm !important;
+  max-width: 15cm !important;
   border-bottom: 1px solid black;
   position: relative;
 }
@@ -145,7 +145,7 @@ figure[data-type="figureTable"] table {
   max-width: 100%;
 }
 .page figure[data-type="figureTable"] figcaption {
-  width: 14cm !important;
+  width: 15cm !important;
   text-align: center;
   counter-increment: caption-counter;
   margin-bottom: 7pt;
@@ -293,7 +293,7 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 }
 
 .ProseMirror p {
-  max-width: 14cm;
+  max-width: 15cm;
   text-align: justify;
 
   overflow-wrap: break-word;
@@ -314,7 +314,7 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 }
 
 .page > .tiptap {
-  max-width: 14cm !important;
+  max-width: 15cm !important;
 }
 
 .tiptap {

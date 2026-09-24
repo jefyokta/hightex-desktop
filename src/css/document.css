@@ -223,7 +223,7 @@ td[colspan] {
 
 .content figure[data-type="figureTable"] > figcaption,
 .attachment figure[data-type="figureTable"] > figcaption {
-  width: 14cm !important;
+  width: 15cm !important;
   text-align: center;
   padding-bottom: 7pt;
 }
@@ -240,7 +240,7 @@ figure[data-type="figureTable"] {
 
 .content figure[data-type="figureTable"] > figcaption:not(.continueing),
 .attachment figure[data-type="figureTable"] > figcaption:not(.continueing) {
-  width: 14cm !important;
+  width: 15cm !important;
   text-align: center;
   counter-increment: caption-counter;
   padding-bottom: 7pt;
@@ -354,7 +354,7 @@ figure[data-type="figureTable"] > table {
 }
 
 .content p {
-  max-width: 14cm;
+  max-width: 15cm;
   text-align: justify;
   /* hyphens: auto !important;
          hyphenate-limit-chars: 3 3 3; */
@@ -363,7 +363,7 @@ figure[data-type="figureTable"] > table {
 }
 
 .content {
-  max-width: 14cm !important;
+  max-width: 15cm !important;
 }
 figure thead th {
   border-bottom: 1px solid black;
@@ -399,7 +399,7 @@ figure thead td {
 }
 
 .content {
-  width: 14cm !important;
+  width: 15cm !important;
   font-family: "Times New Roman", serif;
   line-height: 1.5;
   /* overflow-y: hidden; */
@@ -602,7 +602,7 @@ cite {
 }
 
 .indicator .pagedjs_page_content {
-  /* max-width: 14cm; */
+  /* max-width: 15cm; */
   outline: 1px solid red;
 }
 
