@@ -1,0 +1,1 @@
+export const REFRESH_VIEW_KEY = 'view-refresh'

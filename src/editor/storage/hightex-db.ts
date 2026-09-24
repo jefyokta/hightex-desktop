@@ -163,4 +163,9 @@ export class HighTexDB extends Dexie {
       }
     }) 
   }
+
+  async setAlias(key:string,value:string,documentId:string){
+    await this.aliases.put({key:`${documentId}.${key}`,value,documentId})
+
+  }
 }

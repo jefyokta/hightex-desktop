@@ -36,6 +36,7 @@ declare global {
     "chapter:created": ChapterCreatedEvent;
     "document:warmed": DocumentWarmedEvent;
     "image:update": ImageUpdateEvent;
+    //editor type bounching
     "chapter:commit": ChapterCommitEvent;
     "document:updated": DocumentUpdatedEvent;
     "var:updated": VarUpdated;

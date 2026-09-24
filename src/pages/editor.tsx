@@ -31,8 +31,8 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
 import { toast } from "sonner";
 import { FrozenChapter } from "@/components/editor/non-tiptap-editor/frozen-chapter";
-import { prefetchAlias } from "@/editor/plugins/alias-hint-plugin";
-
+import { BubbleMenu } from "@/components/editor/bubble-menu"
+import { AliasStorage } from "@/editor/storage/aliases";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -53,8 +53,7 @@ export const Editor: React.FC = () => {
 
   useEffect(() => {
     return Manager.app.on("document:warmed", async () => {
-      if (!(window.config.get()?.editor.aliasHint)) return
-      await prefetchAlias();
+      await AliasStorage.instance.prefetch()
 
     })
   }, [])
@@ -274,6 +273,18 @@ const EditorComponent = () => {
       await window.hightex.saveContentError({ content: props.editor.getJSON(), fileName: `${Document.instance?.id}-${Chapter.instance?.getId()}.json` })
       throw new EditorContentError(props.editor);
     },
+    // onSelectionUpdate({editor}) {
+    //   const {from,to} = editor.state.selection
+    //     if (from === to) return;
+
+    //   const words = editor.state.doc
+    //     .textBetween(from, to, " ")
+    //     .split(/\s+/)
+    //     .filter(Boolean);
+
+    //   console.log(words);
+
+    // },
 
     enableContentCheck: true,
   });
@@ -293,6 +304,7 @@ const EditorComponent = () => {
         editor={editor}
       />
       {(() => Chapter.instance?.getDecorator())()}
+      <BubbleMenu editor={editor} />
       <TableMenu editor={editor} />
     </div>
   );

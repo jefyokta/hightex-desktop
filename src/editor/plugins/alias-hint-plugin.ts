@@ -1,34 +1,15 @@
 import { Plugin, PluginKey } from "@tiptap/pm/state"
 import { Decoration, DecorationSet } from "@tiptap/pm/view"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
-import { HighTexDB } from "../storage/hightex-db"
-import { Document } from "../document"
+import { AliasStorage } from "../storage/aliases"
 
-type Abbervation = Omit<Alias, "documentId">
 
 type AliasPluginState = {
-  aliases: Abbervation[]
   decorations: DecorationSet
 }
 
+
 const aliasHintPluginKey = new PluginKey<AliasPluginState>("alias")
-
-const aliasMap = new Map<string, Abbervation[]>()
-
-
-export async function prefetchAlias(): Promise<void> {
-  const documentId = Document.instance?.id
-
-  if (!documentId) {
-    return
-  }
-
-  const aliases = await HighTexDB
-    .getInstance()
-    .getAliases(documentId)
-
-  aliasMap.set(documentId, aliases ?? [])
-}
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -36,25 +17,23 @@ function escapeRegExp(value: string): string {
 
 function createDecorations(
   doc: ProseMirrorNode,
-  aliases: Abbervation[],
 ): DecorationSet {
-  if (!aliases.length) {
+  const aliases = AliasStorage.instance
+  if(aliases.isEmpty()){
     return DecorationSet.empty
   }
 
-  const values = new Map(
-    aliases.map(alias => [alias.key, alias.value]),
-  )
+  const keys = [...aliases.keys()]
 
-  const pattern = new RegExp(
-    `(?<!\\w)(?:${[...aliases]
-      .sort((a, b) => b.key.length - a.key.length)
-      .map(alias => escapeRegExp(alias.key))
-      .join("|")})(?!\\w)`,
-    "g",
-  )
+    const pattern = new RegExp(
+      `(?<!\\w)(?:${keys
+        .sort((a, b) => b.length - a.length)
+        .map(escapeRegExp)
+        .join("|")})(?!\\w)`,
+      "g",
+    )
 
-  const decorations: Decoration[] = []
+ const decorations: Decoration[] = []
 
   doc.descendants((node, pos) => {
     if (!node.isText || !node.text) {
@@ -64,6 +43,7 @@ function createDecorations(
     for (const match of node.text.matchAll(pattern)) {
       const index = match.index!
       const key = match[0]
+      const value = aliases.get(key)
 
       decorations.push(
         Decoration.inline(
@@ -72,8 +52,8 @@ function createDecorations(
           {
             class: "alias",
             "data-alias": key,
-            "data-value": values.get(key) ?? "",
-            "data-tooltip":values.get(key)
+            "data-value": value ?? "",
+            "data-tooltip": value ?? "",
           },
         ),
       )
@@ -82,27 +62,14 @@ function createDecorations(
 
   return DecorationSet.create(doc, decorations)
 }
-
 export function createAliasPlugin() {
-  const documentId = Document.instance?.id ?? ""
-  const aliases = aliasMap.get(documentId) ?? []
-
-  // console.log("[alias] plugin:", {
-  //   documentId,
-  //   aliases,
-  // })
-
   return new Plugin<AliasPluginState>({
     key: aliasHintPluginKey,
 
     state: {
       init(_, state) {
         return {
-          aliases,
-          decorations: createDecorations(
-            state.doc,
-            aliases,
-          ),
+          decorations: createDecorations(state.doc),
         }
       },
 
@@ -112,11 +79,7 @@ export function createAliasPlugin() {
         }
 
         return {
-          aliases: state.aliases,
-          decorations: createDecorations(
-            transaction.doc,
-            state.aliases,
-          ),
+          decorations: createDecorations(transaction.doc),
         }
       },
     },
@@ -124,11 +87,10 @@ export function createAliasPlugin() {
     props: {
       decorations(state) {
         return (
-          aliasHintPluginKey.getState(state)?.decorations
-          ?? DecorationSet.empty
+          createDecorations(state.doc)
+         
         )
       },
-
     },
   })
 }
