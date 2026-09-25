@@ -6,6 +6,85 @@ All notable changes to this project will be documented in this file.
 
 
 
+### 🐛 Bug Fixes
+
+
+- Prevent editor view being accessed before view mounted
+
+
+
+## [0.7.3] - 2026-09-24
+
+
+
+### ✨ Features
+
+
+- **file:** Add apis to open file/folder
+
+- **error:** Timeout error and suggest to open render log file
+
+- **editor:** Alias creation directly in editor
+
+- **editor:** Experimental comment in editor
+
+- **docs:** Add more users docs
+
+
+
+### 🐛 Bug Fixes
+
+
+- Typo docorator -> decorator
+
+- **preview:** Remove zoom due to unmatches preview with actual output
+
+- **document:** Increasing content's max width due to margin changes
+
+
+
+## [0.7.2] - 2026-09-23
+
+
+
+### ✨ Features
+
+
+- **docs:** Docs for user and contributors
+
+
+
+### 🐛 Bug Fixes
+
+
+- **model:** Change constructor.name to tableName because we wont keep the class name on build output
+
+
+
+## [0.7.1] - 2026-09-21
+
+
+
+### ✨ Features
+
+
+- **editor:** Alias hint
+
+- **config:** Add export timeout option
+
+
+
+### 🐛 Bug Fixes
+
+
+- **sqlite:** Avoid missing table name of model
+
+
+
+## [0.7.0] - 2026-09-21
+
+
+
 ### ✨ Features
 
 
@@ -20,6 +99,14 @@ All notable changes to this project will be documented in this file.
 - **ui:** Enhance pdf export progress bar and success toast
 
 - **ui:** Add contributors list
+
+- **editor:** Add aliases creation and aliases list
+
+- Add confirmation before deleting a document
+
+- Cv/bibliography
+
+- **pageinate:** Cv/bibliography added
 
 
 
