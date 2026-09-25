@@ -43,6 +43,9 @@ export const CommentSlave = () => {
 
     useEffect(() => {
         if (!editor) return;
+        if(!editor.isInitialized) return;
+
+    
 
         const root = editor.view.dom;
 
