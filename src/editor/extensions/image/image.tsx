@@ -4,7 +4,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { convertImage } from "@/utils/images-to-webp";
+import { convertImage, convertToPng } from "@/utils/images-to-webp";
 import { ImageIsInFigure } from "@/exception/image-is-in-figure";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { GalleryThumbnails, Images, Loader2, Trash, X } from "lucide-react";
@@ -18,6 +18,9 @@ import {
 } from "react";
 import { Document } from "@/editor/document";
 import { ImageConvertError } from "@/exception/image-convert";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { ApplicationError } from "@/exception/interfaces/application-error";
+import { toast } from "sonner";
 
 type LoadState =
   | { status: "idle" }
@@ -100,12 +103,16 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
     if (load.status !== "ready") return;
     try {
       const res = await fetch(load.blobUrl);
-      const blob = await res.blob();
+      const rawBlob = await res.blob();
+      const blob = await convertToPng(rawBlob)
+
       await navigator.clipboard.write([
         new ClipboardItem({ [blob.type]: blob }),
       ]);
+      toast.success("copied!")
     } catch (err) {
       console.error("[ImageComponent] copy failed", err);
+      throw new ShouldNotified(ApplicationError.normilize(err))
     }
   }, [load]);
 
