@@ -7,13 +7,15 @@
 <p align="center">
   Desktop thesis editor built for HighTex.
 </p>
-![macOS](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/latest/HighTex-Mac-0.7.2-Installer.dmg)
 
-![macOS (brew)](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/latest/HighTex-Mac-0.7.2-Installer.zip)
+![macOS](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Mac-0.7.2-Installer.zip?label=macOS&displayAssetName=false)
 
-![Windows](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/latest/HighTex-Mac-0.7.2-Installer.exe)
+![macOS (brew)](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Mac-0.7.2-Installer.zip?label=macOS%20%28brew%29&displayAssetName=false)
 
-![Linux](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/latest/HighTex-Mac-0.7.2-Installer.AppImage)
+![Windows](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Windows-0.7.2-Installer.exe?label=Windows&displayAssetName=false)
+
+![Linux](https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Linux-0.7.2-Installer.AppImage?label=Linux&displayAssetName=false)
+
 HighTex Desktop is a desktop version of HighTex, a thesis writing application originally developed as my final-year project.
 
 The goal of HighTex is simple: help students focus on writing their thesis instead of fighting with document formatting.
