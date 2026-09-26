@@ -2,9 +2,18 @@
 
 Untuk mengunduh HighTex, kunjungi:
 
+
+
 [Download HighTex](https://hightex.jefyokta.dev/download)
 
 # macOS
+## Opsi paling mudah + hightex-cli
+
+```bash
+curl -fsSL https://hightex.jefyokta.dev/macos/install.sh | bash
+
+```
+## Manual
 
 Jika kamu mengunduh file `.dmg` secara langsung dan menginstalnya, macOS mungkin akan memblokir HighTex saat pertama kali dibuka dan menampilkan pesan yang meminta aplikasi untuk dihapus. Pada kondisi ini, biasanya tidak tersedia opsi **Open Anyway** pada dialog tersebut.
 
