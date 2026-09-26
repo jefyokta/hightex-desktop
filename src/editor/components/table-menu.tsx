@@ -137,7 +137,6 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
                     overflow-hidden
                 "
       >
-        {/* trigger */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -361,7 +360,6 @@ const AddRowColumnAfter = ({ editor }: { editor: Editor }) => {
 
   return (
     <>
-      {/* add column */}
       <Tooltip>
         <TooltipTrigger asChild>
           <div
@@ -388,7 +386,6 @@ const AddRowColumnAfter = ({ editor }: { editor: Editor }) => {
         </TooltipContent>
       </Tooltip>
 
-      {/* add row */}
       <Tooltip>
         <TooltipTrigger asChild>
           <div

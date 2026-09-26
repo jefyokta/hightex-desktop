@@ -1,4 +1,6 @@
 import {
+  CircleCheck,
+  CircleMinus,
   DownloadCloudIcon,
   File,
   FileJson,
@@ -27,6 +29,8 @@ import { Button } from "../ui/button";
 import { truncate } from "@/utils/truncate";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { t } from "@/utils/lang";
+import { Textarea } from "../ui/textarea";
+import { useMultiSelect } from "@/hooks/use-multi-select";
 
 interface Props {
   doc: HighTexDocument;
@@ -34,9 +38,10 @@ interface Props {
   onDelete: (id: string) => Promise<void>;
   onExport: (id: string, format?: ContentFormat) => Promise<void>;
   onCategoryChange?: (id: string, category: string) => Promise<void>;
+  selectMode: boolean;
 }
 
-export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
+export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) => {
   const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
@@ -123,7 +128,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
 
   const generatePdf = async (waterMark: boolean = false) => {
     const renderProgressToast = (status: string, progress: number) => (
-      <div className="flex flex-col gap-1.5 w-full min-w-[240px]">
+      <div className="flex flex-col gap-1.5 w-full min-w-60">
         <div className="flex justify-between items-center text-xs font-semibold">
           <span className="truncate pr-2">{status}</span>
           <span className="text-neutral-500 font-mono">{progress}%</span>
@@ -164,7 +169,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
       toast.success(
         <div className="flex flex-col gap-1">
           <span className="font-semibold text-sm">PDF Berhasil Disimpan!</span>
-          <span className="text-xs text-neutral-500 truncate max-w-[240px]">
+          <span className="text-xs text-neutral-500 truncate max-w-60">
             {result.filename}
           </span>
         </div>,
@@ -198,25 +203,57 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
     }
   };
 
+  const { selected, toggleSelect } = useMultiSelect<string>("documents");
+  const isSelected = selected.includes(doc.id);
+
+  const handleExpand = () => {
+    setExpanded((prv) => !prv);
+  };
+
   return (
     <div
-      onClick={() => {
-        setExpanded((prv) => !prv);
-      }}
-      className="group rounded-xl border border-transparent px-4 py-3 transition-colors  hover:bg-neutral-100 cursor-pointer dark:hover:bg-neutral-900/60"
+      onClick={() => selectMode && toggleSelect(doc.id)}
+      className={cn(
+        "group rounded-xl  px-4 py-3 transition-all max-h-max cursor-pointer",
+        isSelected && selectMode
+          ? "bg-neutral-100 dark:bg-neutral-800/60"
+          : "border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-900/60",
+      )}
     >
-      <div className=" flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-            <File
-              size={16}
-              className="text-neutral-500 dark:text-neutral-400"
-            />
+          <div
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors",
+              isSelected && selectMode
+                ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
+                : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900",
+              !selectMode &&
+              "cursor-pointer hover:border-neutral-300 hover:bg-neutral-200 dark:hover:border-neutral-700 dark:hover:bg-neutral-800",
+            )}
+            onClick={(e) => {
+              if (!selectMode) {
+                e.stopPropagation();
+                handleExpand();
+                return;
+              }
+            }}
+          >
+            {selectMode ? (
+              isSelected ? (
+                <CircleCheck size={16} />
+              ) : (
+                <CircleMinus size={16} className="text-neutral-400 dark:text-neutral-500" />
+              )
+            ) : expanded ? (
+              <FileText size={16} className="text-neutral-500 dark:text-neutral-400" />
+            ) : (
+              <File size={16} className="text-neutral-500 dark:text-neutral-400" />
+            )}
           </div>
-
           <div className="min-w-0 flex-1">
             {editing ? (
-              <input
+              <Textarea
                 autoFocus
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
@@ -230,13 +267,19 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     setEditing(false);
                   }
                 }}
-                className="w-full bg-transparent text-sm font-medium text-neutral-900 outline-none dark:text-neutral-100"
+                className="w-full bg-transparent text-sm my-2 font-medium text-neutral-900 outline-none dark:text-neutral-100"
               />
             ) : (
               <div
-                onDoubleClick={() => setEditing(true)}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  if (!selectMode) setEditing(true);
+                }}
                 onClick={(e) => e.stopPropagation()}
-                className="cursor-text truncate text-sm font-medium text-neutral-900 dark:text-neutral-100"
+                className={cn(
+                  "truncate text-sm font-medium text-neutral-900 dark:text-neutral-100",
+                  !selectMode && "cursor-text",
+                )}
               >
                 {doc.title}
               </div>
@@ -263,7 +306,10 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
                     }
                   }}
                 >
-                  <SelectTrigger className="h-6 w-35 border-neutral-200 text-[11px] dark:border-neutral-700">
+                  <SelectTrigger
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-6 w-35 border-neutral-200 text-[11px] dark:border-neutral-700"
+                  >
                     <SelectValue />
                   </SelectTrigger>
 
@@ -281,10 +327,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
 
               {updatedAt && (
                 <>
-                  <span className="text-neutral-300 dark:text-neutral-600">
-                    •
-                  </span>
-
+                  <span className="text-neutral-300 dark:text-neutral-600">•</span>
                   <span className="text-neutral-400 dark:text-neutral-500">
                     Updated {updatedAt}
                   </span>
@@ -300,12 +343,20 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div
+          className={cn(
+            "flex items-center gap-1 transition-opacity",
+            selectMode && "opacity-0 pointer-events-none",
+          )}
+        >
           <Dropdown
             align="right"
             width="max-content"
             trigger={
-              <button className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800">
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              >
                 <DownloadCloudIcon
                   size={14}
                   className="text-neutral-500 dark:text-neutral-300"
@@ -313,22 +364,22 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
               </button>
             }
           >
-            <div className="rounded-lg border border-neutral-200 bg-white p-1 text-xs dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="rounded-lg border border-neutral-200 bg-white p-1 text-xs shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
               <DropdownItem onClick={() => onExport(doc.id)}>
-                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileJson size={14} />
                   Export .hightex
                 </div>
               </DropdownItem>
 
               <DropdownItem onClick={async () => await generatePdf()}>
-                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileText size={14} />
                   Export .pdf
                 </div>
               </DropdownItem>
               <DropdownItem onClick={async () => await generatePdf(true)}>
-                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                <div className="flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800">
                   <FileText size={14} />
                   Export .pdf watermarked
                 </div>
@@ -337,7 +388,7 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
           </Dropdown>
 
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/document/${doc.id}`);
@@ -351,16 +402,16 @@ export const Row = ({ doc, onRename, onDelete, onExport }: Props) => {
               e.stopPropagation();
               onDelete(doc.id);
             }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            <Trash size={14} className="text-neutral-400 hover:text-red-500" />
+            <Trash size={14} className="text-neutral-400 transition-colors hover:text-red-500" />
           </button>
         </div>
       </div>
       <div
         className={cn(
           "grid transition-all duration-200 ease-in-out",
-          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          expanded && !selectMode ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         )}
       >
         <div className="overflow-hidden">
@@ -465,7 +516,7 @@ const KeywordField = ({
         {lang === "id" ? <ParsedItalic text={kw} /> : kw}
         <button
           onClick={() => onRemove(kw)}
-          className="text-neutral-300 transition hover:text-red-400 dark:text-neutral-600 dark:hover:text-red-400"
+          className="text-neutral-300 transition-colors hover:text-red-400 dark:text-neutral-600 dark:hover:text-red-400"
         >
           <X size={9} />
         </button>

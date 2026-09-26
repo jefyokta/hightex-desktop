@@ -21,6 +21,7 @@ import { applyLanguage } from "@/utils/lang";
 import { Copy } from "lucide-react";
 import { LocaleProvider } from "@/context/locale-context";
 import { ConfigContextProvider } from "@/context/config-context";
+import { MultiSelectProvider } from "@/context/multi-select-context";
 const UPDATER_TOAST_ID = "hightex-updater";
 const mb = (bytes: number) => {
   return (bytes / 1024 / 1024).toFixed(2);
@@ -245,25 +246,27 @@ export const MainLayout = () => {
         <ErrorProvider>
           <ConfirmProvider>
             <AskProvider>
-              <OpenFileSlave />
-              <CliDocumentsSlave />
-              <UpdaterStatusListener />
-              <TooltipProvider>
-                <UserProvider>
-                  <AuthModalProvider>
-                    <LogoutModalProvider>
-                      <ErrorSlave />
-                      <LoginModal />
-                      <Outlet />
-                    </LogoutModalProvider>
-                  </AuthModalProvider>
-                </UserProvider>
-                <Toaster
-                  position="bottom-right"
-                  theme={window.config.get()?.theme || "system"}
-                  className="flex justify-between toasta"
-                />
-              </TooltipProvider>
+              <MultiSelectProvider>
+                <OpenFileSlave />
+                <CliDocumentsSlave />
+                <UpdaterStatusListener />
+                <TooltipProvider>
+                  <UserProvider>
+                    <AuthModalProvider>
+                      <LogoutModalProvider>
+                        <ErrorSlave />
+                        <LoginModal />
+                        <Outlet />
+                      </LogoutModalProvider>
+                    </AuthModalProvider>
+                  </UserProvider>
+                  <Toaster
+                    position="bottom-right"
+                    theme={window.config.get()?.theme || "system"}
+                    className="flex justify-between toasta"
+                  />
+                </TooltipProvider>
+              </MultiSelectProvider>
             </AskProvider>
           </ConfirmProvider>
         </ErrorProvider>

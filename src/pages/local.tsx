@@ -92,10 +92,10 @@ export const Dashboard = () => {
   };
 
   const deleteDocument = async (id: string) => {
-    const tid =truncate(id, 5)
+    const tid = truncate(id, 5)
 
 
-    if(await Manager.deleteDocument(id)){
+    if (await Manager.deleteDocument(id)) {
 
       setDocuments((prev) => prev.filter((d) => d.id !== id));
       toast.success(`deleted ${tid}`)
@@ -121,6 +121,13 @@ export const Dashboard = () => {
       toast.error(t("common.export_failed"), { id: toastId });
     }
   };
+
+  useEffect(() => {
+    return Manager.app.on("documents:deleted", ({ documentIds }) => {
+
+      setDocuments(prev => prev.filter(d => !documentIds.includes(d.id)))
+    })
+  }, [])
 
   if (loading) return <Loading />;
 

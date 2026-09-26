@@ -24,6 +24,10 @@ import { Input } from "@/components/ui/input";
 
 import { Search, Trash, Copy, Quote, Plus } from "lucide-react";
 import { Zotero } from "@/assets/icons/zotero";
+import { useMultiSelect } from "@/hooks/use-multi-select";
+import { toast } from "sonner";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { ApplicationError } from "@/exception/interfaces/application-error";
 
 export const Citation = () => {
   const [citations, setCitations] = useState<CiteUtils[]>([]);
@@ -42,9 +46,10 @@ export const Citation = () => {
 
   const [zoteroItems, setZoteroItems] = useState<ZoteroItem[]>([]);
   const [zoteroLoading, setZoteroLoading] = useState(false);
-  const [zoteroError, setZoteroError] = useState<string | null>(null);
   const [zoteroConnected, setZoteroConnected] = useState<boolean | null>(null);
-  const [selectedZoteroIds, setSelectedZoteroIds] = useState<string[]>([]);
+
+  const { selected, toggleSelect, clear, addSelected } =
+    useMultiSelect<string>("zotero");
 
   const db = HighTexDB.getInstance();
 
@@ -207,8 +212,8 @@ export const Citation = () => {
         skipped:
           invalidEntries.length > 0
             ? t("citation.skipped_invalid", {
-                count: invalidEntries.length,
-              })
+              count: invalidEntries.length,
+            })
             : "",
       }),
     );
@@ -236,13 +241,14 @@ export const Citation = () => {
 
     if (!enabled) {
       setZoteroConnected(false);
-      setZoteroError(t("citation.zotero.integration_disabled"));
 
-      return false;
+      throw new ShouldNotified({
+        message: t("citation.zotero.integration_disabled"),
+        description: t("citation.zotero.integration_disabled"),
+      });
     }
 
     setZoteroLoading(true);
-    setZoteroError(null);
 
     try {
       const result = await window.zotero.testConnection(host, port);
@@ -250,23 +256,25 @@ export const Citation = () => {
       if (!result?.connected) {
         setZoteroConnected(false);
 
-        setZoteroError(
-          result?.message ?? t("citation.zotero.connection_failed"),
-        );
-
-        return false;
+        throw new ShouldNotified({
+          message: t("citation.zotero.connection_failed"),
+          description:
+            result?.message ?? t("citation.zotero.connection_failed"),
+        });
       }
 
       setZoteroConnected(true);
 
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-
       setZoteroConnected(false);
-      setZoteroError(message);
 
-      return false;
+      if (error instanceof ShouldNotified) throw error;
+
+      throw new ShouldNotified({
+        message: t("citation.zotero.connection_failed"),
+        description: ApplicationError.normilize(error),
+      });
     } finally {
       setZoteroLoading(false);
     }
@@ -276,21 +284,26 @@ export const Citation = () => {
     const { host, port } = await getZoteroConfig();
 
     setZoteroLoading(true);
-    setZoteroError(null);
 
     try {
       const items = await window.zotero.listItems(host, port, 100);
 
       setZoteroItems(items || []);
-      setSelectedZoteroIds([]);
+      clear();
 
       if (!items || items.length === 0) {
-        setZoteroError(t("citation.zotero.no_references"));
+        throw new ShouldNotified({
+          message: "Zotero import failed",
+          description: t("citation.zotero.no_references"),
+        });
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      if (error instanceof ShouldNotified) throw error;
 
-      setZoteroError(message);
+      throw new ShouldNotified({
+        message: "Zotero import failed",
+        description: ApplicationError.normilize(error),
+      });
     } finally {
       setZoteroLoading(false);
     }
@@ -298,9 +311,8 @@ export const Citation = () => {
 
   const openZoteroImport = async () => {
     setIsZoteroOpen(true);
-    setZoteroError(null);
     setZoteroItems([]);
-    setSelectedZoteroIds([]);
+    clear();
 
     const connected = await refreshZoteroConnection();
 
@@ -309,29 +321,23 @@ export const Citation = () => {
     }
   };
 
-  const toggleZoteroSelection = (key: string) => {
-    setSelectedZoteroIds((previous) =>
-      previous.includes(key)
-        ? previous.filter((id) => id !== key)
-        : [...previous, key],
-    );
-  };
-
   const importSelectedZoteroItems = async () => {
-    if (selectedZoteroIds.length === 0) {
-      setZoteroError(t("citation.zotero.select_reference"));
-
-      return;
+    if (selected.length === 0) {
+      throw new ShouldNotified({
+        message: "Zotero import failed",
+        description: t("citation.zotero.select_reference"),
+      });
     }
 
     const selectedItems = zoteroItems.filter((item) =>
-      selectedZoteroIds.includes(item.key),
+      selected.includes(item.key),
     );
 
     if (!selectedItems.length) {
-      setZoteroError(t("citation.zotero.no_matching_references"));
-
-      return;
+      throw new ShouldNotified({
+        message: "Zotero import failed",
+        description: t("citation.zotero.no_matching_references"),
+      });
     }
 
     const { host, port } = await getZoteroConfig();
@@ -342,33 +348,35 @@ export const Citation = () => {
           window.zotero.exportBibtex(host, port, item.key),
         ),
       );
-
       const importedCount = await importBibtexContent(
         bibtexPayloads.filter(Boolean).join("\n\n"),
       );
 
       if (importedCount === 0) {
-        setZoteroError(t("citation.zotero.no_valid_imported"));
-
-        return;
+        throw new ShouldNotified({
+          message: "Zotero import failed",
+          description: t("citation.zotero.no_valid_imported"),
+        });
       }
 
       const mapped = await loadCitations();
 
       setCitations(mapped);
 
-      setFeedback(
+      toast.success(
         t("citation.zotero.imported", {
           count: importedCount,
         }),
       );
 
-      setFeedbackType("success");
-      setIsZoteroOpen(false);
+      clear();
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      if (error instanceof ShouldNotified) throw error;
 
-      setZoteroError(message);
+      throw new ShouldNotified({
+        message: "Zotero import failed",
+        description: ApplicationError.normilize(error),
+      });
     }
   };
 
@@ -503,11 +511,10 @@ export const Citation = () => {
 
             {feedback && (
               <div
-                className={`flex-none rounded-xl border px-4 py-3 text-sm ${
-                  feedbackType === "success"
+                className={`flex-none rounded-xl border px-4 py-3 text-sm ${feedbackType === "success"
                     ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
                     : "border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
-                }`}
+                  }`}
               >
                 {feedback}
               </div>
@@ -524,7 +531,13 @@ export const Citation = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isZoteroOpen} onOpenChange={setIsZoteroOpen}>
+      <Dialog
+        open={isZoteroOpen}
+        onOpenChange={(value) => {
+          clear();
+          setIsZoteroOpen(value);
+        }}
+      >
         <DialogContent
           showCloseButton
           className="max-w-none! flex h-[85vh] w-[70vw] flex-col gap-0 overflow-hidden"
@@ -559,23 +572,38 @@ export const Citation = () => {
               {t("citation.zotero.local_api")}
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={zoteroLoading}
-              onClick={refreshZoteroConnection}
-            >
-              {zoteroLoading
-                ? t("citation.zotero.refreshing")
-                : t("citation.zotero.refresh")}
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              {selected.length > 0 && (
+                <Button onClick={() => clear()} variant="destructive" size="sm">
+                  Deselect All
+                </Button>
+              )}
 
-          {zoteroError && (
-            <div className="mx-6 mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {zoteroError}
+              {zoteroItems.length > 0 && selected.length !== zoteroItems.length && (
+                <Button
+                  onClick={() => {
+                    for (const z of zoteroItems) {
+                      addSelected(z.key);
+                    }
+                  }}
+                  size="sm"
+                >
+                  Select All
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={zoteroLoading}
+                onClick={refreshZoteroConnection}
+              >
+                {zoteroLoading
+                  ? t("citation.zotero.refreshing")
+                  : t("citation.zotero.refresh")}
+              </Button>
             </div>
-          )}
+          </div>
 
           <div className="flex-1 overflow-hidden px-6 py-4">
             <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-background">
@@ -586,7 +614,7 @@ export const Citation = () => {
                 <div />
               </div>
 
-              <ScrollArea className="flex-1 !overflow-scroll">
+              <ScrollArea className="flex-1 overflow-scroll!">
                 {zoteroLoading ? (
                   <div className="p-6 text-sm text-muted-foreground">
                     {t("citation.zotero.loading")}
@@ -623,10 +651,8 @@ export const Citation = () => {
 
                       <div className="flex justify-end">
                         <Checkbox
-                          checked={selectedZoteroIds.includes(item.key)}
-                          onCheckedChange={() =>
-                            toggleZoteroSelection(item.key)
-                          }
+                          checked={selected.includes(item.key)}
+                          onCheckedChange={() => toggleSelect(item.key)}
                         />
                       </div>
                     </div>

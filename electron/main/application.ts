@@ -198,6 +198,10 @@ export class Application {
       }
     });
 
+    app.on("open-url",(_,url)=>{
+      console.log(url);
+    })
+
     this.win.webContents.on("did-finish-load", () => {
       if (this.windowOptions.show) {
         this.win?.show();

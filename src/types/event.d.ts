@@ -32,6 +32,14 @@ declare global {
     id:string
   }
 
+  interface DocumentsDeleted {
+    documentIds:string[]
+  }
+
+  interface DocumentDeleted {
+    documentId:string
+  }
+
   interface AliaseDeleted {
     key:string
   }
@@ -46,6 +54,8 @@ declare global {
     "var:updated": VarUpdated;
     "migrating:deprecation":MigratingDeprecation
     "alias:deleted":AliaseDeleted
+    "documents:deleted":DocumentsDeleted,
+    "document:deleted":DocumentDeleted
   }
 }
 

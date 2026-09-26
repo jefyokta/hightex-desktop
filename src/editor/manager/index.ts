@@ -6,6 +6,7 @@ import { Confirm } from "@/decorators/confirm";
 import { truncate } from "@/utils/truncate";
 
 import { ExportTimeout } from "@/exception/export-time-out";
+import { progressiveToast } from "@/utils/progressive-toast";
 
 type ErrorPayload = {
   error: unknown;
@@ -119,6 +120,38 @@ export class Manager {
   static async deleteDocument(documentId: string, _version?: string) {
     const db = HighTexDB.getInstance();
    return await db.deleteDocument(documentId);
+  }
+  @Confirm(async (...docs) => ({
+    title: "Are you sure?",
+    desc: `${docs.length} documents will be deleted`,
+  }))
+  static async deleteDocuments(...documentIds: string[]) {
+    const total = documentIds.length;
+    const pt = progressiveToast({ initialStatus: "Deleting documents...", initialProgress: 0 });
+    const deleted:string[] = []
+
+    try {
+      for (let i = 0; i < total; i++) {
+        const id = documentIds[i];
+
+        await HighTexDB.getInstance().deleteDocument(id);
+
+        pt.update(
+          `Deleting ${i + 1} of ${total}...`,
+          Math.round(((i + 1) / total) * 100),
+        );
+        deleted.push(id)
+
+      }
+
+      pt.success({
+        title: `${total} document${total > 1 ? "s" : ""} deleted`,
+      });
+    } catch (e) {
+      pt.error({ title: "Failed to delete documents", error: e });
+    } finally {
+      this.app.dispatch("documents:deleted",{documentIds:deleted})
+    }
   }
   static element() {
     const el = document.getElementById("page");

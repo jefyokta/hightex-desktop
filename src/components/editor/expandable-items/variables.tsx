@@ -193,7 +193,6 @@ export const VariableTab = () => {
                       )}
                     </div>
 
-                    {/* ACTIONS */}
                     {!locked && (
                       <div className="flex items-center gap-2 text-xs">
                         {isEditing ? (
