@@ -250,3 +250,36 @@ function dataUriToBlob(dataUri: string): Blob {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return new Blob([bytes]);
 }
+
+export async function convertToPng(blob: Blob): Promise<Blob> {
+    if (blob.type === "image/png") {
+        return blob;
+    }
+
+    const bitmap = await createImageBitmap(blob);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+        bitmap.close();
+        throw new Error("Failed to create canvas context");
+    }
+
+    context.drawImage(bitmap, 0, 0);
+    bitmap.close();
+
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((png) => {
+            if (!png) {
+                reject(new Error("Failed to convert image to PNG"));
+                return;
+            }
+
+            resolve(png);
+        }, "image/png");
+    });
+}

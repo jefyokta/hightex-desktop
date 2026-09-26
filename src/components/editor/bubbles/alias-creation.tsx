@@ -1,36 +1,33 @@
 import { AliasStorage } from "@/editor/storage/aliases";
-import { Editor } from "@tiptap/core";
 import { useState } from "react";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import { Input } from "../../ui/input";
+import { Button } from "../../ui/button";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Document } from "@/editor/document";
 
-type AliasCreationProps = {
-    editor: Editor;
-    word: string;
-};
 
-export const AliasCreation: React.FC<AliasCreationProps> = ({
+export const AliasCreation: React.FC<BubbleMenuProps> = ({
     editor,
-    word,
+    isSingleWord,
+    text,
 }) => {
     const [value, setValue] = useState("");
 
     const createAlias = async () => {
         const alias = value.trim();
+        if (!isSingleWord) return
 
         if (!alias) {
             return;
         }
 
         await HighTexDB.getInstance().setAlias(
-            word,
+            text,
             alias,
             Document.instance!.id,
         );
 
-        AliasStorage.instance.set(word, alias);
+        AliasStorage.instance.set(text, alias);
         editor.view.setProps({});
         editor.commands.focus();
     };
@@ -38,7 +35,7 @@ export const AliasCreation: React.FC<AliasCreationProps> = ({
     return (
         <div className="flex items-center gap-1.5 px-1.5 py-1">
             <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
-                {word}
+                {text.trim()}
             </span>
 
             <span className="text-xs text-muted-foreground">→</span>

@@ -30,6 +30,7 @@ import { Placeholder } from "@tiptap/extensions";
 import { createAliasPlugin } from "../plugins/alias-hint-plugin";
 import { Extension } from "@tiptap/core";
 import { Comment } from "../extensions/comment";
+import { Note } from "../extensions/note";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
@@ -110,7 +111,8 @@ export class ChapterExtensions {
           return [createAliasPlugin()]
         },
       })] :[]),
-      Comment
+      Comment,
+      Note
      
 
     ];
@@ -118,8 +120,7 @@ export class ChapterExtensions {
 
   private getNonChapter() {
     const hasPlaceholder = this.placeHolder[this.chapter.getChapter()]
-    console.log(hasPlaceholder)
-    return [StarterKit, Variable, SearchReplace,
+    return [StarterKit, Variable, SearchReplace, Note,
        ...(hasPlaceholder ? [Placeholder.configure({placeholder:hasPlaceholder})]:[]) 
       ];
   }
