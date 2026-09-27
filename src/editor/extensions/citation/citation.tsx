@@ -81,7 +81,7 @@ export const Citation: React.FC<NodeViewProps> = ({
         <PopoverTrigger asChild>
           <cite
             className="
-              cursor-pointer rounded px-1
+              cursor-pointer 
               hover:bg-yellow-200 dark:hover:bg-yellow-900/40
               text-neutral-700 dark:text-neutral-300
             "
