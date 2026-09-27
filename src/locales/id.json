@@ -433,7 +433,10 @@
       "sent": "Laporan error terkirim",
       "send_failed": "Tidak dapat mengirim laporan error",
       "sending": "Mengirim laporan...",
-      "button": "Laporkan"
+      "button": "Laporkan",
+      "copy_error": "Salin detail error",
+      "copied": "Detail error disalin",
+      "copy_failed": "Gagal menyalin detail error"
     },
     "page_overflow": {
       "title": "Halaman meluap!",

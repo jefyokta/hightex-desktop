@@ -393,7 +393,10 @@
       "sent": "Error report sent",
       "send_failed": "Unable to report error",
       "sending": "Reporting...",
-      "button": "Report"
+      "button": "Report",
+      "copy_error": "Copy error details",
+      "copied": "Error details copied",
+      "copy_failed": "Failed to copy error details"
     },
     "frame": {
       "not": {
