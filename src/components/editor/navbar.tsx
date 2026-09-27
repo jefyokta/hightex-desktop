@@ -11,7 +11,7 @@ import {
   ListOrdered,
   Quote,
   Redo2,
-  ScanText,
+  // ScanText,
   Sigma,
   Strikethrough,
   Table,
