@@ -101,7 +101,7 @@ export const UniversityConsent = () => {
                 display: "inline-block",
               }}
             >
-              NIP. {profile?.advisorName}
+              NIP. {profile?.advisorNip}
             </span>
           </div>
         </div>
