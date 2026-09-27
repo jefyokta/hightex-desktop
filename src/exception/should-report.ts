@@ -23,6 +23,31 @@ function ReportIssueAction({ description }: { description: string }) {
     } catch (error) {
       toast.error(t("error.report.send_failed"), {
         description: truncate(ApplicationError.normilize(error), 100),
+        action: {
+          label: t("error.report.copy_error"),
+          onClick: async () => {
+            const formatted = [
+              "### Error Details",
+              `- **Title**: ${t("error.report.unexpected_error")}`,
+              `- **Timestamp**: ${new Date().toISOString()}`,
+              `- **Platform**: ${navigator.userAgent}`,
+              "",
+              "```text",
+              description,
+              "```",
+            ].join("\n");
+
+            try {
+              await navigator.clipboard.writeText(formatted);
+              toast.success(t("error.report.copied"));
+              await window.file.openPath(
+                "https://github.com/jefyokta/hightex-desktop/issues/new",
+              );
+            } catch {
+              toast.error(t("error.report.copy_failed"));
+            }
+          },
+        },
       });
     } finally {
       setSending(false);
