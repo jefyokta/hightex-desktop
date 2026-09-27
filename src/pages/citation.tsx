@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { CiteUtils } from "bibtex.js";
+import { bibToObject, CiteUtils } from "bibtex.js";
 import { HighTexDB } from "../editor/storage/hightex-db";
 import { parseBibtexInput, isCitationValid } from "@/utils/citation";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
@@ -22,12 +22,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
-import { Search, Trash, Copy, Quote, Plus } from "lucide-react";
+import { Search, Trash, Copy, Quote, Plus, ArrowRight } from "lucide-react";
 import { Zotero } from "@/assets/icons/zotero";
 import { useMultiSelect } from "@/hooks/use-multi-select";
 import { toast } from "sonner";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { ApplicationError } from "@/exception/interfaces/application-error";
+
+const feedBackToastID = "citation-feed-back";
 
 export const Citation = () => {
   const [citations, setCitations] = useState<CiteUtils[]>([]);
@@ -36,11 +38,6 @@ export const Citation = () => {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [bibText, setBibText] = useState("");
-
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [feedbackType, setFeedbackType] = useState<"success" | "error" | null>(
-    null,
-  );
 
   const [isZoteroOpen, setIsZoteroOpen] = useState(false);
 
@@ -78,6 +75,8 @@ export const Citation = () => {
     };
   }, []);
 
+  const [doiLink, setDoiLink] = useState('')
+
   const filtered = useMemo(() => {
     if (!query.trim()) {
       return citations;
@@ -108,14 +107,8 @@ export const Citation = () => {
     await navigator.clipboard.writeText(text);
   };
 
-  const resetForm = () => {
-    setBibText("");
-    setFeedback(null);
-    setFeedbackType(null);
-  };
-
   const closeModal = () => {
-    resetForm();
+    setBibText("");
     setIsAddOpen(false);
   };
 
@@ -127,8 +120,6 @@ export const Citation = () => {
     const content = await file.text();
 
     setBibText(content.trim());
-    setFeedback(null);
-    setFeedbackType(null);
   };
 
   const ensureUniqueKey = async (
@@ -152,12 +143,8 @@ export const Citation = () => {
     content: string,
     openModal = false,
   ): Promise<number> => {
-    setFeedback(null);
-    setFeedbackType(null);
-
     if (!content.trim()) {
-      setFeedback(t("citation.error.no_bibtex_content"));
-      setFeedbackType("error");
+      toast.error(t("citation.error.no_bibtex_content"), { id: feedBackToastID });
 
       return 0;
     }
@@ -165,8 +152,7 @@ export const Citation = () => {
     const { entries, errors } = parseBibtexInput(content);
 
     if (errors.length > 0) {
-      setFeedback(errors.join(" "));
-      setFeedbackType("error");
+      toast.error(errors.join(" "), { id: feedBackToastID });
 
       return 0;
     }
@@ -178,13 +164,12 @@ export const Citation = () => {
     );
 
     if (validEntries.length === 0) {
-      setFeedback(
+      toast.error(
         invalidEntries.length > 0
           ? t("citation.error.no_valid_citations")
           : t("citation.error.no_citations_parsed"),
+        { id: feedBackToastID },
       );
-
-      setFeedbackType("error");
 
       return 0;
     }
@@ -206,7 +191,7 @@ export const Citation = () => {
 
     setCitations(mapped);
 
-    setFeedback(
+    toast.success(
       t("citation.imported", {
         count: citationsToSave.length,
         skipped:
@@ -216,9 +201,9 @@ export const Citation = () => {
             })
             : "",
       }),
+      { id: feedBackToastID },
     );
 
-    setFeedbackType("success");
     setBibText("");
 
     if (openModal) {
@@ -494,6 +479,47 @@ export const Citation = () => {
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 py-5">
+            <div className="w-full flex gap-2">
+              <Input placeholder="From doi link" onChange={(e) => setDoiLink(e.target.value)} />
+              <Button
+                size="icon"
+                disabled={!doiLink.trim()}
+                onClick={async () => {
+                  const response = await fetch(doiLink, {
+                    method: "GET",
+                    headers: {
+                      Accept: "application/x-bibtex",
+                    },
+                  });
+
+                  if (!response.ok) {
+                    throw new ShouldNotified({
+                      message: "Unable to get BibTeX from DOI",
+                      description: "Ensure the DOI link is correct and you have a network connection.",
+                    });
+                  }
+
+                  const bib = await response.text();
+
+                  try {
+                    const parsed = bibToObject(bib);
+
+                    if (!parsed.length) {
+                      throw new Error("No BibTeX entry found");
+                    }
+
+                    setBibText(bib);
+                  } catch {
+                    throw new ShouldNotified({
+                      message: "Invalid BibTeX response",
+                      description: "The DOI service did not return a valid BibTeX entry.",
+                    });
+                  }
+                }}
+              >
+                <ArrowRight />
+              </Button>
+            </div>
             <Textarea
               value={bibText}
               onChange={(event) => setBibText(event.target.value)}
@@ -508,17 +534,6 @@ export const Citation = () => {
 
               <Badge variant="secondary">BibTeX</Badge>
             </div>
-
-            {feedback && (
-              <div
-                className={`flex-none rounded-xl border px-4 py-3 text-sm ${feedbackType === "success"
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
-                    : "border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
-                  }`}
-              >
-                {feedback}
-              </div>
-            )}
           </div>
 
           <DialogFooter className="flex-none border-t px-6 py-4">
