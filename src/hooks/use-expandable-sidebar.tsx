@@ -1,7 +1,7 @@
 import { ChapteTree } from "@/components/editor/expandable-items/chapter-tree";
 import { Citation } from "@/components/editor/expandable-items/citation";
 import { Preview } from "@/components/editor/expandable-items/preview";
-import { Scanner } from "@/components/editor/expandable-items/scanner";
+// import { Scanner } from "@/components/editor/expandable-items/scanner";
 import { Setting } from "@/components/editor/expandable-items/setting";
 import { VariableTab } from "@/components/editor/expandable-items/variables";
 import React, {
@@ -22,10 +22,10 @@ export const tabs = {
     name: "previewer",
     element: <Preview />,
   },
-  scanner: {
-    name: "Scanner",
-    element: <Scanner />,
-  },
+  // scanner: {
+  //   name: "Scanner",
+  //   element: <Scanner />,
+  // },
   citation: {
     name: "Citation",
     element: <Citation />,

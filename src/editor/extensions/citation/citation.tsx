@@ -37,6 +37,8 @@ export const Citation: React.FC<NodeViewProps> = ({
     let mounted = true;
 
     const fetchCite = async () => {
+      const ids = (node.attrs.cite || "").split("|") as string[]
+      console.log(ids)
       const cite = await HighTexDB.getInstance().cite.get(node.attrs.cite);
 
       if (!mounted) return;
@@ -120,10 +122,9 @@ export const Citation: React.FC<NodeViewProps> = ({
               <button
                 className={`
                   w-full rounded px-3 py-2 text-left text-sm transition
-                  ${
-                    !node.attrs.citeA
-                      ? "bg-neutral-200 dark:bg-neutral-700 font-medium"
-                      : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  ${!node.attrs.citeA
+                    ? "bg-neutral-200 dark:bg-neutral-700 font-medium"
+                    : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                   }
                 `}
                 onClick={() => updateAttributes({ citeA: false })}
@@ -134,10 +135,9 @@ export const Citation: React.FC<NodeViewProps> = ({
               <button
                 className={`
                   w-full rounded px-3 py-2 text-left text-sm transition
-                  ${
-                    node.attrs.citeA
-                      ? "bg-neutral-200 dark:bg-neutral-700 font-medium"
-                      : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  ${node.attrs.citeA
+                    ? "bg-neutral-200 dark:bg-neutral-700 font-medium"
+                    : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                   }
                 `}
                 onClick={() => updateAttributes({ citeA: true })}

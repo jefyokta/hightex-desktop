@@ -6,6 +6,41 @@ All notable changes to this project will be documented in this file.
 
 
 
+### ✨ Features
+
+
+- **editor:** Note mark
+
+- **docs:** Add another alternative installation for macOs
+
+- **editor:** Common symbols as default varibale #46
+
+- Multi select for zotero and documents
+
+- **citation:** Import from doi link
+
+
+
+### 🐛 Bug Fixes
+
+
+- Unsupported webp to clipboard
+
+- **theme:** Paper color now dynamic
+
+
+
+### 📝 Documentation
+
+
+- Add symbol variable documentation
+
+
+
+## [0.7.4] - 2026-09-25
+
+
+
 ### 🐛 Bug Fixes
 
 
