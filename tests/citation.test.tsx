@@ -1,5 +1,4 @@
 import { expect, mock, test } from "bun:test";
-import { renderToString } from "react-dom/server";
 import { parseBibtexInput, isCitationValid } from "../src/utils/citation";
 
 mock.module("../src/editor/storage/hightex-db.ts", () => ({
@@ -16,7 +15,6 @@ mock.module("../src/editor/storage/index.ts", () => ({
   },
 }));
 
-import { Citation } from "../src/pages/citation";
 
 
 
