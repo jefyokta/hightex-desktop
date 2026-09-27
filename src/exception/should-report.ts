@@ -40,9 +40,8 @@ function ReportIssueAction({ description }: { description: string }) {
             try {
               await navigator.clipboard.writeText(formatted);
               toast.success(t("error.report.copied"));
-              window.open(
+              await window.file.openPath(
                 "https://github.com/jefyokta/hightex-desktop/issues/new",
-                "_blank",
               );
             } catch {
               toast.error(t("error.report.copy_failed"));
