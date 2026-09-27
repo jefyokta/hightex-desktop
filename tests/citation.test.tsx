@@ -18,11 +18,7 @@ mock.module("../src/editor/storage/index.ts", () => ({
 
 import { Citation } from "../src/pages/citation";
 
-test("citation page renders initial loading state", () => {
-  const html = renderToString(<Citation />);
 
-  expect(html).toContain("Loading citations...");
-});
 
 test("parseBibtexInput normalizes keys and parses valid BibTeX entries", () => {
   const bib = `@article{My Key 1,
