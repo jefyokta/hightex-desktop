@@ -5,6 +5,7 @@ import { DocumentNotFound } from "../../exception/document-not-found";
 import { Manager } from "../manager";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { DocumentBroken } from "@/exception/documet-broken";
+import { Symbols } from "@/utils/symbol";
 
 export class Document {
   static current?: Chapter;
@@ -46,35 +47,7 @@ export class Document {
     for (const chapter of this.scheme) {
       await db.setVar(`chapter${chapter.chapter}`, chapter.title, this.id);
     }
-    await Promise.all(
-      [
-        ["alpha", "α"],
-        ["beta", "β"],
-        ["gamma", "γ"],
-        ["delta", "δ"],
-        ["epsilon", "ε"],
-        ["theta", "θ"],
-        ["lambda", "λ"],
-        ["mu", "μ"],
-        ["pi", "π"],
-        ["sigma", "σ"],
-        ["phi", "φ"],
-        ["omega", "ω"],
-        ["degree", "°"],
-        ["plusminus", "±"],
-        ["times", "×"],
-        ["divide", "÷"],
-        ["neq", "≠"],
-        ["leq", "≤"],
-        ["geq", "≥"],
-        ["approx", "≈"],
-        ["infinity", "∞"],
-        ["sqrt", "√"],
-        ["copyright", "©"],
-        ["registered", "®"],
-        ["trademark", "™"],
-      ].map(([name, value]) => db.setVar(name, value, "global"))
-    );
+    await Promise.all( Symbols.map(([name, value]) => db.variables.put({name,value,documentId:"global"})));
   }
 
   async warm() {

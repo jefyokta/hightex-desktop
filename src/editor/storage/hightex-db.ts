@@ -2,6 +2,8 @@ import { defaulBib } from "@/data/default-bib";
 import Dexie, { Table } from "dexie";
 import { Manager } from "../manager";
 import { CiteUtils } from "bibtex.js";
+import { Symbols } from "@/utils/symbol";
+import { ActionCanceled } from "@/exception/action-canceled";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -146,6 +148,10 @@ export class HighTexDB extends Dexie {
     value: string,
     documentId = "global",
   ): Promise<void> {
+
+    if(Symbols.find(s=>s[0]=== name)){
+      throw new ActionCanceled(`cannot create var with name '${name}', because its belongs to a symbol`)
+    }
     await this.variables.put({
       name,
       value,
