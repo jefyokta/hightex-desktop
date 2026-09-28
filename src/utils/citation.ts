@@ -1,5 +1,6 @@
 import { bibToObject, objectToBib, CiteUtils } from "bibtex.js";
-
+//@ts-ignore
+import Cite from "citation-js";
 export const formatManual = (text: string, year: string, citeA?: boolean) => {
   return citeA ? `${text} (${year})` : `(${text}, ${year})`;
 };
@@ -144,4 +145,70 @@ export const parseBibtexInput = (content: string) => {
       ],
     };
   }
+};
+
+
+
+export const formatInTextCitation = (
+  cites: CiteRecord[],
+  citeA = false,
+) => {
+  if (!cites.length) {
+    return {
+      biblios: ["(unknown citation)"],
+      inText: "(unknown citation)",
+    };
+  }
+
+  const inTexts: string[] = [];
+  const biblios: string[] = [];
+
+  for (const cite of cites) {
+    const utils = new CiteUtils(cite.bib).setId(cite.key);
+    inTexts.push(
+      citeA
+        ? utils.toCiteA()
+        : utils.toCite().slice(1, -1),
+    );
+
+    const citeProcessor = new Cite(utils.getCite());
+
+    biblios.push(
+      citeProcessor.format("bibliography", {
+        format: "text",
+        template: "apa",
+        lang: "id-ID",
+      }),
+    );
+  }
+
+  return {
+    inText: formatCitationText(inTexts, citeA),
+    biblios,
+  };
+};
+
+const formatCitationText = (
+  citations: string[],
+  citeA: boolean,
+): string => {
+  if (!citations.length) {
+    return "(unknown citation)";
+  }
+
+  if (!citeA) {
+    return `(${citations.join("; ")})`;
+  }
+
+  if (citations.length === 1) {
+    return citations[0];
+  }
+
+  if (citations.length === 2) {
+    return citations.join(" dan ");
+  }
+
+  const last = citations[citations.length - 1];
+
+  return `${citations.slice(0, -1).join(", ")}, dan ${last}`;
 };

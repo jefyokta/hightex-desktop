@@ -28,12 +28,27 @@ All notable changes to this project will be documented in this file.
 
 - **theme:** Paper color now dynamic
 
+- Use advisor NIP in university validity sheet
+
+- **editor:** Remove padding at citation component
+
+- **editor:** Unfigured image in editor now equivalent with paginated version
+
+- **variable:** Prevent global symbols being overrided
+
 
 
 ### 📝 Documentation
 
 
 - Add symbol variable documentation
+
+
+
+### 🔄 Updates
+
+
+- **paginate:** Ignoring note in pdf/previewer
 
 
 

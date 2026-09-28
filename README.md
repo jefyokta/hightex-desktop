@@ -7,12 +7,18 @@
 <p align="center">
   Desktop thesis editor built for HighTex.
 </p>
-
 <p align="center">
-  <img src="https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Mac-0.7.2-Installer.zip?label=macOS&displayAssetName=false">
-  <img src="https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Mac-0.7.2-Installer.zip?label=macOS%20%28brew%29&displayAssetName=false">
-  <img src="https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Windows-0.7.2-Setup.exe?label=Windows&displayAssetName=false">
-  <img src="https://img.shields.io/github/downloads/jefyokta/hightex-desktop/v0.7.2/HighTex-Linux-0.7.2.AppImage?label=Linux&displayAssetName=false">
+<a href="https://github.com/jefyokta/hightex-desktop/releases/latest">
+  <img src="https://img.shields.io/github/v/release/jefyokta/hightex-desktop?label=version" alt="version">
+</a>
+</p>
+<p align="center">
+<a href="https://github.com/jefyokta/hightex-desktop/releases">
+  <img src="https://img.shields.io/github/downloads/jefyokta/hightex-desktop/total?label=total%20downloads" alt="Total downloads">
+</a>
+<a href="https://github.com/jefyokta/hightex-desktop/releases/latest">
+  <img src="https://img.shields.io/github/downloads/jefyokta/hightex-desktop/latest/total?label=latest%20release" alt="Latest release downloads">
+</a>
 </p>
 HighTex Desktop is a desktop version of HighTex, a thesis writing application originally developed as my final-year project.
 
@@ -21,6 +27,7 @@ The goal of HighTex is simple: help students focus on writing their thesis inste
 ---
 
 ## Why HighTex?
+> HighTex, ***High-Level of LaTeX***
 
 HighTex started as my final-year project in the Information Systems program at UIN Sultan Syarif Kasim Riau.
 

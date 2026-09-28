@@ -1,189 +1,397 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { useEffect, useState } from "react";
+import { Plus, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { formatManual } from "@/utils/citation";
-//@ts-ignore
-import Cite from "citation-js";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+
 import { HighTexDB } from "@/editor/storage/hightex-db";
+import {  formatInTextCitation } from "@/utils/citation";
 import { CiteUtils } from "bibtex.js";
+
+interface CiteRecord {
+  key: string;
+  bib: string;
+}
+
+type CitationItemProps = {
+  cite: CiteRecord;
+  onRemove?: () => void;
+  onAdd?: () => void;
+  selected?: boolean;
+};
+
+const CitationItem = ({
+  cite,
+  onRemove,
+  onAdd,
+  selected = false,
+}: CitationItemProps) => {
+  const utils = new CiteUtils(cite.bib).setId(cite.key);
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-2.5">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+          {utils.toCite()}
+        </div>
+
+        <div className="line-clamp-2 text-xs text-neutral-500 dark:text-neutral-400">
+          {utils.getTitle()}
+        </div>
+      </div>
+
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="
+            shrink-0 rounded-md p-1
+            text-neutral-400
+            hover:bg-neutral-100 hover:text-neutral-700
+            dark:hover:bg-neutral-800 dark:hover:text-neutral-200
+          "
+          aria-label="Remove citation"
+        >
+          <X size={15} />
+        </button>
+      )}
+
+      {onAdd && (
+        <button
+          type="button"
+          onClick={onAdd}
+          disabled={selected}
+          className="
+            shrink-0 rounded-md p-1
+            text-neutral-400
+            hover:bg-neutral-100 hover:text-neutral-700
+            disabled:cursor-default disabled:opacity-40
+            dark:hover:bg-neutral-800 dark:hover:text-neutral-200
+          "
+          aria-label="Add citation"
+        >
+          {selected ? (
+            <span className="px-1 text-xs">Added</span>
+          ) : (
+            <Plus size={16} />
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const Citation: React.FC<NodeViewProps> = ({
   node,
   updateAttributes,
 }) => {
-  const [fetchedCite, setFetchedCite] = useState("(Loading)");
-  const [valid, setValid] = useState(false);
-
   const [open, setOpen] = useState(false);
-  const [manualInput, setManualInput] = useState({
-    text: node.attrs.text || "",
-    year: node.attrs.year || "",
-  });
-  const [bibliography, setBiblography] = useState("");
+  const [mode, setMode] = useState<"view" | "add">("view");
+
+  const [cites, setCites] = useState<CiteRecord[]>([]);
+  const [bibliography, setBibliography] = useState<CiteRecord[]>([]);
+
+  const [fetchedCite, setFetchedCite] = useState("(Loading)");
+  const [search, setSearch] = useState("");
+
+  const citeIds = useMemo(
+    () => node.attrs.cite?.split("|").filter(Boolean) ?? [],
+    [node.attrs.cite],
+  );
 
   useEffect(() => {
-    if (!node.attrs.cite) {
-      setFetchedCite("(unknown citation)");
-      setValid(false);
+    let mounted = true;
+
+    const loadCites = async () => {
+      const db = HighTexDB.getInstance();
+
+      const result = (
+        await Promise.all(
+          citeIds.map((id: string) => db.cite.get(id)),
+        )
+      ).filter(
+        (cite): cite is CiteRecord => cite !== undefined,
+      );
+
+      if (mounted) {
+        setCites(result);
+      }
+    };
+
+    loadCites();
+
+    return () => {
+      mounted = false;
+    };
+  }, [citeIds]);
+
+  useEffect(() => {
+    if (!open || mode !== "add") {
       return;
     }
 
     let mounted = true;
 
-    const fetchCite = async () => {
-      const ids = (node.attrs.cite || "").split("|") as string[]
-      console.log(ids)
-      const cite = await HighTexDB.getInstance().cite.get(node.attrs.cite);
+    const loadBibliography = async () => {
+      const result = await HighTexDB.getInstance().cite.toArray();
 
-      if (!mounted) return;
-
-      if (!cite) {
-        setFetchedCite("(unknown citation)");
-        setValid(false);
-        return;
+      if (mounted) {
+        setBibliography(result);
       }
-
-      const cu = new CiteUtils(cite.bib).setId(cite.key);
-
-      const dp = new Cite(cu.getCite());
-      const biblio = dp.format("bibliography", {
-        format: "text",
-        template: "apa",
-        lang: "id-ID",
-      });
-
-      setFetchedCite(node.attrs.citeA ? cu.toCiteA() : cu.toCite());
-      setBiblography(biblio);
-      setValid(true);
     };
 
-    fetchCite();
+    loadBibliography();
 
     return () => {
       mounted = false;
     };
-  }, [node.attrs.cite, node.attrs.citeA]);
+  }, [open, mode]);
 
-  const display =
-    node.attrs.manual && valid
-      ? formatManual(manualInput.text, manualInput.year, node.attrs.citeA)
-      : fetchedCite;
+  useEffect(() => {
+    const { inText } = formatInTextCitation(
+      cites,
+      node.attrs.citeA,
+    );
+
+    setFetchedCite(inText);
+  }, [cites, node.attrs.citeA]);
+
+  const addCitation = (id: string) => {
+    if (citeIds.includes(id)) {
+      return;
+    }
+
+    updateAttributes({
+      cite: [...citeIds, id].join("|"),
+    });
+  };
+
+  const removeCitation = (id: string) => {
+    updateAttributes({
+      cite: citeIds
+        .filter((citeId:string) => citeId !== id)
+        .join("|"),
+    });
+  };
+
+  const filteredBibliography = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) {
+      return bibliography;
+    }
+
+    return bibliography.filter((cite) => {
+      const utils = new CiteUtils(cite.bib).setId(cite.key);
+
+      return [
+        utils.toCite(),
+        utils.toCiteA(),
+        utils.getTitle(),
+        cite.key,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+  }, [bibliography, search]);
 
   return (
     <NodeViewWrapper as="span">
-      <Popover modal open={open} onOpenChange={setOpen}>
+      <Popover
+        modal
+        open={open}
+        onOpenChange={(value) => {
+          setOpen(value);
+
+          if (!value) {
+            setMode("view");
+            setSearch("");
+          }
+        }}
+      >
         <PopoverTrigger asChild>
           <cite
             className="
-              cursor-pointer 
-              hover:bg-yellow-200 dark:hover:bg-yellow-900/40
-              text-neutral-700 dark:text-neutral-300
+              cursor-pointer rounded px-0.5
+              text-neutral-700
+              hover:bg-yellow-200
+              dark:text-neutral-300
+              dark:hover:bg-yellow-900/40
             "
           >
-            {display}
+            {fetchedCite}
           </cite>
         </PopoverTrigger>
 
         <PopoverContent
+          align="start"
           className="
-            w-80 rounded-lg border
-            border-neutral-200 dark:border-neutral-700
-            bg-white dark:bg-neutral-900
-            p-4 shadow-md
-            text-neutral-900 dark:text-neutral-100
+            w-100 overflow-hidden rounded-xl border
+            border-neutral-200 bg-white p-0 shadow-lg
+            dark:border-neutral-700 dark:bg-neutral-900
           "
         >
-          <h2 className="mb-3 text-sm font-semibold">Citation</h2>
-
-          <div
-            className="
-            mb-4 rounded-md p-2.5 text-xs
-            bg-neutral-50 dark:bg-neutral-800
-            text-neutral-600 dark:text-neutral-300
-            border border-neutral-100 dark:border-neutral-700
-          "
-          >
-            {bibliography || "No metadata available"}
-          </div>
-
-          <Tabs defaultValue="format">
-            <TabsList className="grid grid-cols-2 mb-3 bg-neutral-100 dark:bg-neutral-800">
-              <TabsTrigger value="format">Format</TabsTrigger>
-              <TabsTrigger value="edit">Edit</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="format" className="space-y-2">
-              <button
-                className={`
-                  w-full rounded px-3 py-2 text-left text-sm transition
-                  ${!node.attrs.citeA
-                    ? "bg-neutral-200 dark:bg-neutral-700 font-medium"
-                    : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                  }
-                `}
-                onClick={() => updateAttributes({ citeA: false })}
-              >
-                Standard cite
-              </button>
-
-              <button
-                className={`
-                  w-full rounded px-3 py-2 text-left text-sm transition
-                  ${node.attrs.citeA
-                    ? "bg-neutral-200 dark:bg-neutral-700 font-medium"
-                    : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                  }
-                `}
-                onClick={() => updateAttributes({ citeA: true })}
-              >
-                Cite author
-              </button>
-            </TabsContent>
-
-            <TabsContent value="edit" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={node.attrs?.manual}
-                  onCheckedChange={(e) => {
-                    updateAttributes({ manual: e });
+          {mode === "add" ? (
+            <>
+              <div className="flex items-center gap-2 border-b px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("view");
+                    setSearch("");
                   }}
-                />
-                <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Manual override
+                  className="
+                    rounded-md px-2 py-1 text-sm
+                    text-neutral-500
+                    hover:bg-neutral-100
+                    dark:hover:bg-neutral-800
+                  "
+                >
+                  ←
+                </button>
+
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold">
+                    Add citation
+                  </h2>
+
+                  <p className="truncate text-xs text-neutral-500">
+                    Select a reference from your bibliography
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3">
+                <div
+                  className="
+                    flex items-center gap-2 rounded-lg border
+                    border-neutral-200 px-3
+                    dark:border-neutral-700
+                  "
+                >
+                  <Search
+                    size={15}
+                    className="shrink-0 text-neutral-400"
+                  />
+
+                  <input
+                    value={search}
+                    onChange={(event) =>
+                      setSearch(event.target.value)
+                    }
+                    placeholder="Search bibliography..."
+                    className="
+                      h-9 w-full bg-transparent text-sm outline-none
+                      placeholder:text-neutral-400
+                    "
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="max-h-72 overflow-y-auto px-3 pb-3">
+                {filteredBibliography.length > 0 ? (
+                  <div className="divide-y rounded-lg border border-neutral-200 dark:divide-neutral-700 dark:border-neutral-700">
+                    {filteredBibliography.map((cite) => (
+                      <CitationItem
+                        key={cite.key}
+                        cite={cite}
+                        selected={citeIds.includes(cite.key)}
+                        onAdd={() => addCitation(cite.key)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-sm text-neutral-500">
+                    No bibliography found.
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="border-b px-4 py-3">
+                <h2 className="text-sm font-semibold">
+                  Citation
+                </h2>
+
+                <p className="text-xs text-neutral-500">
+                  Manage references in this citation
                 </p>
               </div>
 
-              {node.attrs.manual && (
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Override teks (opsional)"
-                    value={manualInput.text}
-                    onChange={(e) =>
-                      setManualInput((p) => ({ ...p, text: e.target.value }))
-                    }
-                    onKeyUp={() => updateAttributes({ text: manualInput.text })}
-                    className="dark:bg-neutral-800 dark:border-neutral-700"
-                  />
+              <div className="p-3">
+                {cites.length > 0 ? (
+                  <div className="divide-y rounded-lg border border-neutral-200 dark:divide-neutral-700 dark:border-neutral-700">
+                    {cites.map((cite) => (
+                      <CitationItem
+                        key={cite.key}
+                        cite={cite}
+                        onRemove={() => removeCitation(cite.key)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-neutral-300 px-3 py-8 text-center text-sm text-neutral-500 dark:border-neutral-700">
+                    No citations added.
+                  </div>
+                )}
 
-                  <Input
-                    placeholder="Override tahun (opsional)"
-                    value={manualInput.year}
-                    onChange={(e) =>
-                      setManualInput((p) => ({ ...p, year: e.target.value }))
-                    }
-                    onKeyUp={() => updateAttributes({ year: manualInput.year })}
-                    className="dark:bg-neutral-800 dark:border-neutral-700"
-                  />
+                <button
+                  type="button"
+                  onClick={() => setMode("add")}
+                  className="
+                    mt-2 flex w-full items-center justify-center
+                    gap-2 rounded-lg border border-dashed
+                    border-neutral-300 px-3 py-2
+                    text-sm text-neutral-600
+                    transition-colors
+                    hover:border-neutral-400 hover:bg-neutral-50
+                    dark:border-neutral-700 dark:text-neutral-400
+                    dark:hover:border-neutral-600 dark:hover:bg-neutral-800
+                  "
+                >
+                  <Plus size={15} />
+                  Add citation
+                </button>
+              </div>
+
+              <div className="border-t px-3 py-3">
+                <div className="mb-2 px-1 text-xs font-medium text-neutral-500">
+                  Format
                 </div>
-              )}
-            </TabsContent>
-          </Tabs>
+
+                <Tabs
+                  value={node.attrs.citeA ? "author" : "standard"}
+                  onValueChange={(value) =>
+                    updateAttributes({
+                      citeA: value === "author",
+                    })
+                  }
+                >
+                  <TabsList className="grid h-9 w-full grid-cols-2">
+                    <TabsTrigger value="standard">
+                      Standard
+                    </TabsTrigger>
+
+                    <TabsTrigger value="author">
+                      Author
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </>
+          )}
         </PopoverContent>
       </Popover>
     </NodeViewWrapper>
