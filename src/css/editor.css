@@ -160,6 +160,15 @@ figure[data-type="figureTable"] table {
   font-weight: bold;
 }
 
+figure[data-type='imageFigure'] .node-image{
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.node-image {
+  width: max-content;
+}
+
 .page figure {
   margin-top: 7pt;
   margin-bottom: 7pt;

@@ -172,7 +172,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
   );
 
   return (
-    <NodeViewWrapper className="relative group flex justify-center">
+    <NodeViewWrapper className="relative group flex ">
       {load.status === "ready" ? (
         <ReadyView
           blobUrl={load.blobUrl}
