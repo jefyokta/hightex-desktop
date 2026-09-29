@@ -78,9 +78,12 @@ export class HighTexDB extends Dexie {
     return true
   }
   async saveImage(blob: Blob, documentId: string): Promise<string> {
-    const id = crypto.randomUUID();
+    const hashBuffer =await crypto.subtle.digest("SHA-256",await blob.arrayBuffer())
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const id = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
     const record: ImageRecord = { id, blob, documentId, createdAt: Date.now() };
-    await this.images.add(record);
+    await this.images.put(record);
     return id;
   }
   async getBlobUrl(id: string): Promise<string | null> {
