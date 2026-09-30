@@ -20,6 +20,7 @@ declare global {
   type SchemaVersion = 1 | 2;
   interface BaseManifest {
     schema_version: SchemaVersion;
+    profile?:Profile
   }
   interface HighTexManifestV2 extends BaseManifest {
     format: ContentFormat;

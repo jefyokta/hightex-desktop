@@ -1,4 +1,5 @@
 import { ExpandableSideBar } from "@/components/editor/expandable-sidebar";
+import { Scanner } from "@/components/editor/scanner";
 import { MacosEditorHead } from "@/components/navbar";
 import { EditorProvider } from "@/hooks/use-editor";
 import { ExpandableSideBarContextProvider } from "@/hooks/use-expandable-sidebar";
@@ -25,6 +26,7 @@ export const EditorLayout: React.FC = () => {
                 </div>
               </ExpandableSideBarContextProvider>
               <EditorNavigatorSlave />
+              <Scanner />
             </EditorProvider>
           </GraphContextProvider>
       </div>

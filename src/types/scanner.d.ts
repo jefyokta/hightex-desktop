@@ -7,13 +7,9 @@ declare global {
 
   interface ScannerContext {
     chapterId: string;
-
     index: number;
-
     path: number[];
-
     node: JSONContent;
-
     root: JSONContent | JSONContent[];
     isLastChapter: boolean;
     isEndOfScan: boolean;
