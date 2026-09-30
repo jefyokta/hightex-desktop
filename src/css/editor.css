@@ -448,6 +448,9 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   background: rgba(98, 98, 245, 1);
   transform: translateX(-50%) scaleY(1.2);
 }
+.node-refComponent .head {
+  font-weight: bold;
+}
 .page-break {
   height: 20px;
   width: 100%;

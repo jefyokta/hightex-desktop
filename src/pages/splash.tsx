@@ -11,6 +11,7 @@ import { t } from "@/utils/lang";
 import logo from "@/assets/hightex.svg";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import HighTexLogo from "@/assets/icons/hightex";
 
 const Marquee = ({ items }: { items: string[] }) => {
     return (
@@ -132,6 +133,7 @@ export const Splash: React.FC = () => {
             <div className="text-center relative space-y-10 w-full max-w-2xl h-screen flex flex-col justify-center px-6 h">
                 <div className="">
                     <div className="flex justify-center my-2">
+                        {/* <HighTexLogo   size={84} loop/> */}
                         <img src={logo} alt="" className="w-24" />
                     </div>
                     <div className="text-4xl font-semibold tracking-tight ">HighTex</div>

@@ -50,12 +50,19 @@ img {
 @page biblio {
   margin: 30mm 30mm 40mm 30mm;
 }
+a.head {
+  font-weight: bold;
+}
 
 .attachment {
   page: attachment;
 }
 pre code * {
   white-space: pre !important;
+}
+
+code[data-inline]{
+  display: inline !important;
 }
 a.equation::before {
   content: "" !important;

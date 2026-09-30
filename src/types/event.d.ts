@@ -43,6 +43,8 @@ declare global {
   interface AliaseDeleted {
     key:string
   }
+
+  interface ChapterReload {}
   interface AppEvents {
     "chapter:update": ChapterUpdateEvent;
     "chapter:created": ChapterCreatedEvent;
@@ -55,7 +57,8 @@ declare global {
     "migrating:deprecation":MigratingDeprecation
     "alias:deleted":AliaseDeleted
     "documents:deleted":DocumentsDeleted,
-    "document:deleted":DocumentDeleted
+    "document:deleted":DocumentDeleted,
+    "chapter:reload":ChapterReload
   }
 }
 

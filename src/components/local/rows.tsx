@@ -353,15 +353,15 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
             align="right"
             width="max-content"
             trigger={
-              <button
-                onClick={(e) => e.stopPropagation()}
+              <div
+                // onClick={(e) => e.stopPropagation()}
                 className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
               >
                 <DownloadCloudIcon
                   size={14}
                   className="text-neutral-500 dark:text-neutral-300"
                 />
-              </button>
+              </div>
             }
           >
             <div className="rounded-lg border border-neutral-200 bg-white p-1 text-xs shadow-lg dark:border-neutral-800 dark:bg-neutral-900">

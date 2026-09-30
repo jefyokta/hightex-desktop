@@ -12,6 +12,7 @@ import { HighTexDB } from "@/editor/storage/hightex-db";
 
 import { NodeNotFound } from "@/exception/node-not-found";
 import { useParams } from "@/hooks/use-params";
+import { cn } from "@/lib/utils";
 
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 
@@ -20,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { Counter } from "tjsn-parser";
 
 type RefProps = {
-  reference?: string;
+  reference: string;
 };
 export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
   const type = node.attrs.ref || "imageFigure";
@@ -38,13 +39,7 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
 
   return (
     <NodeViewWrapper
-      className="ref-component
-                inline
-                hover:bg-blue-200
-                dark:hover:text-black
-                rounded-sm
-                cursor-pointer
-            "
+      className={cn("ref-component inline hover:bg-blue-200  dark:hover:text-black  rounded-sm  cursor-pointer",node.attrs.ref)}
       data-link={node.attrs.link}
       data-ref={reference}
       data-type="ref-component"
@@ -102,7 +97,7 @@ const HeadRef = ({ reference }: RefProps) => {
       Manager.scrollTo(reference!);
       return;
     }
-    setParams([reference]);
+    setParams([reference!]);
     nav(`/document/${head?.chapterId.replace(".", "/")}`);
   }
   }

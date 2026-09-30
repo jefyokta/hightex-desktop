@@ -16,6 +16,7 @@ import {
     Tooltip,
     TooltipTrigger,
 } from "../animate-ui/components/base/tooltip";
+import { Manager } from "@/editor/manager";
 
 type SettingModalProps = {
     open?: boolean;
@@ -24,7 +25,7 @@ type SettingModalProps = {
 
 export const SettingModal: React.FC<SettingModalProps> = ({
     open = false,
-    onClose = () => {},
+    onClose = () => { },
 }) => {
     const { config, saveConfig } = useConfig();
 
@@ -115,10 +116,14 @@ export const SettingModal: React.FC<SettingModalProps> = ({
                         }
                         description="Show the meaning of words defined in your Aliases List when you hover over them in the editor."
                         value={config?.editor?.aliasHint ?? false}
-                        onChange={(value) =>
+                        onChange={(value) => {
                             saveEditor({
                                 aliasHint: value,
+                            }).then(() => {
+
+                                Manager.app.dispatch("chapter:reload", {})
                             })
+                        }
                         }
                     />
                 </CardContent>

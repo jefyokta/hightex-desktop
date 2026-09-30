@@ -34,12 +34,15 @@ import { FrozenChapter } from "@/components/editor/non-tiptap-editor/frozen-chap
 import { BubbleMenu } from "@/components/editor/bubble-menu"
 import { useConfig } from "@/hooks/use-config";
 import { CommentSlave } from "@/slaves/comment-slave";
+import { uniqId } from "@/utils/uniq-id";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
   const { id, version, chapter } = useParams<EditorParams>();
   const [loaded, setLoaded] = useState(false);
-  const { config } = useConfig()
+  const { config } = useConfig();
+
+  const [editorKey, setEditorKey] = useState(uniqId());
 
   useEffect(() => {
     const off = Manager.app.on("migrating:deprecation", ({ fixed, node, id }) => {
@@ -51,6 +54,12 @@ export const Editor: React.FC = () => {
 
     return () => { off() }
   }, []);
+
+  useEffect(()=>{
+    return Manager.app.on("chapter:reload",()=>{
+      setEditorKey(uniqId())
+    })
+  },[])
 
 
 
@@ -148,7 +157,7 @@ export const Editor: React.FC = () => {
           >
             {loaded && Chapter.instance ? (
               Chapter.instance.frozen ? <FrozenChapter /> :
-                <EditorComponent />
+                <EditorComponent key={editorKey} />
             ) : (
               <LoadingDocument />
             )}

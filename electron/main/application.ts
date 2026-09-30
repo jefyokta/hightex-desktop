@@ -13,9 +13,9 @@ import { ConfigHandler } from "../handlers/config-handler";
 import { ProfileHandler } from "../handlers/profile-handlers";
 import { SessionHandler } from "../handlers/session-handlers";
 import { HighTexHandler } from "../handlers/hightex-handlers";
-import { PluginHandler } from "../handlers/plugin-handlers";
-import { PluginScannerHandler } from "../handlers/plugin-scanner-handlers";
-import { PluginManager } from "../plugins/plugin-manager";
+// import { PluginHandler } from "../handlers/plugin-handlers";
+// import { PluginScannerHandler } from "../handlers/plugin-scanner-handlers";
+// import { PluginManager } from "../plugins/plugin-manager";
 import { KeyManagerService } from "../service/key-manager-service";
 import { DefaultPluginsBootstrapper } from "../plugins/plugin-default-boostraper";
 import { ZoteroHandler } from "../handlers/zotero-handler";
@@ -261,7 +261,7 @@ export class Application {
 
     DefaultPluginsBootstrapper.installAll();
     new DatabaseBootstraper().tap();
-    PluginManager.loadAll();
+    // PluginManager.loadAll();
     NetworkService.tap();
   }
 
@@ -316,8 +316,8 @@ export class Application {
     SessionHandler.register();
     ProfileHandler.register();
     HighTexHandler.register();
-    PluginHandler.register();
-    PluginScannerHandler.register();
+    // PluginHandler.register();
+    // PluginScannerHandler.register();
     SnapshotHandler.register();
     ZoteroHandler.register();
     DocumentErrorHandler.register();
