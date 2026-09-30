@@ -1,5 +1,8 @@
 import { JSONContent } from "@tiptap/core";
-
+/**
+ * @deprecated
+ * @since 0.7.5
+ */
 export class Scanner {
   private static plugins: SerialableHightexPlugin[] = [];
   private textErrors: TextError[] = [];

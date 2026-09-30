@@ -154,6 +154,7 @@ col {
 }
 
 .content code {
+  font-family: "JetBrainsMono", monospace;
   background: none;
   color: inherit;
   font-size: 0.8rem;

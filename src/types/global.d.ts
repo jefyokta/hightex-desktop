@@ -120,6 +120,10 @@ declare global {
     keywords?: string[];
     detail: Record<number, { start: number; end: number }>;
   };
+  /**
+ * @deprecated 
+ * @since 0.7.5+
+ */
   interface PluginScannerAPI {
     paragraph(
       pluginId: string,
@@ -171,7 +175,10 @@ declare global {
 
     config: ConfigAPI;
     zotero: ZoteroAPI;
-
+  /**
+   * @deprecated 
+   * @since 0.7.5+
+   */
     plugin: { scanner: PluginScannerAPI };
     sharing: SharingAPI;
     //cmn ada di frame yach

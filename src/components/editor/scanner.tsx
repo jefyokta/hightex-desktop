@@ -3,6 +3,10 @@ import { Ban, ChevronRight, Loader2, RotateCcw, ScanText, X } from "lucide-react
 import { textOf } from "@/utils/text-of";
 import { plugins, type ScanResults } from "@/scanner/plugins";
 import { useScan } from "@/hooks/use-scan";
+import { Manager } from "@/editor/manager";
+import { Chapter } from "@/editor/chapter";
+import { useParams } from "@/hooks/use-params";
+import { useNavigate } from "react-router-dom";
 
 type PunctuationIssue = ScanResults["punctuation"][number];
 const visible = (s: string) => s.replace(/ /g, "·").replace(/\n/g, "↵");
@@ -12,7 +16,7 @@ function groupByChapter(issues: PunctuationIssue[]) {
     for (const issue of issues) {
         const group = groups.get(issue.chapter.id) ?? { chapter: issue.chapter, issues: [] };
         group.issues.push(issue);
-        groups.set(issue.chapter.id, group); 
+        groups.set(issue.chapter.id, group);
     }
     return [...groups.values()];
 }
@@ -60,14 +64,26 @@ const ChapterGroup = ({ chapter, issues }: { chapter: PunctuationIssue["chapter"
         </ul>
     </details>
 );
-const FigureRow = ({ kind, label, text }: { kind: string; label: string; text: ReactNode }) => (
-    <li className="flex gap-2 px-3 py-2 text-xs hover:bg-muted/50">
-        <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-            {kind} {label}
-        </span>
-        <span className="line-clamp-2 min-w-0">{text}</span>
-    </li>
-);
+const FigureRow = ({ kind, label, text, graph }: { kind: string; label: string; text: ReactNode, graph: Graph }) => {
+    const { setParams } = useParams()
+    const go = useNavigate()
+    return (
+
+        <li className="flex gap-2 px-3 py-2 text-xs hover:bg-muted/50" onClick={() => {
+            if (Chapter.instance?.getId() !== graph.chapterId) {
+                setParams([graph.id])
+                go(`/document/${Chapter.instance?.document.id}/${graph.chapterId.split(".")[1]}`)
+                return;
+            }
+            Manager.scrollTo(graph.id)
+        }}>
+            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                {kind} {label}
+            </span>
+            <span className="line-clamp-2 min-w-0">{text}</span>
+        </li>
+    )
+};
 
 const ProgressBar = ({ done, total, label }: { done: number; total: number; label: string }) => (
     <div className="space-y-1.5">
@@ -164,13 +180,13 @@ export const Scanner = () => {
                     <Section title="Tidak dirujuk di teks" count={figureCount}>
                         <ul className="divide-y rounded-lg border">
                             {figures.images.map((g) => (
-                                <FigureRow key={g.id} kind="Gambar" label={g.numbering} text={textOf(g.text) || "(tanpa caption)"} />
+                                <FigureRow key={g.id} graph={g} kind="Gambar" label={g.numbering} text={textOf(g.text) || "(tanpa caption)"} />
                             ))}
                             {figures.tables.map((g) => (
-                                <FigureRow key={g.id} kind="Tabel" label={g.numbering} text={textOf(g.text) || "(tanpa caption)"} />
+                                <FigureRow key={g.id} graph={g} kind="Tabel" label={g.numbering} text={textOf(g.text) || "(tanpa caption)"} />
                             ))}
                             {figures.equations.map((g) => (
-                                <FigureRow key={g.id} kind="Persamaan" label={g.numbering} text={<code>{g.latex}</code>} />
+                                <FigureRow key={g.id} graph={g} kind="Persamaan" label={g.numbering} text={<code>{g.latex}</code>} />
                             ))}
                         </ul>
                     </Section>

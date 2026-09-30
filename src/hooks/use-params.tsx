@@ -1,6 +1,6 @@
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, Dispatch, PropsWithChildren, useContext, useState } from "react";
 
-const ParamsContext = createContext<{ params: string[]; setParams: any }>({
+const ParamsContext = createContext<{ params: string[]; setParams:Dispatch<string[]> }>({
   params: [],
   setParams: () => {},
 });
@@ -8,7 +8,7 @@ const ParamsContext = createContext<{ params: string[]; setParams: any }>({
 export const ParamsContextProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
-  const [params, setParams] = useState([]);
+  const [params, setParams] = useState<string[]>([]);
 
   return (
     <ParamsContext.Provider value={{ params, setParams }}>
