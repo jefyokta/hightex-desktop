@@ -34,6 +34,7 @@ export type EngineConfig = {
   };
   profile?: DocumentProfile;
   waterMark?: boolean;
+  reviewing?:boolean
 };
 
 export class Engine {

@@ -20,10 +20,14 @@ import {
   Search,
   Loader2,
   Settings,
-  MessageCircle,
+  // MessageCircle,
 } from "lucide-react";
 
-import React, { PropsWithChildren, useEffect, useState, } from "react";
+import React, {
+  PropsWithChildren,
+  //  useEffect, 
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
@@ -38,11 +42,11 @@ import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { SettingModal } from "./settings-modal";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { CommentStorage } from "@/editor/storage/comment";
-import { getSnapshotLabel } from "@/utils/snapshot";
-import { formatDate } from "@/utils/date";
+// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+// import { cn } from "@/lib/utils";
+// import { CommentStorage } from "@/editor/storage/comment";
+// import { getSnapshotLabel } from "@/utils/snapshot";
+// import { formatDate } from "@/utils/date";
 
 
 export const NavBar: React.FC = () => {
@@ -73,27 +77,27 @@ export const NavBar: React.FC = () => {
     }),
   });
 
-  const [snapshots, setSnapshots] = useState<SnapshotEntity[]>([]);
-  const [snap, setSnap] = useState<string | null>(null)
+  // const [snapshots, setSnapshots] = useState<SnapshotEntity[]>([]);
+  // const [snap, setSnap] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!chapter) return
-    window.hightex.snapshot.document(chapter.document.id).then(setSnapshots)
+  // useEffect(() => {
+  //   if (!chapter) return
+  //   window.hightex.snapshot.document(chapter.document.id).then(setSnapshots)
 
-  }, [chapter])
+  // }, [chapter])
 
-  useEffect(() => {
-    if (!snap) {
-      CommentStorage.instance.recreate()
-      editor?.commands.updateDecorations("comment")
+  // useEffect(() => {
+  //   if (!snap) {
+  //     CommentStorage.instance.recreate()
+  //     editor?.commands.updateDecorations("comment")
 
-      return;
-    }
-    CommentStorage.create(snap).then(() => {
-      editor?.commands.updateDecorations("comment")
+  //     return;
+  //   }
+  //   CommentStorage.create(snap).then(() => {
+  //     editor?.commands.updateDecorations("comment")
 
-    })
-  }, [snap])
+  //   })
+  // }, [snap])
 
 
 
@@ -390,7 +394,7 @@ export const NavBar: React.FC = () => {
                 />
               </ButtonGroup>
               <ButtonGroup>
-                <DropdownMenu>
+                {/* <DropdownMenu>
                   <DropdownMenuTrigger>
                     <Button title="comments"
                       icon={MessageCircle}
@@ -413,7 +417,7 @@ export const NavBar: React.FC = () => {
                     })}
                   </DropdownMenuContent>
 
-                </DropdownMenu>
+                </DropdownMenu> */}
 
 
                 <Button

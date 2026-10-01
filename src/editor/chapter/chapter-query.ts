@@ -48,7 +48,15 @@ export class ChapterQuery {
     if (!(exists.content || []).length) {
       return [this.chapter.createHeading()];
     }
-    return exists.content;
+
+    const firstNode = exists.content[0];
+    if(firstNode.type == 'heading' && firstNode.attrs?.level ==1){
+
+      return exists.content;
+    }
+
+    return [this.chapter.createHeading(),...exists.content]
+    
   }
 
   async getChapterTitle() {

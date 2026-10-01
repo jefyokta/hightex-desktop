@@ -9,6 +9,35 @@ All notable changes to this project will be documented in this file.
 ### ✨ Features
 
 
+- **editor:** Scanner in editor
+
+- Feat(): unfigured now clickable and go to the target node when its clicked
+
+
+
+### 🐛 Bug Fixes
+
+
+- **images:** New uploaded images using hashed name instead of a uuid name #54
+
+- Auto reload editor when config changed
+
+
+
+### 🔄 Updates
+
+
+- Application icon updated
+
+
+
+## [0.7.5] - 2026-09-29
+
+
+
+### ✨ Features
+
+
 - **editor:** Note mark
 
 - **docs:** Add another alternative installation for macOs
@@ -18,6 +47,12 @@ All notable changes to this project will be documented in this file.
 - Multi select for zotero and documents
 
 - **citation:** Import from doi link
+
+- **error:** Restore manual reporting fallback
+
+- **cite:** Multi cite support #52 and deprecated manual overriding citation
+
+- **paginate:** Paginate version support multi citation
 
 
 
@@ -31,6 +66,8 @@ All notable changes to this project will be documented in this file.
 - Use advisor NIP in university validity sheet
 
 - **editor:** Remove padding at citation component
+
+- **error:** Open issue page through Electron API
 
 - **editor:** Unfigured image in editor now equivalent with paginated version
 

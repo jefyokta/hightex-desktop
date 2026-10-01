@@ -10,15 +10,9 @@ export class SessionHandler {
     if (!win) return;
 
     try {
-      const res = await ServerService.request<{ message: User }>("/me");
+      const user = await this.user();
 
-      if (res.message) {
-        SessionService.setUser(res.message);
-      } else {
-        SessionService.clearUser();
-      }
-
-      win.webContents.send("session:changed", res.message || false);
+      win.webContents.send("session:changed", user || false);
     } catch (err) {
       LoggerService.write(err, "broadcastSession");
       SessionService.clearUser();
@@ -26,57 +20,70 @@ export class SessionHandler {
     }
   }
 
+public static async user(): Promise<User | false> {
+  try {
+    const res = await ServerService.request<{ message: User }>("/me");
+
+    const currentUser = SessionService.getUser();
+    const user = res.message || false;
+
+    if (user) {
+      SessionService.setUser(user);
+    } else {
+      SessionService.clearUser();
+    }
+
+    if (currentUser?.id !== user?.id) {
+      await this.broadcastSession();
+    }
+
+    return user;
+  } catch (err) {
+    LoggerService.write(err, "session:user");
+    SessionService.clearUser();
+
+    return false;
+  }
+}
+  public static async login(
+    email: string,
+    password: string,
+  ): Promise<User | false> {
+    try {
+      const res = await ServerService.request<{
+        data: { user: User; token: string };
+      }>("/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password,
+          exp: 3600 * 24 * 30,
+        }),
+      });
+
+      const { user, token } = res.data;
+
+      if (!user || !token) return false;
+
+      SessionService.setToken(token);
+      SessionService.setUser(user);
+
+      await this.broadcastSession();
+
+      return user;
+    } catch (err) {
+      LoggerService.write(err, "session:login");
+      return false;
+    }
+  }
+
   static register() {
-    IPCMain.handle("session:user", async () => {
-      try {
-        const res = await ServerService.request<{ message: User }>("/me");
-
-        if (res.message) {
-          SessionService.setUser(res.message);
-        } else {
-          SessionService.clearUser();
-        }
-
-        return res.message;
-      } catch {
-        return false;
-      }
-    });
+    IPCMain.handle("session:user", () => SessionHandler.user());
 
     IPCMain.handle(
       "session:login",
-      async (
-        _event,
-        email: string,
-        password: string,
-      ): Promise<User | false> => {
-        try {
-          const res = await ServerService.request<{
-            data: { user: User; token: string };
-          }>("/login", {
-            method: "POST",
-            body: JSON.stringify({
-              email,
-              password,
-              exp: 3600 * 24 * 30,
-            }),
-          });
-
-          const { user, token } = res.data;
-
-          if (!user || !token) return false;
-
-          SessionService.setToken(token);
-          SessionService.setUser(user);
-
-          await this.broadcastSession();
-
-          return user;
-        } catch (err) {
-          LoggerService.write(err, "session:login");
-          return false;
-        }
-      },
+      (_event, email: string, password: string) =>
+        SessionHandler.login(email, password),
     );
 
     IPCMain.handle("session:logout", async () => {
