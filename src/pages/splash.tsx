@@ -11,7 +11,7 @@ import { t } from "@/utils/lang";
 import logo from "@/assets/hightex.svg";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import HighTexLogo from "@/assets/icons/hightex";
+// import HighTexLogo from "@/assets/icons/hightex";
 
 const Marquee = ({ items }: { items: string[] }) => {
     return (
