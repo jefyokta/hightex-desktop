@@ -9,6 +9,7 @@ import { Exporter } from "@/utils/htx/exporter";
 import { DocumentList } from "@/components/local/document-list";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { t } from "@/utils/lang";
+import { confirm } from "@/utils/confirm";
 
 export const Dashboard = () => {
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
@@ -67,6 +68,15 @@ export const Dashboard = () => {
     const id = toast.loading(t("common.importing"));
     try {
       const manifest = (await HighTexImporter.create(file)).manifest;
+
+      const { id , title } = manifest.document
+      const exitst = await HighTexDB.getInstance().documents.get(id)
+
+      if (exitst) {
+
+        const confirmed = await confirm(`Document ${title} is already exists wanna override it`);
+        if (!confirmed) return
+      }
       const importedDocument =
         manifest.schema_version == 1
           ? await importHighTexPackage(file)
@@ -92,13 +102,11 @@ export const Dashboard = () => {
   };
 
   const deleteDocument = async (id: string) => {
-    const tid = truncate(id, 5)
-
+    const tid = truncate(id, 5);
 
     if (await Manager.deleteDocument(id)) {
-
       setDocuments((prev) => prev.filter((d) => d.id !== id));
-      toast.success(`deleted ${tid}`)
+      toast.success(`deleted ${tid}`);
     }
   };
 
@@ -124,10 +132,9 @@ export const Dashboard = () => {
 
   useEffect(() => {
     return Manager.app.on("documents:deleted", ({ documentIds }) => {
-
-      setDocuments(prev => prev.filter(d => !documentIds.includes(d.id)))
-    })
-  }, [])
+      setDocuments((prev) => prev.filter((d) => !documentIds.includes(d.id)));
+    });
+  }, []);
 
   if (loading) return <Loading />;
 
