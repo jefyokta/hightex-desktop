@@ -157,7 +157,7 @@ const commands: SlashCommand[] = [
       return resolver;
     },
   },
-    {
+  {
     name: "eq",
     match: (q) => q.startsWith("eq"),
     search: async (query, editor) => {
@@ -165,8 +165,7 @@ const commands: SlashCommand[] = [
       if (keyword[0] == ".") {
         keyword = keyword.slice(1);
       }
-      const allEqs = (await Document.instance?.getEquations())||[]
-
+      const allEqs = (await Document.instance?.getEquations()) || [];
 
       const resolver = await Promise.all(
         allEqs.map((h) => {

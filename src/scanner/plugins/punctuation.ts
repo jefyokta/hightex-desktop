@@ -2,8 +2,8 @@ import type { JSONContent } from "@tiptap/core";
 import { textOf } from "@/utils/text-of";
 import { definePlugin } from "./types";
 
-const CONTEXT = 30; 
-const FILL = "▮"; 
+const CONTEXT = 30;
+const FILL = "▮";
 const SKIP_NODES = new Set(["codeBlock"]);
 
 export type PunctuationIssue = {
@@ -32,7 +32,7 @@ const rules: Rule[] = [
   },
 ];
 
-type Paragraph = { text: string; checkable: string }; 
+type Paragraph = { text: string; checkable: string };
 
 function paragraphOf(node: JSONContent): Paragraph {
   let text = "";
@@ -56,10 +56,16 @@ function paragraphOf(node: JSONContent): Paragraph {
 
   const start = text.length - text.trimStart().length;
   const end = text.trimEnd().length;
-  return { text: text.slice(start, end), checkable: checkable.slice(start, end) };
+  return {
+    text: text.slice(start, end),
+    checkable: checkable.slice(start, end),
+  };
 }
 
-function collectParagraphs(nodes: JSONContent[], out: Paragraph[] = []): Paragraph[] {
+function collectParagraphs(
+  nodes: JSONContent[],
+  out: Paragraph[] = [],
+): Paragraph[] {
   for (const node of nodes) {
     if (node.type && SKIP_NODES.has(node.type)) continue;
 
@@ -100,7 +106,7 @@ export const punctuation = definePlugin({
               chapter,
               paragraph: pi + 1,
               message: rule.message(m[0]),
-              excerpt: excerptOf(text, m.index, m[0].length), 
+              excerpt: excerptOf(text, m.index, m[0].length),
             });
           }
         }

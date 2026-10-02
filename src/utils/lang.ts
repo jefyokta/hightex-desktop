@@ -3,10 +3,9 @@ import { useEffect, useState } from "react";
 import en from "@/locales/en.json";
 import id from "@/locales/id.json";
 type TranslationKey<T> = {
-  [K in keyof T & string]:
-    T[K] extends Record<string, unknown>
-      ? `${K}.${TranslationKey<T[K]>}`
-      : K;
+  [K in keyof T & string]: T[K] extends Record<string, unknown>
+    ? `${K}.${TranslationKey<T[K]>}`
+    : K;
 }[keyof T & string];
 
 export type LocaleKey = TranslationKey<typeof en>;

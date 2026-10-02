@@ -8,7 +8,10 @@ import { ChapterQuery } from "./chapter-query";
 import { Manager } from "../manager";
 import { Document } from "../document";
 import { useChapterStore } from "@/hooks/use-chapter";
-import { AbstractDecoratorEN, AbstractDecoratorID } from "@/components/editor/decorator/abstract";
+import {
+  AbstractDecoratorEN,
+  AbstractDecoratorID,
+} from "@/components/editor/decorator/abstract";
 import { createElement } from "react";
 
 export class Chapter {
@@ -16,7 +19,7 @@ export class Chapter {
   /**
    * if true, chapter wont use editor
    */
-  public frozen:boolean = false;
+  public frozen: boolean = false;
 
   public title = "";
 
@@ -30,16 +33,16 @@ export class Chapter {
 
   readonly document: Document;
 
-  static readonly frozenChapter = ["cv",'abbrevation'];
+  static readonly frozenChapter = ["cv", "abbrevation"];
 
-  readonly hasDecorator = ["abstract","abstract-en"]
+  readonly hasDecorator = ["abstract", "abstract-en"];
 
   constructor(chapterId: string, isolate?: boolean);
   constructor(option: ChapterOptions);
   constructor(chapter: string | number, documentId: string, version?: string);
 
   constructor(...args: any[]) {
-    const { chapterId, document, isolated ,frozen} = this.resolve(args);
+    const { chapterId, document, isolated, frozen } = this.resolve(args);
 
     this.chapterId = chapterId;
     this.document = document;
@@ -55,10 +58,10 @@ export class Chapter {
     chapterId: string;
     document: Document;
     isolated?: boolean;
-    frozen?:boolean
+    frozen?: boolean;
   } {
     if (args.length === 1 && typeof args[0] === "object") {
-      const { chapter, documentId, version, isolated,frozen  } =
+      const { chapter, documentId, version, isolated, frozen } =
         args[0] as ChapterOptions;
 
       const chapterName = String(chapter);
@@ -223,14 +226,13 @@ export class Chapter {
     };
   }
 
-  getDecorator(){
-    const chapterName =this.getChapter()
-    if(this.hasDecorator.includes(chapterName)){
-      if(chapterName == "abstract") {
-        return createElement(AbstractDecoratorID)
+  getDecorator() {
+    const chapterName = this.getChapter();
+    if (this.hasDecorator.includes(chapterName)) {
+      if (chapterName == "abstract") {
+        return createElement(AbstractDecoratorID);
       }
-      return createElement(AbstractDecoratorEN)
-
+      return createElement(AbstractDecoratorEN);
     }
 
     return null;

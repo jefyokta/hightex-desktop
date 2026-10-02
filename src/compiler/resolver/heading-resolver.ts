@@ -46,8 +46,9 @@ export class HeadingResolver implements Resolver {
 
       let num = numbering.join(".");
       if (num.includes(".")) {
-        num = num.concat(". ");
+        num = num.concat(" ");
       }
+      console.log(num)
 
       heading.setAttribute("data-numbering", num);
     }

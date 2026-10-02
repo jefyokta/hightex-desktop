@@ -74,7 +74,7 @@ export const Dashboard = () => {
 
       if (exitst) {
 
-        const confirmed = await confirm(`Document ${title} is already exists wanna override it`);
+        const confirmed = await confirm(`Document '${truncate(title.main,10)}' is already exists wanna override it`);
         if (!confirmed) return
       }
       const importedDocument =

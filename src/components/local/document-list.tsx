@@ -45,7 +45,7 @@ export const DocumentList = ({
   };
 
   const handleDeleteSelected = async () => {
-    await Manager.deleteDocuments(...selected)
+    await Manager.deleteDocuments(...selected);
     clear();
     setSelectMode(false);
   };

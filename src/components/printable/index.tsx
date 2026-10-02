@@ -41,12 +41,12 @@ export const FullDocument = () => {
       })
       .interactable()
       .whenPagesCreated(async (e) => {
-        await CVPageBuilder.create(e).then(_ => {
+        await CVPageBuilder.create(e).then((_) => {
           window.dispatchEvent(new CustomEvent("document:rendered"));
           if (e.error) {
             throw e.error;
           }
-        })
+        });
       })
       .run()
       .then(async (engine) => {

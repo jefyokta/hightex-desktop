@@ -20,7 +20,7 @@ export function createFigureTable(
 function createFigcaption(text: string): JSONContent {
   return {
     type: "figcaption",
-    content: [{ type: "text", text}],
+    content: [{ type: "text", text }],
   };
 }
 

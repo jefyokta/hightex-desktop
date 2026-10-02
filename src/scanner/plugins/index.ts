@@ -1,7 +1,7 @@
 import { punctuation } from "./punctuation";
 import { unreferencedFigures } from "./unreferenced-figures";
 
-export const plugins = [unreferencedFigures,punctuation];
+export const plugins = [unreferencedFigures, punctuation];
 
 type AnyPlugin = (typeof plugins)[number];
 

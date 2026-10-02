@@ -6,7 +6,7 @@ export const migrateGridToTable = async (
   content: JSONContent[],
 ): Promise<JSONContent[]> => {
   let fixed = 0;
-  const id = uniqId()
+  const id = uniqId();
   const migrate = async (node: JSONContent): Promise<JSONContent> => {
     let result = node;
 
@@ -43,12 +43,11 @@ export const migrateGridToTable = async (
 
     if (result !== node) {
       fixed++;
-        Manager.app.dispatch("migrating:deprecation", {
-          fixed,
-          node: result,
-          id,
-        });
-      
+      Manager.app.dispatch("migrating:deprecation", {
+        fixed,
+        node: result,
+        id,
+      });
     }
 
     if (result.content?.length) {

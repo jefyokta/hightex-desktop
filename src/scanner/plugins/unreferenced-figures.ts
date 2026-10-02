@@ -18,7 +18,7 @@ export const unreferencedFigures = definePlugin({
       equations: new Set<string>(),
     };
 
-    for (const [,content ]of Object.entries(ctx.contents)) {
+    for (const [, content] of Object.entries(ctx.contents)) {
       walk(content, ({ type, attrs }) => {
         if (type !== "refComponent" || !attrs?.link) return;
         const kind = REF_TO_KIND[attrs.ref as keyof typeof REF_TO_KIND];

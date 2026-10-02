@@ -2,7 +2,8 @@ import { HTMLAttributes, PropsWithChildren, forwardRef } from "react";
 
 export const Paper = forwardRef<
   HTMLDivElement,
-  PropsWithChildren & HTMLAttributes<HTMLDivElement> & { strictHeight?: boolean }
+  PropsWithChildren &
+    HTMLAttributes<HTMLDivElement> & { strictHeight?: boolean }
 >(({ children, className, strictHeight, ...props }, ref) => {
   return (
     <div

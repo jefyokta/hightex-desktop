@@ -13,11 +13,11 @@ export class TreeResolver implements Resolver {
       }
       const parent = engine.root.parentElement!;
       const { figures, tables } = new TOFBuilder().create();
-      const toa = await (new TOABuilder().create(engine))
+      const toa = await new TOABuilder().create(engine);
 
       parent.insertBefore(tables, engine.root);
       parent.insertBefore(figures, engine.root);
-      parent.insertBefore(toa,engine.root)
+      parent.insertBefore(toa, engine.root);
       const toc = TocBuilder.create(engine);
       parent.insertBefore(toc, tables);
       res(1);

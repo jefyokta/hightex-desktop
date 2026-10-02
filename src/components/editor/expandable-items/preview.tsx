@@ -119,8 +119,11 @@ export const Preview = () => {
               onValueChange={async (
                 value: ConfigShape["previewer"]["scope"],
               ) => {
-                console.log(Document.current)
-                if(value == "current" && Document.current?.frozen) throw new ActionCanceled(`Cannot Previewing ${Document.current.title} with single chapter scope, use full scope instead`);
+                console.log(Document.current);
+                if (value == "current" && Document.current?.frozen)
+                  throw new ActionCanceled(
+                    `Cannot Previewing ${Document.current.title} with single chapter scope, use full scope instead`,
+                  );
                 setScope(value);
 
                 await updateGlobalConfig(

@@ -97,14 +97,10 @@ function decorateRow(row: TableRow, decorations: Decoration[]) {
 
   for (const cell of cells) {
     decorations.push(
-      Decoration.node(
-        cell.pos,
-        cell.pos + cell.node.nodeSize,
-        {
-          class: "table-header-like",
-          tableHeaderLike: '1',
-        },
-      ),
+      Decoration.node(cell.pos, cell.pos + cell.node.nodeSize, {
+        class: "table-header-like",
+        tableHeaderLike: "1",
+      }),
     );
   }
 }

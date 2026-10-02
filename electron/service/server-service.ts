@@ -3,6 +3,7 @@ import { LoggerService } from "./logger-service";
 import { SessionService } from "./session-service";
 import path from "path";
 import { app } from "electron";
+import "dotenv/config"
 interface ServerInfo {
   serverHost?: string;
   serverUrl?: string;
@@ -19,8 +20,14 @@ export class ServerService {
   }
 
   private static getServerUrl(): string {
-    const url = configStore.get("server.url") as string | undefined;
-    return url || "https://hightex.okta/api/";
+
+    if(!app.isPackaged && process.env.DEV_MODE){
+
+      return "https://hightex.okta/api/"
+    }
+
+      const url = configStore.get("server.url") as string | undefined;
+      return url || "https://hightex.okta/api/";
   }
   static async checkForHost() {
     const response = await fetch(SERVER_INFO_URL, {
@@ -77,13 +84,16 @@ export class ServerService {
       return text ? JSON.parse(text) : ({} as T);
     } catch (error) {
       this.log(error, context || endpoint);
+      console.log(error)
       throw error;
     }
   }
 
   private static buildUrl(endpoint: string): string {
     const base = this.getServerUrl();
-    return `${base}${endpoint.replace(/^\/+/, "")}`;
+    const target =`${base}${endpoint.replace(/^\/+/, "")}`
+    console.log(base,target)
+    return target;
   }
 
   private static log(error: any, context: string) {

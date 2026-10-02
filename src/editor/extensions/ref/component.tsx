@@ -29,33 +29,33 @@ export const RefComponent: React.FC<NodeViewProps> = ({ node }) => {
   const reference = node.attrs.link;
 
   const nodeByType: Record<string, React.FC<RefProps>> = {
-    "head": HeadRef,
-    "imageFigure": ImageRef,
-    "figureTable": TableRef,
-    "equation": EquationRef
-  } as const
+    head: HeadRef,
+    imageFigure: ImageRef,
+    figureTable: TableRef,
+    equation: EquationRef,
+  } as const;
 
-  const Component = nodeByType[type as keyof typeof nodeByType]
+  const Component = nodeByType[type as keyof typeof nodeByType];
 
   return (
     <NodeViewWrapper
-      className={cn("ref-component inline hover:bg-blue-200  dark:hover:text-black  rounded-sm  cursor-pointer",node.attrs.ref)}
+      className={cn(
+        "ref-component inline hover:bg-blue-200  dark:hover:text-black  rounded-sm  cursor-pointer",
+        node.attrs.ref,
+      )}
       data-link={node.attrs.link}
       data-ref={reference}
       data-type="ref-component"
     >
-      {Component &&
-        <Component reference={reference} />}
+      {Component && <Component reference={reference} />}
     </NodeViewWrapper>
   );
 };
-
 
 const HeadRef = ({ reference }: RefProps) => {
   const [head, setHead] = useState<HeadingGraph>();
   const nav = useNavigate();
   const { setParams } = useParams();
-
 
   useEffect(() => {
     const resolveHead = async (doc: Document) => {
@@ -91,17 +91,21 @@ const HeadRef = ({ reference }: RefProps) => {
 
   const num =
     typeof head?.numbering !== "undefined" ? Number(head.numbering) : 0;
-  return <span onClick={(e) => {
-    e.preventDefault();
-    if (head?.chapterId == Document.current?.getId()) {
-      Manager.scrollTo(reference!);
-      return;
-    }
-    setParams([reference!]);
-    nav(`/document/${head?.chapterId.replace(".", "/")}`);
-  }
-  }
-  >Lampiran {Counter.getAlpha(num)}</span>;
+  return (
+    <span
+      onClick={(e) => {
+        e.preventDefault();
+        if (head?.chapterId == Document.current?.getId()) {
+          Manager.scrollTo(reference!);
+          return;
+        }
+        setParams([reference!]);
+        nav(`/document/${head?.chapterId.replace(".", "/")}`);
+      }}
+    >
+      Lampiran {Counter.getAlpha(num)}
+    </span>
+  );
 };
 
 const ImageRef = ({ reference }: RefProps) => {
@@ -240,8 +244,7 @@ const EquationRef = ({ reference }: RefProps) => {
   const { setParams } = useParams();
   useEffect(() => {
     const resolveEqu = async (doc: Document) => {
-      const eq = (await doc.getEquations())
-        .find((h) => h.id == reference);
+      const eq = (await doc.getEquations()).find((h) => h.id == reference);
       if (!eq)
         throw new NodeNotFound("missing referenced heading #" + reference);
 
@@ -264,7 +267,6 @@ const EquationRef = ({ reference }: RefProps) => {
       offChapter();
     };
   }, []);
-
 
   const href = equation
     ? `/document/${equation.chapterId.replace(".", "/")}?target=${reference}`
@@ -297,7 +299,6 @@ const EquationRef = ({ reference }: RefProps) => {
 
       <PreviewCardPanel>
         <div className="flex flex-col gap-2">
-
           <div className="text-xs text-center">
             <span>{equation ? `Persamaan ${equation.numbering} ` : ""}</span>
 

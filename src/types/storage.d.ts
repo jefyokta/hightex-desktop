@@ -13,13 +13,12 @@ declare global {
   }
 
   interface User {
-    id:string
+    id: string;
     name: string;
     email: string;
     advisors: Mentor[];
     identity_number: string;
   }
-
 
   interface Variable {
     documentId: string;
@@ -31,7 +30,6 @@ declare global {
     documentId: string;
     key: string;
     value: string;
-
   }
 
   interface RawCategory extends Category {

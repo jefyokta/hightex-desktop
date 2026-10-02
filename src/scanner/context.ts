@@ -3,8 +3,8 @@ import type { JSONContent } from "@tiptap/core";
 export type ChapterMeta = { id: string; title: string };
 
 export type ScanContext = {
-  chapters: ChapterMeta[]; 
-  contents: Record<string, JSONContent[]>; 
+  chapters: ChapterMeta[];
+  contents: Record<string, JSONContent[]>;
   images: ImageGraph[];
   tables: TableGraph[];
   equations: EquationGraph[];

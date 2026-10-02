@@ -4,10 +4,10 @@ export {};
 
 declare global {
   type Promisable<T = void> = T | Promise<T>;
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface ScannerContext {
     chapterId: string;
     index: number;
@@ -17,10 +17,10 @@ declare global {
     isLastChapter: boolean;
     isEndOfScan: boolean;
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface TextError {
     chapterId: string;
 
@@ -39,10 +39,10 @@ declare global {
       end: number;
     };
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface NodeError {
     chapterId: string;
 
@@ -52,15 +52,15 @@ declare global {
 
     description: string;
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   type ScannerError = TextError | NodeError;
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface ParagraphPluginContext {
     text: string;
 
@@ -68,19 +68,19 @@ declare global {
 
     addError: (error: TextError) => void;
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface NodePluginContext {
     scanner: ScannerContext;
 
     addError: (error: NodeError) => void;
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface HightexPlugin {
     id: string;
 
@@ -92,10 +92,10 @@ declare global {
       onNode?: (node: JSONContent, ctx: NodePluginContext) => Promisable;
     };
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface SerialableHightexPlugin {
     id: string;
 
@@ -107,10 +107,10 @@ declare global {
       hasOnNode: boolean;
     };
   }
-/**
- * @deprecated 
- * @since 0.7.5+
- */
+  /**
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface ScannerResult {
     text: TextError[];
 

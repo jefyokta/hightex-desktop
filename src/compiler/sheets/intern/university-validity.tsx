@@ -88,8 +88,7 @@ export const UniversityConsent = () => {
             <br />
 
             <span style={{ fontWeight: "bold" }}>
-              {name(
-                profile?.advisorName)}
+              {name(profile?.advisorName)}
             </span>
 
             <br />

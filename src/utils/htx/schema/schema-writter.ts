@@ -47,8 +47,8 @@ export class SchemaWritter {
     this.entries["files/assets/variables.json"] = this.jsonToU8(variables);
   }
 
-  putAliases(aliases:Alias[]){
-    this.entries["files/assets/aliases.json"] = this.jsonToU8(aliases)
+  putAliases(aliases: Alias[]) {
+    this.entries["files/assets/aliases.json"] = this.jsonToU8(aliases);
   }
 
   private jsonToU8(json: any) {

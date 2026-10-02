@@ -32,7 +32,10 @@ export function useScan() {
         setCompleted((n) => n + 1);
         break;
       case "error":
-        setErrors((prev) => [...prev, { id: event.id, message: event.message }]);
+        setErrors((prev) => [
+          ...prev,
+          { id: event.id, message: event.message },
+        ]);
         if (event.id !== "*") setCompleted((n) => n + 1);
         break;
       case "done":
@@ -64,9 +67,12 @@ export function useScan() {
       const snapshot = await createSnapshot(doc);
       if (id !== runId.current) return;
 
-      const w = new Worker(new URL("@/scanner/scanner.worker.ts", import.meta.url), {
-        type: "module",
-      });
+      const w = new Worker(
+        new URL("@/scanner/scanner.worker.ts", import.meta.url),
+        {
+          type: "module",
+        },
+      );
       worker.current = w;
 
       w.onmessage = ({ data }: MessageEvent<ScanEvent>) => {
@@ -76,7 +82,11 @@ export function useScan() {
       };
       w.onerror = (e) => {
         if (id !== runId.current) return;
-        handle({ type: "error", id: "*", message: e.message || "Worker error" });
+        handle({
+          type: "error",
+          id: "*",
+          message: e.message || "Worker error",
+        });
         handle({ type: "done" });
         w.terminate();
       };
@@ -95,6 +105,6 @@ export function useScan() {
     setStatus("cancelled");
   }, [stop]);
 
-  useEffect(() => stop, [stop]); 
+  useEffect(() => stop, [stop]);
   return { run, cancel, status, current, completed, results, errors };
 }

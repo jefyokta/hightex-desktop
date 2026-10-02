@@ -1,10 +1,10 @@
 @import "./../assets/fonts/style.css";
 .tiptap p:first-of-type::before {
-    color: #adb5bd;
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
 }
 .alias {
   position: relative;
@@ -22,9 +22,8 @@
   border-bottom: 1px dotted var(--muted-foreground);
 }
 
-
 .alias::before {
-  content:  attr(data-value);
+  content: attr(data-value);
 
   display: none;
   text-indent: 0;
@@ -160,7 +159,7 @@ figure[data-type="figureTable"] table {
   font-weight: bold;
 }
 
-figure[data-type='imageFigure'] .node-image{
+figure[data-type="imageFigure"] .node-image {
   display: flex;
   justify-content: center;
   width: 100%;
@@ -214,7 +213,9 @@ th.right p {
 tr:last-of-type {
   border-bottom: 1px solid black;
 }
-.page h4 ,.page h4 *, .page h4 p{
+.page h4,
+.page h4 *,
+.page h4 p {
   text-indent: 0 !important;
 }
 .dark tr:last-of-type {
@@ -252,12 +253,12 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 }
 
 .page h2::before {
-  content: counter(h1-counter) "." counter(h2-counter) ". ";
+  content: counter(h1-counter) "." counter(h2-counter) " ";
   font-weight: bold;
 }
 .page h3::before {
   content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter)
-    ". ";
+    " ";
   font-weight: bold;
 }
 

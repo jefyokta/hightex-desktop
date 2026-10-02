@@ -252,34 +252,34 @@ function dataUriToBlob(dataUri: string): Blob {
 }
 
 export async function convertToPng(blob: Blob): Promise<Blob> {
-    if (blob.type === "image/png") {
-        return blob;
-    }
+  if (blob.type === "image/png") {
+    return blob;
+  }
 
-    const bitmap = await createImageBitmap(blob);
+  const bitmap = await createImageBitmap(blob);
 
-    const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
 
-    const context = canvas.getContext("2d");
+  const context = canvas.getContext("2d");
 
-    if (!context) {
-        bitmap.close();
-        throw new Error("Failed to create canvas context");
-    }
-
-    context.drawImage(bitmap, 0, 0);
+  if (!context) {
     bitmap.close();
+    throw new Error("Failed to create canvas context");
+  }
 
-    return new Promise((resolve, reject) => {
-        canvas.toBlob((png) => {
-            if (!png) {
-                reject(new Error("Failed to convert image to PNG"));
-                return;
-            }
+  context.drawImage(bitmap, 0, 0);
+  bitmap.close();
 
-            resolve(png);
-        }, "image/png");
-    });
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((png) => {
+      if (!png) {
+        reject(new Error("Failed to convert image to PNG"));
+        return;
+      }
+
+      resolve(png);
+    }, "image/png");
+  });
 }

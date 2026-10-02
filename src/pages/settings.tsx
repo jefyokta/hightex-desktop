@@ -238,17 +238,17 @@ export const Settings = () => {
               note for translator: alias = singkatan
                */}
                 <span>Enable Alias Hints</span>
-
               </>
             }
-            description={"Show the meaning of words defined in your Aliases List when you hover over them in the editor."}
+            description={
+              "Show the meaning of words defined in your Aliases List when you hover over them in the editor."
+            }
             value={config.editor?.aliasHint ?? false}
             onChange={async (val) => {
               await patchConfig({
                 editor: {
                   ...config.editor,
-                  aliasHint: val
-
+                  aliasHint: val,
                 },
               });
             }}
@@ -323,7 +323,9 @@ export const Settings = () => {
               <div className="space-y-0.5">
                 <Label>Export timeout</Label>
                 <p className="text-xs text-muted-foreground">
-                  {"Export timeout in millisecond, default 120000ms (120 seconds)"}
+                  {
+                    "Export timeout in millisecond, default 120000ms (120 seconds)"
+                  }
                 </p>
               </div>
             </div>
@@ -335,7 +337,7 @@ export const Settings = () => {
                 await patchConfig({
                   export: {
                     ...config.export,
-                    exportTimeout: Number(e.target.value)
+                    exportTimeout: Number(e.target.value),
                   },
                 });
               }}
@@ -668,7 +670,6 @@ const ProfileSection = () => {
           advisorName: prof?.advisorName ?? "",
           advisorNip: prof?.advisorNip ?? "",
           secondAdvisor: prof.secondAdvisor,
-
         });
       } finally {
         if (mounted) setLoading(false);
@@ -860,7 +861,12 @@ const ProfileSection = () => {
               </>
             )}
             <div className="flex justify-end pt-4">
-              <Button onClick={() => executeInteractively(saveProfile, { successMessage: "Saved" })} disabled={saving}>
+              <Button
+                onClick={() =>
+                  executeInteractively(saveProfile, { successMessage: "Saved" })
+                }
+                disabled={saving}
+              >
                 {saving
                   ? t("settings.profile.saving")
                   : t("settings.profile.save")}

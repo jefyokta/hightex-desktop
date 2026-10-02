@@ -41,7 +41,13 @@ interface Props {
   selectMode: boolean;
 }
 
-export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) => {
+export const Row = ({
+  doc,
+  onRename,
+  onDelete,
+  onExport,
+  selectMode,
+}: Props) => {
   const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
@@ -120,10 +126,10 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
 
   const updatedAt = doc.updatedAt
     ? new Date(doc.updatedAt).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
     : null;
 
   const generatePdf = async (waterMark: boolean = false) => {
@@ -229,7 +235,7 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
                 ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
                 : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900",
               !selectMode &&
-              "cursor-pointer hover:border-neutral-300 hover:bg-neutral-200 dark:hover:border-neutral-700 dark:hover:bg-neutral-800",
+                "cursor-pointer hover:border-neutral-300 hover:bg-neutral-200 dark:hover:border-neutral-700 dark:hover:bg-neutral-800",
             )}
             onClick={(e) => {
               if (!selectMode) {
@@ -243,12 +249,21 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
               isSelected ? (
                 <CircleCheck size={16} />
               ) : (
-                <CircleMinus size={16} className="text-neutral-400 dark:text-neutral-500" />
+                <CircleMinus
+                  size={16}
+                  className="text-neutral-400 dark:text-neutral-500"
+                />
               )
             ) : expanded ? (
-              <FileText size={16} className="text-neutral-500 dark:text-neutral-400" />
+              <FileText
+                size={16}
+                className="text-neutral-500 dark:text-neutral-400"
+              />
             ) : (
-              <File size={16} className="text-neutral-500 dark:text-neutral-400" />
+              <File
+                size={16}
+                className="text-neutral-500 dark:text-neutral-400"
+              />
             )}
           </div>
           <div className="min-w-0 flex-1">
@@ -302,7 +317,9 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
                       toast.success("Category updated");
                     } catch {
                       setCategory(previous);
-                      throw new ShouldNotified(t("error.category.update_failed"));
+                      throw new ShouldNotified(
+                        t("error.category.update_failed"),
+                      );
                     }
                   }}
                 >
@@ -327,7 +344,9 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
 
               {updatedAt && (
                 <>
-                  <span className="text-neutral-300 dark:text-neutral-600">•</span>
+                  <span className="text-neutral-300 dark:text-neutral-600">
+                    •
+                  </span>
                   <span className="text-neutral-400 dark:text-neutral-500">
                     Updated {updatedAt}
                   </span>
@@ -404,7 +423,10 @@ export const Row = ({ doc, onRename, onDelete, onExport, selectMode }: Props) =>
             }}
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            <Trash size={14} className="text-neutral-400 transition-colors hover:text-red-500" />
+            <Trash
+              size={14}
+              className="text-neutral-400 transition-colors hover:text-red-500"
+            />
           </button>
         </div>
       </div>

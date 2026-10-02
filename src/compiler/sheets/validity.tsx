@@ -20,11 +20,11 @@ export const Validity = () => {
     },
     ...(profile?.secondAdvisor
       ? [
-        {
-          name: profile.secondAdvisor.name,
-          role: "Anggota 1",
-        },
-      ]
+          {
+            name: profile.secondAdvisor.name,
+            role: "Anggota 1",
+          },
+        ]
       : []),
     {
       name: doc.config.member_1 || "",
@@ -219,9 +219,7 @@ export const Validity = () => {
                     return (
                       <React.Fragment key={`${member.role}-${index}`}>
                         <tr>
-                          <td style={{ fontWeight: "bold" }}>
-                            {member.role}
-                          </td>
+                          <td style={{ fontWeight: "bold" }}>{member.role}</td>
 
                           <td
                             style={{
@@ -245,9 +243,9 @@ export const Validity = () => {
                             style={
                               isLeftSignature
                                 ? {
-                                  borderBottom: "1px solid #000",
-                                  width: "70px",
-                                }
+                                    borderBottom: "1px solid #000",
+                                    width: "70px",
+                                  }
                                 : undefined
                             }
                           >
@@ -258,9 +256,9 @@ export const Validity = () => {
                             style={
                               !isLeftSignature
                                 ? {
-                                  borderBottom: "1px solid #000",
-                                  width: "70px",
-                                }
+                                    borderBottom: "1px solid #000",
+                                    width: "70px",
+                                  }
                                 : undefined
                             }
                           >

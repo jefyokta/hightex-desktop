@@ -27,21 +27,21 @@ declare global {
     value: string;
   }
   interface MigratingDeprecation {
-    fixed:number,
-    node:JSONContent,
-    id:string
+    fixed: number;
+    node: JSONContent;
+    id: string;
   }
 
   interface DocumentsDeleted {
-    documentIds:string[]
+    documentIds: string[];
   }
 
   interface DocumentDeleted {
-    documentId:string
+    documentId: string;
   }
 
   interface AliaseDeleted {
-    key:string
+    key: string;
   }
 
   interface ChapterReload {}
@@ -54,11 +54,11 @@ declare global {
     "chapter:commit": ChapterCommitEvent;
     "document:updated": DocumentUpdatedEvent;
     "var:updated": VarUpdated;
-    "migrating:deprecation":MigratingDeprecation
-    "alias:deleted":AliaseDeleted
-    "documents:deleted":DocumentsDeleted,
-    "document:deleted":DocumentDeleted,
-    "chapter:reload":ChapterReload
+    "migrating:deprecation": MigratingDeprecation;
+    "alias:deleted": AliaseDeleted;
+    "documents:deleted": DocumentsDeleted;
+    "document:deleted": DocumentDeleted;
+    "chapter:reload": ChapterReload;
   }
 }
 

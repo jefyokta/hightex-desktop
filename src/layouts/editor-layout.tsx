@@ -16,19 +16,19 @@ export const EditorLayout: React.FC = () => {
     <ParamsContextProvider>
       <div className="h-screen overflow-hidden relative">
         <MacosEditorHead />
-          <GraphContextProvider>
-            <EditorProvider>
-              <ExpandableSideBarContextProvider>
-                <div className="flex h-full w-full ">
-                  <ExpandableSideBar />
-                  <AliasSlave />
-                  <Outlet />
-                </div>
-              </ExpandableSideBarContextProvider>
-              <EditorNavigatorSlave />
-              <Scanner />
-            </EditorProvider>
-          </GraphContextProvider>
+        <GraphContextProvider>
+          <EditorProvider>
+            <ExpandableSideBarContextProvider>
+              <div className="flex h-full w-full ">
+                <ExpandableSideBar />
+                <AliasSlave />
+                <Outlet />
+              </div>
+            </ExpandableSideBarContextProvider>
+            <EditorNavigatorSlave />
+            <Scanner />
+          </EditorProvider>
+        </GraphContextProvider>
       </div>
       <FrameSlave />
     </ParamsContextProvider>

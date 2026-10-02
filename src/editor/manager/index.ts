@@ -56,16 +56,15 @@ class App {
       };
     };
     const onMainError = (_: any, e: any) => {
-      if("name" in e && e.name === 'export-timeout'){
+      if ("name" in e && e.name === "export-timeout") {
         callback({
-          error: new ExportTimeout(e.error.desc,e.error.logFile)
-          ,
-          name:e.name
-        })
+          error: new ExportTimeout(e.error.desc, e.error.logFile),
+          name: e.name,
+        });
 
-        return
+        return;
       }
-            callback(normalize(new MainProcessError(e)));
+      callback(normalize(new MainProcessError(e)));
     };
     const onError = (event: ErrorEvent) => {
       if (event.error instanceof ApplicationError) {
@@ -113,13 +112,18 @@ export class Manager {
     return fn(...args);
   }
 
-  @Confirm(async (docId,_)=>({
-    title:"Are you sure?",
-    desc:`Document \`${truncate(await HighTexDB.getInstance().documents.get(docId).then(d=>d?.title || "unknown doc"),20)}\` will be deleted`
+  @Confirm(async (docId, _) => ({
+    title: "Are you sure?",
+    desc: `Document \`${truncate(
+      await HighTexDB.getInstance()
+        .documents.get(docId)
+        .then((d) => d?.title || "unknown doc"),
+      20,
+    )}\` will be deleted`,
   }))
   static async deleteDocument(documentId: string, _version?: string) {
     const db = HighTexDB.getInstance();
-   return await db.deleteDocument(documentId);
+    return await db.deleteDocument(documentId);
   }
   @Confirm(async (...docs) => ({
     title: "Are you sure?",
@@ -127,8 +131,11 @@ export class Manager {
   }))
   static async deleteDocuments(...documentIds: string[]) {
     const total = documentIds.length;
-    const pt = progressiveToast({ initialStatus: "Deleting documents...", initialProgress: 0 });
-    const deleted:string[] = []
+    const pt = progressiveToast({
+      initialStatus: "Deleting documents...",
+      initialProgress: 0,
+    });
+    const deleted: string[] = [];
 
     try {
       for (let i = 0; i < total; i++) {
@@ -140,8 +147,7 @@ export class Manager {
           `Deleting ${i + 1} of ${total}...`,
           Math.round(((i + 1) / total) * 100),
         );
-        deleted.push(id)
-
+        deleted.push(id);
       }
 
       pt.success({
@@ -150,7 +156,7 @@ export class Manager {
     } catch (e) {
       pt.error({ title: "Failed to delete documents", error: e });
     } finally {
-      this.app.dispatch("documents:deleted",{documentIds:deleted})
+      this.app.dispatch("documents:deleted", { documentIds: deleted });
     }
   }
   static element() {

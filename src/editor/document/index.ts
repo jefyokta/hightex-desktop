@@ -21,9 +21,9 @@ export class Document {
 
   public scheme?: Category["chapters"];
   public chapters: Chapter[] = [];
-  public counters={
-    equations:0
-  }
+  public counters = {
+    equations: 0,
+  };
 
   constructor(documentId: string, version?: string) {
     this.table = HighTexDB.getInstance().documents;
@@ -47,7 +47,11 @@ export class Document {
     for (const chapter of this.scheme) {
       await db.setVar(`chapter${chapter.chapter}`, chapter.title, this.id);
     }
-    await Promise.all( Symbols.map(([name, value]) => db.variables.put({name,value,documentId:"global"})));
+    await Promise.all(
+      Symbols.map(([name, value]) =>
+        db.variables.put({ name, value, documentId: "global" }),
+      ),
+    );
   }
 
   async warm() {
@@ -83,7 +87,7 @@ export class Document {
     const result: ChapterGraphData[] = [];
 
     for (const c of this.chapters) {
-      if(c.frozen) continue;
+      if (c.frozen) continue;
       const data = c.graph.data;
       if (data) result.push(data);
     }
@@ -106,14 +110,15 @@ export class Document {
     return graphs.flatMap((g) => g.tables);
   }
 
-  async getEquations():Promise<EquationGraph[]>{
+  async getEquations(): Promise<EquationGraph[]> {
     const graphs = await this.getGraphs();
-    let counter=0;
-    return graphs.flatMap((g) => g.equations).map((eq)=>
-    {
-      counter++;
-      return {...eq,numbering:counter.toString(),pos:counter}
-    });
+    let counter = 0;
+    return graphs
+      .flatMap((g) => g.equations)
+      .map((eq) => {
+        counter++;
+        return { ...eq, numbering: counter.toString(), pos: counter };
+      });
   }
 
   private async ensureWarmed() {
@@ -170,13 +175,13 @@ export class Document {
     );
     chapters.push(
       new Chapter({
-        documentId:this.id,
-        chapter:"cv",
-        version:this.version,
-        isolated:true,
-        frozen:true
-      }).setTitle("DAFTAR RIWAYAT HIDUP")
-    )
+        documentId: this.id,
+        chapter: "cv",
+        version: this.version,
+        isolated: true,
+        frozen: true,
+      }).setTitle("DAFTAR RIWAYAT HIDUP"),
+    );
 
     return chapters;
   }
@@ -224,13 +229,13 @@ export class Document {
       }).setTitle("ABSTRACT"),
     );
     def.push(
-    new Chapter({
-      documentId:this.id,
-      chapter:"abbrevation",
-      // isolated:true,
-      frozen:true
-    }).setTitle("DAFTAR SINGKATAN")
-  )
+      new Chapter({
+        documentId: this.id,
+        chapter: "abbrevation",
+        // isolated:true,
+        frozen: true,
+      }).setTitle("DAFTAR SINGKATAN"),
+    );
     return def;
   }
 

@@ -106,7 +106,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
     if (wsRef.current) {
       try {
         wsRef.current.close();
-      } catch { }
+      } catch {}
       wsRef.current = null;
     }
 
@@ -145,7 +145,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
 
           try {
             ws.close();
-          } catch { }
+          } catch {}
 
           reject(new ShouldNotified(message));
         };
@@ -170,7 +170,12 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
           (_e) => {
             setConnecting(false);
             if (isGuest) {
-              fail(t("error.sharing.connect_failed_host", { host: opt.host, port: opt.port }));
+              fail(
+                t("error.sharing.connect_failed_host", {
+                  host: opt.host,
+                  port: opt.port,
+                }),
+              );
             } else {
               fail(t("error.sharing.server_not_running", { port: opt.port }));
             }
@@ -183,7 +188,10 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
             const message: WSMessage<"server"> = JSON.parse(event.data);
 
             if (message?.type === "error") {
-              fail(message.payload.message ?? t("error.sharing.connection_rejected"));
+              fail(
+                message.payload.message ??
+                  t("error.sharing.connection_rejected"),
+              );
               return;
             }
 
@@ -219,7 +227,7 @@ export const SharingContextProvider: React.FC<PropsWithChildren> = ({
             }
 
             setMessages((prev) => appendBounded(prev, message));
-          } catch { }
+          } catch {}
         });
 
         ws.addEventListener("close", () => {

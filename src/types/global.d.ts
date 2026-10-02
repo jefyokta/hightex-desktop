@@ -10,7 +10,7 @@ declare global {
   type SupportedLanguage = "en" | "id";
 
   interface LegacyProfile {
-     name: string;
+    name: string;
     nim: string;
     advisorName: string;
     advisorNip: string;
@@ -19,8 +19,8 @@ declare global {
       nip: string;
     };
   }
-  interface Profile extends LegacyProfile{
-     cv:string;
+  interface Profile extends LegacyProfile {
+    cv: string;
   }
 
   interface DocumentProfile extends Profile {
@@ -31,8 +31,8 @@ declare global {
     get: () => Promise<Profile>;
     set: (profile: Partial<Profile>) => Promise<Profile>;
     reset: () => Promise<void>;
-    picture:()=>Promise<Uint8Array|false>,
-    setPicture:(blob:Uint8Array)=>Promise<any>
+    picture: () => Promise<Uint8Array | false>;
+    setPicture: (blob: Uint8Array) => Promise<any>;
   }
   type ConfigShape = {
     language: SupportedLanguage;
@@ -56,12 +56,12 @@ declare global {
       spellCheck?: boolean;
       preferCloudProfile?: boolean;
       scrollBar?: boolean;
-      aliasHint?:boolean
+      aliasHint?: boolean;
     };
     export: {
       saveDialog: boolean;
       saveFolder: string;
-      exportTimeout?:number
+      exportTimeout?: number;
     };
     zotero: {
       enabled: boolean;
@@ -121,9 +121,9 @@ declare global {
     detail: Record<number, { start: number; end: number }>;
   };
   /**
- * @deprecated 
- * @since 0.7.5+
- */
+   * @deprecated
+   * @since 0.7.5+
+   */
   interface PluginScannerAPI {
     paragraph(
       pluginId: string,
@@ -168,17 +168,20 @@ declare global {
         title: string;
         description: string;
       }): Promise<unknown>;
-      saveContentError(props:{content:JSONContent,fileName:string,error?:any}):Promise<void>;
-      snapshot:SnapshotApi
+      saveContentError(props: {
+        content: JSONContent;
+        fileName: string;
+        error?: any;
+      }): Promise<void>;
+      snapshot: SnapshotApi;
     };
-
 
     config: ConfigAPI;
     zotero: ZoteroAPI;
-  /**
-   * @deprecated 
-   * @since 0.7.5+
-   */
+    /**
+     * @deprecated
+     * @since 0.7.5+
+     */
     plugin: { scanner: PluginScannerAPI };
     sharing: SharingAPI;
     //cmn ada di frame yach
@@ -254,17 +257,23 @@ declare global {
   }
 
   interface SnapshotApi {
-    document(documentId:string):Promise<WithRelation<SnapshotEntity,SnapshotRelation,"comments">[]>
-    all():Promise<WithRelation<SnapshotEntity,SnapshotRelation,"comments">[]>
-    get(snapId:string):Promise<WithRelation<SnapshotEntity,SnapshotRelation,"comments"> | undefined>
+    document(
+      documentId: string,
+    ): Promise<WithRelation<SnapshotEntity, SnapshotRelation, "comments">[]>;
+    all(): Promise<
+      WithRelation<SnapshotEntity, SnapshotRelation, "comments">[]
+    >;
+    get(
+      snapId: string,
+    ): Promise<
+      WithRelation<SnapshotEntity, SnapshotRelation, "comments"> | undefined
+    >;
   }
-
-
 
   interface FileApi {
     save(fileName: string, file: Uint8Array): Promise<string>;
     openPath(path: string): Promise<string>;
     showInFolder(path: string): Promise<void>;
-    openFolder(folderPath:string):Promise<void>
+    openFolder(folderPath: string): Promise<void>;
   }
 }

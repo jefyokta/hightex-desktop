@@ -88,9 +88,8 @@ declare global {
 
   type ShapeOf<M> = M extends Model<any, any, infer S> ? S : never;
 
-
   type UnwrapModel<M> = M extends Model<infer E, any, any> ? E : never;
-  
+
   type RelationShape<Rel extends Relation> =
     Rel extends HasMany<infer M>
       ? UnwrapModel<M>[]
@@ -101,15 +100,12 @@ declare global {
           : Rel extends BelongsTo<infer M>
             ? UnwrapModel<M>
             : never;
-  
+
   type WithRelation<
     TShape extends Record<string, any>,
     R extends Record<string, Relation>,
     K extends keyof R,
   > = TShape & { [P in K]: RelationShape<R[P]> };
-  
 }
-
-
 
 export {};

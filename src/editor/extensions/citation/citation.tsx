@@ -7,14 +7,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import {  formatInTextCitation } from "@/utils/citation";
+import { formatInTextCitation } from "@/utils/citation";
 import { CiteUtils } from "bibtex.js";
 
 interface CiteRecord {
@@ -115,12 +111,8 @@ export const Citation: React.FC<NodeViewProps> = ({
       const db = HighTexDB.getInstance();
 
       const result = (
-        await Promise.all(
-          citeIds.map((id: string) => db.cite.get(id)),
-        )
-      ).filter(
-        (cite): cite is CiteRecord => cite !== undefined,
-      );
+        await Promise.all(citeIds.map((id: string) => db.cite.get(id)))
+      ).filter((cite): cite is CiteRecord => cite !== undefined);
 
       if (mounted) {
         setCites(result);
@@ -157,10 +149,7 @@ export const Citation: React.FC<NodeViewProps> = ({
   }, [open, mode]);
 
   useEffect(() => {
-    const { inText } = formatInTextCitation(
-      cites,
-      node.attrs.citeA,
-    );
+    const { inText } = formatInTextCitation(cites, node.attrs.citeA);
 
     setFetchedCite(inText);
   }, [cites, node.attrs.citeA]);
@@ -177,9 +166,7 @@ export const Citation: React.FC<NodeViewProps> = ({
 
   const removeCitation = (id: string) => {
     updateAttributes({
-      cite: citeIds
-        .filter((citeId:string) => citeId !== id)
-        .join("|"),
+      cite: citeIds.filter((citeId: string) => citeId !== id).join("|"),
     });
   };
 
@@ -193,12 +180,7 @@ export const Citation: React.FC<NodeViewProps> = ({
     return bibliography.filter((cite) => {
       const utils = new CiteUtils(cite.bib).setId(cite.key);
 
-      return [
-        utils.toCite(),
-        utils.toCiteA(),
-        utils.getTitle(),
-        cite.key,
-      ]
+      return [utils.toCite(), utils.toCiteA(), utils.getTitle(), cite.key]
         .join(" ")
         .toLowerCase()
         .includes(query);
@@ -261,9 +243,7 @@ export const Citation: React.FC<NodeViewProps> = ({
                 </button>
 
                 <div className="min-w-0">
-                  <h2 className="text-sm font-semibold">
-                    Add citation
-                  </h2>
+                  <h2 className="text-sm font-semibold">Add citation</h2>
 
                   <p className="truncate text-xs text-neutral-500">
                     Select a reference from your bibliography
@@ -279,16 +259,11 @@ export const Citation: React.FC<NodeViewProps> = ({
                     dark:border-neutral-700
                   "
                 >
-                  <Search
-                    size={15}
-                    className="shrink-0 text-neutral-400"
-                  />
+                  <Search size={15} className="shrink-0 text-neutral-400" />
 
                   <input
                     value={search}
-                    onChange={(event) =>
-                      setSearch(event.target.value)
-                    }
+                    onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search bibliography..."
                     className="
                       h-9 w-full bg-transparent text-sm outline-none
@@ -321,9 +296,7 @@ export const Citation: React.FC<NodeViewProps> = ({
           ) : (
             <>
               <div className="border-b px-4 py-3">
-                <h2 className="text-sm font-semibold">
-                  Citation
-                </h2>
+                <h2 className="text-sm font-semibold">Citation</h2>
 
                 <p className="text-xs text-neutral-500">
                   Manage references in this citation
@@ -380,13 +353,9 @@ export const Citation: React.FC<NodeViewProps> = ({
                   }
                 >
                   <TabsList className="grid h-9 w-full grid-cols-2">
-                    <TabsTrigger value="standard">
-                      Standard
-                    </TabsTrigger>
+                    <TabsTrigger value="standard">Standard</TabsTrigger>
 
-                    <TabsTrigger value="author">
-                      Author
-                    </TabsTrigger>
+                    <TabsTrigger value="author">Author</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>

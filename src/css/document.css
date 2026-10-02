@@ -314,12 +314,12 @@ figure[data-type="figureTable"] > table {
 }
 
 .content h2::before {
-  content: attr(data-numbering);
+  content: attr(data-numbering) " ";
   font-weight: bold;
 }
 
 .content h3::before {
-  content: attr(data-numbering);
+  content: attr(data-numbering) " ";
   font-weight: bold;
 }
 

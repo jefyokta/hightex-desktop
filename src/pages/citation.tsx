@@ -75,7 +75,7 @@ export const Citation = () => {
     };
   }, []);
 
-  const [doiLink, setDoiLink] = useState('')
+  const [doiLink, setDoiLink] = useState("");
 
   const filtered = useMemo(() => {
     if (!query.trim()) {
@@ -144,7 +144,9 @@ export const Citation = () => {
     openModal = false,
   ): Promise<number> => {
     if (!content.trim()) {
-      toast.error(t("citation.error.no_bibtex_content"), { id: feedBackToastID });
+      toast.error(t("citation.error.no_bibtex_content"), {
+        id: feedBackToastID,
+      });
 
       return 0;
     }
@@ -197,8 +199,8 @@ export const Citation = () => {
         skipped:
           invalidEntries.length > 0
             ? t("citation.skipped_invalid", {
-              count: invalidEntries.length,
-            })
+                count: invalidEntries.length,
+              })
             : "",
       }),
       { id: feedBackToastID },
@@ -480,7 +482,10 @@ export const Citation = () => {
 
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 py-5">
             <div className="w-full flex gap-2">
-              <Input placeholder="From doi link" onChange={(e) => setDoiLink(e.target.value)} />
+              <Input
+                placeholder="From doi link"
+                onChange={(e) => setDoiLink(e.target.value)}
+              />
               <Button
                 size="icon"
                 disabled={!doiLink.trim()}
@@ -495,7 +500,8 @@ export const Citation = () => {
                   if (!response.ok) {
                     throw new ShouldNotified({
                       message: "Unable to get BibTeX from DOI",
-                      description: "Ensure the DOI link is correct and you have a network connection.",
+                      description:
+                        "Ensure the DOI link is correct and you have a network connection.",
                     });
                   }
 
@@ -512,7 +518,8 @@ export const Citation = () => {
                   } catch {
                     throw new ShouldNotified({
                       message: "Invalid BibTeX response",
-                      description: "The DOI service did not return a valid BibTeX entry.",
+                      description:
+                        "The DOI service did not return a valid BibTeX entry.",
                     });
                   }
                 }}
@@ -594,18 +601,19 @@ export const Citation = () => {
                 </Button>
               )}
 
-              {zoteroItems.length > 0 && selected.length !== zoteroItems.length && (
-                <Button
-                  onClick={() => {
-                    for (const z of zoteroItems) {
-                      addSelected(z.key);
-                    }
-                  }}
-                  size="sm"
-                >
-                  Select All
-                </Button>
-              )}
+              {zoteroItems.length > 0 &&
+                selected.length !== zoteroItems.length && (
+                  <Button
+                    onClick={() => {
+                      for (const z of zoteroItems) {
+                        addSelected(z.key);
+                      }
+                    }}
+                    size="sm"
+                  >
+                    Select All
+                  </Button>
+                )}
 
               <Button
                 variant="outline"

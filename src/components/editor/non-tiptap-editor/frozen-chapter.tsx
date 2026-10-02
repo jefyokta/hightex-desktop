@@ -1,12 +1,11 @@
-import { AbbrevationList } from "./abbreviation-list"
-import { useChapterStore } from "@/hooks/use-chapter"
-import { Cv } from "./cv"
+import { AbbrevationList } from "./abbreviation-list";
+import { useChapterStore } from "@/hooks/use-chapter";
+import { Cv } from "./cv";
 
 export const FrozenChapter = () => {
+  const { chapter } = useChapterStore();
 
-    const { chapter } = useChapterStore()
-
-
-
-    return <>{chapter?.getChapter() == "abbrevation" ? <AbbrevationList /> : <Cv/>}</>
-}
+  return (
+    <>{chapter?.getChapter() == "abbrevation" ? <AbbrevationList /> : <Cv />}</>
+  );
+};

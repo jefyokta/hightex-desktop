@@ -35,7 +35,11 @@ export class ChapterQuery {
     );
   }
   isNormalChapter() {
-    return !this.isStaticChapter() && !this.isAttachmentChapter() && !this.chapter.frozen;
+    return (
+      !this.isStaticChapter() &&
+      !this.isAttachmentChapter() &&
+      !this.chapter.frozen
+    );
   }
 
   async getContent(): Promise<JSONContent[]> {
@@ -50,18 +54,16 @@ export class ChapterQuery {
     }
 
     const firstNode = exists.content[0];
-    if(firstNode.type == 'heading' && firstNode.attrs?.level ==1){
-
+    if (firstNode.type == "heading" && firstNode.attrs?.level == 1) {
       return exists.content;
     }
 
-    return [this.chapter.createHeading(),...exists.content]
-    
+    return [this.chapter.createHeading(), ...exists.content];
   }
 
   async getChapterTitle() {
     const chapter = this.chapter.getChapter();
-    if(this.chapter.frozen) return this.chapter.title;
+    if (this.chapter.frozen) return this.chapter.title;
     if (this.isAttachmentChapter()) {
       return "Lampiran".toUpperCase();
     }

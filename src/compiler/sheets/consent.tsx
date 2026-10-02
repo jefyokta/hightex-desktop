@@ -8,169 +8,19 @@ export const Constent = () => {
   if (!document) return null;
 
   const SingleAdvisor = () => {
-    return <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-      }}
-    >
+    return (
       <div
         style={{
-          paddingTop: "5em",
-          textAlign: "left",
+          display: "flex",
+          justifyContent: "space-between",
         }}
       >
-        <b>Ketua Program Studi</b>
-
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-
-        <span style={{
-          fontWeight: "bold", textDecoration: "underline",
-          textUnderlineOffset: "2pt",
-        }}>
-          {name(
-            document.getDocument().config.kaprodi?.name ||
-            "Angraini, S.Kom., M.Eng., Ph.D.",
-          )}
-        </span>
-
-        <br />
-
-        <span
+        <div
           style={{
-            fontWeight: "bold",
-            paddingTop: "1px",
-            display: "inline-block",
+            paddingTop: "5em",
+            textAlign: "left",
           }}
         >
-          NIP.{" "}
-          {document.getDocument().config.kaprodi?.nip ||
-            "198408212009012008"}
-        </span>
-      </div>
-
-      <div
-        style={{
-          textAlign: "left",
-          paddingTop: "5em",
-        }}
-      >
-        <b>Pembimbing</b>
-
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-
-        <>
-          <span
-            style={{
-              fontWeight: "bold",
-              textDecoration: "underline",
-              textUnderlineOffset: "2pt",
-            }}
-          >
-            {profile && profile.advisorName && name(profile?.advisorName)}
-          </span>
-
-          <br />
-
-          <span
-            style={{
-              fontWeight: "bold",
-              paddingTop: "1px",
-              display: "inline-block",
-            }}
-          >
-            NIP. {profile?.advisorNip}
-          </span>
-        </>
-      </div>
-    </div>
-
-  }
-
-  const DoubleAdvisor = () => {
-    return <>
-      <br /><br />
-      <div style={{ width: "100%", display: "grid", gridTemplateColumns: "auto auto", gap: "5pt" }}>
-        <div>
-          <b>Pembimbing Pertama</b>
-
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-
-          <span style={{
-            fontWeight: "bold", textDecoration: "underline",
-            textUnderlineOffset: "2pt",
-          }}>
-            {name(
-              profile?.advisorName ||
-              ""
-            )}
-          </span><br />
-          <span
-            style={{
-              fontWeight: "bold",
-              paddingTop: "1px",
-              display: "inline-block",
-            }}
-          >
-            NIP.{" "}
-            {profile?.advisorNip ||
-              ""}
-          </span>
-
-        </div>
-        <div>
-          <b>Pembimbing Kedua</b>
-
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-
-          <span style={{
-            fontWeight: "bold", textDecoration: "underline",
-            textUnderlineOffset: "2pt",
-          }}>
-            {name(
-              profile?.secondAdvisor?.name ||
-              ".",
-            )}
-          </span><br />
-          <span
-            style={{
-              fontWeight: "bold",
-              paddingTop: "1px",
-              display: "inline-block",
-            }}
-          >
-            NIP.{" "}
-            {profile?.secondAdvisor?.nip ||
-              ""}
-          </span>
-
-        </div>
-
-      </div>
-      <br />
-      <br />
-      <div style={{ display: "flex", width: "100%", justifyContent: "center" }}>
-        <div>
           <b>Ketua Program Studi</b>
 
           <br />
@@ -180,15 +30,21 @@ export const Constent = () => {
           <br />
           <br />
 
-          <span style={{
-            fontWeight: "bold", textDecoration: "underline",
-            textUnderlineOffset: "2pt",
-          }}>
+          <span
+            style={{
+              fontWeight: "bold",
+              textDecoration: "underline",
+              textUnderlineOffset: "2pt",
+            }}
+          >
             {name(
               document.getDocument().config.kaprodi?.name ||
-              "Angraini, S.Kom., M.Eng., Ph.D.",
+                "Angraini, S.Kom., M.Eng., Ph.D.",
             )}
-          </span><br />
+          </span>
+
+          <br />
+
           <span
             style={{
               fontWeight: "bold",
@@ -197,14 +53,171 @@ export const Constent = () => {
             }}
           >
             NIP.{" "}
-            {document.getDocument().config.kaprodi?.nip ||
-              "198408212009012008"}
+            {document.getDocument().config.kaprodi?.nip || "198408212009012008"}
           </span>
+        </div>
 
+        <div
+          style={{
+            textAlign: "left",
+            paddingTop: "5em",
+          }}
+        >
+          <b>Pembimbing</b>
+
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+
+          <>
+            <span
+              style={{
+                fontWeight: "bold",
+                textDecoration: "underline",
+                textUnderlineOffset: "2pt",
+              }}
+            >
+              {profile && profile.advisorName && name(profile?.advisorName)}
+            </span>
+
+            <br />
+
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP. {profile?.advisorNip}
+            </span>
+          </>
         </div>
       </div>
-    </>
-  }
+    );
+  };
+
+  const DoubleAdvisor = () => {
+    return (
+      <>
+        <br />
+        <br />
+        <div
+          style={{
+            width: "100%",
+            display: "grid",
+            gridTemplateColumns: "auto auto",
+            gap: "5pt",
+          }}
+        >
+          <div>
+            <b>Pembimbing Pertama</b>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            <span
+              style={{
+                fontWeight: "bold",
+                textDecoration: "underline",
+                textUnderlineOffset: "2pt",
+              }}
+            >
+              {name(profile?.advisorName || "")}
+            </span>
+            <br />
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP. {profile?.advisorNip || ""}
+            </span>
+          </div>
+          <div>
+            <b>Pembimbing Kedua</b>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            <span
+              style={{
+                fontWeight: "bold",
+                textDecoration: "underline",
+                textUnderlineOffset: "2pt",
+              }}
+            >
+              {name(profile?.secondAdvisor?.name || ".")}
+            </span>
+            <br />
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP. {profile?.secondAdvisor?.nip || ""}
+            </span>
+          </div>
+        </div>
+        <br />
+        <br />
+        <div
+          style={{ display: "flex", width: "100%", justifyContent: "center" }}
+        >
+          <div>
+            <b>Ketua Program Studi</b>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            <span
+              style={{
+                fontWeight: "bold",
+                textDecoration: "underline",
+                textUnderlineOffset: "2pt",
+              }}
+            >
+              {name(
+                document.getDocument().config.kaprodi?.name ||
+                  "Angraini, S.Kom., M.Eng., Ph.D.",
+              )}
+            </span>
+            <br />
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP.{" "}
+              {document.getDocument().config.kaprodi?.nip ||
+                "198408212009012008"}
+            </span>
+          </div>
+        </div>
+      </>
+    );
+  };
 
   return (
     <section className="introduction page-break new-page">
@@ -264,8 +277,6 @@ export const Constent = () => {
           {formatDate(document.getDocument().config.consentDate!)}
         </div>
         {profile?.secondAdvisor ? <DoubleAdvisor /> : <SingleAdvisor />}
-
-
       </div>
     </section>
   );

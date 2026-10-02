@@ -25,7 +25,7 @@ export const MathBlockComponent = ({
   const [latex, setLatex] = useState(node.attrs.latex ?? "");
   const [open, setOpen] = useState(false);
 
-  const [pos, setPos] = useState(0)
+  const [pos, setPos] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -47,20 +47,21 @@ export const MathBlockComponent = ({
   const handler = async () => {
     const eqs = await Document.instance?.getEquations();
 
-    const graph = eqs?.find(e => e.id === node.attrs.id);
+    const graph = eqs?.find((e) => e.id === node.attrs.id);
     if (graph) {
-      setPos(graph.pos)
+      setPos(graph.pos);
     }
-
-  }
+  };
   useEffect(() => {
     editor.on("update", handler);
-    return () => { editor.off("update", handler) }
-  }, [])
+    return () => {
+      editor.off("update", handler);
+    };
+  }, []);
 
-  useEffect(()=>{
-    handler()
-  },[])
+  useEffect(() => {
+    handler();
+  }, []);
   const update = () => {
     return setTimeout(() => {
       if (latex !== node.attrs.latex) {

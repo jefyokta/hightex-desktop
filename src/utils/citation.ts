@@ -147,12 +147,7 @@ export const parseBibtexInput = (content: string) => {
   }
 };
 
-
-
-export const formatInTextCitation = (
-  cites: CiteRecord[],
-  citeA = false,
-) => {
+export const formatInTextCitation = (cites: CiteRecord[], citeA = false) => {
   if (!cites.length) {
     return {
       biblios: ["(unknown citation)"],
@@ -165,11 +160,7 @@ export const formatInTextCitation = (
 
   for (const cite of cites) {
     const utils = new CiteUtils(cite.bib).setId(cite.key);
-    inTexts.push(
-      citeA
-        ? utils.toCiteA()
-        : utils.toCite().slice(1, -1),
-    );
+    inTexts.push(citeA ? utils.toCiteA() : utils.toCite().slice(1, -1));
 
     const citeProcessor = new Cite(utils.getCite());
 
@@ -188,10 +179,7 @@ export const formatInTextCitation = (
   };
 };
 
-const formatCitationText = (
-  citations: string[],
-  citeA: boolean,
-): string => {
+const formatCitationText = (citations: string[], citeA: boolean): string => {
   if (!citations.length) {
     return "(unknown citation)";
   }

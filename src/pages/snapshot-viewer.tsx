@@ -50,7 +50,10 @@ export const SnapshotViewer = () => {
 
   useEffect(() => {
     if (!id) {
-      throw new ShouldNavigated(t("snapshots.not_found"), "/dashboard/snapshots");
+      throw new ShouldNavigated(
+        t("snapshots.not_found"),
+        "/dashboard/snapshots",
+      );
     }
 
     blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));

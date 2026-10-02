@@ -62,12 +62,21 @@ export const progressiveToast = ({
     id,
 
     update: (status: string, progress: number) => {
-      toast.loading(renderProgress(status, Math.max(progress, initialProgress)), {
-        id,
-      });
+      toast.loading(
+        renderProgress(status, Math.max(progress, initialProgress)),
+        {
+          id,
+        },
+      );
     },
 
-    success: ({ title, description, duration = 8000, action, cancel }: SuccessOptions) => {
+    success: ({
+      title,
+      description,
+      duration = 8000,
+      action,
+      cancel,
+    }: SuccessOptions) => {
       toast.success(renderSuccess(title, description), {
         id,
         duration,
@@ -92,7 +101,9 @@ export const progressiveToast = ({
       toast.error(title, {
         id,
         duration,
-        description: error ? truncate(ApplicationError.normilize(normalized), 150) : undefined,
+        description: error
+          ? truncate(ApplicationError.normilize(normalized), 150)
+          : undefined,
       });
     },
 

@@ -14,8 +14,8 @@ export const convertTableHeaderLikeCells = (editor: Editor): void => {
   const tableHeader = state.schema.nodes.tableHeader;
 
   decorations.find().forEach((decoration) => {
-    console.log(decoration)
-    if ((decoration as any).type.attrs.tableHeaderLike !== '1') {
+    console.log(decoration);
+    if ((decoration as any).type.attrs.tableHeaderLike !== "1") {
       return;
     }
 
@@ -25,11 +25,7 @@ export const convertTableHeaderLikeCells = (editor: Editor): void => {
       return;
     }
 
-    tr.setNodeMarkup(
-      decoration.from,
-      tableHeader,
-      node.attrs,
-    );
+    tr.setNodeMarkup(decoration.from, tableHeader, node.attrs);
   });
 
   if (tr.docChanged) {

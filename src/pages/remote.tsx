@@ -559,8 +559,8 @@ const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
                 <div className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition">
                   {doc.updatedAt
                     ? formatDistanceToNow(new Date(doc.updatedAt), {
-                      addSuffix: true,
-                    })
+                        addSuffix: true,
+                      })
                     : "No activity"}
                 </div>
               </button>

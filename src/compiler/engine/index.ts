@@ -34,7 +34,7 @@ export type EngineConfig = {
   };
   profile?: DocumentProfile;
   waterMark?: boolean;
-  reviewing?:boolean
+  reviewing?: boolean;
 };
 
 export class Engine {
@@ -53,7 +53,7 @@ export class Engine {
 
   constructor() {
     this.pipeline = new EnginePipeline(this);
-    
+
     this.document = this.isInFrame() ? window.parent.document : document;
   }
 
@@ -78,10 +78,10 @@ export class Engine {
 
     return this;
   }
-/**
- * 
- * @deprecated
- */
+  /**
+   *
+   * @deprecated
+   */
   //@ts-ignore
   interactable(value = true) {
     return this;
@@ -105,8 +105,6 @@ export class Engine {
     return this.config.parser;
   }
 
-   
-  
   async run() {
     if (!this.root) {
       throw new CompilerError("Engine root not mounted");

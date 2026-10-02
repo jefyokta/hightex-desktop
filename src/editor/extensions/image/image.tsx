@@ -104,15 +104,15 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
     try {
       const res = await fetch(load.blobUrl);
       const rawBlob = await res.blob();
-      const blob = await convertToPng(rawBlob)
+      const blob = await convertToPng(rawBlob);
 
       await navigator.clipboard.write([
         new ClipboardItem({ [blob.type]: blob }),
       ]);
-      toast.success("copied!")
+      toast.success("copied!");
     } catch (err) {
       console.error("[ImageComponent] copy failed", err);
-      throw new ShouldNotified(ApplicationError.normilize(err))
+      throw new ShouldNotified(ApplicationError.normilize(err));
     }
   }, [load]);
 

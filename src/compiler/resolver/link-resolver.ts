@@ -29,15 +29,17 @@ export class LinkResolver implements Resolver {
         if (table) a.textContent = `Tabel ${table.numbering}`;
       }
 
-      if(a.classList.contains("head")){
-        const head = (await doc.getHeadings()).filter(h=>h.chapterId=== doc.id+".attachment").find((t: any) => t.id === id);
+      if (a.classList.contains("head")) {
+        const head = (await doc.getHeadings())
+          .filter((h) => h.chapterId === doc.id + ".attachment")
+          .find((t: any) => t.id === id);
 
-        if (head) a.textContent = `Lampiran ${Counter.getAlpha(Number(head.numbering))}`;
-
+        if (head)
+          a.textContent = `Lampiran ${Counter.getAlpha(Number(head.numbering))}`;
       }
-      if(a.classList.contains("equation")){
-        const eq = (await doc.getEquations()).find(e=>e.id ==id)
-        if(eq) a.textContent =`Persamaan ${eq.numbering}`
+      if (a.classList.contains("equation")) {
+        const eq = (await doc.getEquations()).find((e) => e.id == id);
+        if (eq) a.textContent = `Persamaan ${eq.numbering}`;
       }
     }
   }

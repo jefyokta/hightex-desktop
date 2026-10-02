@@ -26,9 +26,10 @@ export const events = {
 
       let content = isEmpty() ? emptyDoc : ch;
 
-      content = await migrateGridToTable(Array.isArray(content)? content : [content])
+      content = await migrateGridToTable(
+        Array.isArray(content) ? content : [content],
+      );
       content = ContentFixer(content, editor.state.schema as any);
-
 
       if (editor.isDestroyed) return;
       editor.commands.setContent(content, {
@@ -48,13 +49,12 @@ export const events = {
       editor.commands.focus();
 
       ensureUniqueId(editor);
-      convertTableHeaderLikeCells(editor)
+      convertTableHeaderLikeCells(editor);
     });
   },
   update: async ({ editor }: { editor: Editor }) => {
-    convertTableHeaderLikeCells(editor)
+    convertTableHeaderLikeCells(editor);
     await Chapter.instance?.setContent(editor.getJSON().content);
-
   },
 } as const;
 

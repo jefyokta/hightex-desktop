@@ -25,7 +25,7 @@ import {
 
 import React, {
   PropsWithChildren,
-  //  useEffect, 
+  //  useEffect,
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -48,16 +48,15 @@ import { SettingModal } from "./settings-modal";
 // import { getSnapshotLabel } from "@/utils/snapshot";
 // import { formatDate } from "@/utils/date";
 
-
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
-  const { chapter } = useChapterStore()
+  const { chapter } = useChapterStore();
   const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [pdfProgress, setPdfProgress] = React.useState<number>(0);
   const [pdfStatus, setPdfStatus] = React.useState<string>("");
-  const [openSetting, setOpenSetting] = useState(false)
+  const [openSetting, setOpenSetting] = useState(false);
   const state = useEditorState({
     editor,
     selector: (ctx) => ({
@@ -73,7 +72,7 @@ export const NavBar: React.FC = () => {
       isTable: ctx.editor?.isActive("figureTable") ?? false,
       isGrid: ctx.editor?.isActive("grid") ?? false,
       isImage: ctx.editor?.isActive("imageFigure"),
-      isMath: ctx.editor?.isActive("blockMath") ?? false
+      isMath: ctx.editor?.isActive("blockMath") ?? false,
     }),
   });
 
@@ -98,9 +97,6 @@ export const NavBar: React.FC = () => {
 
   //   })
   // }, [snap])
-
-
-
 
   if (!editor || chapter?.frozen) return null;
 
@@ -198,13 +194,17 @@ export const NavBar: React.FC = () => {
                   icon={List}
                   title="bullet list"
                   active={state?.isBulletList}
-                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  onClick={() =>
+                    editor.chain().focus().toggleBulletList().run()
+                  }
                 />
                 <Button
                   icon={ListOrdered}
                   title="ordered list"
                   active={state?.isOrderedList}
-                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  onClick={() =>
+                    editor.chain().focus().toggleOrderedList().run()
+                  }
                 />
               </ButtonGroup>
 
@@ -329,15 +329,20 @@ export const NavBar: React.FC = () => {
                       renderProgressToast("Menyiapkan ekspor PDF...", 5),
                     );
 
-                    const unsubscribe = window.hightex.onPdfProgress((update) => {
-                      const prog = update.progress ?? 0;
-                      setPdfProgress(prog);
-                      setPdfStatus(update.status);
+                    const unsubscribe = window.hightex.onPdfProgress(
+                      (update) => {
+                        const prog = update.progress ?? 0;
+                        setPdfProgress(prog);
+                        setPdfStatus(update.status);
 
-                      toast.loading(renderProgressToast(update.status, prog), {
-                        id: toastId,
-                      });
-                    });
+                        toast.loading(
+                          renderProgressToast(update.status, prog),
+                          {
+                            id: toastId,
+                          },
+                        );
+                      },
+                    );
 
                     try {
                       const result = await window.ipcRenderer.invoke(
@@ -419,12 +424,11 @@ export const NavBar: React.FC = () => {
 
                 </DropdownMenu> */}
 
-
                 <Button
                   title="settings"
                   icon={Settings}
                   onClick={() => {
-                    setOpenSetting(true)
+                    setOpenSetting(true);
                   }}
                 ></Button>
               </ButtonGroup>
@@ -488,10 +492,11 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${active
-              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-              : ""
-            }
+        ${
+          active
+            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+            : ""
+        }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

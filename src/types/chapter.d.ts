@@ -22,7 +22,7 @@ declare global {
     version?: string;
     //should be removed, unused
     isolated?: boolean;
-    frozen?:boolean
+    frozen?: boolean;
   }
 }
 export {};

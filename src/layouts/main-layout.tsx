@@ -241,7 +241,7 @@ export const MainLayout = () => {
   }, []);
 
   return (
-    <ConfigContextProvider >
+    <ConfigContextProvider>
       <LocaleProvider>
         <ErrorProvider>
           <ConfirmProvider>

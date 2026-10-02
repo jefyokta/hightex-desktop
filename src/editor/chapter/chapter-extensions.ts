@@ -34,17 +34,14 @@ import { Note } from "../extensions/note";
 
 export class ChapterExtensions {
   constructor(private chapter: Chapter) {}
-  public  placeHolder:Record<string,string> ={
-  
-      "abstract-en":"200 words maximum",
-      "abstract":"Maksimal 200 kata",
-      "presentation":"Maksimal 1 halam",
-      "foreword":"Maksimal 2 halaman"
-  
-  }
-  get(enableAliasHint=false) {
-
-    if(this.chapter.frozen) return []
+  public placeHolder: Record<string, string> = {
+    "abstract-en": "200 words maximum",
+    abstract: "Maksimal 200 kata",
+    presentation: "Maksimal 1 halam",
+    foreword: "Maksimal 2 halaman",
+  };
+  get(enableAliasHint = false) {
+    if (this.chapter.frozen) return [];
     const isNonChapter = [
       "abstract",
       "abstract-en",
@@ -105,23 +102,31 @@ export class ChapterExtensions {
       Dots,
       Variable,
       SearchReplace,
-      ...(enableAliasHint ? [ Extension.create({
-        name:"plugin-stuff",
-        addProseMirrorPlugins() {
-          return [createAliasPlugin()]
-        },
-      })] :[]),
+      ...(enableAliasHint
+        ? [
+            Extension.create({
+              name: "plugin-stuff",
+              addProseMirrorPlugins() {
+                return [createAliasPlugin()];
+              },
+            }),
+          ]
+        : []),
       Comment,
-      Note
-     
-
+      Note,
     ];
   }
 
   private getNonChapter() {
-    const hasPlaceholder = this.placeHolder[this.chapter.getChapter()]
-    return [StarterKit, Variable, SearchReplace, Note,
-       ...(hasPlaceholder ? [Placeholder.configure({placeholder:hasPlaceholder})]:[]) 
-      ];
+    const hasPlaceholder = this.placeHolder[this.chapter.getChapter()];
+    return [
+      StarterKit,
+      Variable,
+      SearchReplace,
+      Note,
+      ...(hasPlaceholder
+        ? [Placeholder.configure({ placeholder: hasPlaceholder })]
+        : []),
+    ];
   }
 }

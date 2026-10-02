@@ -82,8 +82,7 @@ export const VariableTab = () => {
   };
 
   const remove = async (name: string) => {
-    if (isStaticVar(name))
-      throw new ShouldNotified(t("error.var.common"));
+    if (isStaticVar(name)) throw new ShouldNotified(t("error.var.common"));
 
     await db.deleteVar(name, Document.instance!.id);
     Manager.app.dispatch("var:updated", { name, value: "" });

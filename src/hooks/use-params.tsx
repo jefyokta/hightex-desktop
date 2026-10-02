@@ -1,6 +1,15 @@
-import { createContext, Dispatch, PropsWithChildren, useContext, useState } from "react";
+import {
+  createContext,
+  Dispatch,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from "react";
 
-const ParamsContext = createContext<{ params: string[]; setParams:Dispatch<string[]> }>({
+const ParamsContext = createContext<{
+  params: string[];
+  setParams: Dispatch<string[]>;
+}>({
   params: [],
   setParams: () => {},
 });

@@ -12,7 +12,7 @@ export class HighTexDB extends Dexie {
   chapterGraphs!: Table<ChapterGraph, string>;
   images!: Table<ImageRecord, string>;
   variables!: Table<Variable, string>;
-  aliases!:Table<Alias,string>
+  aliases!: Table<Alias, string>;
 
   private static instance?: HighTexDB;
 
@@ -27,7 +27,7 @@ export class HighTexDB extends Dexie {
       images: "id, documentId",
       variables: "name, documentId",
       //key = {documentId}.{key}
-      aliases:"key, documentId"
+      aliases: "key, documentId",
     });
     this.cite.bulkPut(defaulBib);
     this.createGlobalVars();
@@ -75,13 +75,16 @@ export class HighTexDB extends Dexie {
       this.chapters.bulkDelete(chapterIds),
       this.deleteChapterGraphs(chapterIds),
     ]);
-    return true
+    return true;
   }
   async saveImage(blob: Blob, documentId: string): Promise<string> {
-    const hashBuffer =await crypto.subtle.digest("SHA-256",await blob.arrayBuffer())
+    const hashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      await blob.arrayBuffer(),
+    );
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const id = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  
+    const id = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
     const record: ImageRecord = { id, blob, documentId, createdAt: Date.now() };
     await this.images.put(record);
     return id;
@@ -151,9 +154,10 @@ export class HighTexDB extends Dexie {
     value: string,
     documentId = "global",
   ): Promise<void> {
-
-    if(Symbols.find(s=>s[0]=== name)){
-      throw new ActionCanceled(`cannot create var with name '${name}', because its belongs to a symbol`)
+    if (Symbols.find((s) => s[0] === name)) {
+      throw new ActionCanceled(
+        `cannot create var with name '${name}', because its belongs to a symbol`,
+      );
     }
     await this.variables.put({
       name,
@@ -162,19 +166,19 @@ export class HighTexDB extends Dexie {
     });
   }
 
-  async getAliases(documentId:string){
-
-   return (await this.aliases.where("documentId").equals(documentId).toArray()).map(e=>{
-      const prefix = `${e.documentId}.`
+  async getAliases(documentId: string) {
+    return (
+      await this.aliases.where("documentId").equals(documentId).toArray()
+    ).map((e) => {
+      const prefix = `${e.documentId}.`;
       return {
-        key:e.key.slice(prefix.length),
-        value:e.value
-      }
-    }) 
+        key: e.key.slice(prefix.length),
+        value: e.value,
+      };
+    });
   }
 
-  async setAlias(key:string,value:string,documentId:string){
-    await this.aliases.put({key:`${documentId}.${key}`,value,documentId})
-
+  async setAlias(key: string, value: string, documentId: string) {
+    await this.aliases.put({ key: `${documentId}.${key}`, value, documentId });
   }
 }

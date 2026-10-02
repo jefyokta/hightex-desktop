@@ -29,9 +29,7 @@ export const OpenFileSlave = () => {
         const importer = await HighTexImporter.create(file);
 
         if (importer.exists) {
-          const confirmed = confirm(
-            t("open_file.confirm_overwrite"),
-          );
+          const confirmed = confirm(t("open_file.confirm_overwrite"));
 
           if (!confirmed) {
             return;
