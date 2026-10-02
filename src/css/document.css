@@ -61,7 +61,7 @@ pre code * {
   white-space: pre !important;
 }
 
-code[data-inline]{
+code[data-inline] {
   display: inline !important;
 }
 a.equation::before {
@@ -214,17 +214,18 @@ td[colspan] {
   margin-left: 6pt;
 }
 
-.content h4 , .content h4 *{
+.content h4,
+.content h4 * {
   /* margin-left: 1.27cm; */
   font-weight: normal;
   text-indent: 0;
 }
-.attachment h4 , .attachment h4 *{
+.attachment h4,
+.attachment h4 * {
   /* margin-left: 1.27cm; */
   font-weight: normal;
   text-indent: 0;
 }
-
 
 .content p {
   white-space: break-spaces;
@@ -318,7 +319,7 @@ figure[data-type="figureTable"] > table {
 }
 
 .content h3::before {
-  content: attr(data-numbering) ". ";
+  content: attr(data-numbering);
   font-weight: bold;
 }
 
