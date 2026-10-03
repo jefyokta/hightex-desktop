@@ -33,6 +33,7 @@ import { IPCMain } from "@main/utilities/ipc-main";
 import { firstInstalled } from "@main/utilities/first-installed";
 import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
 import { FileSystemHandler } from "@main/handlers/file-system-handler";
+import { EditorHandler } from "@main/handlers/editor-handler";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -233,6 +234,7 @@ export class Application {
   private async onReady() {
     await this.prepareCoreServices();
     this.registerHandlers();
+    EditorHandler.register()
     this.registerUpdater();
     await this.createWindow();
     this.registerContextMenu();

@@ -69,6 +69,12 @@ export class ServerService {
         headers,
       });
       if (!response.ok) {
+        // try {
+        //   const json = await response.json()
+        //   return json          
+        // } catch (_) {
+          
+        // }
         const errText = await response.text().catch(() => "Request failed");
         const error = new Error(`HTTP ${response.status}: ${errText}`);
         this.log(error, context || endpoint);

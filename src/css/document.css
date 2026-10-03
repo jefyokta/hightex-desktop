@@ -86,6 +86,9 @@ div > img,
 img {
   break-inside: avoid !important;
 }
+div > img {
+  max-width: 100% !important;
+}
 .introduction {
   page: introduction;
   counter-reset: page 2;

@@ -151,6 +151,7 @@ declare global {
       onChange?: (cb: (u: User | false) => void) => () => void;
     };
     file: FileApi;
+    editor:EditorAPI;
     hightex: {
       document(): Promise<{ document: HighTexDocument }>;
       prefetch(): Promise<void>;
@@ -275,5 +276,9 @@ declare global {
     openPath(path: string): Promise<string>;
     showInFolder(path: string): Promise<void>;
     openFolder(folderPath: string): Promise<void>;
+  }
+
+  interface EditorAPI{
+  open(documentId:string):Promise<void>
   }
 }
