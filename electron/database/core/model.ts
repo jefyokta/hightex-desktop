@@ -12,7 +12,6 @@ import {
 } from "../relation";
 import { Grammar } from "../builder/grammar";
 
-
 export abstract class Model<
   T extends Record<string, any>,
   R extends Record<string, Relation> = {},
@@ -20,10 +19,10 @@ export abstract class Model<
 > implements Queryable<T> {
   protected static relations: Record<string, Relation> = {};
 
-  protected  static TABLENAME = ''
+  protected static TABLENAME = "";
 
   protected connection: Database.Database = Connection.get();
-  protected _tableName: string = '';
+  protected _tableName: string = "";
   protected primaryKeyType: "INTEGER" | "TEXT" = "INTEGER";
   protected serialable = true;
   protected columnMutator: Partial<Record<Col<T>, (val: any) => any>> = {};
@@ -33,8 +32,8 @@ export abstract class Model<
     ColumnDefinition
   >;
 
-  public get tableName(){
-    return this._tableName
+  public get tableName() {
+    return this._tableName;
   }
 
   protected attribute: Partial<T> = {};
@@ -76,10 +75,8 @@ export abstract class Model<
       this.primaryKeyType,
     );
 
-    const sql =`CREATE TABLE IF NOT EXISTS ${this.tableName} (${cols});`;
-    this.connection
-      .prepare(sql)
-      .run();
+    const sql = `CREATE TABLE IF NOT EXISTS ${this.tableName} (${cols});`;
+    this.connection.prepare(sql).run();
   };
 
   with<K extends keyof R & string>(
@@ -119,12 +116,14 @@ export abstract class Model<
     } else if (relation instanceof HasOne) {
       const own = relation.ownerId ?? pk;
       const fk =
-        relation.foreignId ?? `${new Grammar().singularize(this.tableName.toLowerCase())}Id`;
+        relation.foreignId ??
+        `${new Grammar().singularize(this.tableName.toLowerCase())}Id`;
       this._select.join(other, `${self}.${own} = ${other}.${fk}`);
     } else if (relation instanceof HasMany) {
       const own = relation.ownerId ?? pk;
       const fk =
-        relation.foreignId ?? `${new Grammar().singularize(this.tableName.toLowerCase())}Id`;
+        relation.foreignId ??
+        `${new Grammar().singularize(this.tableName.toLowerCase())}Id`;
       this._select.leftJoin(other, `${self}.${own} = ${other}.${fk}`);
     } else if (relation instanceof BelongsToMany) {
       const pivot = relation.pivotTable;

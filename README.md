@@ -33,7 +33,7 @@ The goal is simple: help students focus on writing their thesis instead of fight
 
 ## Why HighTex?
 
-> HighTex, ***High-Level of LaTeX***
+> HighTex, **_High-Level of LaTeX_**
 
 HighTex started as my final-year project in the Information Systems program at UIN Sultan Syarif Kasim Riau.
 
@@ -49,7 +49,7 @@ The project started as a web application and later evolved into a desktop applic
 
 The name came before the current design of the application.
 
-My thesis originally aimed to make writing with LaTeX easier. The first idea was to parse HTML into LaTeX code and let a LaTeX compiler generate the PDF, hence *High-Level of LaTeX*. My advisor rejected that approach: there was no need for a LaTeX compiler, as long as the document stays formatted as it is.
+My thesis originally aimed to make writing with LaTeX easier. The first idea was to parse HTML into LaTeX code and let a LaTeX compiler generate the PDF, hence _High-Level of LaTeX_. My advisor rejected that approach: there was no need for a LaTeX compiler, as long as the document stays formatted as it is.
 
 So the compilation step was replaced with browser-generated PDFs. I kept the name, even though LaTeX is no longer part of the application's core process.
 

@@ -151,6 +151,7 @@ declare global {
       onChange?: (cb: (u: User | false) => void) => () => void;
     };
     file: FileApi;
+    editor: EditorAPI;
     hightex: {
       document(): Promise<{ document: HighTexDocument }>;
       prefetch(): Promise<void>;
@@ -174,6 +175,19 @@ declare global {
         error?: any;
       }): Promise<void>;
       snapshot: SnapshotApi;
+      cloud: {
+        pull(docId?: string, sha256?: string): Promise<PullResponse>;
+        push(
+          file: Uint8Array,
+          hash: string,
+          document: HighTexDocument,
+          message:string,
+          force?: boolean,
+        ): Promise<PushResponse>;
+        list(): Promise<CommitListResponse>;
+        link(serverId: string, localId: string): Promise<void>;
+        resolve(serverId: string): Promise<string | undefined>;
+      };
     };
 
     config: ConfigAPI;
@@ -275,5 +289,9 @@ declare global {
     openPath(path: string): Promise<string>;
     showInFolder(path: string): Promise<void>;
     openFolder(folderPath: string): Promise<void>;
+  }
+
+  interface EditorAPI {
+    open(documentId: string): Promise<void>;
   }
 }

@@ -33,7 +33,7 @@ Tujuannya sederhana: membantu mahasiswa fokus menulis tugas akhir, bukan berkuta
 
 ## Kenapa HighTex?
 
-> HighTex, ***High-Level of LaTeX***
+> HighTex, **_High-Level of LaTeX_**
 
 HighTex berawal dari proyek akhir saya di program studi Sistem Informasi, UIN Sultan Syarif Kasim Riau.
 
@@ -49,7 +49,7 @@ Proyek ini awalnya berupa aplikasi web, lalu berkembang menjadi aplikasi desktop
 
 Nama ini lahir sebelum rancangan aplikasi yang sekarang.
 
-Skripsi saya awalnya bertujuan mempermudah penulisan dengan LaTeX. Ide pertamanya adalah mengubah HTML menjadi kode LaTeX, lalu PDF-nya dihasilkan oleh compiler LaTeX, karena itu namanya *High-Level of LaTeX*. Dosen pembimbing saya menolak pendekatan itu: compiler LaTeX tidak diperlukan, yang penting dokumen tetap terformat sesuai standar.
+Skripsi saya awalnya bertujuan mempermudah penulisan dengan LaTeX. Ide pertamanya adalah mengubah HTML menjadi kode LaTeX, lalu PDF-nya dihasilkan oleh compiler LaTeX, karena itu namanya _High-Level of LaTeX_. Dosen pembimbing saya menolak pendekatan itu: compiler LaTeX tidak diperlukan, yang penting dokumen tetap terformat sesuai standar.
 
 Jadi proses kompilasi diganti dengan PDF yang dihasilkan browser. Nama HighTex tetap saya pakai, meskipun LaTeX sudah tidak menjadi bagian inti dari proses aplikasi.
 

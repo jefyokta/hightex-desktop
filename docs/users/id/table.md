@@ -8,11 +8,11 @@ Standalone Table adalah tabel berbentuk grid yang digunakan untuk **layouting** 
 
 Karakteristik:
 
-* Tidak memiliki border.
-* Tidak memiliki header.
-* Tidak memiliki caption.
-* Tidak perlu dirujuk di dalam dokumen.
-* Digunakan hanya untuk kebutuhan layouting.
+- Tidak memiliki border.
+- Tidak memiliki header.
+- Tidak memiliki caption.
+- Tidak perlu dirujuk di dalam dokumen.
+- Digunakan hanya untuk kebutuhan layouting.
 
 ## Figure Table
 
@@ -20,10 +20,10 @@ Figure Table digunakan untuk tabel yang merupakan bagian dari isi dokumen dan pe
 
 Karakteristik:
 
-* Wajib memiliki header.
-* Memiliki caption.
-* Wajib dirujuk apabila digunakan sebagai referensi di dalam dokumen.
-* Memiliki penomoran tabel secara otomatis.
+- Wajib memiliki header.
+- Memiliki caption.
+- Wajib dirujuk apabila digunakan sebagai referensi di dalam dokumen.
+- Memiliki penomoran tabel secara otomatis.
 
 ### Shortcut
 

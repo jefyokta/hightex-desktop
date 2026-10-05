@@ -69,13 +69,14 @@ export const Dashboard = () => {
     try {
       const manifest = (await HighTexImporter.create(file)).manifest;
 
-      const { id , title } = manifest.document
-      const exitst = await HighTexDB.getInstance().documents.get(id)
+      const { id, title } = manifest.document;
+      const exitst = await HighTexDB.getInstance().documents.get(id);
 
       if (exitst) {
-
-        const confirmed = await confirm(`Document '${truncate(title.main,10)}' is already exists wanna override it`);
-        if (!confirmed) return
+        const confirmed = await confirm(
+          `Document '${truncate(title.main, 10)}' is already exists wanna override it`,
+        );
+        if (!confirmed) return;
       }
       const importedDocument =
         manifest.schema_version == 1

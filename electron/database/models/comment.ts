@@ -8,9 +8,9 @@ type CommentRelation = {
 };
 export class Comment extends Model<CommentEntity, CommentRelation> {
   protected primaryKeyType = "TEXT" as const;
-  protected static TABLENAME: string = 'comments';
+  protected static TABLENAME: string = "comments";
 
-  protected _tableName: string =Comment.TABLENAME;
+  protected _tableName: string = Comment.TABLENAME;
   public get tableName(): string {
     return Comment.TABLENAME;
   }

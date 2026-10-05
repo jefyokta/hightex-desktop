@@ -1,4 +1,3 @@
-
 import { describe, expect, test } from "bun:test";
 
 const images = new Map<string, ImageRecord>();
@@ -21,9 +20,7 @@ async function saveImage(blob: Blob, documentId: string): Promise<string> {
   );
 
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const id = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const id = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
   const record: ImageRecord = {
     id,
@@ -60,15 +57,9 @@ describe("HighTexDB.saveImage", () => {
   test("returns the same id for the same content", async () => {
     images.clear();
 
-    const id1 = await saveImage(
-      new Blob(["same content"]),
-      "document-1",
-    );
+    const id1 = await saveImage(new Blob(["same content"]), "document-1");
 
-    const id2 = await saveImage(
-      new Blob(["same content"]),
-      "document-2",
-    );
+    const id2 = await saveImage(new Blob(["same content"]), "document-2");
 
     expect(id1).toBe(id2);
   });
@@ -76,17 +67,10 @@ describe("HighTexDB.saveImage", () => {
   test("returns different ids for different content", async () => {
     images.clear();
 
-    const id1 = await saveImage(
-      new Blob(["image one"]),
-      "document-1",
-    );
+    const id1 = await saveImage(new Blob(["image one"]), "document-1");
 
-    const id2 = await saveImage(
-      new Blob(["image two"]),
-      "document-1",
-    );
+    const id2 = await saveImage(new Blob(["image two"]), "document-1");
 
     expect(id1).not.toBe(id2);
   });
 });
-

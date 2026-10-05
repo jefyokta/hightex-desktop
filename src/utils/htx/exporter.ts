@@ -38,15 +38,10 @@ export class Exporter {
     const configExport = window.config.get()?.export;
     const fileName = `${document.title.replace(/[^a-zA-Z0-9-_\. ]/g, "-")}.${this.options.ext}`;
 
-    return await window.ipcRenderer.invoke(
-      "hightex:export",
-      buffer,
-      fileName,
-      {
-        showDialog: configExport?.saveDialog ?? false,
-        defaultFolder: configExport?.saveFolder,
-      },
-    );
+    return await window.ipcRenderer.invoke("hightex:export", buffer, fileName, {
+      showDialog: configExport?.saveDialog ?? false,
+      defaultFolder: configExport?.saveFolder,
+    });
   }
 
   /**
@@ -80,10 +75,7 @@ export class Exporter {
 
     this.scheme.writter.setContentFormat(this.options.format);
 
-    const manifest = this.scheme.createManifest(
-      document,
-      this.options.format,
-    );
+    const manifest = this.scheme.createManifest(document, this.options.format);
 
     this.scheme.writter.putManifest(manifest);
 
@@ -145,8 +137,7 @@ export class Exporter {
     const jsonEntries = Object.entries(entries)
       .filter(
         ([name]) =>
-          name.endsWith(".json") &&
-          !name.endsWith("meta/export.json"),
+          name.endsWith(".json") && !name.endsWith("meta/export.json"),
       )
       .sort(([a], [b]) => a.localeCompare(b));
 
@@ -157,10 +148,7 @@ export class Exporter {
       new Uint8Array([0]),
     ]);
 
-    const totalLength = parts.reduce(
-      (total, part) => total + part.length,
-      0,
-    );
+    const totalLength = parts.reduce((total, part) => total + part.length, 0);
 
     const input = new Uint8Array(totalLength);
 
@@ -207,9 +195,8 @@ export class Exporter {
     }[] = [];
 
     for (const chapter of chapters) {
-      const content = (
-        await this.db.chapters.get(`${docId}.${chapter}`)
-      )?.content;
+      const content = (await this.db.chapters.get(`${docId}.${chapter}`))
+        ?.content;
 
       if (content) {
         tmp.push({

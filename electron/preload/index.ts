@@ -89,21 +89,36 @@ contextBridge.exposeInMainWorld("hightex", {
     return ipcRenderer.invoke("hightex:report-error", payload);
   },
   async saveContentError(props) {
-    ipcRenderer.invoke("content:error",props);
+    ipcRenderer.invoke("content:error", props);
   },
-  snapshot:{
+  snapshot: {
     document(documentId) {
-      return ipcRenderer.invoke("snapshots:document",documentId)
+      return ipcRenderer.invoke("snapshots:document", documentId);
     },
     all() {
-      return (ipcRenderer.invoke("snapshots")??[] ) as any;
+      return (ipcRenderer.invoke("snapshots") ?? []) as any;
     },
     get(snapId) {
-      return ipcRenderer.invoke("snapshot",snapId)
+      return ipcRenderer.invoke("snapshot", snapId);
     },
-
   },
-
+  cloud: {
+    push(...args) {
+      return ipcRenderer.invoke("hightex:document:push", ...args);
+    },
+    pull(docId?: string, sha256?: string) {
+      return ipcRenderer.invoke("hightex:document:pull", docId, sha256);
+    },
+    list() {
+      return ipcRenderer.invoke("hightex:document:commits");
+    },
+    link(serverId: string, localId: string) {
+      return ipcRenderer.invoke("hightex:document:alias:set", serverId, localId);
+    },
+    resolve(serverId: string): Promise<string | undefined> {
+      return ipcRenderer.invoke("hightex:document:alias:get", serverId);
+    },
+  },
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {
   user: () => {
@@ -227,12 +242,11 @@ contextBridge.exposeInMainWorld("profile", {
     return ipcRenderer.invoke("profile:reset");
   },
   picture() {
-    return ipcRenderer.invoke("profile:picture")
+    return ipcRenderer.invoke("profile:picture");
   },
-  setPicture(blob){
-     return ipcRenderer.invoke("profile:picture.set",blob)
-  }
-  
+  setPicture(blob) {
+    return ipcRenderer.invoke("profile:picture.set", blob);
+  },
 } satisfies Window["profile"]);
 
 contextBridge.exposeInMainWorld("sharing", {
@@ -269,14 +283,18 @@ contextBridge.exposeInMainWorld("file", {
     return ipcRenderer.invoke("file:save", fileName, file);
   },
   showInFolder(path) {
-  return ipcRenderer.invoke("fs:open.in_folder",path)
-
+    return ipcRenderer.invoke("fs:open.in_folder", path);
   },
   openPath(path) {
-    return ipcRenderer.invoke("fs:open",path)
+    return ipcRenderer.invoke("fs:open", path);
   },
   openFolder(folderPath) {
-    return ipcRenderer.invoke("fs:folder",folderPath)
-    
+    return ipcRenderer.invoke("fs:folder", folderPath);
   },
 } satisfies Window["file"]);
+
+contextBridge.exposeInMainWorld("editor", {
+  open(documentId: string) {
+    return ipcRenderer.invoke("editor:open", documentId);
+  },
+} satisfies Window["editor"]);

@@ -74,7 +74,7 @@ export const Splash: React.FC = () => {
   useEffect(() => {
     window.hightex.categories().then((e) => {
       if (!e?.length) {
-        throw CategoryEmpty;
+        throw new CategoryEmpty();
       }
     });
   });

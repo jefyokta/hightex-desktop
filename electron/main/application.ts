@@ -33,6 +33,7 @@ import { IPCMain } from "@main/utilities/ipc-main";
 import { firstInstalled } from "@main/utilities/first-installed";
 import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
 import { FileSystemHandler } from "@main/handlers/file-system-handler";
+import { EditorHandler } from "@main/handlers/editor-handler";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -198,9 +199,9 @@ export class Application {
       }
     });
 
-    app.on("open-url",(_,url)=>{
+    app.on("open-url", (_, url) => {
       console.log(url);
-    })
+    });
 
     this.win.webContents.on("did-finish-load", () => {
       if (this.windowOptions.show) {
@@ -233,6 +234,7 @@ export class Application {
   private async onReady() {
     await this.prepareCoreServices();
     this.registerHandlers();
+    EditorHandler.register();
     this.registerUpdater();
     await this.createWindow();
     this.registerContextMenu();
@@ -322,7 +324,7 @@ export class Application {
     ZoteroHandler.register();
     DocumentErrorHandler.register();
     SharingHandler.register();
-    FileSystemHandler.register()
+    FileSystemHandler.register();
   }
 
   private registerUpdater() {
