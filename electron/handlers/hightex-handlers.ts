@@ -10,6 +10,8 @@ import { CategoryService } from "../service/category-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 import { ShouldSilent } from "@main/exception/should-silent";
 import { ConfigService } from "@main/service/config-service";
+import { DocumentService } from "@main/service/document-service";
+import { DocumentAliasService } from "@main/service/document-alias-service";
 
 export class HighTexHandler {
   private static store = new Store();
@@ -115,11 +117,11 @@ export class HighTexHandler {
       return app.getVersion();
     });
 
-   IPCMain.handle(
-    "hightex:report-error",
-    async (_event, payload: { title: string; description: string }) => {
-      try {
-        const description = `
+    IPCMain.handle(
+      "hightex:report-error",
+      async (_event, payload: { title: string; description: string }) => {
+        try {
+          const description = `
   ## Description
 
   ${payload.description}
@@ -136,19 +138,19 @@ export class HighTexHandler {
   | Node.js | ${process.versions.node} |
   `;
 
-        return await ServerService.request("/issues", {
-          method: "POST",
-          body: JSON.stringify({
-            title: `${payload.title} - HighTex Desktop ${app.getVersion()}`,
-            description,
-          }),
-        });
-      } catch (err) {
-        LoggerService.write(err, "hightex:report-error");
-        throw err;
-      }
-    },
-  );
+          return await ServerService.request("/issues", {
+            method: "POST",
+            body: JSON.stringify({
+              title: `${payload.title} - HighTex Desktop ${app.getVersion()}`,
+              description,
+            }),
+          });
+        } catch (err) {
+          LoggerService.write(err, "hightex:report-error");
+          throw err;
+        }
+      },
+    );
     IPCMain.handle("dialog:select-folder", async () => {
       const result = await dialog.showOpenDialog({
         title: "Select default export folder",
@@ -166,12 +168,37 @@ export class HighTexHandler {
       return DocumentProfileService.get();
     });
 
-    IPCMain.handle("hightex:document:pull", (_, up?: string) => {
-      return ServerService.request(
-        "/document/content".concat(up ? `?updated_at=${up}` : ""),
-      );
+    IPCMain.handle(
+      "hightex:document:pull",
+      (_, doc?: string, sha256?: string) => {
+        return DocumentService.pull(doc, sha256);
+      },
+    );
+    IPCMain.handle(
+      "hightex:document:push",
+      (
+        _,
+        file: Uint8Array,
+        hash: string,
+        doc: HighTexDocument,
+        message: string,
+        force = false,
+      ) => {
+        return DocumentService.push(file, hash, doc,message, force);
+      },
+    );
+    IPCMain.handle("hightex:document:commits", () => {
+      return DocumentService.listCommits();
     });
-
+    IPCMain.handle(
+      "hightex:document:alias:set",
+      (_, serverId: string, localId: string) => {
+        DocumentAliasService.link(serverId, localId);
+      },
+    );
+    IPCMain.handle("hightex:document:alias:get", (_, serverId: string) => {
+      return DocumentAliasService.resolve(serverId);
+    });
     IPCMain.handle(
       "hightex:export",
       async (

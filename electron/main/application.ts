@@ -199,9 +199,9 @@ export class Application {
       }
     });
 
-    app.on("open-url",(_,url)=>{
+    app.on("open-url", (_, url) => {
       console.log(url);
-    })
+    });
 
     this.win.webContents.on("did-finish-load", () => {
       if (this.windowOptions.show) {
@@ -234,7 +234,7 @@ export class Application {
   private async onReady() {
     await this.prepareCoreServices();
     this.registerHandlers();
-    EditorHandler.register()
+    EditorHandler.register();
     this.registerUpdater();
     await this.createWindow();
     this.registerContextMenu();
@@ -324,7 +324,7 @@ export class Application {
     ZoteroHandler.register();
     DocumentErrorHandler.register();
     SharingHandler.register();
-    FileSystemHandler.register()
+    FileSystemHandler.register();
   }
 
   private registerUpdater() {

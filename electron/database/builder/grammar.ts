@@ -20,8 +20,7 @@ class IrregularRule implements PluralRule, SingularRule {
     const lower = word.toLowerCase();
 
     return (
-      lower in this.irregulars ||
-      Object.values(this.irregulars).includes(lower)
+      lower in this.irregulars || Object.values(this.irregulars).includes(lower)
     );
   }
 
@@ -147,16 +146,12 @@ export class Grammar {
   public pluralize(word: string): string {
     const matchedRule = this.pluralRules.find((rule) => rule.isMatch(word));
 
-    return matchedRule
-      ? matchedRule.apply(word)
-      : word.toLowerCase();
+    return matchedRule ? matchedRule.apply(word) : word.toLowerCase();
   }
 
   public singularize(word: string): string {
     const matchedRule = this.singularRules.find((rule) => rule.isMatch(word));
 
-    return matchedRule
-      ? matchedRule.apply(word)
-      : word.toLowerCase();
+    return matchedRule ? matchedRule.apply(word) : word.toLowerCase();
   }
 }

@@ -6,7 +6,6 @@ class Storage<T> {
   constructor(private name: string) {
     this.store = new ElectronStore();
   }
-  
 
   get(): T | undefined {
     return this.store.get(this.name) as T | undefined;

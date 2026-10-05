@@ -15,9 +15,6 @@ mock.module("../src/editor/storage/index.ts", () => ({
   },
 }));
 
-
-
-
 test("parseBibtexInput normalizes keys and parses valid BibTeX entries", () => {
   const bib = `@article{My Key 1,
   author={Jane Doe},

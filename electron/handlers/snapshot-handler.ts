@@ -4,7 +4,7 @@ import { IPCMain } from "@main/utilities/ipc-main";
 
 /**
  * todo: make typed api instead
- * implemented on 
+ * implemented on
  * @file src/pages/snapshot-viewer.tsx
  */
 export class SnapshotHandler {
@@ -19,11 +19,11 @@ export class SnapshotHandler {
       }).find(id);
     });
 
-    IPCMain.handle("snapshots:document",(_,docId:string)=>{
-      return Snapshot.with("comments",q=>q.select("*"))
-      .where("documentId",docId)
-      .get()
-    })
+    IPCMain.handle("snapshots:document", (_, docId: string) => {
+      return Snapshot.with("comments", (q) => q.select("*"))
+        .where("documentId", docId)
+        .get();
+    });
 
     IPCMain.handle("snapshot:view", (_, id: string) => {
       const snapshot = Snapshot.find(id);

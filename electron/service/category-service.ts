@@ -40,7 +40,7 @@ export class CategoryService extends HasStorage<string> {
 
       this.instance()
         .getStorage()
-        .set(JSON.stringify({ data: categories}));
+        .set(JSON.stringify({ data: categories }));
 
       return categories;
     } catch (err) {
@@ -63,15 +63,15 @@ export class CategoryService extends HasStorage<string> {
 
     return data.map((d) => ({
       ...d,
-      chapters: typeof d.chapters == 'string' ? JSON.parse(d.chapters) as Category["chapters"] :d.chapters,
+      chapters:
+        typeof d.chapters == "string"
+          ? (JSON.parse(d.chapters) as Category["chapters"])
+          : d.chapters,
     })) as Category[];
   }
 
   private static async getBackup(): Promise<Category[]> {
-    const filePath = path.join(
-      process.resourcesPath,
-      "category-backup.json",
-    );
+    const filePath = path.join(process.resourcesPath, "category-backup.json");
 
     const raw = await readFile(filePath, "utf8");
 

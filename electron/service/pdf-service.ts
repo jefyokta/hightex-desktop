@@ -57,9 +57,7 @@ export class PDFService {
       recursive: true,
     });
 
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/[:.]/g, "-");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 
     const loggerFile = path.join(
       PDFService.loggerDir,
@@ -74,21 +72,14 @@ export class PDFService {
   }
 
   private get timeout(): number {
-    const usrTimeOut = Number(
-      ConfigService.get().export.exportTimeout,
-    );
+    const usrTimeOut = Number(ConfigService.get().export.exportTimeout);
 
-    return isNaN(usrTimeOut) ||
-      usrTimeOut === 0 ||
-      usrTimeOut === Infinity
+    return isNaN(usrTimeOut) || usrTimeOut === 0 || usrTimeOut === Infinity
       ? PDFService.DEFAULT_EXPORT_TIME_OUT
       : usrTimeOut;
   }
 
-  private attachConsoleLogger(
-    win: BrowserWindow,
-    loggerFile: string,
-  ) {
+  private attachConsoleLogger(win: BrowserWindow, loggerFile: string) {
     const listener = (
       _event: Electron.Event,
       level: number,
@@ -109,33 +100,21 @@ export class PDFService {
 
       void LoggerService.writeAsync(
         loggerFile,
-        `[${levelName}] ${message}\n` +
-          `  at ${sourceId}:${line}\n\n`,
+        `[${levelName}] ${message}\n` + `  at ${sourceId}:${line}\n\n`,
       );
     };
 
     win.webContents.on("console-message", listener);
 
     return () => {
-      win.webContents.removeListener(
-        "console-message",
-        listener,
-      );
+      win.webContents.removeListener("console-message", listener);
     };
   }
 
-  private async prepareLogger(
-    win: BrowserWindow,
-    docId: string,
-  ) {
-    const loggerFile =
-      await this.createLoggerFile(docId);
+  private async prepareLogger(win: BrowserWindow, docId: string) {
+    const loggerFile = await this.createLoggerFile(docId);
 
-    const detachLogger =
-      this.attachConsoleLogger(
-        win,
-        loggerFile,
-      );
+    const detachLogger = this.attachConsoleLogger(win, loggerFile);
 
     return {
       loggerFile,
@@ -143,43 +122,20 @@ export class PDFService {
     };
   }
 
-  private async loadPrintView(
-    win: BrowserWindow,
-    docId: string,
-  ) {
-    const url =
-      Application.instance.resolveRendererUrl(
-        `document/${docId}/print${
-          this.waterMark ? "/true" : ""
-        }`,
-      );
-
-    await new Promise<void>(
-      (resolve, reject) => {
-        win.webContents.once(
-          "did-finish-load",
-          () => resolve(),
-        );
-
-        win.webContents.once(
-          "did-fail-load",
-          (
-            _event,
-            code,
-            desc,
-            failedUrl,
-          ) => {
-            reject(
-              new Error(
-                `Print failed: ${desc} (${code}) ${failedUrl}`,
-              ),
-            );
-          },
-        );
-
-        win.loadURL(url).catch(reject);
-      },
+  private async loadPrintView(win: BrowserWindow, docId: string) {
+    const url = Application.instance.resolveRendererUrl(
+      `document/${docId}/print${this.waterMark ? "/true" : ""}`,
     );
+
+    await new Promise<void>((resolve, reject) => {
+      win.webContents.once("did-finish-load", () => resolve());
+
+      win.webContents.once("did-fail-load", (_event, code, desc, failedUrl) => {
+        reject(new Error(`Print failed: ${desc} (${code}) ${failedUrl}`));
+      });
+
+      win.loadURL(url).catch(reject);
+    });
   }
 
   private applyMetadata(
@@ -188,25 +144,18 @@ export class PDFService {
     docId: string,
   ) {
     const safeTitle =
-      exportPayload.title?.replace(
-        /<[^>]*>/g,
-        "",
-      ) ?? "Untitled";
+      exportPayload.title?.replace(/<[^>]*>/g, "") ?? "Untitled";
 
     pdfDoc.setTitle(safeTitle);
 
-    pdfDoc.setAuthor(
-      exportPayload.author ?? "HighTeX",
-    );
+    pdfDoc.setAuthor(exportPayload.author ?? "HighTeX");
 
     pdfDoc.setSubject(
       JSON.stringify({
         producer: "HighTex",
         docId,
-        chapters:
-          exportPayload.chapters ?? [],
-        hasWm:
-          exportPayload.hasWm ?? false,
+        chapters: exportPayload.chapters ?? [],
+        hasWm: exportPayload.hasWm ?? false,
         detail: exportPayload.detail,
       }),
     );
@@ -214,9 +163,7 @@ export class PDFService {
     pdfDoc.setCreator("HighTex");
     pdfDoc.setProducer("HighTex");
 
-    pdfDoc.setKeywords(
-      exportPayload.keywords || [],
-    );
+    pdfDoc.setKeywords(exportPayload.keywords || []);
 
     pdfDoc.setCreationDate(new Date());
   }
@@ -225,61 +172,36 @@ export class PDFService {
     win: BrowserWindow,
     exportPayload: ExportPayload,
     docId: string,
-    progress?: (
-      message: string,
-      value?: number,
-    ) => void,
+    progress?: (message: string, value?: number) => void,
   ) {
-    progress?.(
-      "Generating PDF...",
-      70,
-    );
+    progress?.("Generating PDF...", 70);
 
-    const pdfBuffer =
-      await win.webContents.printToPDF({
-        printBackground: true,
-        preferCSSPageSize: false,
-        pageSize: "A4",
-        displayHeaderFooter: false,
-        margins: {
-          top: 0,
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
-      });
+    const pdfBuffer = await win.webContents.printToPDF({
+      printBackground: true,
+      preferCSSPageSize: false,
+      pageSize: "A4",
+      displayHeaderFooter: false,
+      margins: {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      },
+    });
 
-    progress?.(
-      "Applying metadata...",
-      85,
-    );
+    progress?.("Applying metadata...", 85);
 
-    const pdfDoc =
-      await PDFDocument.load(
-        pdfBuffer,
-        {
-          ignoreEncryption: true,
-        },
-      );
+    const pdfDoc = await PDFDocument.load(pdfBuffer, {
+      ignoreEncryption: true,
+    });
 
-    this.applyMetadata(
-      pdfDoc,
-      exportPayload,
-      docId,
-    );
+    this.applyMetadata(pdfDoc, exportPayload, docId);
 
-    progress?.(
-      "Finalizing...",
-      95,
-    );
+    progress?.("Finalizing...", 95);
 
-    const finalPdf =
-      await pdfDoc.save();
+    const finalPdf = await pdfDoc.save();
 
-    progress?.(
-      "Finalizing...",
-      100,
-    );
+    progress?.("Finalizing...", 100);
 
     return finalPdf;
   }
@@ -288,144 +210,90 @@ export class PDFService {
     docId: string,
     win: BrowserWindow,
   ): Promise<ExportPayload> {
-    const channel =
-      this.channel(docId);
+    const channel = this.channel(docId);
 
-    const renderedChannel =
-      `page:rendered:${docId}`;
+    const renderedChannel = `page:rendered:${docId}`;
 
-    const errorChannel =
-      `page:error:${docId}`;
+    const errorChannel = `page:error:${docId}`;
 
-    return new Promise(
-      (resolve, reject) => {
-        const cleanup = () => {
-          clearTimeout(timeout);
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timeout);
 
-          ipcMain.removeAllListeners(
-            channel,
+        ipcMain.removeAllListeners(channel);
+
+        ipcMain.removeAllListeners(renderedChannel);
+
+        ipcMain.removeAllListeners(errorChannel);
+      };
+
+      const timeout = setTimeout(() => {
+        cleanup();
+
+        reject(
+          new ExportTimeout({
+            docId,
+            timeout: this.timeout,
+            logFile: this.logFile,
+          }),
+        );
+      }, this.timeout);
+
+      ipcMain.once(channel, (_event, payload) => {
+        cleanup();
+        resolve(payload);
+      });
+
+      ipcMain.once(renderedChannel, async () => {
+        try {
+          const payload = await win.webContents.executeJavaScript(
+            `window.__hightexExportPayload || null`,
+            true,
           );
 
-          ipcMain.removeAllListeners(
-            renderedChannel,
-          );
+          cleanup();
 
-          ipcMain.removeAllListeners(
-            errorChannel,
-          );
-        };
+          if (payload) {
+            resolve(payload as ExportPayload);
+          } else {
+            reject(new Error(`No export payload for docId: ${docId}`));
+          }
+        } catch (err) {
+          cleanup();
+          reject(err);
+        }
+      });
 
-        const timeout = setTimeout(
-          () => {
-            cleanup();
+      ipcMain.once(errorChannel, (_event, message: string) => {
+        cleanup();
+        reject(new Error(message));
+      });
 
-            reject(
-              new ExportTimeout({
-                docId,
-                timeout: this.timeout,
-                logFile: this.logFile,
-              }),
-            );
-          },
-          this.timeout,
-        );
+      win.webContents.once("render-process-gone", (_event, details) => {
+        cleanup();
 
-        ipcMain.once(
-          channel,
-          (_event, payload) => {
-            cleanup();
-            resolve(payload);
-          },
-        );
-
-        ipcMain.once(
-          renderedChannel,
-          async () => {
-            try {
-              const payload =
-                await win.webContents.executeJavaScript(
-                  `window.__hightexExportPayload || null`,
-                  true,
-                );
-
-              cleanup();
-
-              if (payload) {
-                resolve(
-                  payload as ExportPayload,
-                );
-              } else {
-                reject(
-                  new Error(
-                    `No export payload for docId: ${docId}`,
-                  ),
-                );
-              }
-            } catch (err) {
-              cleanup();
-              reject(err);
-            }
-          },
-        );
-
-        ipcMain.once(
-          errorChannel,
-          (_event, message: string) => {
-            cleanup();
-            reject(
-              new Error(message),
-            );
-          },
-        );
-
-        win.webContents.once(
-          "render-process-gone",
-          (_event, details) => {
-            cleanup();
-
-            reject(
-              new Error(
-                `Renderer process crashed: ${details.reason}`,
-              ),
-            );
-          },
-        );
-      },
-    );
+        reject(new Error(`Renderer process crashed: ${details.reason}`));
+      });
+    });
   }
 
-  async generateHtml(
-    docId: string,
-  ): Promise<{
+  async generateHtml(docId: string): Promise<{
     html: string;
     css: string;
   }> {
     const win = this.createWindow();
 
-    const {
-      detachLogger,
-    } = await this.prepareLogger(
-      win,
-      docId,
-    );
+    const { detachLogger } = await this.prepareLogger(win, docId);
 
     try {
-      const exportPayloadPromise =
-        this.waitForExport(
-          docId,
-          win,
-        );
+      const exportPayloadPromise = this.waitForExport(docId, win);
 
-      await this.loadPrintView(
-        win,
-        docId,
-      );
+      await this.loadPrintView(win, docId);
 
       await exportPayloadPromise;
 
-      const snapshot =
-        await win.webContents.executeJavaScript(
-          `
+      const snapshot = await win.webContents.executeJavaScript(
+        `
           (() => {
             const html =
               document.querySelector(".pagedjs_pages")
@@ -441,18 +309,15 @@ export class PDFService {
             return { html, css };
           })()
           `,
-          true,
-        );
+        true,
+      );
 
       return snapshot as {
         html: string;
         css: string;
       };
     } catch (error) {
-      LoggerService.write(
-        error,
-        "generate:html",
-      );
+      LoggerService.write(error, "generate:html");
 
       throw error;
     } finally {
@@ -461,89 +326,47 @@ export class PDFService {
     }
   }
 
-  async generateSilently(
-    docId: string,
-  ) {
+  async generateSilently(docId: string) {
     const win = this.createWindow();
 
-    const {
-      detachLogger,
-    } = await this.prepareLogger(
-      win,
-      docId,
-    );
+    const { detachLogger } = await this.prepareLogger(win, docId);
 
     try {
-      const url =
-        Application.instance.resolveRendererUrl(
-          `document/${docId}/print${
-            this.waterMark
-              ? "/true"
-              : ""
-          }`,
-        );
-
-      const exportPayloadPromise =
-        this.waitForExport(
-          docId,
-          win,
-        );
-
-      await new Promise<void>(
-        async (resolve, reject) => {
-          win.webContents.once(
-            "did-finish-load",
-            () => resolve(),
-          );
-
-          win.webContents.once(
-            "did-fail-load",
-            (
-              _event,
-              code,
-              desc,
-              failedUrl,
-            ) => {
-              reject(
-                new Error(
-                  `Print failed: ${desc} (${code}) ${failedUrl}`,
-                ),
-              );
-            },
-          );
-
-          win.loadURL(url).catch(reject);
-
-          await win.webContents.executeJavaScript(`
-            window.sharingMode = true;
-          `);
-        },
+      const url = Application.instance.resolveRendererUrl(
+        `document/${docId}/print${this.waterMark ? "/true" : ""}`,
       );
 
-      const exportPayload =
-        await exportPayloadPromise;
+      const exportPayloadPromise = this.waitForExport(docId, win);
 
-      return await this.createPdf(
-        win,
-        exportPayload,
-        docId,
-      );
-    } catch (error) {
-      if (
-        error instanceof ExportTimeout
-      ) {
-        return this.window?.webContents.send(
-          "error",
-          {
-            error,
-            name: "export-timeout",
+      await new Promise<void>(async (resolve, reject) => {
+        win.webContents.once("did-finish-load", () => resolve());
+
+        win.webContents.once(
+          "did-fail-load",
+          (_event, code, desc, failedUrl) => {
+            reject(new Error(`Print failed: ${desc} (${code}) ${failedUrl}`));
           },
         );
+
+        win.loadURL(url).catch(reject);
+
+        await win.webContents.executeJavaScript(`
+            window.sharingMode = true;
+          `);
+      });
+
+      const exportPayload = await exportPayloadPromise;
+
+      return await this.createPdf(win, exportPayload, docId);
+    } catch (error) {
+      if (error instanceof ExportTimeout) {
+        return this.window?.webContents.send("error", {
+          error,
+          name: "export-timeout",
+        });
       }
 
-      throw new ShouldSilent(
-        String(error),
-      );
+      throw new ShouldSilent(String(error));
     } finally {
       detachLogger();
       this.destroyWindow(win);
@@ -552,86 +375,43 @@ export class PDFService {
 
   async generate(
     docId: string,
-    progress?: (
-      message: string,
-      value?: number,
-    ) => void,
+    progress?: (message: string, value?: number) => void,
   ) {
     const win = this.createWindow();
 
-    const {
-      detachLogger,
-    } = await this.prepareLogger(
-      win,
-      docId,
-    );
+    const { detachLogger } = await this.prepareLogger(win, docId);
 
     try {
-      const url =
-        Application.instance.resolveRendererUrl(
-          `document/${docId}/print${
-            this.waterMark
-              ? "/true"
-              : ""
-          }`,
-        );
-
-      progress?.(
-        "Loading print view...",
-        20,
+      const url = Application.instance.resolveRendererUrl(
+        `document/${docId}/print${this.waterMark ? "/true" : ""}`,
       );
 
-      const exportPayloadPromise =
-        this.waitForExport(
-          docId,
-          win,
+      progress?.("Loading print view...", 20);
+
+      const exportPayloadPromise = this.waitForExport(docId, win);
+
+      await new Promise<void>(async (resolve, reject) => {
+        win.webContents.once("did-finish-load", () => resolve());
+
+        win.webContents.once(
+          "did-fail-load",
+          (_event, code, desc, failedUrl) => {
+            reject(new Error(`Print failed: ${desc} (${code}) ${failedUrl}`));
+          },
         );
 
-      await new Promise<void>(
-        async (resolve, reject) => {
-          win.webContents.once(
-            "did-finish-load",
-            () => resolve(),
-          );
+        win.loadURL(url).catch(reject);
 
-          win.webContents.once(
-            "did-fail-load",
-            (
-              _event,
-              code,
-              desc,
-              failedUrl,
-            ) => {
-              reject(
-                new Error(
-                  `Print failed: ${desc} (${code}) ${failedUrl}`,
-                ),
-              );
-            },
-          );
-
-          win.loadURL(url).catch(reject);
-
-          await win.webContents.executeJavaScript(`
+        await win.webContents.executeJavaScript(`
             window.sharingMode = true;
           `);
-        },
-      );
+      });
 
-      progress?.(
-        "Rendering document...",
-        40,
-      );
+      progress?.("Rendering document...", 40);
 
-      const exportPayload =
-        await exportPayloadPromise;
+      const exportPayload = await exportPayloadPromise;
 
-      return await this.createPdf(
-        win,
-        exportPayload,
-        docId,
-        progress,
-      );
+      return await this.createPdf(win, exportPayload, docId, progress);
     } finally {
       detachLogger();
       this.destroyWindow(win);
@@ -640,78 +420,49 @@ export class PDFService {
 
   async exportPDF(
     docId: string,
-    progress?: (
-      message: string,
-      value?: number,
-    ) => void,
+    progress?: (message: string, value?: number) => void,
   ) {
-    const result =
-      await dialog.showSaveDialog({
-        title: "Export PDF",
-        defaultPath: path.join(
-          ConfigService.get()
-            .export.saveFolder,
-          `document-${docId}.pdf`,
-        ),
-        filters: [
-          {
-            name: "PDF",
-            extensions: ["pdf"],
-          },
-        ],
-      });
+    const result = await dialog.showSaveDialog({
+      title: "Export PDF",
+      defaultPath: path.join(
+        ConfigService.get().export.saveFolder,
+        `document-${docId}.pdf`,
+      ),
+      filters: [
+        {
+          name: "PDF",
+          extensions: ["pdf"],
+        },
+      ],
+    });
 
-    if (
-      result.canceled ||
-      !result.filePath
-    ) {
+    if (result.canceled || !result.filePath) {
       return null;
     }
 
     try {
-      const buffer =
-        await this.generate(
-          docId,
-          progress,
-        );
+      const buffer = await this.generate(docId, progress);
 
-      await fs.writeFile(
-        result.filePath,
-        buffer,
-      );
+      await fs.writeFile(result.filePath, buffer);
 
-      progress?.(
-        "Saving PDF file...",
-        100,
-      );
+      progress?.("Saving PDF file...", 100);
 
       return {
         path: result.filePath,
-        filename:
-          path.basename(
-            result.filePath,
-          ),
+        filename: path.basename(result.filePath),
       };
     } catch (error) {
-      if (
-        error instanceof ExportTimeout
-      ) {
-        return Application.instance?.window?.webContents.send(
-          "error",
-          {
-            error:{
-              desc:String(error),
-              logFile:error.logFile,
-              
-            },
-            name: "export-timeout",
+      if (error instanceof ExportTimeout) {
+        return Application.instance?.window?.webContents.send("error", {
+          error: {
+            desc: String(error),
+            logFile: error.logFile,
           },
-        );
+          name: "export-timeout",
+        });
       }
 
-      throw new Error(
-        String(error),
-      );
+      throw new Error(String(error));
     }
   }
 }

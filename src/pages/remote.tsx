@@ -1,573 +1,408 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import {
+  AlertCircle,
+  Archive,
+  ArrowDownToLine,
   Cloud,
   CloudOff,
-  Database,
-  Folder,
-  GitCompare,
-  HardDriveDownload,
-  CheckCircle2,
-  AlertCircle,
-  Search,
+  History,
+  LoaderCircle,
+  RefreshCw,
+  UploadCloud,
 } from "lucide-react";
-
-import { HighTexDB } from "../editor/storage/hightex-db";
-import { useUser } from "../hooks/use-user";
-import { useAuthModal } from "../context/auth-modal-context";
-import { useOnline } from "../hooks/use-online";
-import { ParsedItalic } from "../utils/parse-italic";
-import { formatDistanceToNow } from "date-fns";
-import { ShouldNotified } from "@/exception/interfaces/should-notified";
-import { importHighTexPackage } from "@/utils/import-hightex";
+import { HighTexDB } from "@/editor/storage/hightex-db";
+import { Exporter } from "@/utils/htx/exporter";
+import {
+  HighTexImporter as LegacyPackageReader,
+  importHighTexPackage,
+} from "@/utils/import-hightex";
+import { importHighTexV2Package } from "@/utils/import-v2";
+import { confirm } from "@/utils/confirm";
+import { useUser } from "@/hooks/use-user";
+import { useAuthModal } from "@/context/auth-modal-context";
+import { useOnline } from "@/hooks/use-online";
 import { toast } from "sonner";
-import { truncate } from "@/utils/truncate";
-import { Link } from "react-router-dom";
-import { ApplicationError } from "@/exception/interfaces/application-error";
-import { t } from "@/utils/lang";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export const RemoteDocuments = () => {
   const { user } = useUser();
   const { openLogin } = useAuthModal();
   const online = useOnline();
+  const [commits, setCommits] = useState<CommitListResponse["commits"]>([]);
+  const [localDocs, setLocalDocs] = useState<HighTexDocument[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [linkedLocalId, setLinkedLocalId] = useState<string>();
+  const [commitMessage, setCommitMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] = useState(true);
-  const [cloudDoc, setCloudDoc] = useState<HighTexDocument | null>(null);
-  const [localDoc, setLocalDoc] = useState<HighTexDocument | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const current = useMemo(
+    () => commits.find((commit) => commit.type === "current"),
+    [commits],
+  );
+  const archives = useMemo(
+    () => commits.filter((commit) => commit.type !== "current" && commit.sha256),
+    [commits],
+  );
+  const selectedDoc = localDocs.find((doc) => doc.id === selectedId);
 
-  const document = localDoc || cloudDoc;
+  const refresh = useCallback(async () => {
+    if (!user || !online) return;
+    setBusy(true);
+    setError("");
+    try {
+      const [response, docs] = await Promise.all([
+        window.hightex.cloud.list(),
+        HighTexDB.getInstance().documents.toArray(),
+      ]);
+      const nextCommits = response.commits || [];
+      console.log(nextCommits)
+      const nextCurrent = nextCommits.find((commit) => commit.type === "current");
+      const mappedId = nextCurrent?.document_id
+        ? await window.hightex.cloud.resolve(nextCurrent.document_id)
+        : undefined;
+      const validMappedId = mappedId && docs.some((doc) => doc.id === mappedId)
+        ? mappedId
+        : undefined;
 
-  const [categories, setCategories] = useState<Category[]>([]);
+      setCommits(nextCommits);
+      setLocalDocs(docs);
+      setLinkedLocalId(validMappedId);
+      setSelectedId((previous) => {
+        if (validMappedId) return validMappedId;
+        if (docs.some((doc) => doc.id === previous)) return previous;
+        return docs[0]?.id || "";
+      });
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setBusy(false);
+    }
+  }, [online, user]);
 
   useEffect(() => {
-    if (!user) return;
+    void refresh();
+  }, [refresh]);
 
-    let alive = true;
-    (async () => {
-      try {
-        window.hightex.categories().then(setCategories);
-        const res = await window.hightex.document();
-
-        if (!alive) return;
-
-        const remote = res?.document || res;
-        setCloudDoc(remote);
-
-        const db = HighTexDB.getInstance();
-        if (remote?.id) {
-          const local = await db.documents.get(remote.id);
-          if (local) setLocalDoc(local);
-        }
-      } finally {
-        if (alive) setLoading(false);
+  const pull = async (sha256?: string) => {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await window.hightex.cloud.pull(undefined, sha256);
+      if (result.status === "empty") {
+        toast.info("Belum ada versi dokumen di cloud.");
+        return;
       }
-    })();
+      if (result.status === "not_found") {
+        toast.info("Belum ada dokumen tersimpan untuk akun ini.");
+        return;
+      }
 
-    return () => {
-      alive = false;
-    };
-  }, [user]);
+      const file = new File([new Uint8Array(result.file)], "remote.hightex");
+      const reader = await LegacyPackageReader.create(file);
+      const documentId = reader.manifest.document.id;
+      const existing = await HighTexDB.getInstance().documents.get(documentId);
+      if (
+        existing &&
+        !(await confirm({
+          title: `Ganti salinan lokal “${existing.title}”?`,
+          desc: "Paket cloud akan menggantikan isi dokumen lokal dengan ID yang sama.",
+        }))
+      ) {
+        return;
+      }
+
+      const imported = reader.manifest.schema_version === 2
+        ? await importHighTexV2Package(file)
+        : await importHighTexPackage(file);
+      const latest = await window.hightex.cloud.list();
+      const serverId = latest.commits.find((item) => item.type === "current")?.document_id;
+      if (serverId) {
+        await window.hightex.cloud.link(serverId, imported.id);
+        setLinkedLocalId(imported.id);
+      }
+      toast.success(
+        `“${imported.title}” berhasil disimpan sebagai dokumen lokal.`,
+      );
+      await refresh();
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const push = async () => {
+    if (!selectedDoc) return;
+    setBusy(true);
+    setError("");
+    try {
+      const { file, hash } = await new Exporter(selectedDoc.id).exportForPush();
+      const response = await window.hightex.cloud.push(
+        file,
+        hash,
+        selectedDoc,
+        commitMessage.trim(),
+      );
+      if ("error" in response) {
+        setError(
+          `Cloud sudah memiliki perubahan yang lebih baru. Unduh versi terbaru sebelum menyimpan lagi. SHA saat ini: ${response.sha256}`,
+        );
+        return;
+      }
+
+      const latest = await window.hightex.cloud.list();
+      const serverId = latest.commits.find((item) => item.type === "current")?.document_id;
+      if (serverId) {
+        await window.hightex.cloud.link(serverId, selectedDoc.id);
+        setLinkedLocalId(selectedDoc.id);
+      }
+      toast.success(
+        response.changed ? "Perubahan tersimpan di cloud." : "Dokumen cloud sudah memuat versi ini.",
+      );
+      setCommitMessage("");
+      await refresh();
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (!user) {
     return (
-      <div className="w-full flex justify-center items-center h-full">
-        <div className="flex-1 p-6 max-w-xl mx-auto overflow-auto relative w-full space-y-6">
-          <div className="rounded-3xl bg-neutral-50 dark:bg-neutral-900 p-6 border border-neutral-100 dark:border-neutral-800 shadow-sm">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <Cloud
-                size={20}
-                className="text-neutral-500 dark:text-neutral-300"
-              />
-            </div>
-
-            <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 text-center">
-              {t("remote.login_required")}
-            </div>
-
-            <div className="text-xs text-neutral-400 dark:text-neutral-500 text-center mt-1">
-              {t("remote.login_description")}
-            </div>
-
-            {!online && (
-              <div className="mt-3 text-[11px] text-red-500 text-center">
-                {t("remote.offline")}
-              </div>
-            )}
-
-            <button
-              onClick={openLogin}
-              disabled={!online}
-              className="mt-6 w-full py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-50"
-            >
-              {t("common.login")}
-            </button>
-          </div>
+      <section className="mx-auto max-w-xl rounded-2xl bg-neutral-50 p-8 text-center dark:bg-neutral-900">
+        <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-muted">
+          <Cloud className="size-5" />
         </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="rounded-3xl bg-neutral-50 dark:bg-neutral-900 p-6 border border-neutral-100 dark:border-neutral-800 shadow-sm">
-        <div className="text-sm text-neutral-400 dark:text-neutral-500 animate-pulse">
-          {t("remote.loading_workspace")}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">
-          {t("remote.title")}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {t("remote.subtitle")}
+        <h1 className="mt-4 text-lg font-semibold">Dokumenmu, kapan saja</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Masuk untuk menyimpan dokumen ke cloud dan mengambilnya lagi nanti.
         </p>
-      </div>
-
-      <Stats online={online} document={document} />
-
-      {!document ? (
-        <Empty />
-      ) : (
-        <>
-          <div className="mb-5 flex flex-col space-y-2">
-            <div className="text-xs font-semibold text-neutral-900 dark:text-neutral-100">
-              <ParsedItalic
-                text={document.title || t("common.untitled_document")}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 ">
-              <button
-                onClick={() => {
-                  throw new ShouldNotified({
-                    message: t("remote.unimplemented"),
-                    description: t("remote.unimplemented_desc"),
-                  });
-                }}
-                className="px-3 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition text-xs flex items-center gap-2"
-              >
-                <GitCompare size={14} />
-                {t("remote.override_local")}
-              </button>
-
-              <button
-                onClick={() => {
-                  const id = toast.loading(t("remote.pulling_document"));
-                  window.ipcRenderer
-                    .invoke(
-                      "hightex:document:pull",
-                      localDoc?.updatedAt?.toISOString(),
-                    )
-                    .then((r) => {
-                      if (!(r instanceof ArrayBuffer)) {
-                        throw new ShouldNotified({
-                          message: t("remote.pull_canceled"),
-                          description: t("remote.up_to_date"),
-                        });
-                      }
-                      const file = new File(
-                        [new Uint8Array(r as ArrayBuffer)],
-                        "pull.hightex",
-                      );
-                      return importHighTexPackage(file);
-                    })
-                    .then((doc) => {
-                      toast.success(
-                        `${t("remote.document_updated")} ${truncate(doc.title.replace("_", ""), 13)}`,
-                        {
-                          id,
-                        },
-                      );
-                    })
-                    .catch((_e) => {
-                      if (_e instanceof ShouldNotified) {
-                        throw _e;
-                      }
-
-                      throw new ShouldNotified({
-                        message: t("remote.pull_failed"),
-                        description: ApplicationError.normilize(_e),
-                        id: String(id),
-                      });
-                    })
-                    .finally(() => {
-                      toast.dismiss(id);
-                    });
-                }}
-                className="px-3 py-2 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition text-xs flex items-center gap-2"
-              >
-                <HardDriveDownload size={14} />
-                {t("remote.pull_latest")}
-              </button>
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 p-5 space-y-5 border border-neutral-100 dark:border-neutral-800">
-            {localDoc && cloudDoc && (
-              <SyncBanner localDoc={localDoc} cloudDoc={cloudDoc} />
-            )}
-
-            <InfoRow label={t("remote.title_label")} value={document.title} />
-            {/* @ts-ignore */}
-            <InfoRow
-              label={t("remote.english_title")}
-              value={(document as any).en_title}
-            />
-            <InfoRow
-              label={t("remote.category")}
-              value={
-                categories.find((c) => String(c.id) == document.category)?.name
-              }
-            />
-
-            <KeywordSection keys={document.keywords} />
-          </div>
-        </>
-      )}
-
-      {pickerOpen && (
-        <LocalDocumentPicker
-          cloudDoc={cloudDoc}
-          onClose={() => setPickerOpen(false)}
-          onSelect={(doc: any) => {
-            setLocalDoc(doc);
-            setPickerOpen(false);
-          }}
-        />
-      )}
-    </>
-  );
-};
-const Stats = ({ online, document }: any) => {
-  return (
-    <div className="grid grid-cols-3 gap-3 h-20 mb-6">
-      <Stat
-        icon={online ? <Cloud size={14} /> : <CloudOff size={14} />}
-        label={t("remote.connection")}
-        value={online ? t("remote.connected") : t("remote.offline_label")}
-      />
-
-      <Stat
-        icon={<Database size={14} />}
-        label={t("remote.workspace")}
-        value={t("remote.remote_sync")}
-      />
-
-      <Stat
-        icon={<Folder size={14} />}
-        label={t("remote.document")}
-        value={document?.id?.slice(0, 6) || "-"}
-      />
-    </div>
-  );
-};
-
-const Stat = ({ icon, label, value }: any) => {
-  return (
-    <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-xl p-3">
-      <div className="flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500">
-        {icon}
-        {label}
-      </div>
-
-      <div className="text-sm font-medium mt-1 text-neutral-900 dark:text-neutral-100">
-        {value}
-      </div>
-    </div>
-  );
-};
-
-const SyncBanner = ({
-  localDoc,
-  cloudDoc,
-}: {
-  cloudDoc?: HighTexDocument;
-  localDoc?: HighTexDocument;
-}) => {
-  const sameId = localDoc?.id === cloudDoc?.id;
-
-  if (sameId) {
-    return (
-      <div className="rounded-xl border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950 p-3 flex items-start gap-3">
-        <CheckCircle2 size={16} className="text-green-500 mt-0.5" />
-
-        <div>
-          <div className="text-xs font-medium text-green-700 dark:text-green-400">
-            {t("remote.local_available")}
-          </div>
-
-          <div className="text-xs text-green-600 dark:text-green-500 mt-1">
-            <span>{t("remote.document")}</span>{" "}
-            <ParsedItalic text={cloudDoc!.title} />
-            {` ${t("remote.local_available_message_suffix")}`}
-            <Link
-              className="font-semibold underline"
-              to={`/document/${cloudDoc!.id}/1`}
-            >
-              {` ${t("remote.here")}`}
-            </Link>
-          </div>
-        </div>
-      </div>
+        <Button
+          className="mt-5"
+          onClick={openLogin}
+          disabled={!online}
+        >
+          Masuk
+        </Button>
+      </section>
     );
   }
 
   return (
-    <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-3 flex items-start gap-3">
-      <AlertCircle size={16} className="text-amber-500 mt-0.5" />
-
-      <div>
-        <div className="text-xs font-medium text-amber-700 dark:text-amber-400">
-          {t("remote.different_local_document")}
+    <main className="space-y-6 pb-8">
+      <header className="flex flex-wrap items-start justify-between gap-4 rounded-3xl p-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Dokumen cloud</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Simpan versi terbaru, atau ambil lagi versi yang pernah disimpan.
+          </p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => void refresh()}
+          disabled={!online || busy}
+        >
+          {busy ? <LoaderCircle className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
+          Muat ulang
+        </Button>
+      </header>
 
-        <div className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-          {t("remote.different_local_document_message")}
+      <section className="grid gap-3 sm:grid-cols-3">
+        <SummaryCard
+          icon={online ? <Cloud className="size-4" /> : <CloudOff className="size-4" />}
+          label="Koneksi"
+          value={online ? "Terhubung" : "Offline"}
+        />
+        <SummaryCard
+          icon={<Archive className="size-4" />}
+          label="Versi cloud"
+          value={current?.sha256 ? `${current.sha256.slice(0, 12)}…` : "Belum ada snapshot"}
+        />
+        <SummaryCard
+          icon={<History className="size-4" />}
+          label="Versi sebelumnya"
+          value={archives.length ? `${archives.length} tersedia` : "Belum ada"}
+        />
+      </section>
+
+      {error && (
+        <div role="alert" className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          <span>{error}</span>
         </div>
-      </div>
-    </div>
-  );
-};
+      )}
 
-const InfoRow = ({ label, value }: any) => (
-  <div className="flex items-start justify-between gap-5">
-    <div className="w-32 shrink-0 text-xs uppercase text-neutral-400 dark:text-neutral-500">
-      {label}
-    </div>
-
-    <div className="flex-1 text-right text-sm text-neutral-800 dark:text-neutral-200">
-      {value || "-"}
-    </div>
-  </div>
-);
-
-const KeywordSection = ({ keys }: { keys: Keywords | string }) => {
-  const parsed = useMemo(() => {
-    if (typeof keys == "object") return keys;
-    try {
-      return JSON.parse(keys);
-    } catch (error) {
-      return {
-        indonesian: [],
-        english: [],
-      };
-    }
-  }, [keys]);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between gap-5">
-        <div className="w-32 shrink-0 text-xs uppercase text-neutral-400 dark:text-neutral-500">
-          {t("remote.keywords")}
-        </div>
-
-        <div className="flex-1 space-y-3">
-          <div>
-            <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mb-1">
-              {t("remote.indonesian")}
-            </div>
-
-            <div className="flex flex-wrap justify-end gap-1.5">
-              {parsed.indonesian?.length ? (
-                parsed.indonesian.map((k: string, i: number) => (
-                  <div
-                    key={i}
-                    className="px-2 py-1 rounded-lg bg-white dark:bg-neutral-800 text-xs text-neutral-700 dark:text-neutral-200"
-                  >
-                    <ParsedItalic text={k} />
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-neutral-300 dark:text-neutral-600">
-                  {t("remote.no_keywords")}
-                </div>
-              )}
-            </div>
+      <section className="rounded-2xl bg-neutral-50 p-5 dark:bg-neutral-900">
+        <div className="flex items-start gap-4 border-b pb-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <UploadCloud className="size-5" />
           </div>
-
           <div>
-            <div className="text-[11px] text-neutral-400 dark:text-neutral-500 mb-1">
-              {t("remote.english")}
-            </div>
-
-            <div className="flex flex-wrap justify-end gap-1.5">
-              {parsed.english?.length ? (
-                parsed.english.map((k: string, i: number) => (
-                  <div
-                    key={i}
-                    className="px-2 py-1 rounded-lg bg-white dark:bg-neutral-800 text-xs italic text-neutral-700 dark:text-neutral-200"
-                  >
-                    {k}
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-neutral-300 dark:text-neutral-600">
-                  {t("remote.no_keywords")}
-                </div>
-              )}
-            </div>
+            <h2 className="font-semibold">Simpan ke cloud</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              Pilih dokumen lokal. Tambahkan catatan singkat supaya perubahan ini mudah dikenali nanti.
+            </p>
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-const Empty = () => (
-  <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-2xl p-10 text-center">
-    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-neutral-800 shadow-sm flex items-center justify-center mx-auto mb-4">
-      <CloudOff size={20} className="text-neutral-400 dark:text-neutral-500" />
-    </div>
-
-    <div className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-      {t("remote.no_remote_document")}
-    </div>
-
-    <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-      {t("remote.no_remote_document_description")}
-    </div>
-  </div>
-);
-const LocalDocumentPicker = ({ onClose, onSelect, cloudDoc }: any) => {
-  const [docs, setDocs] = useState<HighTexDocument[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      const db = HighTexDB.getInstance();
-
-      const result = await db.documents.toArray();
-
-      const categories = await window.hightex.categories();
-
-      const docs = await Promise.all(
-        result.map(async (r) => {
-          const category = categories.find(
-            (s) => s.id.toString() === r.category,
-          );
-
-          return {
-            ...r,
-            category: category?.name || "-",
-          };
-        }),
-      );
-
-      if (!alive) return;
-
-      setDocs(docs);
-      setLoading(false);
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const filtered = docs.filter((d) => {
-    return d.title?.toLowerCase()?.includes(search.toLowerCase());
-  });
-
-  return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="w-175 bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="p-5 border-b border-neutral-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium">
-                {t("remote.override_local_document")}
+        <div className="grid gap-5 pt-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
+          <div className="space-y-4">
+            <label className="block space-y-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pilih dokumen</span>
+              <Select value={selectedId} onValueChange={setSelectedId} disabled={!localDocs.length || busy}>
+                <SelectTrigger className="w-full bg-white dark:bg-neutral-950">
+                  <SelectValue placeholder="Pilih dokumen lokal" />
+                </SelectTrigger>
+                <SelectContent>
+                  {localDocs.map((doc) => (
+                    <SelectItem key={doc.id} value={doc.id}>{doc.title || "Tanpa judul"}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
+            {selectedDoc && (
+              <div className="rounded-xl bg-white p-4 dark:bg-neutral-950">
+                <div className="text-xs text-muted-foreground">Yang akan disimpan</div>
+                <div className="mt-1 truncate text-sm font-semibold">{selectedDoc.title || "Tanpa judul"}</div>
+                <div className="mt-2 break-all font-mono text-[11px] text-muted-foreground">Local ID: {selectedDoc.id}</div>
+                {linkedLocalId === selectedDoc.id && current?.document_id && (
+                  <div className="mt-2 break-all text-[11px] text-muted-foreground">Tertaut ke Server ID: <span className="font-mono">{current.document_id}</span></div>
+                )}
               </div>
-
-              <div className="text-xs text-neutral-400 mt-1">
-                {t("remote.override_local_document_description")}
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="text-xs text-neutral-400 hover:text-neutral-700"
+            )}
+          </div>
+          <div className="flex flex-col gap-4">
+            <label className="block flex-1 space-y-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Catatan perubahan <span className="normal-case tracking-normal">(opsional)</span></span>
+              <Textarea
+                value={commitMessage}
+                onChange={(event) => setCommitMessage(event.target.value)}
+                maxLength={500}
+                rows={4}
+                placeholder="Contoh: Merapikan bab metodologi"
+                disabled={busy}
+                className="min-h-24 resize-y bg-white dark:bg-neutral-950"
+              />
+              <span className="block text-right text-[11px] text-muted-foreground">{commitMessage.length}/500</span>
+            </label>
+            <Button
+              onClick={() => void push()}
+              disabled={!online || busy || !selectedDoc}
+              className="w-full sm:w-auto"
             >
-              {t("remote.close")}
-            </button>
-          </div>
-
-          <div className="mt-4 relative">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-            />
-
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("remote.search_local_documents")}
-              className="w-full bg-neutral-50 rounded-xl pl-9 pr-3 py-2 text-sm outline-none"
-            />
+              {busy ? <LoaderCircle className="size-4 animate-spin" /> : <UploadCloud className="size-4" />}
+              {busy ? "Menyimpan…" : "Simpan versi"}
+            </Button>
           </div>
         </div>
+      </section>
 
-        <div className="max-h-105 overflow-y-auto p-2">
-          {loading && (
-            <div className="p-5 text-xs text-neutral-400">
-              {t("remote.loading_documents")}
+      <section className="rounded-2xl bg-neutral-50 p-5 dark:bg-neutral-900">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Archive className="size-4 text-muted-foreground" />
+              <h2 className="font-semibold">Versi terbaru</h2>
             </div>
-          )}
+            <p className="mt-1 text-sm text-muted-foreground">Salinan terakhir yang tersimpan di cloud.</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void pull()}
+            disabled={!online || busy || !current?.sha256}
+          >
+            <ArrowDownToLine className="size-4" /> Unduh ke perangkat ini
+          </Button>
+        </div>
+        {current?.sha256 ? (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Detail label="Server ID" value={current.document_id} />
+            <Detail label="Local ID alias" value={linkedLocalId || "Belum ditautkan"} />
+            <Detail label="SHA-256" value={current.sha256} />
+            <Detail label="Catatan terakhir" value={current.message || "Tidak ada catatan"} />
+          </div>
+        ) : (
+          <div className="mt-5 rounded-xl bg-white p-4 text-sm text-muted-foreground dark:bg-neutral-950">
+            Belum ada versi yang disimpan. Pilih dokumen lokal di atas untuk memulai.
+          </div>
+        )}
+      </section>
 
-          {!loading && filtered.length === 0 && (
-            <div className="p-5 text-xs text-neutral-400">
-              {t("remote.no_local_documents_found")}
-            </div>
-          )}
-
-          {filtered.map((doc) => {
-            const sameId = cloudDoc?.id === doc.id;
-
-            return (
-              <button
-                key={doc.id}
-                onClick={() => onSelect(doc)}
-                className="w-full group flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-neutral-50 transition text-left"
+      <section className="rounded-2xl bg-neutral-50 p-5 dark:bg-neutral-900">
+        <div className="flex items-start gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted"><History className="size-4" /></div>
+          <div>
+            <h2 className="font-semibold">Versi sebelumnya</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Unduh versi lama sebagai dokumen lokal.</p>
+          </div>
+        </div>
+        <div className="mt-4 divide-y">
+          {archives.map((commit, index) => (
+            <div key={index} className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-2 last:pb-1">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-muted-foreground dark:bg-neutral-800">{index + 1}</span>
+                <div className="min-w-0 space-y-1">
+                  <div className="wrap-break-word text-sm font-medium">{commit.message || "Tanpa catatan perubahan"}</div>
+                  <div className="text-xs text-muted-foreground">{formatDate(commit.created_at)}{commit.author ? ` · Pengguna ${commit.author}` : ""}</div>
+                  <div className="break-all font-mono text-[11px] text-muted-foreground">SHA-256: {commit.sha256}</div>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void pull(commit.sha256 || undefined)}
+                disabled={!online || busy || !commit.sha256}
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm  truncate">{doc.title}</div>
-
-                    {sameId && (
-                      <div className="px-1.5 py-0.5 rounded-md bg-green-100 text-[10px] text-green-700">
-                        MATCH
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-1 flex items-center gap-2 text-xs text-neutral-400">
-                    <span>{doc.category || "-"}</span>
-
-                    <span>•</span>
-
-                    <span>{doc.id.slice(0, 6)}</span>
-                  </div>
-                </div>
-
-                <div className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition">
-                  {doc.updatedAt
-                    ? formatDistanceToNow(new Date(doc.updatedAt), {
-                        addSuffix: true,
-                      })
-                    : "No activity"}
-                </div>
-              </button>
-            );
-          })}
+                <ArrowDownToLine className="size-4" /> Unduh versi ini
+              </Button>
+            </div>
+          ))}
+          {!archives.length && (
+            <p className="py-6 text-center text-sm text-muted-foreground">Versi sebelumnya akan muncul di sini setelah ada perubahan yang disimpan.</p>
+          )}
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
+
+function SummaryCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}{label}</div>
+      <div className="mt-2 truncate text-sm font-semibold" title={value}>{value}</div>
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-lg bg-white p-3 dark:bg-neutral-950">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 break-all font-mono text-xs">{value}</div>
+    </div>
+  );
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}

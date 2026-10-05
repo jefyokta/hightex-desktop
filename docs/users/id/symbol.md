@@ -33,31 +33,31 @@ Nilai alpha dilambangkan dengan α.
 ## Daftar Symbol Variable
 
 | Nama Variable | Value |
-| --- | --- |
-| `alpha` | α |
-| `beta` | β |
-| `gamma` | γ |
-| `delta` | δ |
-| `epsilon` | ε |
-| `theta` | θ |
-| `lambda` | λ |
-| `mu` | μ |
-| `pi` | π |
-| `sigma` | σ |
-| `phi` | φ |
-| `omega` | ω |
-| `degree` | ° |
-| `plusminus` | ± |
-| `times` | × |
-| `divide` | ÷ |
-| `neq` | ≠ |
-| `leq` | ≤ |
-| `geq` | ≥ |
-| `approx` | ≈ |
-| `infinity` | ∞ |
-| `sqrt` | √ |
-| `copyright` | © |
-| `registered` | ® |
-| `trademark` | ™ |
+| ------------- | ----- |
+| `alpha`       | α     |
+| `beta`        | β     |
+| `gamma`       | γ     |
+| `delta`       | δ     |
+| `epsilon`     | ε     |
+| `theta`       | θ     |
+| `lambda`      | λ     |
+| `mu`          | μ     |
+| `pi`          | π     |
+| `sigma`       | σ     |
+| `phi`         | φ     |
+| `omega`       | ω     |
+| `degree`      | °     |
+| `plusminus`   | ±     |
+| `times`       | ×     |
+| `divide`      | ÷     |
+| `neq`         | ≠     |
+| `leq`         | ≤     |
+| `geq`         | ≥     |
+| `approx`      | ≈     |
+| `infinity`    | ∞     |
+| `sqrt`        | √     |
+| `copyright`   | ©     |
+| `registered`  | ®     |
+| `trademark`   | ™     |
 
 > Symbol yang sudah tersedia secara langsung pada keyboard tidak perlu menggunakan Symbol Variable.

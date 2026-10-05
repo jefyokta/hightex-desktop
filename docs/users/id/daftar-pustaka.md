@@ -17,9 +17,9 @@ Alurnya adalah:
 
 Contohnya, apabila sebuah dokumen menggunakan tiga sumber:
 
-* `Sumber A`
-* `Sumber B`
-* `Sumber C`
+- `Sumber A`
+- `Sumber B`
+- `Sumber C`
 
 dan ketiganya dirujuk menggunakan citation di dalam isi dokumen, maka ketiga sumber tersebut akan muncul pada daftar pustaka.
 
@@ -96,10 +96,10 @@ Hasil akhirnya akan menjadi daftar pustaka yang dibuat secara otomatis.
 
 Jika bagian **Daftar Pustaka** kosong, periksa hal-hal berikut:
 
-* Apakah dokumen memiliki citation?
-* Apakah citation dibuat menggunakan fitur **Cite** HighTex?
-* Apakah citation tersebut merujuk ke referensi yang valid?
-* Apakah referensi sudah tersedia di pengelola referensi?
+- Apakah dokumen memiliki citation?
+- Apakah citation dibuat menggunakan fitur **Cite** HighTex?
+- Apakah citation tersebut merujuk ke referensi yang valid?
+- Apakah referensi sudah tersedia di pengelola referensi?
 
 Jika tidak ada citation yang digunakan dalam dokumen, maka tidak ada sumber yang dapat digunakan HighTex untuk membuat daftar pustaka.
 

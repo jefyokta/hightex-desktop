@@ -4,11 +4,11 @@ import { ProfileService } from "./profile-service";
 
 export class DocumentProfileService {
   /**
-   * 
+   *
    * temporary commented bcs we wont update the cloud features before v1.0.0
-   * 
+   *
    * commented from version v0.6.1+
-   * 
+   *
    */
   static get(): DocumentProfile {
     // const config = ConfigService.get();

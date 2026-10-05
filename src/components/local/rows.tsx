@@ -10,7 +10,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Dropdown, DropdownItem } from "../dropdown";
 import {
@@ -48,7 +47,6 @@ export const Row = ({
   onExport,
   selectMode,
 }: Props) => {
-  const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(doc.title);
@@ -410,7 +408,8 @@ export const Row = ({
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/document/${doc.id}`);
+              window.editor.open(doc.id);
+              return;
             }}
           >
             <Pen size={14} className="text-neutral-500 dark:text-neutral-300" />

@@ -8,9 +8,9 @@ Figure Image digunakan untuk gambar yang menjadi bagian dari isi dokumen.
 
 Karakteristik:
 
-* Wajib dirujuk di dalam dokumen.
-* Memiliki caption.
-* Memiliki penomoran gambar secara otomatis.
+- Wajib dirujuk di dalam dokumen.
+- Memiliki caption.
+- Memiliki penomoran gambar secara otomatis.
 
 ### Shortcut
 

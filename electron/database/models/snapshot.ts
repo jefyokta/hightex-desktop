@@ -8,7 +8,7 @@ export type SnapshotRelation = {
 };
 export class Snapshot extends Model<SnapshotEntity, SnapshotRelation> {
   protected primaryKeyType = "TEXT" as const;
-  protected static TABLENAME: string = 'snapshots';
+  protected static TABLENAME: string = "snapshots";
   /**
    * @deprecated
    * @since v0.7.1
@@ -20,9 +20,9 @@ export class Snapshot extends Model<SnapshotEntity, SnapshotRelation> {
     documentId: table.text(),
     type: table.text(),
   };
-public get tableName(): string {
-  return Snapshot.TABLENAME;
-}
+  public get tableName(): string {
+    return Snapshot.TABLENAME;
+  }
   static override get relations() {
     return {
       comments: this.hasMany(Comment),

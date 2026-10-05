@@ -20,31 +20,31 @@ export class SessionHandler {
     }
   }
 
-public static async user(): Promise<User | false> {
-  try {
-    const res = await ServerService.request<{ message: User }>("/me");
+  public static async user(): Promise<User | false> {
+    try {
+      const res = await ServerService.request<{ message: User }>("/me");
 
-    const currentUser = SessionService.getUser();
-    const user = res.message || false;
+      const currentUser = SessionService.getUser();
+      const user = res.message || false;
 
-    if (user) {
-      SessionService.setUser(user);
-    } else {
+      if (user) {
+        SessionService.setUser(user);
+      } else {
+        SessionService.clearUser();
+      }
+
+      if (currentUser?.id !== user?.id) {
+        await this.broadcastSession();
+      }
+
+      return user;
+    } catch (err) {
+      LoggerService.write(err, "session:user");
       SessionService.clearUser();
+
+      return false;
     }
-
-    if (currentUser?.id !== user?.id) {
-      await this.broadcastSession();
-    }
-
-    return user;
-  } catch (err) {
-    LoggerService.write(err, "session:user");
-    SessionService.clearUser();
-
-    return false;
   }
-}
   public static async login(
     email: string,
     password: string,
@@ -80,10 +80,8 @@ public static async user(): Promise<User | false> {
   static register() {
     IPCMain.handle("session:user", () => SessionHandler.user());
 
-    IPCMain.handle(
-      "session:login",
-      (_event, email: string, password: string) =>
-        SessionHandler.login(email, password),
+    IPCMain.handle("session:login", (_event, email: string, password: string) =>
+      SessionHandler.login(email, password),
     );
 
     IPCMain.handle("session:logout", async () => {

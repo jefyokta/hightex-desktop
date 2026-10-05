@@ -4,39 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-
-
 ### ✨ Features
-
 
 - **editor:** Scanner in editor
 
 - Feat(): unfigured now clickable and go to the target node when its clicked
 
-
-
 ### 🐛 Bug Fixes
-
 
 - **images:** New uploaded images using hashed name instead of a uuid name #54
 
 - Auto reload editor when config changed
 
-
-
 ### 🔄 Updates
-
 
 - Application icon updated
 
-
-
 ## [0.7.5] - 2026-09-29
 
-
-
 ### ✨ Features
-
 
 - **editor:** Note mark
 
@@ -54,10 +40,7 @@ All notable changes to this project will be documented in this file.
 
 - **paginate:** Paginate version support multi citation
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Unsupported webp to clipboard
 
@@ -73,39 +56,23 @@ All notable changes to this project will be documented in this file.
 
 - **variable:** Prevent global symbols being overrided
 
-
-
 ### 📝 Documentation
-
 
 - Add symbol variable documentation
 
-
-
 ### 🔄 Updates
-
 
 - **paginate:** Ignoring note in pdf/previewer
 
-
-
 ## [0.7.4] - 2026-09-25
-
-
 
 ### 🐛 Bug Fixes
 
-
 - Prevent editor view being accessed before view mounted
-
-
 
 ## [0.7.3] - 2026-09-24
 
-
-
 ### ✨ Features
-
 
 - **file:** Add apis to open file/folder
 
@@ -117,10 +84,7 @@ All notable changes to this project will be documented in this file.
 
 - **docs:** Add more users docs
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Typo docorator -> decorator
 
@@ -128,52 +92,31 @@ All notable changes to this project will be documented in this file.
 
 - **document:** Increasing content's max width due to margin changes
 
-
-
 ## [0.7.2] - 2026-09-23
 
-
-
 ### ✨ Features
-
 
 - **docs:** Docs for user and contributors
 
-
-
 ### 🐛 Bug Fixes
-
 
 - **model:** Change constructor.name to tableName because we wont keep the class name on build output
 
-
-
 ## [0.7.1] - 2026-09-21
 
-
-
 ### ✨ Features
-
 
 - **editor:** Alias hint
 
 - **config:** Add export timeout option
 
-
-
 ### 🐛 Bug Fixes
-
 
 - **sqlite:** Avoid missing table name of model
 
-
-
 ## [0.7.0] - 2026-09-21
 
-
-
 ### ✨ Features
-
 
 - **editor:** Keyword creation directly in editor and placeholder
 
@@ -195,10 +138,7 @@ All notable changes to this project will be documented in this file.
 
 - **pageinate:** Cv/bibliography added
 
-
-
 ### 🐛 Bug Fixes
-
 
 - **editor:** Fix creating table from navbar button generate error
 
@@ -208,48 +148,29 @@ All notable changes to this project will be documented in this file.
 
 - Replace hardcoded error/toast strings with translation keys
 
-
-
 ### 🔄 Updates
-
 
 - **page:** Page margin updated from 3-3-4-4 to 3-3-4-3
 
 - **Breaking:** **file:** Snapshot file extension updated from htx to hts
 
-
-
 ## [0.6.1] - 2026-09-18
 
-
-
 ### ✨ Features
-
 
 - **editor:** Auto fix for deprecated nodes
 
-
-
 ### 🐛 Bug Fixes
-
 
 - H4 now has no indent and margine left
 
-
-
 ### 🔧 Miscellaneous
-
 
 - Release 0.6.1
 
-
-
 ## [0.6.0] - 2026-09-17
 
-
-
 ### ✨ Features
-
 
 - Auto dotted name ex: jepi okta mipa -> jepi okta mipa.
 
@@ -267,10 +188,7 @@ All notable changes to this project will be documented in this file.
 
 - **core:** Save tiptap content error #34
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Showing all variables when only '\' typed
 
@@ -300,10 +218,7 @@ All notable changes to this project will be documented in this file.
 
 - Unloaded katex css is fixed
 
-
-
 ### 🔄 Updates
-
 
 - Add option to show editor's scrollbar
 
@@ -319,82 +234,47 @@ All notable changes to this project will be documented in this file.
 
 - **paginated:** Every cells in row should be a th to be a header row
 
-
-
 ## [0.5.1] - 2026-09-13
-
-
 
 ### 🔧 Miscellaneous
 
-
 - Chore():release v0.5.1
-
-
 
 ## [0.5.0] - 2026-09-13
 
-
-
 ### ✨ Features
-
 
 - **lang:** Partially support
 
-
-
 ### 🐛 Bug Fixes
-
 
 - **intern-doc:** Presentation sheet not included anymore
 
-
-
 ## [0.4.1] - 2026-08-16
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Model names is changed when its built, so we cant use grammar based on its contructor name
 
 - Including category when updating document data
 
-
-
 ### 🔧 Miscellaneous
-
 
 - Release 0.4.1
 
-
-
 ## [0.4.0] - 2026-08-11
-
-
 
 ## [0.3.6] - 2026-07-15
 
-
-
 ## [0.3.5] - 2026-07-15
-
-
 
 ## [0.3.4] - 2026-07-15
 
-
-
 ### ✨ Features
-
 
 - Add keyboard shorcut for chapter navigating
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Remove blank pages that broke the pages measurenment in splitter feature
 
@@ -402,91 +282,57 @@ All notable changes to this project will be documented in this file.
 
 - Chapter heading automatically update when it's scheme updated
 
-
-
 ### 🔄 Updates
-
 
 - Support intern report
 
-
-
 ## [0.3.3] - 2026-07-10
 
-
-
 ### ✨ Features
-
 
 - Add progress text in splitter progress
 
 - Add forms page as placeholder for next update
 
-
-
 ### 🐛 Bug Fixes
 
-
-- Typo text status  while splitter running
+- Typo text status while splitter running
 
 - Split document now splitting correctly
 
-
-
 ## [0.3.2] - 2026-07-08
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Variable value didnt updated immediately in editor when updating variable
 
 - Enchant error message in splitter job
 
-
-
 ## [0.3.1] - 2026-07-08
-
-
 
 ## [0.3.0] - 2026-07-08
 
-
-
 ### ✨ Features
-
 
 - Add watermarked pdf option
 
 - Split feature for uploading to repository
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Fixtables running when table extenstion is not registered to chapter editor
 
 - Correct typo in override local features error message
 
-
-
 ### 🔄 Updates
-
 
 - Nim/nip using identity_number instead of splitted email
 
 - Add decorator and sending error to renderer
 
-
-
 ## [0.2.0] - 2026-07-05
 
-
-
 ### ✨ Features
-
 
 - Add fix table option
 
@@ -494,184 +340,102 @@ All notable changes to this project will be documented in this file.
 
 - Add title and highligt in editor toolbar
 
-
-
 ### 🔧 Miscellaneous
-
 
 - Update changelog
 
-
-
 ## [0.1.0] - 2026-07-03
 
-
-
 ### ✨ Features
-
 
 - Variable in editor
 
 - Create custom variables
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Import document depends on it version
 
 - Throwing error when inputing static varname instead of returning it
 
-
-
 ## [0.0.14] - 2026-07-02
-
-
 
 ## [0.0.11] - 2026-07-01
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Catch error on application started due to no network connection
 
 - Protocol not spawned in cli mode
 
-
-
 ## [0.0.12] - 2026-07-02
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Report message, and silent pdf generation error
 
-
-
 ## [0.0.10] - 2026-06-28
-
-
 
 ## [0.0.9-beta] - 2026-06-28
 
-
-
 ## [0.0.9] - 2026-06-28
-
-
 
 ## [0.0.8] - 2026-06-28
 
-
-
 ## [0.0.7] - 2026-06-28
-
-
 
 ## [0.0.6] - 2026-06-28
 
-
-
 ### ✨ Features
-
 
 - Add image convertion while importing
 
-
-
 ## [0.0.5] - 2026-06-26
-
-
 
 ## [0.0.4] - 2026-06-26
 
-
-
 ## [0.0.3] - 2026-06-26
-
-
 
 ### 🐛 Bug Fixes
 
-
 - Logout modal
-
-
 
 ## [0.0.2] - 2026-06-26
 
-
-
 ## [0.0.1] - 2026-06-25
-
-
 
 ## [0.0.6-beta] - 2026-06-25
 
-
-
 ## [0.0.5-beta] - 2026-06-25
-
-
 
 ## [0.0.4-beta] - 2026-06-25
 
-
-
 ## [0.0.3-beta] - 2026-06-25
-
-
 
 ## [0.0.1-beta] - 2026-06-25
 
-
-
 ### #feat
-
 
 - Grid, a table outside figure
 
-
-
 ### Image
-
 
 - Move to webp
 
-
-
 ### Rename
-
 
 - Where builder to query builder
 
-
-
 ### ✨ Features
-
 
 - Static chapter builder added
 
 - Wip variable
 
-
-
 ### 🐛 Bug Fixes
-
 
 - Images in attachment
 
-
-
 ### 🔄 Updates
 
-
 - No more attachment in pdf file
-
-
-

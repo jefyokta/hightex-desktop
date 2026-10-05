@@ -24,16 +24,16 @@ export class LoggerService {
     }
   }
 
-static writeAsync(file: string, message: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    fs.appendFile(file, message, "utf8", (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+  static writeAsync(file: string, message: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      fs.appendFile(file, message, "utf8", (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
 
-      resolve();
+        resolve();
+      });
     });
-  });
-}
+  }
 }

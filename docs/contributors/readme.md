@@ -6,6 +6,7 @@
 - [Langugage/Locale](./lang-and-locale.md)
 
 # List Of Contributor
+
 - Jepi Okta Mipa
 - Shifa Anjani Desha
 - Prety Afriani

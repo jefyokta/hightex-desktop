@@ -17,8 +17,7 @@ export class EditorWindow {
       width: 1400,
       height: 900,
 
-      titleBarStyle:
-        process.platform === "darwin" ? "hiddenInset" : undefined,
+      titleBarStyle: process.platform === "darwin" ? "hiddenInset" : undefined,
 
       ...(process.platform !== "darwin"
         ? {
@@ -50,7 +49,7 @@ export class EditorWindow {
         `document/${encodeURIComponent(documentId)}`,
       ),
     );
-    if(!app.isPackaged) window.webContents.openDevTools()
+    if (!app.isPackaged) window.webContents.openDevTools();
 
     return window;
   }

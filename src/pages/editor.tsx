@@ -277,7 +277,7 @@ const EditorComponent = () => {
 
     onContentError: async (props) => {
       console.log(props.editor.getJSON(), props.error);
-      props.editor.setEditable(false)
+      props.editor.setEditable(false);
       await window.hightex.saveContentError({
         content: props.editor.getJSON(),
         fileName: `${Document.instance?.id}-${Chapter.instance?.getId()}.json`,
