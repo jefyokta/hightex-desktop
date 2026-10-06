@@ -28,7 +28,6 @@ import React, {
   //  useEffect,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { Document } from "@/editor/document";
@@ -51,7 +50,6 @@ import { SettingModal } from "./settings-modal";
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
   const { chapter } = useChapterStore();
-  const nav = useNavigate();
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [pdfProgress, setPdfProgress] = React.useState<number>(0);
@@ -117,7 +115,12 @@ export const NavBar: React.FC = () => {
               <Button
                 icon={ArrowLeftIcon}
                 title="Back"
-                onClick={() => nav("/dashboard")}
+                disabled={!navigation.canGoBack}
+                spinnable={false}
+                onClick={() => {
+                  navigation.back()
+
+                }}
               />
             </ButtonGroup>
 
@@ -467,6 +470,7 @@ type ButtonProps = {
   disabled?: boolean;
   handleHover?: boolean;
   active?: boolean;
+  spinnable?:boolean
 };
 
 const Button: React.FC<ButtonProps & PropsWithChildren> = ({
@@ -477,6 +481,8 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   children,
   handleHover = true,
   active = false,
+  spinnable =true
+
 }) => {
   return (
     <Tooltip>
@@ -492,15 +498,14 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
+        ${active
+              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+              : ""
+            }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >
-          <Icon className={`w-3 h-3 ${disabled ? "animate-spin" : ""}`} />
+          <Icon className={`w-3 h-3 ${disabled && spinnable ? "animate-spin" : ""}`} />
           {children}
         </button>
       </TooltipTrigger>
