@@ -116,11 +116,11 @@ export const NavBar: React.FC = () => {
                 icon={ArrowLeftIcon}
                 title="Back"
                 //@ts-ignore
-                disabled={!navigation.canGoBack}
+                disabled={!window.navigation.canGoBack}
                 spinnable={false}
                 onClick={() => {
                   //@ts-ignore
-                  navigation.back()
+                  window.navigation.back()
                   
 
                 }}
