@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Search, Check, BookMarked, ChevronDown, Plus, Pencil } from "lucide-react";
+import { Copy, Search, Check, BookMarked, ChevronDown, Plus, Pencil, X } from "lucide-react";
 
 // @ts-ignore
 import Cite from "citation-js";
@@ -18,6 +18,18 @@ import { toast } from "sonner";
 import { Zotero } from "@/assets/icons/zotero";
 
 type CopyType = "cite-a" | "cite";
+type AuthorInput = { firstName: string; lastName: string } | string;
+
+const getAuthorInputs = (cite: CiteUtils): AuthorInput[] => {
+  const authors = (cite.getCite() as any).author;
+  const list = Array.isArray(authors) ? authors : authors ? [authors] : [];
+  return list.map((author: any) => {
+    if (typeof author === "string") return author;
+    if (author.literal) return String(author.literal);
+    if (!author.given) return String(author.family || "");
+    return { firstName: String(author.given), lastName: String(author.family || "") };
+  });
+};
 
 export const Citation = () => {
   const [loading, setLoading] = useState(true);
@@ -29,7 +41,7 @@ export const Citation = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<CiteUtils | null>(null);
-  const [authors, setAuthors] = useState("");
+  const [authors, setAuthors] = useState<AuthorInput[]>([]);
 
   const db = HighTexDB.getInstance();
   const reload = async () => setCites(await db.getCites());
@@ -138,16 +150,18 @@ export const Citation = () => {
 
   const saveAuthors = async () => {
     if (!editing) return;
-    const names = authors.split("\n").map((name) => name.trim()).filter(Boolean);
-    if (!names.length) return toast.error(t("citation.error.no_valid_citations"));
+    const values = authors.map((author) => typeof author === "string"
+      ? author.trim()
+      : { firstName: author.firstName.trim(), lastName: author.lastName.trim() });
+    if (!values.length || values.some((author) => typeof author === "string"
+      ? !author
+      : !author.firstName && !author.lastName)) {
+      return toast.error(t("editor.expandable.citation.author_required"));
+    }
     try {
-      const data = { ...editing.getCite(), author: names.map((name) => {
-        const comma = name.indexOf(",");
-        return comma < 0 ? { literal: name } : {
-          family: name.slice(0, comma).trim(),
-          given: name.slice(comma + 1).trim(),
-        };
-      }) };
+      const data = { ...editing.getCite(), author: values.map((author) => typeof author === "string"
+        ? { literal: author }
+        : { given: author.firstName, family: author.lastName }) };
       await db.cite.update(editing.getId(), { bib: objectToBib(data as any) });
       await reload();
       setEditing(null);
@@ -220,8 +234,7 @@ export const Citation = () => {
             {filtered.map((cite) => (
               <CitationItem key={cite.getId()} cite={cite} onEdit={() => {
                 setEditing(cite);
-                const author = (cite.getCite() as any).author;
-                setAuthors(Array.isArray(author) ? author.map((person: any) => person.literal || [person.family, person.given].filter(Boolean).join(", ")).join("\n") : String(author || ""));
+                setAuthors(getAuthorInputs(cite));
               }} />
             ))}
           </div>
@@ -245,10 +258,42 @@ export const Citation = () => {
         </DialogContent>
       </Dialog>
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-auto">
           <DialogHeader><DialogTitle>{t("editor.expandable.citation.edit_authors")}</DialogTitle></DialogHeader>
           <p className="text-xs text-muted-foreground">{t("editor.expandable.citation.author_hint")}</p>
-          <textarea className="h-36 w-full rounded-lg border bg-background p-3 text-sm" value={authors} onChange={(event) => setAuthors(event.target.value)} />
+          <div className="space-y-2">
+            {authors.map((author, index) => <div key={index} className="flex items-start gap-2 rounded-lg border p-2">
+              <div className="min-w-0 flex-1 space-y-2">
+                {typeof author === "string" ? <input
+                  aria-label={`${t("editor.expandable.citation.full_name")} ${index + 1}`}
+                  placeholder={t("editor.expandable.citation.full_name")}
+                  className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                  value={author}
+                  onChange={(event) => setAuthors((current) => current.map((item, i) => i === index ? event.target.value : item))}
+                /> : <div className="grid grid-cols-2 gap-2">
+                  <input
+                    aria-label={`${t("editor.expandable.citation.first_name")} ${index + 1}`}
+                    placeholder={t("editor.expandable.citation.first_name")}
+                    className="h-9 min-w-0 rounded-md border bg-background px-3 text-sm"
+                    value={author.firstName}
+                    onChange={(event) => setAuthors((current) => current.map((item, i) => i === index && typeof item !== "string" ? { ...item, firstName: event.target.value } : item))}
+                  />
+                  <input
+                    aria-label={`${t("editor.expandable.citation.last_name")} ${index + 1}`}
+                    placeholder={t("editor.expandable.citation.last_name")}
+                    className="h-9 min-w-0 rounded-md border bg-background px-3 text-sm"
+                    value={author.lastName}
+                    onChange={(event) => setAuthors((current) => current.map((item, i) => i === index && typeof item !== "string" ? { ...item, lastName: event.target.value } : item))}
+                  />
+                </div>}
+              </div>
+              <button type="button" aria-label={`${t("editor.expandable.citation.remove_author")} ${index + 1}`} onClick={() => setAuthors((current) => current.filter((_, i) => i !== index))} className="rounded-md p-2 hover:bg-muted"><X className="h-4 w-4" /></button>
+            </div>)}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => setAuthors((current) => [...current, { firstName: "", lastName: "" }])}><Plus className="mr-1 h-4 w-4" />{t("editor.expandable.citation.add_person")}</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setAuthors((current) => [...current, ""])}><Plus className="mr-1 h-4 w-4" />{t("editor.expandable.citation.add_name")}</Button>
+          </div>
           <DialogFooter><Button variant="outline" onClick={() => setEditing(null)}>{t("common.cancel")}</Button><Button onClick={saveAuthors}>{t("editor.expandable.citation.save")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
