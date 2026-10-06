@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Search, Check, BookMarked, ChevronDown } from "lucide-react";
+import { Copy, Search, Check, BookMarked, ChevronDown, Plus, Pencil } from "lucide-react";
 
 // @ts-ignore
 import Cite from "citation-js";
 
 import { TabHeader } from "./components/tab-header";
 
-import { CiteUtils } from "bibtex.js";
+import { CiteUtils, objectToBib } from "bibtex.js";
 import { Dropdown } from "@/components/dropdown";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { t } from "@/utils/lang";
+import { parseBibtexInput, isCitationValid } from "@/utils/citation";
+import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Zotero } from "@/assets/icons/zotero";
 
 type CopyType = "cite-a" | "cite";
 
@@ -17,15 +23,23 @@ export const Citation = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [cites, setCites] = useState<CiteUtils[]>([]);
+  const [mode, setMode] = useState<"bibtex" | "zotero" | null>(null);
+  const [bibText, setBibText] = useState("");
+  const [zoteroItems, setZoteroItems] = useState<ZoteroItem[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<CiteUtils | null>(null);
+  const [authors, setAuthors] = useState("");
+
+  const db = HighTexDB.getInstance();
+  const reload = async () => setCites(await db.getCites());
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
 
-        const data = await HighTexDB.getInstance().getCites();
-
-        setCites(data);
+        await reload();
       } finally {
         setLoading(false);
       }
@@ -67,12 +81,97 @@ export const Citation = () => {
     });
   }, [query, cites]);
 
+  const importBib = async (content: string) => {
+    const { entries, errors } = parseBibtexInput(content);
+    if (errors.length) throw new Error(errors.join(" "));
+    const valid = entries.filter((entry) => isCitationValid(entry.cite));
+    if (!valid.length) throw new Error(t("citation.error.no_valid_citations"));
+    const keys = new Set((await db.cite.toArray()).map((item) => item.key));
+    const records = valid.map((entry) => {
+      let key = entry.key;
+      for (let index = 1; keys.has(key); index++) key = `${entry.key}_${index}`;
+      keys.add(key);
+      return { key, bib: entry.bib };
+    });
+    await db.cite.bulkPut(records);
+    await reload();
+    toast.success(t("citation.imported", { count: records.length, skipped: "" }));
+    setMode(null);
+    setBibText("");
+  };
+
+  const openZotero = async () => {
+    setMode("zotero");
+    setSelected([]);
+    setZoteroItems([]);
+    setBusy(true);
+    try {
+      await window.config.ready();
+      const { enabled, host, port } = window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
+      if (!enabled) throw new Error(t("citation.zotero.integration_disabled"));
+      const result = await window.zotero.testConnection(host, port);
+      if (!result.connected) throw new Error(result.message || t("citation.zotero.connection_failed"));
+      setZoteroItems(await window.zotero.listItems(host, port, 100));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("citation.zotero.connection_failed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      if (mode === "bibtex") await importBib(bibText);
+      if (mode === "zotero") {
+        await window.config.ready();
+        const { host, port } = window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
+        const bibs = await Promise.all(selected.map((key) => window.zotero.exportBibtex(host, port, key)));
+        await importBib(bibs.join("\n\n"));
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveAuthors = async () => {
+    if (!editing) return;
+    const names = authors.split("\n").map((name) => name.trim()).filter(Boolean);
+    if (!names.length) return toast.error(t("citation.error.no_valid_citations"));
+    try {
+      const data = { ...editing.getCite(), author: names.map((name) => {
+        const comma = name.indexOf(",");
+        return comma < 0 ? { literal: name } : {
+          family: name.slice(0, comma).trim(),
+          given: name.slice(comma + 1).trim(),
+        };
+      }) };
+      await db.cite.update(editing.getId(), { bib: objectToBib(data as any) });
+      await reload();
+      setEditing(null);
+      toast.success(t("editor.expandable.citation.saved"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+    }
+  };
+
   return (
     <div className="flex h-full flex-col bg-background">
       <TabHeader
         title={t("editor.expandable.citation.title")}
         desc={t("editor.expandable.citation.description")}
       />
+
+      <div className="flex gap-2 border-b px-3 py-3">
+        <Button size="sm" className="min-w-0 flex-1 gap-1.5 rounded-xl px-2 text-[11px] whitespace-nowrap" onClick={() => setMode("bibtex")}>
+          <Plus className="h-4 w-4 shrink-0" />{t("citation.add")}
+        </Button>
+        <Button size="sm" variant="outline" className="min-w-0 flex-1 gap-1.5 rounded-xl px-2 text-[11px] whitespace-nowrap" onClick={openZotero}>
+          <Zotero className="h-3.5 w-3.5 shrink-0 fill-current" />{t("citation.import_zotero")}
+        </Button>
+      </div>
 
       <div className="border-b p-4">
         <div className="relative">
@@ -119,20 +218,50 @@ export const Citation = () => {
         {!loading && filtered.length > 0 && (
           <div className="space-y-4">
             {filtered.map((cite) => (
-              <CitationItem key={cite.getId()} cite={cite} />
+              <CitationItem key={cite.getId()} cite={cite} onEdit={() => {
+                setEditing(cite);
+                const author = (cite.getCite() as any).author;
+                setAuthors(Array.isArray(author) ? author.map((person: any) => person.literal || [person.family, person.given].filter(Boolean).join(", ")).join("\n") : String(author || ""));
+              }} />
             ))}
           </div>
         )}
       </div>
+      <Dialog open={mode !== null} onOpenChange={(open) => !open && setMode(null)}>
+        <DialogContent className="max-h-[85vh] overflow-auto">
+          <DialogHeader><DialogTitle>{mode === "bibtex" ? t("citation.import_title") : t("citation.zotero.title")}</DialogTitle></DialogHeader>
+          {mode === "bibtex" ? <div className="space-y-3">
+            <label className="block text-sm">{t("citation.upload_bib")}
+              <input type="file" accept=".bib,application/x-bibtex,text/x-bibtex" className="mt-1 block w-full text-xs" onChange={async (event) => { const file = event.target.files?.[0]; if (file) setBibText(await file.text()); }} />
+            </label>
+            <textarea className="h-56 w-full rounded-lg border bg-background p-3 font-mono text-xs" value={bibText} onChange={(event) => setBibText(event.target.value)} placeholder={t("citation.bibtex_placeholder")} />
+          </div> : <div className="max-h-80 space-y-1 overflow-auto">
+            {busy ? t("citation.zotero.loading") : zoteroItems.length ? zoteroItems.map((item) => <label key={item.key} className="flex cursor-pointer gap-2 rounded-lg p-2 text-sm hover:bg-muted">
+              <input type="checkbox" checked={selected.includes(item.key)} onChange={() => setSelected((current) => current.includes(item.key) ? current.filter((key) => key !== item.key) : [...current, item.key])} />
+              <span>{item.title || item.key}</span>
+            </label>) : t("citation.zotero.no_references")}
+          </div>}
+          <DialogFooter><Button variant="outline" onClick={() => setMode(null)}>{t("common.cancel")}</Button><Button disabled={busy || (mode === "zotero" ? !selected.length : !bibText.trim())} onClick={save}>{t("citation.import")}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("editor.expandable.citation.edit_authors")}</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">{t("editor.expandable.citation.author_hint")}</p>
+          <textarea className="h-36 w-full rounded-lg border bg-background p-3 text-sm" value={authors} onChange={(event) => setAuthors(event.target.value)} />
+          <DialogFooter><Button variant="outline" onClick={() => setEditing(null)}>{t("common.cancel")}</Button><Button onClick={saveAuthors}>{t("editor.expandable.citation.save")}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 type CitationItemProps = {
   cite: CiteUtils;
+  onEdit: () => void;
 };
 
-const CitationItem = ({ cite }: CitationItemProps) => {
+const CitationItem = ({ cite, onEdit }: CitationItemProps) => {
   const [copied, setCopied] = useState<CopyType | null>(null);
 
   const title = cite.getTitle();
@@ -225,6 +354,7 @@ const CitationItem = ({ cite }: CitationItemProps) => {
           {biblio}
         </p>
       </div>
+      <button type="button" onClick={onEdit} className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" />{t("editor.expandable.citation.edit_authors")}</button>
     </div>
   );
 };

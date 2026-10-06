@@ -234,7 +234,11 @@
         "copied": "Tersalin",
         "copy": "Salin",
         "copy_cite_a": "Salin Cite A",
-        "copy_cite": "Salin Cite"
+        "copy_cite": "Salin Cite",
+        "edit_authors": "Edit nama penulis",
+        "author_hint": "Satu penulis per baris, format Nama keluarga, Nama depan. Perubahan tersimpan di HighTex.",
+        "save": "Simpan",
+        "saved": "Nama penulis diperbarui"
       },
       "scanner": {
         "title": "Pemindai",

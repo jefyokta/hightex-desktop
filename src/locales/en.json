@@ -234,7 +234,11 @@
         "copied": "Copied",
         "copy": "Copy",
         "copy_cite_a": "Copy Cite A",
-        "copy_cite": "Copy Cite"
+        "copy_cite": "Copy Cite",
+        "edit_authors": "Edit author names",
+        "author_hint": "One author per line, in Family, Given format. Changes are saved in HighTex.",
+        "save": "Save",
+        "saved": "Author names updated"
       },
       "scanner": {
         "title": "Scanner",
