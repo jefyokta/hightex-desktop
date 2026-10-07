@@ -1,3 +1,4 @@
+import { AbstractEnglish, AbstractIndonesian } from "../sheets/abstracts";
 import { Cover } from "../sheets/cover";
 import { Foreword } from "../sheets/foreword";
 import { CompanyConsent } from "../sheets/intern/company-validity";
@@ -10,6 +11,8 @@ export const Intern = () => {
       <CompanyConsent />
       <UniversityConsent />
       <Foreword />
+      <AbstractIndonesian />
+      <AbstractEnglish />
     </>
   );
 };
