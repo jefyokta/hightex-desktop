@@ -297,4 +297,7 @@ contextBridge.exposeInMainWorld("editor", {
   open(documentId: string) {
     return ipcRenderer.invoke("editor:open", documentId);
   },
+  has(documentId) {
+    return ipcRenderer.invoke("editor:has",documentId)
+  },
 } satisfies Window["editor"]);

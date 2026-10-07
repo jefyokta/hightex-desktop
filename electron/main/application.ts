@@ -34,6 +34,7 @@ import { firstInstalled } from "@main/utilities/first-installed";
 import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
 import { FileSystemHandler } from "@main/handlers/file-system-handler";
 import { EditorHandler } from "@main/handlers/editor-handler";
+import { appEvent } from "@main/event";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -46,6 +47,7 @@ type UpdaterStatus =
 
 export class Application {
   private win: BrowserWindow | null = null;
+
 
   private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
@@ -234,6 +236,9 @@ export class Application {
   private async onReady() {
     await this.prepareCoreServices();
     this.registerHandlers();
+    appEvent.addListener("unauthorized",()=>{
+      SessionHandler.broadcastSession()      
+    })
     EditorHandler.register();
     this.registerUpdater();
     await this.createWindow();

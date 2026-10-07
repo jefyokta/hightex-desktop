@@ -293,5 +293,6 @@ declare global {
 
   interface EditorAPI {
     open(documentId: string): Promise<void>;
+    has(documentId:string):Promise<boolean>
   }
 }
