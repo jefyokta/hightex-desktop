@@ -34,10 +34,9 @@ export const Sidebar = ({ recent = [] }: Props) => {
     <button
       onClick={() => navigate(path)}
       className={`flex w-full items-center gap-2 text-xs p-2 rounded-lg transition
-        ${
-          isActive(path)
-            ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-            : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        ${isActive(path)
+          ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+          : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
         }
       `}
     >
@@ -99,16 +98,16 @@ export const Sidebar = ({ recent = [] }: Props) => {
               {recent.slice(0, 5).map((doc) => {
                 const time = doc.updatedAt
                   ? formatDistanceToNow(new Date(doc.updatedAt), {
-                      addSuffix: true,
-                      //@ts-ignore
-                      locale: locales[locale],
-                    })
+                    addSuffix: true,
+                    //@ts-ignore
+                    locale: locales[locale],
+                  })
                   : null;
 
                 return (
                   <button
                     key={doc.id}
-                    onClick={() => navigate(`/document/${doc.id}`)}
+                    onClick={() => window.editor.open(doc.id)}
                     className="w-full flex items-center space-x-2 text-left  rounded-md
                       hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
                   >
