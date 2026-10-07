@@ -5,19 +5,20 @@ import { SessionService } from "../service/session-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 
 export class SessionHandler {
-  private static async broadcastSession() {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (!win) return;
+  public static async broadcastSession() {
 
-    try {
-      const user = await this.user();
-
-      win.webContents.send("session:changed", user || false);
-    } catch (err) {
-      LoggerService.write(err, "broadcastSession");
-      SessionService.clearUser();
-      win.webContents.send("session:changed", false);
+    const windows = BrowserWindow.getAllWindows();
+    const user = await this.user();
+    for(const win of windows){
+      try {
+        win.webContents.send("session:changed", user || false);
+      } catch (err) {
+        LoggerService.write(err, "broadcastSession");
+        SessionService.clearUser();
+        win.webContents.send("session:changed", false);
+      }
     }
+
   }
 
   public static async user(): Promise<User | false> {

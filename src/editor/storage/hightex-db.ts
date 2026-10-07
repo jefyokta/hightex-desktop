@@ -4,6 +4,7 @@ import { Manager } from "../manager";
 import { CiteUtils } from "bibtex.js";
 import { Symbols } from "@/utils/symbol";
 import { ActionCanceled } from "@/exception/action-canceled";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -62,6 +63,17 @@ export class HighTexDB extends Dexie {
     Manager.app.dispatch("document:updated", { document: fresh! });
   }
   async deleteDocument(documentId: string) {
+
+    if("editor" in window){
+      const windowOpened = await window.editor.has(documentId);
+      if(windowOpened){
+
+        throw new ShouldNotified({
+            message: "Cannot delete document while it is being edited",
+            description: "Please close the editor before deleting this document.",
+        });  
+          }
+    }
     await this.documents.delete(documentId);
 
     const chapters = await this.chapters
