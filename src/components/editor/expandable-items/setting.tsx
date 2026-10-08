@@ -91,7 +91,7 @@ export const Setting = () => {
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <TabHeader title={t("editor.expandable.setting.title")} desc={doc.title}>
+      <TabHeader title={t("editor.expandable.setting.title")} desc={<ParsedItalic text={doc.title}/>}>
         <div className="flex justify-end space-x-1 items-center">
           {isDirty && (
             <Badge className=" gap-1 border-yellow-500/20 bg-yellow-500/10 text-yellow-700 dark:border-yellow-400/20 dark:bg-yellow-400/10 dark:text-yellow-300">

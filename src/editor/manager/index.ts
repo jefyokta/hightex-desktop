@@ -7,6 +7,7 @@ import { truncate } from "@/utils/truncate";
 
 import { ExportTimeout } from "@/exception/export-time-out";
 import { progressiveToast } from "@/utils/progressive-toast";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 type ErrorPayload = {
   error: unknown;
@@ -56,9 +57,18 @@ class App {
       };
     };
     const onMainError = (_: any, e: any) => {
+      console.log(e)
       if ("name" in e && e.name === "export-timeout") {
         callback({
           error: new ExportTimeout(e.error.desc, e.error.logFile),
+          name: e.name,
+        });
+
+        return;
+      }
+         if ("name" in e && e.name === "ShouldNotified") {
+        callback({
+          error: new ShouldNotified(e.error),
           name: e.name,
         });
 

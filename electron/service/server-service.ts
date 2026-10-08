@@ -4,7 +4,8 @@ import { SessionService } from "./session-service";
 import path from "path";
 import { app } from "electron";
 import "dotenv/config";
-import { HttpException } from "@main/exception/http-exception";
+import { HttpException} from "@main/exception/http/http-exception";
+import { HttpExceptionFactory } from "@main/exception/http/factory";
 interface ServerInfo {
   serverHost?: string;
   serverUrl?: string;
@@ -87,8 +88,12 @@ export class ServerService {
       const text = await response.text();
       return text ? JSON.parse(text) : ({} as T);
     } catch (error) {
+  
       this.log(error, context || endpoint);
       console.log(error);
+          if(error instanceof HttpException){
+        throw HttpExceptionFactory.create(error)
+      }
       throw error;
     }
   }

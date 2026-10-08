@@ -2,6 +2,7 @@ import { Modal } from "./modal";
 import { useAuthModal } from "./../context/auth-modal-context";
 import { useState } from "react";
 import { Input } from "./ui/input";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 export const LoginModal = () => {
   const { loginOpen, closeLogin } = useAuthModal();
@@ -14,7 +15,9 @@ export const LoginModal = () => {
 
     if (res) {
       closeLogin();
+      return;
     }
+    throw new ShouldNotified({message:"Login Failed",description:"Invalid Crendential"})
   };
 
   return (

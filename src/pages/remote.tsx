@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ParsedItalic } from "@/utils/parse-italic";
 
 export const RemoteDocuments = () => {
   const { user } = useUser();
@@ -266,7 +267,7 @@ export const RemoteDocuments = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {localDocs.map((doc) => (
-                    <SelectItem key={doc.id} value={doc.id}>{doc.title || "Tanpa judul"}</SelectItem>
+                    <SelectItem key={doc.id} value={doc.id}>{<ParsedItalic text={doc.title || "Tanpa judul"} />}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -274,7 +275,7 @@ export const RemoteDocuments = () => {
             {selectedDoc && (
               <div className="rounded-xl bg-white p-4 dark:bg-neutral-950">
                 <div className="text-xs text-muted-foreground">Yang akan disimpan</div>
-                <div className="mt-1 truncate text-sm font-semibold">{selectedDoc.title || "Tanpa judul"}</div>
+                <div className="mt-1 truncate text-sm font-semibold"><ParsedItalic text={selectedDoc.title || "Tanpa judul"} /></div>
                 <div className="mt-2 break-all font-mono text-[11px] text-muted-foreground">Local ID: {selectedDoc.id}</div>
                 {linkedLocalId === selectedDoc.id && current?.document_id && (
                   <div className="mt-2 break-all text-[11px] text-muted-foreground">Tertaut ke Server ID: <span className="font-mono">{current.document_id}</span></div>

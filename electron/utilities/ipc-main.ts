@@ -10,6 +10,7 @@ export class IPCMain {
       try {
         return await listener(event, ...args);
       } catch (error) {
+
         if (error instanceof Handled) {
           error.handle();
         }

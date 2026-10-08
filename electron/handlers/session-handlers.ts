@@ -81,8 +81,9 @@ export class SessionHandler {
   static register() {
     IPCMain.handle("session:user", () => SessionHandler.user());
 
-    IPCMain.handle("session:login", (_event, email: string, password: string) =>
-      SessionHandler.login(email, password),
+    IPCMain.handle("session:login", (_event, email: string, password: string) =>{
+      SessionHandler.login(email, password )
+    },
     );
 
     IPCMain.handle("session:logout", async () => {
