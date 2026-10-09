@@ -38,6 +38,7 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Splash />} />
+          <Route path="/import/{filePath}" />
           <Route element={<SharingLayout />}>
             <Route path="/share/:host/:port" element={<SharingGuest />} />
             <Route path="/share/:host/:port/:code" element={<SharingGuest />} />

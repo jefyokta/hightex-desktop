@@ -13,9 +13,6 @@ import { ConfigHandler } from "../handlers/config-handler";
 import { ProfileHandler } from "../handlers/profile-handlers";
 import { SessionHandler } from "../handlers/session-handlers";
 import { HighTexHandler } from "../handlers/hightex-handlers";
-// import { PluginHandler } from "../handlers/plugin-handlers";
-// import { PluginScannerHandler } from "../handlers/plugin-scanner-handlers";
-// import { PluginManager } from "../plugins/plugin-manager";
 import { KeyManagerService } from "../service/key-manager-service";
 import { DefaultPluginsBootstrapper } from "../plugins/plugin-default-boostraper";
 import { ZoteroHandler } from "../handlers/zotero-handler";
@@ -35,6 +32,7 @@ import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
 import { FileSystemHandler } from "@main/handlers/file-system-handler";
 import { EditorHandler } from "@main/handlers/editor-handler";
 import { appEvent } from "@main/event";
+import { WindowHandler } from "@main/handlers/window-handler";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -240,6 +238,7 @@ export class Application {
       SessionHandler.broadcastSession()      
     })
     EditorHandler.register();
+    WindowHandler.register();
     this.registerUpdater();
     await this.createWindow();
     this.registerContextMenu();

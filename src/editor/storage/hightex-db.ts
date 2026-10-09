@@ -29,6 +29,7 @@ export class HighTexDB extends Dexie {
       variables: "name, documentId",
       //key = {documentId}.{key}
       aliases: "key, documentId",
+      file:"filePath, documentId",
     });
     this.cite.bulkPut(defaulBib);
     this.createGlobalVars();

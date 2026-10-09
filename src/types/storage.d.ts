@@ -85,7 +85,7 @@ declare global {
     keywords: Keywords;
     config: HighTexConfig;
     updatedAt?: Date;
-    file?: HighTexFileMeta;
+    file?: string;
     min?: boolean;
   }
 

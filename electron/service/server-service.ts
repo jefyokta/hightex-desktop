@@ -90,7 +90,7 @@ export class ServerService {
     } catch (error) {
   
       this.log(error, context || endpoint);
-      console.log(error);
+      // console.log(error);
           if(error instanceof HttpException){
         throw HttpExceptionFactory.create(error)
       }

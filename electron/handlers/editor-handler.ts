@@ -1,4 +1,4 @@
-import { EditorWindow } from "@main/main/editor-window";
+import { EditorWindow } from "@main/windows/editor-window";
 import { IPCMain } from "@main/utilities/ipc-main";
 
 export class EditorHandler {

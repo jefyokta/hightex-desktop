@@ -16,6 +16,10 @@ export class FileOpenManager {
     );
   }
 
+  static isDocumentFile(filepath:string){
+    return filepath.endsWith(".hightex")
+  }
+
   bootstrap(app: Electron.App) {
     const lock = app.requestSingleInstanceLock();
 
@@ -25,12 +29,11 @@ export class FileOpenManager {
     }
 
     app.on("open-file", (event, filePath) => {
-      console.log("got file", filePath);
       event.preventDefault();
 
       if (!this.isSupported(filePath)) return;
 
-      if (!app.isReady()) {
+      if (!app.isReady() || app.requestSingleInstanceLock()) {
         this.pendingFiles.push(filePath);
         return;
       }

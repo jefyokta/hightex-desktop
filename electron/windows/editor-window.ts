@@ -1,10 +1,15 @@
 import { app, BrowserWindow } from "electron";
-import { Application } from "./application";
-
+import { Application } from "./../main/application";
 export class EditorWindow {
-  private static windows = new Map<string, BrowserWindow>();
+  private static windows = new Map<string, EditorWindowState>();
 
-  static async open(documentId: string): Promise<BrowserWindow> {
+
+  static openFile(filePath:string){
+
+
+  }
+  static async open(documentId:string): Promise<BrowserWindow> {
+ 
     const existing = this.get(documentId);
 
     if (existing) {
@@ -32,10 +37,15 @@ export class EditorWindow {
       },
     });
 
-    this.windows.set(documentId, window);
+
+    this.windows.set(documentId, {
+      window,
+      document:{id:documentId}
+
+    });
 
     window.once("closed", () => {
-      if (this.windows.get(documentId) === window) {
+      if (this.windows.get(documentId)?.window === window) {
         this.windows.delete(documentId);
       }
     });
@@ -46,7 +56,7 @@ export class EditorWindow {
 
     await window.loadURL(
       Application.instance.resolveRendererUrl(
-        `document/${encodeURIComponent(documentId)}`,
+        `document/${documentId}`,
       ),
     );
     if (!app.isPackaged) window.webContents.openDevTools();
@@ -55,7 +65,7 @@ export class EditorWindow {
   }
 
   static get(documentId: string): BrowserWindow | undefined {
-    const window = this.windows.get(documentId);
+    const window = this.windows.get(documentId)?.window;
 
     if (!window || window.isDestroyed()) {
       this.windows.delete(documentId);
