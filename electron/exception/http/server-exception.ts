@@ -1,3 +1,3 @@
 import { HttpException } from "./http-exception";
 
-export class ServerExeption extends HttpException{}
+export class ServerExeption extends HttpException {}

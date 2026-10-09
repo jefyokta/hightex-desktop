@@ -29,7 +29,7 @@ export class HighTexDB extends Dexie {
       variables: "name, documentId",
       //key = {documentId}.{key}
       aliases: "key, documentId",
-      file:"filePath, documentId",
+      file: "filePath, documentId",
     });
     this.cite.bulkPut(defaulBib);
     this.createGlobalVars();
@@ -64,16 +64,14 @@ export class HighTexDB extends Dexie {
     Manager.app.dispatch("document:updated", { document: fresh! });
   }
   async deleteDocument(documentId: string) {
-
-    if("editor" in window){
+    if ("editor" in window) {
       const windowOpened = await window.editor.has(documentId);
-      if(windowOpened){
-
+      if (windowOpened) {
         throw new ShouldNotified({
-            message: "Cannot delete document while it is being edited",
-            description: "Please close the editor before deleting this document.",
-        });  
-          }
+          message: "Cannot delete document while it is being edited",
+          description: "Please close the editor before deleting this document.",
+        });
+      }
     }
     await this.documents.delete(documentId);
 

@@ -39,8 +39,10 @@
     "signer.ts",
     "create-release.ts",
     "scripts/*.ts",
-    "sharable-types/*.d.ts"
-, "sharable-types/pull-response.d.ts", "sharable-types/push-response.d.ts"  ],
+    "sharable-types/*.d.ts",
+    "sharable-types/pull-response.d.ts",
+    "sharable-types/push-response.d.ts"
+  ],
   "exclude": ["electron/plugins/plugin-example.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

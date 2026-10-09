@@ -40,3 +40,4 @@ Validate / ensure export succeeded
 Rename temporary file
    ↓
 Overwrite original .hightex
+```

@@ -1,23 +1,15 @@
-type FileOpenCallback = (filePath: string) => void;
+import { ImportWindow } from "@main/windows/import-window";
+
 type CliOpenCallback = (args: string[]) => void | Promise<void>;
 
 export class FileOpenManager {
-  private pendingFiles: string[] = [];
 
-  private extensions: string[];
+  private extensions: string[] = [".hightex", ".hts", ".ht"];
 
   constructor(
-    private readonly callback: FileOpenCallback,
     private readonly onCli?: CliOpenCallback,
-    extensions: string[] = [".hightex", ".hts", ".ht"],
   ) {
-    this.extensions = extensions.map((e) =>
-      e.startsWith(".") ? e.toLowerCase() : `.${e.toLowerCase()}`,
-    );
-  }
 
-  static isDocumentFile(filepath:string){
-    return filepath.endsWith(".hightex")
   }
 
   bootstrap(app: Electron.App) {
@@ -30,14 +22,7 @@ export class FileOpenManager {
 
     app.on("open-file", (event, filePath) => {
       event.preventDefault();
-
       if (!this.isSupported(filePath)) return;
-
-      if (!app.isReady() || app.requestSingleInstanceLock()) {
-        this.pendingFiles.push(filePath);
-        return;
-      }
-
       this.emit(filePath);
     });
 
@@ -53,30 +38,17 @@ export class FileOpenManager {
     });
   }
 
-  flush() {
-    for (const file of this.pendingFiles) {
-      this.emit(file);
-    }
-
-    this.pendingFiles = [];
-
-    const startupFile = this.extractFromArgs(process.argv);
-
-    if (startupFile) {
-      this.emit(startupFile);
-    }
+ async flush() {
+    await ImportWindow.instance.load()
   }
 
   private emit(filePath: string) {
-    try {
-      this.callback(filePath);
-    } catch (error) {
-      console.error(
-        "[FileOpenManager] Failed to handle file:",
-        filePath,
-        error,
-      );
+    if(filePath.endsWith(".hightex")){
+      ImportWindow.instance.addFiles(filePath)
+      return
     }
+    console.warn("unsupported file %s",filePath.split("/").slice(-1))
+    
   }
 
   private extractFromArgs(args: string[]) {

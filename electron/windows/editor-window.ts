@@ -3,13 +3,7 @@ import { Application } from "./../main/application";
 export class EditorWindow {
   private static windows = new Map<string, EditorWindowState>();
 
-
-  static openFile(filePath:string){
-
-
-  }
-  static async open(documentId:string): Promise<BrowserWindow> {
- 
+  static async open(documentId: string): Promise<BrowserWindow> {
     const existing = this.get(documentId);
 
     if (existing) {
@@ -37,11 +31,9 @@ export class EditorWindow {
       },
     });
 
-
     this.windows.set(documentId, {
       window,
-      document:{id:documentId}
-
+      document: { id: documentId },
     });
 
     window.once("closed", () => {
@@ -55,9 +47,7 @@ export class EditorWindow {
     });
 
     await window.loadURL(
-      Application.instance.resolveRendererUrl(
-        `document/${documentId}`,
-      ),
+      Application.instance.resolveRendererUrl(`document/${documentId}`),
     );
     if (!app.isPackaged) window.webContents.openDevTools();
 

@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Search, Check, BookMarked, ChevronDown, Plus, Pencil, X } from "lucide-react";
+import {
+  Copy,
+  Search,
+  Check,
+  BookMarked,
+  ChevronDown,
+  Plus,
+  Pencil,
+  X,
+} from "lucide-react";
 
 // @ts-ignore
 import Cite from "citation-js";
@@ -12,7 +21,13 @@ import { HighTexDB } from "@/editor/storage/hightex-db";
 import { t } from "@/utils/lang";
 import { parseBibtexInput, isCitationValid } from "@/utils/citation";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Zotero } from "@/assets/icons/zotero";
@@ -27,7 +42,10 @@ const getAuthorInputs = (cite: CiteUtils): AuthorInput[] => {
     if (typeof author === "string") return author;
     if (author.literal) return String(author.literal);
     if (!author.given) return String(author.family || "");
-    return { firstName: String(author.given), lastName: String(author.family || "") };
+    return {
+      firstName: String(author.given),
+      lastName: String(author.family || ""),
+    };
   });
 };
 
@@ -107,7 +125,9 @@ export const Citation = () => {
     });
     await db.cite.bulkPut(records);
     await reload();
-    toast.success(t("citation.imported", { count: records.length, skipped: "" }));
+    toast.success(
+      t("citation.imported", { count: records.length, skipped: "" }),
+    );
     setMode(null);
     setBibText("");
   };
@@ -119,13 +139,21 @@ export const Citation = () => {
     setBusy(true);
     try {
       await window.config.ready();
-      const { enabled, host, port } = window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
+      const { enabled, host, port } =
+        window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
       if (!enabled) throw new Error(t("citation.zotero.integration_disabled"));
       const result = await window.zotero.testConnection(host, port);
-      if (!result.connected) throw new Error(result.message || t("citation.zotero.connection_failed"));
+      if (!result.connected)
+        throw new Error(
+          result.message || t("citation.zotero.connection_failed"),
+        );
       setZoteroItems(await window.zotero.listItems(host, port, 100));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("citation.zotero.connection_failed"));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("citation.zotero.connection_failed"),
+      );
     } finally {
       setBusy(false);
     }
@@ -137,8 +165,11 @@ export const Citation = () => {
       if (mode === "bibtex") await importBib(bibText);
       if (mode === "zotero") {
         await window.config.ready();
-        const { host, port } = window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
-        const bibs = await Promise.all(selected.map((key) => window.zotero.exportBibtex(host, port, key)));
+        const { host, port } =
+          window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
+        const bibs = await Promise.all(
+          selected.map((key) => window.zotero.exportBibtex(host, port, key)),
+        );
         await importBib(bibs.join("\n\n"));
       }
     } catch (error) {
@@ -150,18 +181,33 @@ export const Citation = () => {
 
   const saveAuthors = async () => {
     if (!editing) return;
-    const values = authors.map((author) => typeof author === "string"
-      ? author.trim()
-      : { firstName: author.firstName.trim(), lastName: author.lastName.trim() });
-    if (!values.length || values.some((author) => typeof author === "string"
-      ? !author
-      : !author.firstName && !author.lastName)) {
+    const values = authors.map((author) =>
+      typeof author === "string"
+        ? author.trim()
+        : {
+            firstName: author.firstName.trim(),
+            lastName: author.lastName.trim(),
+          },
+    );
+    if (
+      !values.length ||
+      values.some((author) =>
+        typeof author === "string"
+          ? !author
+          : !author.firstName && !author.lastName,
+      )
+    ) {
       return toast.error(t("editor.expandable.citation.author_required"));
     }
     try {
-      const data = { ...editing.getCite(), author: values.map((author) => typeof author === "string"
-        ? { literal: author }
-        : { given: author.firstName, family: author.lastName }) };
+      const data = {
+        ...editing.getCite(),
+        author: values.map((author) =>
+          typeof author === "string"
+            ? { literal: author }
+            : { given: author.firstName, family: author.lastName },
+        ),
+      };
       await db.cite.update(editing.getId(), { bib: objectToBib(data as any) });
       await reload();
       setEditing(null);
@@ -179,11 +225,22 @@ export const Citation = () => {
       />
 
       <div className="flex gap-2 border-b px-3 py-3">
-        <Button size="sm" className="min-w-0 flex-1 gap-1.5 rounded-xl px-2 text-[11px] whitespace-nowrap" onClick={() => setMode("bibtex")}>
-          <Plus className="h-4 w-4 shrink-0" />{t("citation.add")}
+        <Button
+          size="sm"
+          className="min-w-0 flex-1 gap-1.5 rounded-xl px-2 text-[11px] whitespace-nowrap"
+          onClick={() => setMode("bibtex")}
+        >
+          <Plus className="h-4 w-4 shrink-0" />
+          {t("citation.add")}
         </Button>
-        <Button size="sm" variant="outline" className="min-w-0 flex-1 gap-1.5 rounded-xl px-2 text-[11px] whitespace-nowrap" onClick={openZotero}>
-          <Zotero className="h-3.5 w-3.5 shrink-0 fill-current" />{t("citation.import_zotero")}
+        <Button
+          size="sm"
+          variant="outline"
+          className="min-w-0 flex-1 gap-1.5 rounded-xl px-2 text-[11px] whitespace-nowrap"
+          onClick={openZotero}
+        >
+          <Zotero className="h-3.5 w-3.5 shrink-0 fill-current" />
+          {t("citation.import_zotero")}
         </Button>
       </div>
 
@@ -232,69 +289,210 @@ export const Citation = () => {
         {!loading && filtered.length > 0 && (
           <div className="space-y-4">
             {filtered.map((cite) => (
-              <CitationItem key={cite.getId()} cite={cite} onEdit={() => {
-                setEditing(cite);
-                setAuthors(getAuthorInputs(cite));
-              }} />
+              <CitationItem
+                key={cite.getId()}
+                cite={cite}
+                onEdit={() => {
+                  setEditing(cite);
+                  setAuthors(getAuthorInputs(cite));
+                }}
+              />
             ))}
           </div>
         )}
       </div>
-      <Dialog open={mode !== null} onOpenChange={(open) => !open && setMode(null)}>
+      <Dialog
+        open={mode !== null}
+        onOpenChange={(open) => !open && setMode(null)}
+      >
         <DialogContent className="max-h-[85vh] overflow-auto">
-          <DialogHeader><DialogTitle>{mode === "bibtex" ? t("citation.import_title") : t("citation.zotero.title")}</DialogTitle></DialogHeader>
-          {mode === "bibtex" ? <div className="space-y-3">
-            <label className="block text-sm">{t("citation.upload_bib")}
-              <input type="file" accept=".bib,application/x-bibtex,text/x-bibtex" className="mt-1 block w-full text-xs" onChange={async (event) => { const file = event.target.files?.[0]; if (file) setBibText(await file.text()); }} />
-            </label>
-            <textarea className="h-56 w-full rounded-lg border bg-background p-3 font-mono text-xs" value={bibText} onChange={(event) => setBibText(event.target.value)} placeholder={t("citation.bibtex_placeholder")} />
-          </div> : <div className="max-h-80 space-y-1 overflow-auto">
-            {busy ? t("citation.zotero.loading") : zoteroItems.length ? zoteroItems.map((item) => <label key={item.key} className="flex cursor-pointer gap-2 rounded-lg p-2 text-sm hover:bg-muted">
-              <input type="checkbox" checked={selected.includes(item.key)} onChange={() => setSelected((current) => current.includes(item.key) ? current.filter((key) => key !== item.key) : [...current, item.key])} />
-              <span>{item.title || item.key}</span>
-            </label>) : t("citation.zotero.no_references")}
-          </div>}
-          <DialogFooter><Button variant="outline" onClick={() => setMode(null)}>{t("common.cancel")}</Button><Button disabled={busy || (mode === "zotero" ? !selected.length : !bibText.trim())} onClick={save}>{t("citation.import")}</Button></DialogFooter>
+          <DialogHeader>
+            <DialogTitle>
+              {mode === "bibtex"
+                ? t("citation.import_title")
+                : t("citation.zotero.title")}
+            </DialogTitle>
+          </DialogHeader>
+          {mode === "bibtex" ? (
+            <div className="space-y-3">
+              <label className="block text-sm">
+                {t("citation.upload_bib")}
+                <input
+                  type="file"
+                  accept=".bib,application/x-bibtex,text/x-bibtex"
+                  className="mt-1 block w-full text-xs"
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (file) setBibText(await file.text());
+                  }}
+                />
+              </label>
+              <textarea
+                className="h-56 w-full rounded-lg border bg-background p-3 font-mono text-xs"
+                value={bibText}
+                onChange={(event) => setBibText(event.target.value)}
+                placeholder={t("citation.bibtex_placeholder")}
+              />
+            </div>
+          ) : (
+            <div className="max-h-80 space-y-1 overflow-auto">
+              {busy
+                ? t("citation.zotero.loading")
+                : zoteroItems.length
+                  ? zoteroItems.map((item) => (
+                      <label
+                        key={item.key}
+                        className="flex cursor-pointer gap-2 rounded-lg p-2 text-sm hover:bg-muted"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(item.key)}
+                          onChange={() =>
+                            setSelected((current) =>
+                              current.includes(item.key)
+                                ? current.filter((key) => key !== item.key)
+                                : [...current, item.key],
+                            )
+                          }
+                        />
+                        <span>{item.title || item.key}</span>
+                      </label>
+                    ))
+                  : t("citation.zotero.no_references")}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMode(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              disabled={
+                busy || (mode === "zotero" ? !selected.length : !bibText.trim())
+              }
+              onClick={save}
+            >
+              {t("citation.import")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+      <Dialog
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+      >
         <DialogContent className="max-h-[85vh] overflow-auto">
-          <DialogHeader><DialogTitle>{t("editor.expandable.citation.edit_authors")}</DialogTitle></DialogHeader>
-          <p className="text-xs text-muted-foreground">{t("editor.expandable.citation.author_hint")}</p>
+          <DialogHeader>
+            <DialogTitle>
+              {t("editor.expandable.citation.edit_authors")}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            {t("editor.expandable.citation.author_hint")}
+          </p>
           <div className="space-y-2">
-            {authors.map((author, index) => <div key={index} className="flex items-start gap-2 rounded-lg border p-2">
-              <div className="min-w-0 flex-1 space-y-2">
-                {typeof author === "string" ? <input
-                  aria-label={`${t("editor.expandable.citation.full_name")} ${index + 1}`}
-                  placeholder={t("editor.expandable.citation.full_name")}
-                  className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-                  value={author}
-                  onChange={(event) => setAuthors((current) => current.map((item, i) => i === index ? event.target.value : item))}
-                /> : <div className="grid grid-cols-2 gap-2">
-                  <input
-                    aria-label={`${t("editor.expandable.citation.first_name")} ${index + 1}`}
-                    placeholder={t("editor.expandable.citation.first_name")}
-                    className="h-9 min-w-0 rounded-md border bg-background px-3 text-sm"
-                    value={author.firstName}
-                    onChange={(event) => setAuthors((current) => current.map((item, i) => i === index && typeof item !== "string" ? { ...item, firstName: event.target.value } : item))}
-                  />
-                  <input
-                    aria-label={`${t("editor.expandable.citation.last_name")} ${index + 1}`}
-                    placeholder={t("editor.expandable.citation.last_name")}
-                    className="h-9 min-w-0 rounded-md border bg-background px-3 text-sm"
-                    value={author.lastName}
-                    onChange={(event) => setAuthors((current) => current.map((item, i) => i === index && typeof item !== "string" ? { ...item, lastName: event.target.value } : item))}
-                  />
-                </div>}
+            {authors.map((author, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-2 rounded-lg border p-2"
+              >
+                <div className="min-w-0 flex-1 space-y-2">
+                  {typeof author === "string" ? (
+                    <input
+                      aria-label={`${t("editor.expandable.citation.full_name")} ${index + 1}`}
+                      placeholder={t("editor.expandable.citation.full_name")}
+                      className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                      value={author}
+                      onChange={(event) =>
+                        setAuthors((current) =>
+                          current.map((item, i) =>
+                            i === index ? event.target.value : item,
+                          ),
+                        )
+                      }
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        aria-label={`${t("editor.expandable.citation.first_name")} ${index + 1}`}
+                        placeholder={t("editor.expandable.citation.first_name")}
+                        className="h-9 min-w-0 rounded-md border bg-background px-3 text-sm"
+                        value={author.firstName}
+                        onChange={(event) =>
+                          setAuthors((current) =>
+                            current.map((item, i) =>
+                              i === index && typeof item !== "string"
+                                ? { ...item, firstName: event.target.value }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
+                      <input
+                        aria-label={`${t("editor.expandable.citation.last_name")} ${index + 1}`}
+                        placeholder={t("editor.expandable.citation.last_name")}
+                        className="h-9 min-w-0 rounded-md border bg-background px-3 text-sm"
+                        value={author.lastName}
+                        onChange={(event) =>
+                          setAuthors((current) =>
+                            current.map((item, i) =>
+                              i === index && typeof item !== "string"
+                                ? { ...item, lastName: event.target.value }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  aria-label={`${t("editor.expandable.citation.remove_author")} ${index + 1}`}
+                  onClick={() =>
+                    setAuthors((current) =>
+                      current.filter((_, i) => i !== index),
+                    )
+                  }
+                  className="rounded-md p-2 hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button type="button" aria-label={`${t("editor.expandable.citation.remove_author")} ${index + 1}`} onClick={() => setAuthors((current) => current.filter((_, i) => i !== index))} className="rounded-md p-2 hover:bg-muted"><X className="h-4 w-4" /></button>
-            </div>)}
+            ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={() => setAuthors((current) => [...current, { firstName: "", lastName: "" }])}><Plus className="mr-1 h-4 w-4" />{t("editor.expandable.citation.add_person")}</Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => setAuthors((current) => [...current, ""])}><Plus className="mr-1 h-4 w-4" />{t("editor.expandable.citation.add_name")}</Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                setAuthors((current) => [
+                  ...current,
+                  { firstName: "", lastName: "" },
+                ])
+              }
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {t("editor.expandable.citation.add_person")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setAuthors((current) => [...current, ""])}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {t("editor.expandable.citation.add_name")}
+            </Button>
           </div>
-          <DialogFooter><Button variant="outline" onClick={() => setEditing(null)}>{t("common.cancel")}</Button><Button onClick={saveAuthors}>{t("editor.expandable.citation.save")}</Button></DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={saveAuthors}>
+              {t("editor.expandable.citation.save")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -399,7 +597,14 @@ const CitationItem = ({ cite, onEdit }: CitationItemProps) => {
           {biblio}
         </p>
       </div>
-      <button type="button" onClick={onEdit} className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"><Pencil className="h-3 w-3" />{t("editor.expandable.citation.edit_authors")}</button>
+      <button
+        type="button"
+        onClick={onEdit}
+        className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <Pencil className="h-3 w-3" />
+        {t("editor.expandable.citation.edit_authors")}
+      </button>
     </div>
   );
 };

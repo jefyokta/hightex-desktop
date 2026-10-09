@@ -30,6 +30,7 @@ import { Snapshot } from "./pages/snapshot";
 import { SnapshotViewer } from "./pages/snapshot-viewer";
 import { Splitter } from "./pages/splitter";
 import { Forms } from "./pages/forms";
+import { ImportDoc } from "./pages/import";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
@@ -38,7 +39,7 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Splash />} />
-          <Route path="/import/{filePath}" />
+          <Route path="/import/:filePath" element={<ImportDoc/>} />
           <Route element={<SharingLayout />}>
             <Route path="/share/:host/:port" element={<SharingGuest />} />
             <Route path="/share/:host/:port/:code" element={<SharingGuest />} />

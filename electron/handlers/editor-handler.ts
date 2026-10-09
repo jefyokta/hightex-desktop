@@ -6,8 +6,8 @@ export class EditorHandler {
     IPCMain.handle("editor:open", (_, docId: string) => {
       EditorWindow.open(docId);
     });
-    IPCMain.handle("editor:has",(_,docId:string)=>{
-      return Boolean(EditorWindow.get(docId))
-    })
+    IPCMain.handle("editor:has", (_, docId: string) => {
+      return Boolean(EditorWindow.get(docId));
+    });
   }
 }

@@ -120,9 +120,7 @@ export const NavBar: React.FC = () => {
                 spinnable={false}
                 onClick={() => {
                   //@ts-ignore
-                  window.navigation.back()
-                  
-
+                  window.navigation.back();
                 }}
               />
             </ButtonGroup>
@@ -473,7 +471,7 @@ type ButtonProps = {
   disabled?: boolean;
   handleHover?: boolean;
   active?: boolean;
-  spinnable?:boolean
+  spinnable?: boolean;
 };
 
 const Button: React.FC<ButtonProps & PropsWithChildren> = ({
@@ -484,8 +482,7 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   children,
   handleHover = true,
   active = false,
-  spinnable =true
-
+  spinnable = true,
 }) => {
   return (
     <Tooltip>
@@ -501,14 +498,17 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${active
-              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-              : ""
-            }
+        ${
+          active
+            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+            : ""
+        }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >
-          <Icon className={`w-3 h-3 ${disabled && spinnable ? "animate-spin" : ""}`} />
+          <Icon
+            className={`w-3 h-3 ${disabled && spinnable ? "animate-spin" : ""}`}
+          />
           {children}
         </button>
       </TooltipTrigger>

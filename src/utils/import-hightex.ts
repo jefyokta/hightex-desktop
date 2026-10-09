@@ -85,7 +85,7 @@ export class HighTexImporter {
 
   async createDocument(): Promise<HighTexDocument> {
     const manifest = this.manifest;
-    console.log(this.manifest)
+    console.log(this.manifest);
 
     const remoteCategories = await window.hightex.categories();
 
@@ -97,7 +97,10 @@ export class HighTexImporter {
     return {
       id: this.actualDocumentId,
       category: category?.id.toString() ?? "0",
-      title: manifest.document.title.main ?? (manifest.document.title as any).id ?? "Imported Document",
+      title:
+        manifest.document.title.main ??
+        (manifest.document.title as any).id ??
+        "Imported Document",
       altTitle: manifest.document?.title?.alt ?? "",
       keywords: normalizeKeywords(manifest.document?.keywords),
       config: {},

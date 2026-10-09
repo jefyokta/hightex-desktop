@@ -1,4 +1,3 @@
-
 export class HttpException extends Error {
   constructor(
     public response: Response,
@@ -6,7 +5,4 @@ export class HttpException extends Error {
   ) {
     super(message);
   }
-
-
 }
-

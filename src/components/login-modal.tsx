@@ -17,7 +17,10 @@ export const LoginModal = () => {
       closeLogin();
       return;
     }
-    throw new ShouldNotified({message:"Login Failed",description:"Invalid Crendential"})
+    throw new ShouldNotified({
+      message: "Login Failed",
+      description: "Invalid Crendential",
+    });
   };
 
   return (

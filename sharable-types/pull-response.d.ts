@@ -14,7 +14,7 @@ declare global {
       author: number | null;
       created_at: string;
       updated_at: string;
-      message:string
+      message: string;
     }>;
   };
 }

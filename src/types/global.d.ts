@@ -181,7 +181,7 @@ declare global {
           file: Uint8Array,
           hash: string,
           document: HighTexDocument,
-          message:string,
+          message: string,
           force?: boolean,
         ): Promise<PushResponse>;
         list(): Promise<CommitListResponse>;
@@ -293,6 +293,6 @@ declare global {
 
   interface EditorAPI {
     open(documentId: string): Promise<void>;
-    has(documentId:string):Promise<boolean>
+    has(documentId: string): Promise<boolean>;
   }
 }

@@ -57,7 +57,7 @@ class App {
       };
     };
     const onMainError = (_: any, e: any) => {
-      console.log(e)
+      console.log(e);
       if ("name" in e && e.name === "export-timeout") {
         callback({
           error: new ExportTimeout(e.error.desc, e.error.logFile),
@@ -66,7 +66,7 @@ class App {
 
         return;
       }
-         if ("name" in e && e.name === "ShouldNotified") {
+      if ("name" in e && e.name === "ShouldNotified") {
         callback({
           error: new ShouldNotified(e.error),
           name: e.name,

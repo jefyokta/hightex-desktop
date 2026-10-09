@@ -56,7 +56,7 @@ export class DocumentService extends HasStorage<Record<string, string>> {
     file: Uint8Array,
     _hash: string,
     document: HighTexDocument,
-    message?:string,
+    message?: string,
     force = false,
   ): Promise<PushResponse> {
     const form = new FormData();
@@ -81,11 +81,10 @@ export class DocumentService extends HasStorage<Record<string, string>> {
       "X-Document-En-Title": encodeURIComponent(
         document.altTitle || document.title,
       ),
-      "X-HighTex-Commit-Message":encodeURIComponent(message || "")
+      "X-HighTex-Commit-Message": encodeURIComponent(message || ""),
     };
 
-
-    headers["X-HighTex-SHA256"] = _hash
+    headers["X-HighTex-SHA256"] = _hash;
 
     const baseSHA256 = this.getBaseSHA256("current");
     if (baseSHA256) {

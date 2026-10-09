@@ -184,7 +184,7 @@ export class HighTexHandler {
         message: string,
         force = false,
       ) => {
-        return DocumentService.push(file, hash, doc,message, force);
+        return DocumentService.push(file, hash, doc, message, force);
       },
     );
     IPCMain.handle("hightex:document:commits", () => {

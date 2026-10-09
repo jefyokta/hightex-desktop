@@ -6,10 +6,9 @@ import { IPCMain } from "@main/utilities/ipc-main";
 
 export class SessionHandler {
   public static async broadcastSession() {
-
     const windows = BrowserWindow.getAllWindows();
     const user = await this.user();
-    for(const win of windows){
+    for (const win of windows) {
       try {
         win.webContents.send("session:changed", user || false);
       } catch (err) {
@@ -18,7 +17,6 @@ export class SessionHandler {
         win.webContents.send("session:changed", false);
       }
     }
-
   }
 
   public static async user(): Promise<User | false> {
@@ -81,9 +79,11 @@ export class SessionHandler {
   static register() {
     IPCMain.handle("session:user", () => SessionHandler.user());
 
-    IPCMain.handle("session:login", (_event, email: string, password: string) =>{
-      SessionHandler.login(email, password )
-    },
+    IPCMain.handle(
+      "session:login",
+      (_event, email: string, password: string) => {
+        SessionHandler.login(email, password);
+      },
     );
 
     IPCMain.handle("session:logout", async () => {

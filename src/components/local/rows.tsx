@@ -47,7 +47,6 @@ export const Row = ({
   onExport,
   selectMode,
 }: Props) => {
-
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(doc.title);
   const [altTitle, setAltTitle] = useState(doc.altTitle ?? "");

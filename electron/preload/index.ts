@@ -113,7 +113,11 @@ contextBridge.exposeInMainWorld("hightex", {
       return ipcRenderer.invoke("hightex:document:commits");
     },
     link(serverId: string, localId: string) {
-      return ipcRenderer.invoke("hightex:document:alias:set", serverId, localId);
+      return ipcRenderer.invoke(
+        "hightex:document:alias:set",
+        serverId,
+        localId,
+      );
     },
     resolve(serverId: string): Promise<string | undefined> {
       return ipcRenderer.invoke("hightex:document:alias:get", serverId);
@@ -298,6 +302,6 @@ contextBridge.exposeInMainWorld("editor", {
     return ipcRenderer.invoke("editor:open", documentId);
   },
   has(documentId) {
-    return ipcRenderer.invoke("editor:has",documentId)
+    return ipcRenderer.invoke("editor:has", documentId);
   },
 } satisfies Window["editor"]);
