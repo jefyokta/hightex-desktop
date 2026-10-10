@@ -1,4 +1,4 @@
-import { ipcRenderer, contextBridge } from "electron";
+import { ipcRenderer, contextBridge, webUtils } from "electron";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
@@ -295,6 +295,12 @@ contextBridge.exposeInMainWorld("file", {
   openFolder(folderPath) {
     return ipcRenderer.invoke("fs:folder", folderPath);
   },
+  async getPath(file) {
+    return webUtils.getPathForFile(file)
+  },
+  async getUserDataPath() {
+    return ipcRenderer.invoke("fs:userData")
+  },
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld("editor", {
@@ -303,5 +309,8 @@ contextBridge.exposeInMainWorld("editor", {
   },
   has(documentId) {
     return ipcRenderer.invoke("editor:has", documentId);
+  },
+  save(buffer,fileName) {
+    return ipcRenderer.invoke("editor:save",buffer,fileName)
   },
 } satisfies Window["editor"]);

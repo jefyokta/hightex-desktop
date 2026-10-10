@@ -61,7 +61,7 @@ export class Exporter {
     };
   }
 
-  private async buildExport(): Promise<{
+  async buildExport(): Promise<{
     buffer: Uint8Array;
     entries: ReturnType<Schema<2>["writter"]["getEntries"]>;
   }> {

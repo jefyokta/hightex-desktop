@@ -1,5 +1,6 @@
 import { FileSystemService } from "@main/service/file-system-service";
 import { IPCMain } from "@main/utilities/ipc-main";
+import { app } from "electron";
 import { dirname } from "path";
 
 export class FileSystemHandler {
@@ -14,5 +15,9 @@ export class FileSystemHandler {
     IPCMain.handle("fs:folder", async (_, path) => {
       return FileSystemService.openFile(dirname(path));
     });
+
+    IPCMain.handle("fs:userData",()=>{
+      return app.getPath("userData")
+    })
   }
 }

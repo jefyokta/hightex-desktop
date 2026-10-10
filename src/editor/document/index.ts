@@ -12,18 +12,25 @@ export class Document {
   static instance?: Document;
 
   readonly id: string;
-  private table: Table<HighTexDocument, string, HighTexDocument>;
+  public readonly table: Table<HighTexDocument, string, HighTexDocument>;
   private version?: string;
   public ready = false;
   public category?: Category;
 
   private doc?: HighTexDocument;
 
+
   public scheme?: Category["chapters"];
   public chapters: Chapter[] = [];
   public counters = {
     equations: 0,
   };
+
+  public async setFilePath(file?:string){
+    if(!this.doc) return
+    this.doc.file = file
+    return await this.table.put(this.doc)
+  }
 
   constructor(documentId: string, version?: string) {
     this.table = HighTexDB.getInstance().documents;

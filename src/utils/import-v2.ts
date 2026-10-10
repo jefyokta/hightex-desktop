@@ -9,15 +9,17 @@ import { t } from "@/utils/lang";
 
 export class HighTexImporter {
   public context!: ImportContext;
+  public filePath!:string;
 
-  static async create(file: File) {
+  static async create(file: File,filePath:string) {
     const importer = new HighTexImporter();
-    await importer.init(file);
+    await importer.init(file,filePath);
     return importer;
   }
 
-  private async init(file: File) {
+  private async init(file: File,filePath:string) {
     const buffer = await file.arrayBuffer();
+    this.filePath =filePath
     const entries = unzipSync(new Uint8Array(buffer));
 
     const manifest = this.findManifest(entries);
@@ -132,7 +134,9 @@ export class HighTexImporter {
       keywords: normalizeKeywords(manifest.document?.keywords),
       config: {},
       updatedAt: new Date(),
-    } satisfies Omit<HighTexDocument, "file">;
+      file:this.filePath
+      
+    } satisfies HighTexDocument;
   }
 
   async importChapters(documentId: string) {
@@ -229,8 +233,8 @@ export class HighTexImporter {
   }
 }
 
-export async function importHighTexV2Package(file: File) {
-  const importer = await HighTexImporter.create(file);
+export async function importHighTexV2Package(file: File,filePath:string) {
+  const importer = await HighTexImporter.create(file,filePath);
 
   return importer.import();
 }

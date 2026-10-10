@@ -20,6 +20,7 @@ import {
   Search,
   Loader2,
   Settings,
+  Save,
   // MessageCircle,
 } from "lucide-react";
 
@@ -41,6 +42,8 @@ import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { SettingModal } from "./settings-modal";
+import { Exporter } from "@/utils/htx/exporter";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 // import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 // import { cn } from "@/lib/utils";
 // import { CommentStorage } from "@/editor/storage/comment";
@@ -403,30 +406,22 @@ export const NavBar: React.FC = () => {
                 />
               </ButtonGroup>
               <ButtonGroup>
-                {/* <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button title="comments"
-                      icon={MessageCircle}
-                    ></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-max">
-                    {snapshots.length === 0 &&
-                      <DropdownMenuItem className="text-xs">test</DropdownMenuItem>
+                <Button
+                  title="Save"
+                  icon={Save}
+                  onClick={async () => {
+                    if (!Document.instance) return
+                    const exporter = new Exporter(Document.instance?.id)
+                    const { buffer } = await exporter.buildExport()
+                    const newPath = await window.editor.save(buffer,`${Document.instance.getDocument().title.replace("_","")}.hightex`);
+                    if (!newPath) {
+                      throw new ShouldNotified("Failed to save document")
                     }
-                    {snapshots.map(s => {
-                      return <DropdownMenuItem
-                        className={cn("text-xs max-w-max", snap === s.id ? "bg-accent" : "")}
-                        key={s.id} onSelect={() => {
-                          if (snap == s.id) {
-                            setSnap(null);
-                            return;
-                          }
-                          setSnap(s.id)
-                        }}>{(s.type !== 'finalDefense' && s.type !== 'proposalSeminar') ? "advising " + formatDate(new Date(s.createdAt)) : getSnapshotLabel(s.type)}</DropdownMenuItem>
-                    })}
-                  </DropdownMenuContent>
+                    await  Document.instance.setFilePath(newPath)
 
-                </DropdownMenu> */}
+
+                  }}
+                />
 
                 <Button
                   title="settings"
@@ -498,11 +493,10 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
+        ${active
+              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+              : ""
+            }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

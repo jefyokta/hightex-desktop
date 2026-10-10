@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { HighTexImporter } from "@/utils/import-hightex";
+import { HighTexImporter } from "@/utils/import-v2";
 import { truncate } from "@/utils/truncate";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ export const OpenFileSlave = () => {
           },
         );
 
-        const importer = await HighTexImporter.create(file);
+        const importer = await HighTexImporter.create(file, path);
 
         if (importer.exists) {
           const confirmed = confirm(t("open_file.confirm_overwrite"));

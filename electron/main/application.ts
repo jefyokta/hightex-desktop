@@ -33,7 +33,6 @@ import { FileSystemHandler } from "@main/handlers/file-system-handler";
 import { EditorHandler } from "@main/handlers/editor-handler";
 import { appEvent } from "@main/event";
 import { WindowHandler } from "@main/handlers/window-handler";
-import "dotenv/config";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -46,6 +45,7 @@ type UpdaterStatus =
 
 export class Application {
   private win: BrowserWindow | null = null;
+
 
   private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
@@ -127,7 +127,12 @@ export class Application {
     });
 
     this.createProtocol();
-    this.fileOpen = new FileOpenManager( async (args) => {
+    this.fileOpen = new FileOpenManager(
+      (filePath) => {
+        this.win?.webContents.send("file:open", filePath);
+        this.win?.focus();
+      },
+      async (args) => {
         await this.handleCliArgs(args);
       },
     );
@@ -229,15 +234,15 @@ export class Application {
   private async onReady() {
     await this.prepareCoreServices();
     this.registerHandlers();
-    appEvent.addListener("unauthorized", () => {
-      SessionHandler.broadcastSession();
-    });
+    appEvent.addListener("unauthorized",()=>{
+      SessionHandler.broadcastSession()      
+    })
     EditorHandler.register();
     WindowHandler.register();
     this.registerUpdater();
     await this.createWindow();
     this.registerContextMenu();
-    this.fileOpen!.flush();
+    this.fileOpen?.flush();
     this.checkForUpdates();
   }
 
@@ -488,6 +493,4 @@ export class Application {
 
     return `${this.server.url}${normalized}`;
   }
-
-
 }

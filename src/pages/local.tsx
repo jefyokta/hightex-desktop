@@ -81,7 +81,7 @@ export const Dashboard = () => {
       const importedDocument =
         manifest.schema_version == 1
           ? await importHighTexPackage(file)
-          : await importHighTexV2Package(file);
+          : await importHighTexV2Package(file, await window.file.getPath(file));
 
       setDocuments((prev) => [importedDocument, ...prev]);
       toast.success(`${truncate(importedDocument.title)} added`);

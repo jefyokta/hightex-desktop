@@ -1,15 +1,23 @@
-import { ImportWindow } from "@main/windows/import-window";
-
+type FileOpenCallback = (filePath: string) => void;
 type CliOpenCallback = (args: string[]) => void | Promise<void>;
 
 export class FileOpenManager {
+  private pendingFiles: string[] = [];
 
-  private extensions: string[] = [".hightex", ".hts", ".ht"];
+  private extensions: string[];
 
   constructor(
+    private readonly callback: FileOpenCallback,
     private readonly onCli?: CliOpenCallback,
+    extensions: string[] = [".hightex", ".hts", ".ht"],
   ) {
+    this.extensions = extensions.map((e) =>
+      e.startsWith(".") ? e.toLowerCase() : `.${e.toLowerCase()}`,
+    );
+  }
 
+  static isDocumentFile(filepath:string){
+    return filepath.endsWith(".hightex")
   }
 
   bootstrap(app: Electron.App) {
@@ -22,7 +30,14 @@ export class FileOpenManager {
 
     app.on("open-file", (event, filePath) => {
       event.preventDefault();
+
       if (!this.isSupported(filePath)) return;
+
+      if (!app.isReady()) {
+        this.pendingFiles.push(filePath);
+        return;
+      }
+
       this.emit(filePath);
     });
 
@@ -38,17 +53,30 @@ export class FileOpenManager {
     });
   }
 
- async flush() {
-    await ImportWindow.instance.load()
+  flush() {
+    for (const file of this.pendingFiles) {
+      this.emit(file);
+    }
+
+    this.pendingFiles = [];
+
+    const startupFile = this.extractFromArgs(process.argv);
+
+    if (startupFile) {
+      this.emit(startupFile);
+    }
   }
 
   private emit(filePath: string) {
-    if(filePath.endsWith(".hightex")){
-      ImportWindow.instance.addFiles(filePath)
-      return
+    try {
+      this.callback(filePath);
+    } catch (error) {
+      console.error(
+        "[FileOpenManager] Failed to handle file:",
+        filePath,
+        error,
+      );
     }
-    console.warn("unsupported file %s",filePath.split("/").slice(-1))
-    
   }
 
   private extractFromArgs(args: string[]) {

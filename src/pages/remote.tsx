@@ -125,10 +125,15 @@ export const RemoteDocuments = () => {
       ) {
         return;
       }
+      const userData = await window.file.getUserDataPath();
+
+      const ensured = userData.endsWith("/") ? userData.slice(-1) : userData;
+
+      const filePath = `${ensured}/documents/${documentId}.hightex`
 
       const imported =
         reader.manifest.schema_version === 2
-          ? await importHighTexV2Package(file)
+          ? await importHighTexV2Package(file, filePath)
           : await importHighTexPackage(file);
       const latest = await window.hightex.cloud.list();
       const serverId = latest.commits.find(

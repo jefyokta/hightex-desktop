@@ -289,10 +289,13 @@ declare global {
     openPath(path: string): Promise<string>;
     showInFolder(path: string): Promise<void>;
     openFolder(folderPath: string): Promise<void>;
+    getPath(file:File):Promise<string>,
+    getUserDataPath():Promise<string>
   }
 
   interface EditorAPI {
     open(documentId: string): Promise<void>;
     has(documentId: string): Promise<boolean>;
+    save(buffer:Uint8Array,fileName:string):Promise<string | undefined>
   }
 }
