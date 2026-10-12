@@ -294,7 +294,7 @@ declare global {
   }
 
   interface EditorAPI {
-    open(documentId: string): Promise<void>;
+    open(documentId: string,file?:string): Promise<void>;
     has(documentId: string): Promise<boolean>;
     save(buffer:Uint8Array,fileName:string):Promise<string | undefined>
   }

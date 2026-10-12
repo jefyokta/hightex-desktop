@@ -35,7 +35,7 @@ export const OpenFileSlave = () => {
         }
         const id = toast.loading(t("open_file.importing"));
         importer.import().then((doc) => {
-          return window.editor.open(doc.id);
+          return window.editor.open(doc.id,doc.file);
 
         }).catch(()=>{
           toast.error(t("open_file.import_failed"));

@@ -304,8 +304,8 @@ contextBridge.exposeInMainWorld("file", {
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld("editor", {
-  open(documentId: string) {
-    return ipcRenderer.invoke("editor:open", documentId);
+  open(documentId: string,file?:string) {
+    return ipcRenderer.invoke("editor:open", documentId,file);
   },
   has(documentId) {
     return ipcRenderer.invoke("editor:has", documentId);

@@ -108,7 +108,7 @@ export const Sidebar = ({ recent = [] }: Props) => {
                 return (
                   <button
                     key={doc.id}
-                    onClick={() => window.editor.open(doc.id)}
+                    onClick={() => window.editor.open(doc.id,doc.file)}
                     className="w-full flex items-center space-x-2 text-left  rounded-md
                       hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
                   >

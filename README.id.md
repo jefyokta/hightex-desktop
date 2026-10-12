@@ -81,7 +81,7 @@ Daripada terus menunggu tanpa kepastian, saya memutuskan untuk membangun versi y
 
 Aplikasi web membawa biaya dan tanggung jawab infrastruktur. Harus ada pihak yang menyediakan penyimpanan, memelihara cadangan data, memantau penggunaan, dan membayar biaya server.
 
-Saya pernah mencoba menjalankan aplikasi ini sendiri di server kecil, tetapi kapasitasnya tidak mencukupi. Pembuatan dokumen membutuhkan sumber daya yang cukup besar, dan saya tidak ingin terus mengeluarkan biaya untuk proyek nirlaba.
+Saya pernah mencoba menjalankan aplikasi ini sendiri di server kecil, tetapi kapasitasnya tidak mencukupi. Pembuatan dokumen membutuhkan sumber daya yang cukup besar, dan saya tidak ingin terus mengeluarkan biaya untuk proyek non-profit.
 
 Dengan aplikasi desktop, dokumen dapat disimpan secara lokal di komputer pengguna. Hal ini mengurangi berbagai keterbatasan infrastruktur yang sebelumnya memengaruhi keputusan pengembangan.
 
@@ -122,7 +122,7 @@ Proses membaca dan mengonversi DOCX cukup kompleks serta membutuhkan upaya besar
 
 #### Integrasi Data Institusi
 
-Integrasi data institusi tidak tersedia di versi desktop karena arsitektur hibridanya mengutamakan kemampuan penggunaan offline. Integrasi data institusi, seperti nama dosen dan informasi akademik lainnya, akan menimbulkan ketergantungan pada layanan online.
+Integrasi data institusi tidak tersedia di versi desktop karena arsitektur *hybrid*-nya mengutamakan kemampuan penggunaan offline. Integrasi data institusi, seperti nama dosen dan informasi akademik lainnya, akan menimbulkan ketergantungan pada layanan online.
 
 Ini merupakan salah satu keterbatasan terbesar versi desktop. Integrasi data institusi adalah salah satu hal utama yang membedakan HighTex dari alat penulisan konvensional seperti LaTeX atau Microsoft Word. Tanpa kemampuan ini, pengguna desktop tidak dapat menikmati sepenuhnya salah satu keunggulan utama HighTex.
 

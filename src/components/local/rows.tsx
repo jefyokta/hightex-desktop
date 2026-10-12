@@ -407,7 +407,7 @@ export const Row = ({
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             onClick={(e) => {
               e.stopPropagation();
-              window.editor.open(doc.id);
+              window.editor.open(doc.id,doc.file);
               return;
             }}
           >

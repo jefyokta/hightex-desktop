@@ -23,7 +23,7 @@ export class ServerService {
 
   private static getServerUrl(): string {
     // if (!app.isPackaged && process.env.DEV_MODE) {
-    //   return "https://hightex.okta/api/";
+    //   return "http://0.0.0.0:8000/api/";
     // }
 
     const url = configStore.get("server.url") as string | undefined;
