@@ -203,6 +203,7 @@ export const Citation: React.FC<NodeViewProps> = ({
       >
         <PopoverTrigger asChild>
           <cite
+            data-cite={node.attrs.id}
             className="
               cursor-pointer rounded px-0.5
               text-neutral-700

@@ -56,7 +56,7 @@ export const Cite = Node.create<CiteOptions>({
     ];
   },
   renderHTML({ HTMLAttributes }) {
-    return ["span", HTMLAttributes, 0];
+    return ["cite", HTMLAttributes];
   },
   addNodeView() {
     return ReactNodeViewRenderer(Citation);
