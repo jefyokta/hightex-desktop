@@ -106,7 +106,7 @@ Pertanyaan seperti ini sering menentukan fitur apa yang bisa dan tidak bisa dike
 
 ## HighTex vs. HighTex Desktop
 
-HighTex Desktop merupakan pengembangan dari HighTex versi web dengan fitur tambahan, sambil mempertahankan pengalaman penyuntingan inti yang sama. Namun, beberapa fitur yang tersedia di versi web belum diimplementasikan di versi desktop (saat ini, HighTex v0.9.x). Sebaliknya, aplikasi desktop juga menghadirkan kemampuan yang tidak tersedia di versi web.
+HighTex Desktop merupakan pengembangan dari HighTex versi web dengan fitur tambahan, sambil mempertahankan pengalaman editor inti yang sama. Namun, beberapa fitur yang tersedia di versi web belum diimplementasikan di versi desktop (saat ini, HighTex v0.9.x). Sebaliknya, aplikasi desktop juga menghadirkan kemampuan yang tidak tersedia di versi web.
 
 ### Fitur yang Belum Tersedia di HighTex Desktop
 
@@ -150,7 +150,7 @@ Pengguna dapat mengatur profil dan konfigurasi dokumen secara manual tanpa berga
 
 #### Penggunaan Offline
 
-HighTex Desktop mendukung penyuntingan dokumen dan pengaturan lokal tanpa memerlukan koneksi internet secara terus-menerus. Hal ini menjadikannya pilihan yang sesuai bagi pengguna yang membutuhkan lingkungan penulisan yang lebih mandiri, termasuk ketika koneksi internet tidak tersedia.
+HighTex Desktop mendukung penyimpanan dokumen dan pengaturan lokal tanpa memerlukan koneksi internet secara terus-menerus. Hal ini menjadikannya pilihan yang sesuai bagi pengguna yang membutuhkan lingkungan penulisan yang lebih mandiri, termasuk ketika koneksi internet tidak tersedia.
 
 #### Dokumen Tanpa Batas Jumlah
 

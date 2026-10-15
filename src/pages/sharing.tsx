@@ -27,6 +27,7 @@ import { connectToHost } from "@/utils/sharing";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
+import { ParsedItalic } from "@/utils/parse-italic";
 
 const sharingType: { type: SharingType; name: string }[] = [
   {
@@ -257,7 +258,7 @@ const ShareDocument = ({
             t("sharing.uncategorized")}
         </div>
 
-        <div className="font-medium">{document.title}</div>
+        <div className="font-medium"><ParsedItalic text={document.title}/></div>
       </div>
 
       <div className="flex items-center gap-3">

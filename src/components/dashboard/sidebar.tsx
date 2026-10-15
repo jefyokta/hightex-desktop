@@ -165,9 +165,7 @@ export const Sidebar = ({ recent = [] }: Props) => {
       </div>
 
       <div className="mt-auto pt-4">
-        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 uppercase mb-2">
-          Local Ready
-        </div>
+       
 
         <div className="text-[11px] rounded-lg bg-neutral-100 dark:bg-neutral-900 p-2">
           {user ? (
