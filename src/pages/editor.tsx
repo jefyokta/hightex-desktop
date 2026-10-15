@@ -35,6 +35,8 @@ import { BubbleMenu } from "@/components/editor/bubble-menu";
 import { useConfig } from "@/hooks/use-config";
 import { CommentSlave } from "@/slaves/comment-slave";
 import { uniqId } from "@/utils/uniq-id";
+import { ZoomUI } from "@/components/editor/zoom-ui";
+import { LoadingDocument } from "@/components/editor/loading-document";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -284,16 +286,7 @@ const EditorComponent = () => {
       });
       throw new EditorContentError(props.editor);
     },
-
     enableContentCheck: true,
-    onPaste(e, slice) {
-      // console.log(e.clipboardData.);
-      for (const item of e.clipboardData?.items || []) {
-        console.log(item.getAsString((data)=>{console.log(data)}))
-
-      }
-
-    },
   });
 
   return (
@@ -307,7 +300,7 @@ const EditorComponent = () => {
     >
       <EditorContent
         spellCheck={config?.editor.spellCheck || false}
-        lang={config?.language || "id"}
+        lang={config?.language || "id-ID"}
         editor={editor}
       />
       {(() => Chapter.instance?.getDecorator())()}
@@ -318,90 +311,4 @@ const EditorComponent = () => {
   );
 };
 
-const ZoomUI = ({
-  zoom,
-  visible,
-  onZoomIn,
-  onZoomOut,
-}: {
-  zoom: number;
-  visible: boolean;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-}) => {
-  return (
-    <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${visible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-3 pointer-events-none"
-        }`}
-    >
-      <div className="flex items-center gap-2 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 shadow-xl shadow-black/5 dark:shadow-black/30 rounded-2xl px-3 py-2 transition-colors duration-300">
-        <button
-          onClick={onZoomOut}
-          className="text-sm px-2.5 py-1 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-        >
-          −
-        </button>
 
-        <div className="text-xs w-12 text-center text-neutral-600 dark:text-neutral-400">
-          {Math.round(zoom * 100)}%
-        </div>
-
-        <button
-          onClick={onZoomIn}
-          className="text-sm px-2.5 py-1 rounded-lg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-        >
-          +
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const LoadingDocument = () => {
-  return (
-    <div
-      className="
-        page
-        bg-white dark:bg-neutral-900!
-        rounded-xl
-        border border-neutral-200 dark:border-neutral-800
-        shadow-[0_10px_40px_rgba(0,0,0,0.06)]
-        dark:shadow-[0_10px_40px_rgba(0,0,0,0.35)]
-        overflow-hidden
-        transition-colors duration-300
-      "
-    >
-      <div className="py-14">
-        <div className="animate-pulse">
-          <div className="h-8 w-64 rounded-xl bg-neutral-100 dark:bg-neutral-800 mb-10" />
-
-          <div className="space-y-4">
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-full" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[95%]" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[90%]" />
-          </div>
-
-          <div className="space-y-4 mt-10">
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-full" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[92%]" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[85%]" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[88%]" />
-          </div>
-
-          <div className="space-y-4 mt-10">
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-full" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[96%]" />
-            <div className="h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 w-[82%]" />
-          </div>
-        </div>
-
-        <div className="mt-12 flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500">
-          <div className="w-2 h-2 rounded-full bg-neutral-300 dark:bg-neutral-700 animate-pulse" />
-          Loading document...
-        </div>
-      </div>
-    </div>
-  );
-};
