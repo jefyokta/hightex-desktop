@@ -296,21 +296,21 @@ contextBridge.exposeInMainWorld("file", {
     return ipcRenderer.invoke("fs:folder", folderPath);
   },
   async getPath(file) {
-    return webUtils.getPathForFile(file)
+    return webUtils.getPathForFile(file);
   },
   async getUserDataPath() {
-    return ipcRenderer.invoke("fs:userData")
+    return ipcRenderer.invoke("fs:userData");
   },
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld("editor", {
-  open(documentId: string,file?:string) {
-    return ipcRenderer.invoke("editor:open", documentId,file);
+  open(documentId: string, file?: string) {
+    return ipcRenderer.invoke("editor:open", documentId, file);
   },
   has(documentId) {
     return ipcRenderer.invoke("editor:has", documentId);
   },
-  save(buffer,fileName) {
-    return ipcRenderer.invoke("editor:save",buffer,fileName)
+  save(buffer, fileName) {
+    return ipcRenderer.invoke("editor:save", buffer, fileName);
   },
 } satisfies Window["editor"]);

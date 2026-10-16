@@ -1,11 +1,14 @@
 import { app, BrowserWindow, dialog } from "electron";
 import { Application } from "./../main/application";
-import fs from "fs"
+import fs from "fs";
 import path from "path";
 export class EditorWindow {
   private static windows = new Map<string, EditorWindowState>();
 
-  static async open(documentId: string,filePath?:string): Promise<BrowserWindow> {
+  static async open(
+    documentId: string,
+    filePath?: string,
+  ): Promise<BrowserWindow> {
     const existing = this.get(documentId);
 
     if (existing) {
@@ -31,12 +34,11 @@ export class EditorWindow {
         contextIsolation: true,
         devTools: !app.isPackaged,
       },
-      
     });
 
     this.windows.set(documentId, {
       window,
-      document: { id: documentId,filePath },
+      document: { id: documentId, filePath },
     });
 
     window.once("closed", () => {
@@ -67,27 +69,29 @@ export class EditorWindow {
 
     return window;
   }
-  static getFromWindow(window:BrowserWindow){
-   return Array.from(this.windows).find(([_,state])=>state.window === window)?.[1]
-   
+  static getFromWindow(window: BrowserWindow) {
+    return Array.from(this.windows).find(
+      ([_, state]) => state.window === window,
+    )?.[1];
   }
 
-  static async save(state:EditorWindowState,buffer:Uint8Array,fileName:string){
-    let filePath = state.document.filePath
-    if(!filePath){
-     const result =await dialog.showSaveDialog(state.window,{
-      defaultPath:path.join(app.getPath("downloads"),fileName)
-      
-     });
-     if(result.canceled) return
-     filePath = result.filePath     
+  static async save(
+    state: EditorWindowState,
+    buffer: Uint8Array,
+    fileName: string,
+  ) {
+    let filePath = state.document.filePath;
+    if (!filePath) {
+      const result = await dialog.showSaveDialog(state.window, {
+        defaultPath: path.join(app.getPath("downloads"), fileName),
+      });
+      if (result.canceled) return;
+      filePath = result.filePath;
     }
 
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath,buffer)
-    return filePath
-
-
+    fs.writeFileSync(filePath, buffer);
+    return filePath;
   }
 
   static close(documentId: string): void {

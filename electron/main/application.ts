@@ -33,6 +33,7 @@ import { FileSystemHandler } from "@main/handlers/file-system-handler";
 import { EditorHandler } from "@main/handlers/editor-handler";
 import { appEvent } from "@main/event";
 import { WindowHandler } from "@main/handlers/window-handler";
+import { DeepLinkService } from "@main/service/deep-link-service";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -45,7 +46,6 @@ type UpdaterStatus =
 
 export class Application {
   private win: BrowserWindow | null = null;
-
 
   private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
@@ -143,7 +143,7 @@ export class Application {
 
   public createProtocol() {
     HightexProtocol.registerSchemesAsPrivileged();
-    this.server = new HightexProtocol(this.rendererDist);
+    this.server = new HightexProtocol();
   }
 
   public get preloadEntry() {
@@ -200,7 +200,7 @@ export class Application {
     });
 
     app.on("open-url", (_, url) => {
-      console.log(url);
+      new DeepLinkService(url).handle()
     });
 
     this.win.webContents.on("did-finish-load", () => {
@@ -234,9 +234,9 @@ export class Application {
   private async onReady() {
     await this.prepareCoreServices();
     this.registerHandlers();
-    appEvent.addListener("unauthorized",()=>{
-      SessionHandler.broadcastSession()      
-    })
+    appEvent.addListener("unauthorized", () => {
+      SessionHandler.broadcastSession();
+    });
     EditorHandler.register();
     WindowHandler.register();
     this.registerUpdater();

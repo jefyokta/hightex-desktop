@@ -16,8 +16,8 @@ export class FileSystemHandler {
       return FileSystemService.openFile(dirname(path));
     });
 
-    IPCMain.handle("fs:userData",()=>{
-      return app.getPath("userData")
-    })
+    IPCMain.handle("fs:userData", () => {
+      return app.getPath("userData");
+    });
   }
 }

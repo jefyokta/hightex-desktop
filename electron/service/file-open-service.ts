@@ -1,3 +1,5 @@
+import { DeepLinkService } from "./deep-link-service";
+
 type FileOpenCallback = (filePath: string) => void;
 type CliOpenCallback = (args: string[]) => void | Promise<void>;
 
@@ -16,8 +18,8 @@ export class FileOpenManager {
     );
   }
 
-  static isDocumentFile(filepath:string){
-    return filepath.endsWith(".hightex")
+  static isDocumentFile(filepath: string) {
+    return filepath.endsWith(".hightex");
   }
 
   bootstrap(app: Electron.App) {
@@ -42,8 +44,13 @@ export class FileOpenManager {
     });
 
     app.on("second-instance", (_event, argv) => {
+      const deeplink =DeepLinkService.isDeepLink(argv);
+      if (deeplink) {
+          deeplink.handle()
+        return;
+        
+      }
       const file = this.extractFromArgs(argv);
-
       if (!file) {
         void this.onCli?.(argv);
         return;

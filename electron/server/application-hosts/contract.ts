@@ -1,4 +1,10 @@
-type ResponseType = Response | void | undefined;
 export abstract class Router {
-  abstract handle(url: URL): Promisable<ResponseType>;
+  abstract handle(url: URL): Promisable<Response>;
+
+  abort(status:number){
+    return new Response("Aborted",{status})
+  }
+  notFound(){
+    return new Response("Not Found",{status:404})
+  }
 }

@@ -1,3 +1,3 @@
 export class SnapshotWindow {
-    static open(_snapshotId:string){}
+  static open(_snapshotId: string) {}
 }

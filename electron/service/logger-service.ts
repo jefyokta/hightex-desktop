@@ -18,7 +18,7 @@ export class LoggerService {
         stack: error?.stack || null,
       };
 
-      fs.appendFileSync(targetFile, JSON.stringify(log) + "\n");
+      fs.writeFileSync(targetFile, JSON.stringify(log) + "\n");
     } catch (e) {
       console.error("Failed writing log", e);
     }
@@ -26,7 +26,7 @@ export class LoggerService {
 
   static writeAsync(file: string, message: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      fs.appendFile(file, message, "utf8", (error) => {
+      fs.writeFile(file, message, "utf8", (error) => {
         if (error) {
           reject(error);
           return;
