@@ -1,7 +1,8 @@
 import Store from "electron-store";
-import { app, safeStorage } from "electron";
+import { app, safeStorage, shell } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { ServerService } from "./server-service";
 
 export class SessionService {
   private static cachedToken: string | null = null;
@@ -37,6 +38,10 @@ export class SessionService {
   static deleteToken(): void {
     this.cachedToken = null;
     fs.rmSync(this.tokenPath, { force: true });
+  }
+
+  static login(){
+    shell.openExternal(ServerService.getServerUrl()+"auth/desktop");
   }
 
   static getUser(): User | undefined {

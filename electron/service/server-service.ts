@@ -21,7 +21,7 @@ export class ServerService {
     configStore.set("server.url", normalized);
   }
 
-  private static getServerUrl(): string {
+     static getServerUrl(): string {
     if (!app.isPackaged && process.env.DEV_MODE) {
       return "http://0.0.0.0:8000/api/";
     }

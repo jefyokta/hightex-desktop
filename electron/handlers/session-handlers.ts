@@ -49,6 +49,8 @@ export class SessionHandler {
     password: string,
   ): Promise<User | false> {
     try {
+
+      // SessionService.login()
       const res = await ServerService.request<{
         data: { user: User; token: string };
       }>("/login", {
