@@ -209,31 +209,6 @@ export const Settings = () => {
           <SettingSwitch
             label={
               <>
-                <span>{t("settings.profile.cloud_profile")}</span>{" "}
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon size={12} />
-                  </TooltipTrigger>
-                  <TooltipPanel>
-                    {t("settings.profile.cloud_tooltip")}
-                  </TooltipPanel>
-                </Tooltip>
-              </>
-            }
-            description={t("settings.profile.cloud_profile_description")}
-            value={config.editor?.preferCloudProfile ?? false}
-            onChange={async (val) => {
-              await patchConfig({
-                editor: {
-                  ...config.editor,
-                  preferCloudProfile: val,
-                },
-              });
-            }}
-          />
-          <SettingSwitch
-            label={
-              <>
                 {/* 
               note for translator: alias = singkatan
                */}

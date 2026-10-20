@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStrictContext } from "@/lib/get-strict-context";
 import { Document } from "@/editor/document";
+import { resolveDocumentProfile } from "@/utils/document-profile";
 
 type PrintablePageMode = "single" | "full" | null;
 
@@ -72,11 +73,11 @@ export const PrintableProvider = ({
 
   useEffect(() => {
     let mounted = true;
+    setDocument(null);
+    setProfile(null);
+    setReady(false);
 
     if (!id) {
-      setDocument(null);
-      setProfile(null);
-      setReady(false);
       return;
     }
 
@@ -93,6 +94,7 @@ export const PrintableProvider = ({
 
         Document.instance = nextDocument;
         setDocument(nextDocument);
+        setProfile(resolveDocumentProfile(nextDocument.getDocument()));
         setReady(true);
       } catch (error) {
         console.error("PrintableProvider failed to warm document:", error);
@@ -105,35 +107,6 @@ export const PrintableProvider = ({
       mounted = false;
     };
   }, [id]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    if (pageMode !== "full" || !ready || !document) {
-      setProfile(null);
-      return;
-    }
-
-    const loadProfile = async () => {
-      try {
-        const api = await waitForPrintableApi();
-        if (!mounted) return;
-
-        const nextProfile = await api.profile();
-        if (!mounted) return;
-
-        setProfile(nextProfile);
-      } catch (error) {
-        console.error("PrintableProvider failed to load profile:", error);
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      mounted = false;
-    };
-  }, [document, pageMode, ready]);
 
   const value = useMemo(
     () => ({ document, profile, ready, pageMode, inFrame }),

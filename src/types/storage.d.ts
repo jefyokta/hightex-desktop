@@ -11,32 +11,31 @@ declare global {
     indonesian: string[];
     english: string[];
   }
-  type Role = "student"|"advisor";
+  type Role = "student" | "advisor";
   interface RawRole {
-    id:number,
-    name:Role
+    id: number;
+    name: Role;
   }
-  type RawRoles = RawRole[]
+  type RawRoles = RawRole[];
 
- type User<TRole extends Role = "student"> = RawUser & {
-  role: TRole;
-} & RoleSpecificProps<TRole>;
+  type User<TRole extends Role = Role> = RawUser & {
+    role: TRole;
+  } & RoleSpecificProps<TRole>;
 
   type RoleSpecificProps<TRole extends Role> = TRole extends "advisor"
-  ? { students?: User<"student">[] }
-  : TRole extends "student"
-  ? { advisors?: User<"advisor">[] }
-  : {};
+    ? { students?: User<"student">[] }
+    : TRole extends "student"
+      ? { advisors?: User<"advisor">[] }
+      : {};
 
-interface RawUser {
+  interface RawUser {
     id: string;
     name: string;
     email: string;
     advisors: Mentor[];
     identity_number: string;
-    roles:RawRoles
-
-}
+    roles: RawRoles;
+  }
 
   interface Variable {
     documentId: string;
@@ -102,6 +101,7 @@ interface RawUser {
     altTitle: string;
     keywords: Keywords;
     config: HighTexConfig;
+    profile?: AuthorProfile;
     updatedAt?: Date;
     file?: string;
     min?: boolean;

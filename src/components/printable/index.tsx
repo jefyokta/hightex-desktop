@@ -5,6 +5,7 @@ import { ApplicationError } from "@/exception/interfaces/application-error";
 import { useParams } from "react-router-dom";
 import { StaticPages } from "@/compiler/static-pages";
 import { CVPageBuilder } from "@/compiler/builder/cv-builder";
+import { t } from "@/utils/lang";
 
 export const FullDocument = () => {
   const sourceRef = useRef<HTMLDivElement | null>(null);
@@ -73,6 +74,7 @@ export const FullDocument = () => {
   return (
     <>
       <div ref={sourceRef} style={{ display: "none" }}>
+        {profile?.incomplete && <p>{t("document_profile.print_missing")}</p>}
         <FrontPages />
 
         <div className="content" ref={parserRef}></div>

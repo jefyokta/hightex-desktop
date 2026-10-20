@@ -193,7 +193,7 @@ export const RemoteDocuments = () => {
       const response = await window.hightex.cloud.push(
         file,
         hash,
-        selectedDoc,
+        { ...selectedDoc, profile: undefined },
         commitMessage.trim(),
       );
       if ("error" in response) {
@@ -228,9 +228,7 @@ export const RemoteDocuments = () => {
   };
 
   if (!user) {
-    return (
-      <LoginGate />
-    );
+    return <LoginGate />;
   }
 
   const pushHint = !online
@@ -407,8 +405,9 @@ export const RemoteDocuments = () => {
               >
                 Detail teknis
                 <ChevronDown
-                  className={`size-3.5 transition-transform ${showTech ? "rotate-180" : ""
-                    }`}
+                  className={`size-3.5 transition-transform ${
+                    showTech ? "rotate-180" : ""
+                  }`}
                 />
               </button>
               {showTech && (
@@ -536,8 +535,9 @@ export const RemoteDocuments = () => {
 
       <aside
         aria-label="Riwayat versi"
-        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 lg:block ${historyOpen ? "w-80" : "w-14"
-          }`}
+        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 lg:block ${
+          historyOpen ? "w-80" : "w-14"
+        }`}
       >
         {historyOpen ? (
           <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-80 overflow-y-auto px-5">
@@ -722,11 +722,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
       aria-label={`Salin ${label}`}
       className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
-      {copied ? (
-        <Check className="size-3.5" />
-      ) : (
-        <Copy className="size-3.5" />
-      )}
+      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
     </button>
   );
 }

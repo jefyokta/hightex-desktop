@@ -42,7 +42,7 @@ export class Schema<TVersion extends SchemaVersion = 2> {
         category: doc.category,
         keywords: {
           id: doc.keywords.indonesian,
-          en: doc.keywords.indonesian,
+          en: doc.keywords.english,
         },
       },
     };

@@ -5,6 +5,12 @@ import { CiteUtils } from "bibtex.js";
 import { Symbols } from "@/utils/symbol";
 import { ActionCanceled } from "@/exception/action-canceled";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import {
+  emptyAuthorProfile,
+  getAuthorDetails,
+  getProfileVariables,
+  isProfileVariable,
+} from "@/utils/document-profile";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -12,13 +18,13 @@ export class HighTexDB extends Dexie {
   cite!: Table<CiteRecord, string>;
   chapterGraphs!: Table<ChapterGraph, string>;
   images!: Table<ImageRecord, string>;
-  variables!: Table<Variable, string>;
+  documentVariables!: Table<Variable, [string, string]>;
   aliases!: Table<Alias, string>;
 
   private static instance?: HighTexDB;
 
-  private constructor() {
-    super("HighTexDB");
+  constructor(name = "HighTexDB") {
+    super(name);
 
     this.version(1).stores({
       documents: "id",
@@ -31,12 +37,21 @@ export class HighTexDB extends Dexie {
       aliases: "key, documentId",
       file: "filePath, documentId",
     });
-    this.cite.bulkPut(defaulBib);
-    this.createGlobalVars();
+    // Keep the old table as a backup; its primary key cannot hold two scopes.
+    this.version(2)
+      .stores({
+        documentVariables: "[documentId+name], documentId, name",
+      })
+      .upgrade(async (transaction) => {
+        const variables = await transaction.table("variables").toArray();
+        await transaction.table("documentVariables").bulkPut(variables);
+      });
+    this.on("populate", (transaction) => {
+      return transaction.table("cite").bulkPut(defaulBib);
+    });
   }
   async warm() {
     await this.cite.bulkPut(defaulBib);
-    await this.createGlobalVars();
   }
 
   static getInstance() {
@@ -50,18 +65,54 @@ export class HighTexDB extends Dexie {
     return await this.getInstance().documents.toArray();
   }
   deleteVar(name: string, docId: string) {
-    return this.variables
+    return this.documentVariables
       .where("name")
       .equals(name)
       .and((v) => v.documentId == docId)
       .delete();
   }
 
-  async updateDocument(document: HighTexDocument) {
-    await this.documents.put(document);
-    const fresh = await this.documents.get(document.id);
+  async updateDocument(
+    document: HighTexDocument,
+    authorDetails?: Omit<Profile, "cv">,
+  ) {
+    const updated = await this.transaction("rw", this.documents, async () => {
+      const current = await this.documents.get(document.id);
+      const profile = current ? current.profile : document.profile;
+      const next = {
+        ...document,
+        // Metadata changes must not overwrite a profile edited elsewhere.
+        profile: authorDetails
+          ? {
+              ...emptyAuthorProfile(),
+              ...profile,
+              ...getAuthorDetails(authorDetails),
+            }
+          : profile,
+        updatedAt: new Date(),
+      };
+      await this.documents.put(next);
+      return next;
+    });
+    Manager.app.dispatch("document:updated", { document: updated });
+    return updated;
+  }
 
-    Manager.app.dispatch("document:updated", { document: fresh! });
+  async updateProfile(documentId: string, patch: Partial<AuthorProfile>) {
+    const updated = await this.transaction("rw", this.documents, async () => {
+      const document = await this.documents.get(documentId);
+      if (!document) throw new Error("Document not found");
+
+      const next = {
+        ...document,
+        profile: { ...emptyAuthorProfile(), ...document.profile, ...patch },
+        updatedAt: new Date(),
+      };
+      await this.documents.put(next);
+      return next;
+    });
+    Manager.app.dispatch("document:updated", { document: updated });
+    return updated;
   }
   async deleteDocument(documentId: string) {
     if ("editor" in window) {
@@ -82,6 +133,10 @@ export class HighTexDB extends Dexie {
 
     const chapterIds = chapters.map((c) => c.id);
     await this.images.where("documentId").equals(documentId).delete();
+    await this.documentVariables
+      .where("documentId")
+      .equals(documentId)
+      .delete();
     await Promise.all([
       this.chapters.bulkDelete(chapterIds),
       this.deleteChapterGraphs(chapterIds),
@@ -129,36 +184,53 @@ export class HighTexDB extends Dexie {
   }
 
   async getVars(documentId: string) {
-    return await this.variables
-      .where("documentId")
-      .anyOf([documentId, "global"])
-      .toArray();
+    const [global, local] = await Promise.all([
+      this.getGlobalVars(),
+      this.getVarsOnlyOn(documentId),
+    ]);
+    return Array.from(
+      new Map(
+        [...global, ...local].map((variable) => [variable.name, variable]),
+      ).values(),
+    );
   }
   async getVarsOnlyOn(documentId: string) {
-    return this.variables.where("documentId").equals(documentId).toArray();
+    const [variables, document] = await Promise.all([
+      this.documentVariables.where("documentId").equals(documentId).toArray(),
+      this.documents.get(documentId),
+    ]);
+    return [
+      ...variables.filter((variable) => !isProfileVariable(variable.name)),
+      ...Object.entries(getProfileVariables(document?.profile)).map(
+        ([name, value]) => ({
+          documentId,
+          name,
+          value,
+        }),
+      ),
+    ];
   }
 
   async getVar(name: string, documentId = "global") {
-    const scope = documentId == "global" ? ["global"] : [documentId, "global"];
-    // console.log(name);
-    const v = await this.variables
-      .where("documentId")
-      .anyOf(scope)
-      .and((v) => v.name === name)
-      .first();
-    return v?.value;
+    if (isProfileVariable(name)) {
+      const document = await this.documents.get(documentId);
+      const values = getProfileVariables(document?.profile);
+      return name === "cv"
+        ? (document?.profile?.cv ?? "")
+        : (values[name as keyof typeof values] ?? "");
+    }
+    const local = await this.documentVariables.get([documentId, name]);
+    const global =
+      local ?? (await this.documentVariables.get(["global", name]));
+    return global?.value;
   }
 
   async getGlobalVars() {
-    return await this.variables.where("documentId").equals("global").toArray();
-  }
-  private async createGlobalVars() {
-    const api = window.profile || window.parent.profile;
-    const profile = await api.get();
-    const entries = Object.entries(profile);
-    for (const [key, val] of entries) {
-      await this.setVar(key, String(val));
-    }
+    return this.documentVariables
+      .where("documentId")
+      .equals("global")
+      .filter((variable) => !isProfileVariable(variable.name))
+      .toArray();
   }
   async setVar(
     name: string,
@@ -170,7 +242,7 @@ export class HighTexDB extends Dexie {
         `cannot create var with name '${name}', because its belongs to a symbol`,
       );
     }
-    await this.variables.put({
+    await this.documentVariables.put({
       name,
       value,
       documentId,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileWarningIcon, Save, X } from "lucide-react";
 
-import { Document } from "@/editor/document";
+import { useParams } from "react-router-dom";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 
 import { ParsedItalic } from "@/utils/parse-italic";
@@ -25,9 +25,11 @@ import {
 } from "@/components/ui/select";
 import { TabHeader } from "./components/tab-header";
 import { DatePickerInput } from "@/components/ui/date-picker";
+import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
 
 export const Setting = () => {
   const db = HighTexDB.getInstance();
+  const { id } = useParams();
 
   const [doc, setDoc] = useState<HighTexDocument | null>(null);
 
@@ -41,7 +43,8 @@ export const Setting = () => {
     let mounted = true;
 
     const load = async () => {
-      const initial = await db.documents.get(Document.instance!.id);
+      if (!id) return;
+      const initial = await db.documents.get(id);
 
       if (!initial || !mounted) return;
 
@@ -59,7 +62,7 @@ export const Setting = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [db, id]);
 
   const isDirty = useMemo(() => {
     if (!doc) return false;
@@ -73,9 +76,12 @@ export const Setting = () => {
     setLoading(true);
 
     try {
-      await db.updateDocument(doc);
-
-      setOriginal(JSON.stringify(doc));
+      const saved = await db.updateDocument(
+        doc,
+        doc.profile ? getAuthorDetails(doc.profile) : undefined,
+      );
+      setDoc(saved);
+      setOriginal(JSON.stringify(saved));
     } finally {
       setLoading(false);
     }
@@ -88,6 +94,27 @@ export const Setting = () => {
   );
   const isInternDoc =
     selectedCategory?.variant === "intern" || Boolean(doc.config?.intern);
+
+  const updateProfile = (patch: Partial<Profile>) => {
+    setDoc((previous) =>
+      previous
+        ? {
+            ...previous,
+            profile: { ...emptyAuthorProfile(), ...previous.profile, ...patch },
+          }
+        : previous,
+    );
+  };
+
+  const useDefaultProfile = async () => {
+    const { name, nim, advisorName, advisorNip, secondAdvisor } =
+      await window.profile.get();
+    updateProfile(
+      isInternDoc
+        ? { name, nim }
+        : { name, nim, advisorName, advisorNip, secondAdvisor },
+    );
+  };
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -190,6 +217,95 @@ export const Setting = () => {
               </SelectContent>
             </Select>
           </div>
+        </Section>
+
+        <Section title={t("document_profile.title")}>
+          <p className="text-xs text-muted-foreground">
+            {t(
+              doc.profile
+                ? "document_profile.description"
+                : "document_profile.missing",
+            )}
+          </p>
+
+          <Button size="sm" variant="outline" onClick={useDefaultProfile}>
+            {t("document_profile.use_default")}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            {t("document_profile.default_hint")}
+          </p>
+
+          <Field
+            label={t("settings.profile.name.label")}
+            value={doc.profile?.name ?? ""}
+            onChange={(name) => updateProfile({ name })}
+          />
+          <Field
+            label={t("settings.profile.nim.label")}
+            value={doc.profile?.nim ?? ""}
+            onChange={(nim) => updateProfile({ nim })}
+          />
+          <Field
+            label={t(
+              isInternDoc
+                ? "document_profile.campus_advisor"
+                : "settings.profile.advisor.name.label",
+            )}
+            value={doc.profile?.advisorName ?? ""}
+            onChange={(advisorName) => updateProfile({ advisorName })}
+          />
+          <Field
+            label={t("settings.profile.advisor.nip.label")}
+            value={doc.profile?.advisorNip ?? ""}
+            onChange={(advisorNip) => updateProfile({ advisorNip })}
+          />
+
+          {!isInternDoc && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  updateProfile({
+                    secondAdvisor: doc.profile?.secondAdvisor
+                      ? undefined
+                      : { name: "", nip: "" },
+                  })
+                }
+              >
+                {t(
+                  doc.profile?.secondAdvisor
+                    ? "document_profile.remove_second_advisor"
+                    : "settings.profile.second_advisor.enable_label",
+                )}
+              </Button>
+              {doc.profile?.secondAdvisor && (
+                <>
+                  <Field
+                    label={t("settings.profile.second_advisor.name.label")}
+                    value={doc.profile.secondAdvisor.name}
+                    onChange={(name) =>
+                      updateProfile({
+                        secondAdvisor: { ...doc.profile!.secondAdvisor!, name },
+                      })
+                    }
+                  />
+                  <Field
+                    label={t("settings.profile.second_advisor.nip.label")}
+                    value={doc.profile.secondAdvisor.nip}
+                    onChange={(nip) =>
+                      updateProfile({
+                        secondAdvisor: { ...doc.profile!.secondAdvisor!, nip },
+                      })
+                    }
+                  />
+                </>
+              )}
+            </>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {t("document_profile.cv_hint")}
+          </p>
         </Section>
 
         <Section title={t("editor.expandable.setting.keywords")}>

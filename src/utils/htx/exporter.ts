@@ -7,6 +7,7 @@ import { JSONContent } from "@tiptap/core";
 import { zipSync } from "fflate";
 import { isStaticVar } from "../is-static-var";
 import { t } from "@/utils/lang";
+import { writeProfileEntries } from "./profile";
 
 /**
  * export to ht | htx | hightex file
@@ -95,7 +96,7 @@ export class Exporter {
     this.scheme.writter.putReference(cites);
     this.scheme.writter.putAliases(aliases);
 
-    const vars = await this.db.variables
+    const vars = await this.db.documentVariables
       .where("documentId")
       .equals(document.id)
       .filter((x) => !isStaticVar(x.name))
@@ -121,7 +122,10 @@ export class Exporter {
       await this.scheme.writter.putImage(image.id, image.blob);
     }
 
-    const entries = this.scheme.writter.getEntries();
+    const entries = {
+      ...this.scheme.writter.getEntries(),
+      ...(document.profile ? await writeProfileEntries(document.profile) : {}),
+    };
 
     return {
       entries,

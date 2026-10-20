@@ -70,7 +70,10 @@ export class Chapter {
         chapterId: version
           ? `${documentId}.${chapterName}.${version}`
           : `${documentId}.${chapterName}`,
-        document: Document.instance ?? new Document(documentId, version),
+        document:
+          Document.instance && Document.instance.id === documentId
+            ? Document.instance
+            : new Document(documentId, version),
         isolated,
         frozen,
       };
@@ -82,7 +85,10 @@ export class Chapter {
 
       return {
         chapterId,
-        document: Document.instance ?? new Document(docId, version),
+        document:
+          Document.instance && Document.instance.id === docId
+            ? Document.instance
+            : new Document(docId, version),
       };
     }
 
@@ -94,7 +100,10 @@ export class Chapter {
       chapterId: version
         ? `${documentId}.${chapterName}.${version}`
         : `${documentId}.${chapterName}`,
-      document: Document.instance ?? new Document(documentId, version),
+      document:
+        Document.instance && Document.instance.id === documentId
+          ? Document.instance
+          : new Document(documentId, version),
     };
   }
   getId() {

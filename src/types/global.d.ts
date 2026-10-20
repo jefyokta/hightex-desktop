@@ -23,8 +23,13 @@ declare global {
     cv: string;
   }
 
-  interface DocumentProfile extends Profile {
+  interface AuthorProfile extends Profile {
+    picture?: Blob;
+  }
+
+  interface DocumentProfile extends AuthorProfile {
     isCloud: boolean;
+    incomplete?: boolean;
   }
 
   interface ProfileAPI {
@@ -289,13 +294,13 @@ declare global {
     openPath(path: string): Promise<string>;
     showInFolder(path: string): Promise<void>;
     openFolder(folderPath: string): Promise<void>;
-    getPath(file:File):Promise<string>,
-    getUserDataPath():Promise<string>
+    getPath(file: File): Promise<string>;
+    getUserDataPath(): Promise<string>;
   }
 
   interface EditorAPI {
-    open(documentId: string,file?:string): Promise<void>;
+    open(documentId: string, file?: string): Promise<void>;
     has(documentId: string): Promise<boolean>;
-    save(buffer:Uint8Array,fileName:string):Promise<string | undefined>
+    save(buffer: Uint8Array, fileName: string): Promise<string | undefined>;
   }
 }

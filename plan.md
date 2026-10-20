@@ -1,6 +1,20 @@
 # Rencana integrasi API desktop dan penyederhanaan data dokumen
 
-Tanggal: 21 Oktober 2026. Status: usulan implementasi, belum perubahan aplikasi.
+Tanggal: 21 Oktober 2026. Status: rencana bertahap; progres implementasi dicatat di bawah.
+
+## Progres implementasi
+
+Checkpoint awal: `b2a498e` (`checkpoint`). Perubahan berikutnya dibuat sebagai satu fitur untuk direview sebelum lanjut ke workflow API.
+
+**Langkah 1 — penulis per dokumen:** sudah diimplementasikan pada kode desktop. Identitas penulis/pembimbing dapat diedit pada sidebar pengaturan dokumen; CV dan foto diedit pada bab Daftar Riwayat Hidup. Preview/PDF membaca profil dokumen, dan profil beserta foto ikut dalam export/import v2. Dokumen lama tidak otomatis mengambil identitas akun/default; data default dapat diterapkan secara eksplisit.
+
+Variabel memakai tabel baru dengan kunci gabungan dokumen dan nama. Upgrade database mempertahankan tabel variabel lama sebagai cadangan dan tidak mengisi profil dokumen lama secara otomatis. Konfigurasi KP serta keyword Inggris dipertahankan saat round-trip v2. Komponen form, card, tombol dan alur sidebar mengikuti desain yang sudah ada.
+
+Panduan review: [tests/manual-test.md](tests/manual-test.md). Uji otomatis: [tests/document-profile.test.ts](tests/document-profile.test.ts).
+
+Validasi langkah 1: 29 test lolos, `tsc --noEmit` lolos, build Vite renderer/main/preload lolos, dan lint kode inti yang berubah lolos tanpa warning. Tampilan editor serta PDF aktual belum diuji lewat GUI; gunakan panduan review manual sebelum lanjut ke langkah berikutnya. Perubahan belum di-commit.
+
+**Belum termasuk pada langkah 1:** reader snapshot review yang terisolasi, UI review/submission/advisor, login browser, profil akun online, serta perbaikan protokol/hash dan konflik cloud. Tidak ada klaim bahwa workflow review atau dukungan KP online sudah berjalan. Arsitektur `DocumentRef` untuk beberapa snapshot adalah tahap berikutnya; langkah pertama ini menutup jalur profil global pada render draft dan file portabel.
 
 ## 1. Keputusan arsitektur yang disarankan
 

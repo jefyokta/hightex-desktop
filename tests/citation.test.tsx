@@ -1,19 +1,5 @@
-import { expect, mock, test } from "bun:test";
+import { expect, test } from "bun:test";
 import { parseBibtexInput, isCitationValid } from "../src/utils/citation";
-
-mock.module("../src/editor/storage/hightex-db.ts", () => ({
-  HighTexDB: {
-    getInstance: () => ({
-      cite: { toArray: async () => [] },
-    }),
-  },
-}));
-
-mock.module("../src/editor/storage/index.ts", () => ({
-  Storage: class {
-    static instance = null;
-  },
-}));
 
 test("parseBibtexInput normalizes keys and parses valid BibTeX entries", () => {
   const bib = `@article{My Key 1,

@@ -10,6 +10,7 @@ import { DocumentList } from "@/components/local/document-list";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { t } from "@/utils/lang";
 import { confirm } from "@/utils/confirm";
+import { normalizeAuthorProfile } from "@/utils/document-profile";
 
 export const Dashboard = () => {
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
@@ -42,12 +43,32 @@ export const Dashboard = () => {
       throw new CategoryEmpty();
     }
 
+    const [profile, picture] = await Promise.all([
+      window.profile.get(),
+      window.profile.picture(),
+    ]);
+
     const doc: HighTexDocument = {
       id: crypto.randomUUID(),
       title: t("common.untitled_document"),
       altTitle: "",
       category: defaultCategory.id.toString(),
       keywords: { indonesian: [], english: [] },
+      profile: {
+        ...normalizeAuthorProfile(profile)!,
+        ...(defaultCategory.variant === "intern"
+          ? {
+              advisorName: "",
+              advisorNip: "",
+              secondAdvisor: undefined,
+            }
+          : {}),
+        picture: picture
+          ? new Blob([new Uint8Array(picture)], {
+              type: "image/webp",
+            })
+          : undefined,
+      },
       config: {
         consentDate: new Date(),
         validityDate: new Date(),

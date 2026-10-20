@@ -47,12 +47,23 @@ export function VariableComponent({ node }: NodeViewProps) {
   }, [node.attrs.name]);
 
   useEffect(() => {
+    return Manager.app.on("document:updated", async ({ document }) => {
+      if (document.id !== Document.instance?.id) return;
+      const value = await HighTexDB.getInstance().getVar(
+        node.attrs.name,
+        document.id,
+      );
+      setValue(value ?? "");
+    });
+  }, [node.attrs.name]);
+
+  useEffect(() => {
     return Manager.app.on("var:updated", (vr) => {
       if (vr.name == node.attrs.name) {
         setValue(vr.value);
       }
     });
-  }, []);
+  }, [node.attrs.name]);
 
   return (
     <NodeViewWrapper as="span" data-variable>

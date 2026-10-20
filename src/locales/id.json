@@ -80,9 +80,9 @@
       }
     },
     "profile": {
-      "label": "Profil",
-      "description": "Atur profil lokal kamu di sini",
-      "tooltip": "Profil cadangan kalau internet lagi mati",
+      "label": "Profil default",
+      "description": "Data penulis default untuk dokumen baru",
+      "tooltip": "Dokumen yang sudah ada dan hasil import menyimpan data penulis masing-masing. Ubah melalui pengaturan dokumen.",
       "loading": "Memuat profil...",
       "name": {
         "label": "Nama",
@@ -611,5 +611,26 @@
     "import_failed": "Impor Gagal",
     "open_failed": "Tidak dapat membuka file"
   },
-  "open": "Buka"
+  "open": "Buka",
+  "document_profile": {
+    "title": "Penulis dokumen",
+    "description": "Penulis dan pembimbing tersimpan bersama dokumen ini. Perubahan hanya berlaku pada dokumen ini.",
+    "missing": "Data penulis belum tersimpan pada dokumen ini. Isi data penulis atau tinjau profil default sebelum menyimpan.",
+    "use_default": "Ambil data default",
+    "default_hint": "Mengisi kolom di bawah untuk ditinjau. Simpan untuk menerapkan. CV dan foto tetap milik dokumen ini.",
+    "campus_advisor": "Pembimbing KP kampus",
+    "remove_second_advisor": "Hapus pembimbing kedua",
+    "cv_hint": "Edit CV dan foto penulis pada bab Daftar Riwayat Hidup.",
+    "cv_title": "CV untuk dokumen ini",
+    "cv_description": "CV dan foto ini milik dokumen ini dan ikut disertakan dalam export HighTex.",
+    "picture": "Foto penulis",
+    "print_missing": "Data penulis pada dokumen ini belum lengkap.",
+    "notice_title": "Lengkapi data penulis dokumen",
+    "notice_description": "Isi nama dan NIM penulis melalui pengaturan dokumen sebelum export.",
+    "open_settings": "Pengaturan dokumen",
+    "copy_default_cv": "Ambil CV dan foto default",
+    "copy_default_cv_confirm": "Ganti CV dan foto dokumen ini?",
+    "copy_default_cv_description": "Menyalin CV dan foto dari profil default lokal ke dokumen ini.",
+    "default_cv_empty": "Profil default belum memiliki CV atau foto."
+  }
 }

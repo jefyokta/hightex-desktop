@@ -1,12 +1,12 @@
 import { Engine } from "../engine";
 import { ImageQueue } from "../queues/image-queue";
+import { sanitizeCvHtml } from "@/utils/sanitize-cv-html";
 
 export class CVPageBuilder {
   static async create(engine: Engine) {
-    const api = engine.isInFrame() ? window.parent : window;
-
-    const profile = await api.profile.get();
-    const profilePicture = await api.profile.picture();
+    const profile = engine.config.profile;
+    if (!profile) throw new Error("Document profile is not loaded");
+    const profilePicture = profile.picture;
 
     const page = document.createElement("div");
 
@@ -47,11 +47,7 @@ export class CVPageBuilder {
     } satisfies Partial<CSSStyleDeclaration>);
 
     if (profilePicture) {
-      const blob = new Blob([new Uint8Array(profilePicture)], {
-        type: "image/webp",
-      });
-
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(profilePicture);
 
       ImageQueue.objectUrls.push(url);
 
@@ -73,7 +69,7 @@ export class CVPageBuilder {
     page.appendChild(imageWrapper);
 
     const contentEl = document.createElement("div");
-    contentEl.innerHTML = profile.cv;
+    contentEl.innerHTML = sanitizeCvHtml(profile.cv);
 
     page.appendChild(contentEl);
     if (engine.config.paged?.renderTo) {

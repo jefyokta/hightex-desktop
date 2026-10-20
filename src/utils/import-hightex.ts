@@ -7,6 +7,7 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
 import { convertImage } from "./images-to-webp";
 import { t } from "@/utils/lang";
+import { readProfileEntries } from "./htx/profile";
 
 export class HighTexImporter {
   public context!: ImportContextV1;
@@ -104,6 +105,7 @@ export class HighTexImporter {
       altTitle: manifest.document?.title?.alt ?? "",
       keywords: normalizeKeywords(manifest.document?.keywords),
       config: {},
+      profile: readProfileEntries(this.entries, manifest.profile),
       updatedAt: new Date(),
     };
   }

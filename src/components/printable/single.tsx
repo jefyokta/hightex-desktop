@@ -8,6 +8,8 @@ import { Engine } from "@/compiler/engine";
 import { Chapter } from "@/editor/chapter";
 import { cn } from "@/lib/utils";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
+import { Document } from "@/editor/document";
+import { resolveDocumentProfile } from "@/utils/document-profile";
 
 Paged.registerHandlers(BaseHandler);
 
@@ -30,6 +32,7 @@ export const Single = () => {
 
     if (!rawChapter) throw new ChapterNotFound(id);
 
+    const document = await new Document(id.split(".")[0]).warm();
     const chapter = new Chapter(rawChapter.id);
 
     const engine = Engine.getInstance();
@@ -37,6 +40,7 @@ export const Single = () => {
 
     await engine
       .withConfig({
+        profile: resolveDocumentProfile(document.getDocument()),
         paged: {
           content: pagedRef.current,
           renderTo: renderRef.current,

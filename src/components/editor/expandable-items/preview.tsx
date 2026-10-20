@@ -94,6 +94,20 @@ export const Preview = () => {
     });
   }, [autoUpdate]);
 
+  useEffect(() => {
+    if (!autoUpdate) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const off = Manager.app.on("document:updated", ({ document }) => {
+      if (document.id !== Document.instance?.id) return;
+      clearTimeout(timer);
+      timer = setTimeout(reloadFrame, 400);
+    });
+    return () => {
+      off();
+      clearTimeout(timer);
+    };
+  }, [autoUpdate]);
+
   const updateGlobalConfig = async (
     newScope: typeof scope,
     newAuto: boolean,

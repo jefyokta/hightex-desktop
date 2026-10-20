@@ -6,20 +6,21 @@ import { HighTexImportError } from "@/exception/hightex-import";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
 import { t } from "@/utils/lang";
+import { readProfileEntries } from "./htx/profile";
 
 export class HighTexImporter {
   public context!: ImportContext;
-  public filePath!:string;
+  public filePath!: string;
 
-  static async create(file: File,filePath:string) {
+  static async create(file: File, filePath: string) {
     const importer = new HighTexImporter();
-    await importer.init(file,filePath);
+    await importer.init(file, filePath);
     return importer;
   }
 
-  private async init(file: File,filePath:string) {
+  private async init(file: File, filePath: string) {
     const buffer = await file.arrayBuffer();
-    this.filePath =filePath
+    this.filePath = filePath;
     const entries = unzipSync(new Uint8Array(buffer));
 
     const manifest = this.findManifest(entries);
@@ -132,10 +133,10 @@ export class HighTexImporter {
       title: manifest.document?.title?.id ?? "Imported Document",
       altTitle: manifest.document?.title?.en ?? "",
       keywords: normalizeKeywords(manifest.document?.keywords),
-      config: {},
+      config: this.getConfig(),
+      profile: readProfileEntries(this.entries, manifest.profile),
       updatedAt: new Date(),
-      file:this.filePath
-      
+      file: this.filePath,
     } satisfies HighTexDocument;
   }
 
@@ -209,12 +210,19 @@ export class HighTexImporter {
     const raw = JSON.parse(strFromU8(configEntry));
 
     return {
+      ...raw,
       consentDate: parseDateField(raw.consentDate),
       validityDate: parseDateField(raw.validityDate),
       statementDate: parseDateField(raw.statementDate),
       leader: raw.leader,
       member_1: raw.member_1,
       member_2: raw.member_2,
+      intern: raw.intern
+        ? {
+            ...raw.intern,
+            validity: parseDateField(raw.intern.validity),
+          }
+        : undefined,
     };
   }
 
@@ -233,8 +241,8 @@ export class HighTexImporter {
   }
 }
 
-export async function importHighTexV2Package(file: File,filePath:string) {
-  const importer = await HighTexImporter.create(file,filePath);
+export async function importHighTexV2Package(file: File, filePath: string) {
+  const importer = await HighTexImporter.create(file, filePath);
 
   return importer.import();
 }

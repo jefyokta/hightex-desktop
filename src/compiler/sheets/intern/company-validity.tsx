@@ -91,8 +91,7 @@ export const CompanyConsent = () => {
             <br />
 
             <span style={{ fontWeight: "bold" }}>
-              {document.getDocument().config.intern?.advisor?.name ??
-                profile?.advisorName}
+              {document.getDocument().config.intern?.advisor?.name ?? ""}
             </span>
 
             <br />
@@ -104,9 +103,7 @@ export const CompanyConsent = () => {
                 display: "inline-block",
               }}
             >
-              NIP.{" "}
-              {document.getDocument().config.intern?.advisor?.nip ??
-                "198408212009012008"}
+              NIP. {document.getDocument().config.intern?.advisor?.nip ?? ""}
             </span>
           </div>
         </div>

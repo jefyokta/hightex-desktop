@@ -37,6 +37,7 @@ import { CommentSlave } from "@/slaves/comment-slave";
 import { uniqId } from "@/utils/uniq-id";
 import { ZoomUI } from "@/components/editor/zoom-ui";
 import { LoadingDocument } from "@/components/editor/loading-document";
+import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -139,6 +140,7 @@ export const Editor: React.FC = () => {
           ref={containerRef}
           className="flex flex-col items-center py-3 space-y-2 px-5"
         >
+          {loaded && id && <DocumentProfileNotice documentId={id} />}
           <ContextMenuPopup />
           <FindReplaceBar
             visible={showFind}
@@ -161,7 +163,7 @@ export const Editor: React.FC = () => {
           >
             {loaded && Chapter.instance ? (
               Chapter.instance.frozen ? (
-                <FrozenChapter />
+                <FrozenChapter key={`${id}.${chapter}`} />
               ) : (
                 <EditorComponent key={editorKey} />
               )
@@ -310,5 +312,3 @@ const EditorComponent = () => {
     </div>
   );
 };
-
-

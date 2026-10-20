@@ -19,17 +19,16 @@ export class Document {
 
   private doc?: HighTexDocument;
 
-
   public scheme?: Category["chapters"];
   public chapters: Chapter[] = [];
   public counters = {
     equations: 0,
   };
 
-  public async setFilePath(file?:string){
-    if(!this.doc) return
-    this.doc.file = file
-    return await this.table.put(this.doc)
+  public async setFilePath(file?: string) {
+    if (!this.doc) return;
+    this.doc.file = file;
+    return await this.table.put(this.doc);
   }
 
   constructor(documentId: string, version?: string) {
@@ -56,7 +55,7 @@ export class Document {
     }
     await Promise.all(
       Symbols.map(([name, value]) =>
-        db.variables.put({ name, value, documentId: "global" }),
+        db.documentVariables.put({ name, value, documentId: "global" }),
       ),
     );
   }

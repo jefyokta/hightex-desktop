@@ -1,6 +1,5 @@
 import { useConfig } from "@/hooks/use-config";
 import { t } from "@/utils/lang";
-import { InfoIcon } from "lucide-react";
 
 import { Modal } from "../modal";
 import {
@@ -11,11 +10,6 @@ import {
   CardTitle,
 } from "../ui/card";
 import { SettingSwitch } from "@/pages/settings";
-import {
-  TooltipPanel,
-  Tooltip,
-  TooltipTrigger,
-} from "../animate-ui/components/base/tooltip";
 import { Manager } from "@/editor/manager";
 
 type SettingModalProps = {
@@ -65,29 +59,6 @@ export const SettingModal: React.FC<SettingModalProps> = ({
             onChange={(value) =>
               saveEditor({
                 scrollBar: value,
-              })
-            }
-          />
-
-          <SettingSwitch
-            label={
-              <>
-                <span>{t("settings.profile.cloud_profile")}</span>{" "}
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon size={12} />
-                  </TooltipTrigger>
-                  <TooltipPanel>
-                    {t("settings.profile.cloud_tooltip")}
-                  </TooltipPanel>
-                </Tooltip>
-              </>
-            }
-            description={t("settings.profile.cloud_profile_description")}
-            value={config?.editor?.preferCloudProfile ?? false}
-            onChange={(value) =>
-              saveEditor({
-                preferCloudProfile: value,
               })
             }
           />

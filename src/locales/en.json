@@ -80,9 +80,9 @@
       }
     },
     "profile": {
-      "label": "Profile",
-      "description": "Configure your local profile here",
-      "tooltip": "Fallback profile when internet goes away",
+      "label": "Default profile",
+      "description": "Default author details for new documents",
+      "tooltip": "Existing and imported documents keep their own author details. Use document settings to change them.",
       "loading": "Loading profile...",
       "name": {
         "label": "Name",
@@ -611,5 +611,26 @@
     "import_failed": "Import Failed",
     "open_failed": "Unable to open file"
   },
-  "open": "Open"
+  "open": "Open",
+  "document_profile": {
+    "title": "Document author",
+    "description": "Author and advisors saved with this document. Changes apply only to this document.",
+    "missing": "This document has no saved author profile. Enter the author details or review the defaults before saving.",
+    "use_default": "Use default details",
+    "default_hint": "Fills the fields below for review. Save to apply. CV and photo stay with this document.",
+    "campus_advisor": "Campus internship advisor",
+    "remove_second_advisor": "Remove second advisor",
+    "cv_hint": "Edit the author’s CV and photo in the Curriculum Vitae chapter.",
+    "cv_title": "CV for this document",
+    "cv_description": "This CV and photo belong to this document and are included in its HighTex export.",
+    "picture": "Author photo",
+    "print_missing": "Author details are incomplete in this document.",
+    "notice_title": "Complete the document author details",
+    "notice_description": "Set the author name and NIM in the document settings before exporting.",
+    "open_settings": "Document settings",
+    "copy_default_cv": "Use default CV and photo",
+    "copy_default_cv_confirm": "Replace this document’s CV and photo?",
+    "copy_default_cv_description": "Copies the CV and photo from the local default profile into this document.",
+    "default_cv_empty": "The default profile has no CV or photo."
+  }
 }

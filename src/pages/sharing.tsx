@@ -234,7 +234,7 @@ const ShareDocument = ({
         type,
         snapshot,
         images,
-        document,
+        document: { ...document, profile: undefined },
       });
       if ("message" in res) {
         throw new ShouldNotifiedWithNativeComponent(res.message);
@@ -258,7 +258,9 @@ const ShareDocument = ({
             t("sharing.uncategorized")}
         </div>
 
-        <div className="font-medium"><ParsedItalic text={document.title}/></div>
+        <div className="font-medium">
+          <ParsedItalic text={document.title} />
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
