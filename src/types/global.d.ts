@@ -158,6 +158,15 @@ declare global {
     file: FileApi;
     editor: EditorAPI;
     hightex: {
+      submission: {
+        context(): Promise<SubmissionResult<ReviewSession>>;
+        list(): Promise<SubmissionResult<SubmissionList>>;
+        file(input: {
+          sessionId: string;
+          submissionId: string;
+          documentId: string;
+        }): Promise<SubmissionResult<SubmissionSnapshot>>;
+      };
       document(): Promise<{ document: HighTexDocument }>;
       prefetch(): Promise<void>;
       onPrefetchProgress(cb: (data: any) => void): void;

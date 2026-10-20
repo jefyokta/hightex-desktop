@@ -6,7 +6,7 @@ import { ServerService } from "./server-service";
 
 export class SessionService {
   private static cachedToken: string | null = null;
-  private static store = new Store<{ "session.user"?: User|RawUser }>();
+  private static store = new Store<{ "session.user"?: User | RawUser }>();
 
   private static get tokenPath(): string {
     return path.join(app.getPath("userData"), "session.bin");
@@ -40,22 +40,21 @@ export class SessionService {
     fs.rmSync(this.tokenPath, { force: true });
   }
 
-  static login(){
-    shell.openExternal(ServerService.getServerUrl()+"auth/desktop");
+  static login() {
+    shell.openExternal(ServerService.getServerUrl() + "auth/desktop");
   }
 
   static getUser(): User | undefined {
-    const user =this.store.get("session.user");
+    const user = this.store.get("session.user");
     if (user && !("role" in user)) {
-      (user as User).role = user.roles[0].name || "student" 
-      
+      (user as User).role = user.roles?.[0]?.name || "student";
     }
-    return user as User | undefined
+    return user as User | undefined;
   }
 
-  static setUser(user: RawUser | User ): void {
+  static setUser(user: RawUser | User): void {
     if (!("role" in user)) {
-      (user as User).role = user.roles[0].name || "student"      
+      (user as User).role = user.roles?.[0]?.name || "student";
     }
     this.store.set("session.user", user);
   }

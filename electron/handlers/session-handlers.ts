@@ -5,23 +5,41 @@ import { SessionService } from "../service/session-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 
 export class SessionHandler {
+  private static pendingUser?: Promise<User | false>;
+
   public static async broadcastSession() {
     const windows = BrowserWindow.getAllWindows();
-    const user = await this.user();
+    const user = SessionService.getUser();
     for (const win of windows) {
+      if (win.isDestroyed()) continue;
       try {
         win.webContents.send("session:changed", user || false);
       } catch (err) {
         LoggerService.write(err, "broadcastSession");
-        SessionService.clearUser();
-        win.webContents.send("session:changed", false);
       }
     }
   }
 
   public static async user(): Promise<User | false> {
+    if (this.pendingUser) return this.pendingUser;
+    this.pendingUser = this.loadUser().finally(() => {
+      this.pendingUser = undefined;
+    });
+    return this.pendingUser;
+  }
+
+  private static async loadUser(): Promise<User | false> {
+    const token = SessionService.getToken();
+    const previousUser = SessionService.getUser();
+    if (!token) {
+      SessionService.clearUser();
+      if (previousUser) await this.broadcastSession();
+      return false;
+    }
     try {
       const res = await ServerService.request<{ message: RawUser }>("/me");
+      if (token !== SessionService.getToken())
+        return SessionService.getUser() ?? false;
 
       const currentUser = SessionService.getUser();
       const user = res.message || false;
@@ -38,8 +56,11 @@ export class SessionHandler {
 
       return SessionService.getUser() ?? false;
     } catch (err) {
+      if (token !== SessionService.getToken())
+        return SessionService.getUser() ?? false;
       LoggerService.write(err, "session:user");
       SessionService.clearUser();
+      if (previousUser) await this.broadcastSession();
 
       return false;
     }
@@ -49,7 +70,6 @@ export class SessionHandler {
     password: string,
   ): Promise<User | false> {
     try {
-
       // SessionService.login()
       const res = await ServerService.request<{
         data: { user: User; token: string };
@@ -84,7 +104,7 @@ export class SessionHandler {
     IPCMain.handle(
       "session:login",
       (_event, email: string, password: string) => {
-        SessionHandler.login(email, password);
+        return SessionHandler.login(email, password);
       },
     );
 

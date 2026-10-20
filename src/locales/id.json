@@ -632,5 +632,48 @@
     "copy_default_cv_confirm": "Ganti CV dan foto dokumen ini?",
     "copy_default_cv_description": "Menyalin CV dan foto dari profil default lokal ke dokumen ini.",
     "default_cv_empty": "Profil default belum memiliki CV atau foto."
+  },
+  "submission_review": {
+    "title": "Submission",
+    "description": "Baca versi dokumen yang telah diajukan.",
+    "back": "Kembali ke submission",
+    "read_only": "Hanya baca",
+    "download": "Unduh .hightex",
+    "snapshot_label": "Submission #{id} · file terverifikasi",
+    "local_label": "Pratinjau file lokal · bukan submission server",
+    "missing_profile": "Sebagian data penulis tidak tersimpan pada snapshot ini. Field yang belum tersedia tetap kosong.",
+    "unsupported_content": "Sebagian format atau konten belum didukung viewer ini. Unduh paket asli untuk memeriksanya.",
+    "author": "Data penulis",
+    "chapter": "Bagian {id}",
+    "cv": "Daftar Riwayat Hidup",
+    "references": "Referensi dalam file",
+    "not_recorded": "Belum tersimpan dalam file",
+    "missing_image": "Gambar tidak tersedia dalam file",
+    "unsupported_node": "Konten belum didukung: {type}",
+    "open_file": "Buka .hightex untuk dibaca",
+    "refresh": "Muat ulang",
+    "offline": "Sambungkan ke internet untuk mengakses submission. File .hightex lokal tetap dapat dibaca.",
+    "advisor_queue": "Submission mahasiswa bimbingan yang menunggu review.",
+    "student_history": "Riwayat pengajuan dokumenmu.",
+    "empty": "Belum ada submission untuk ditampilkan.",
+    "open_snapshot": "Baca snapshot",
+    "errors": {
+      "not_authenticated": "Sesimu sudah tidak berlaku. Silakan masuk kembali.",
+      "session_changed": "Akun atau server telah berubah. Buka kembali submission dari daftar.",
+      "forbidden": "Kamu tidak memiliki akses ke submission ini. Periksa hak akses akun dan verifikasi email.",
+      "not_found": "Submission atau file snapshot tidak tersedia. Submission lama mungkin belum memiliki file.",
+      "invalid_response": "Respons server tidak sesuai format submission yang didukung.",
+      "integrity_failed": "File hasil unduhan gagal diverifikasi. Coba unduh kembali.",
+      "request_failed": "Submission belum dapat dimuat. Periksa koneksi lalu coba kembali.",
+      "invalid_archive": "File ini bukan archive HighTex yang valid.",
+      "unsupported_format": "Versi atau format konten file HighTex ini belum didukung.",
+      "invalid_content": "Data dokumen dalam file tidak lengkap atau tidak valid.",
+      "too_large": "File melebihi batas viewer: archive 64 MB, isi setelah dibuka 128 MB."
+    },
+    "status": {
+      "waiting_for_review": "Menunggu review",
+      "on_review": "Sedang direview",
+      "reviewed": "Selesai direview"
+    }
   }
 }

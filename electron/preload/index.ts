@@ -43,6 +43,11 @@ const loadConfig = async () => {
 loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
+  submission: {
+    context: () => ipcRenderer.invoke("hightex:submission:context"),
+    list: () => ipcRenderer.invoke("hightex:submission:list"),
+    file: (input) => ipcRenderer.invoke("hightex:submission:file", input),
+  },
   // compile() {},
   document: () => {
     return ipcRenderer.invoke("hightex:document");

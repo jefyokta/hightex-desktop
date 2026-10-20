@@ -12,11 +12,23 @@ import { ShouldSilent } from "@main/exception/should-silent";
 import { ConfigService } from "@main/service/config-service";
 import { DocumentService } from "@main/service/document-service";
 import { DocumentAliasService } from "@main/service/document-alias-service";
+import { submissionService } from "@main/service/submission-service";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
+    IPCMain.handle("hightex:submission:context", () =>
+      submissionService.context(),
+    );
+    IPCMain.handle("hightex:submission:list", () => submissionService.list());
+    IPCMain.handle(
+      "hightex:submission:file",
+      (
+        _,
+        input: { sessionId: string; submissionId: string; documentId: string },
+      ) => submissionService.file(input),
+    );
     IPCMain.handle("hightex:document", async () => {
       try {
         return await ServerService.request("/document");

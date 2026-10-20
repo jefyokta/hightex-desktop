@@ -1,0 +1,68 @@
+@import "katex/dist/katex.min.css";
+
+.snapshot-content {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.snapshot-content p {
+  margin-bottom: 12pt;
+}
+.snapshot-content h1 {
+  margin: 0 0 16pt;
+  text-align: center;
+  font-size: 14pt;
+  font-weight: bold;
+}
+.snapshot-content h2,
+.snapshot-content h3,
+.snapshot-content h4 {
+  margin: 12pt 0 6pt;
+  font-size: 12pt;
+  font-weight: bold;
+}
+.snapshot-content ul {
+  list-style: disc;
+  margin-left: 20pt;
+}
+.snapshot-content ol {
+  list-style: decimal;
+  margin-left: 20pt;
+}
+.snapshot-content li > p {
+  margin-bottom: 4pt;
+}
+.snapshot-content figure {
+  margin: 12pt 0;
+}
+.snapshot-content figcaption {
+  text-align: center;
+  font-size: 12pt;
+}
+.snapshot-content img {
+  max-width: 100%;
+  height: auto;
+}
+.snapshot-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12pt 0;
+}
+.snapshot-content td,
+.snapshot-content th {
+  padding: 4pt;
+  border: 1px solid currentColor;
+  vertical-align: top;
+}
+.snapshot-content pre {
+  white-space: pre-wrap;
+  font-size: 10pt;
+  margin: 12pt 0;
+}
+.snapshot-content blockquote {
+  margin-left: 16pt;
+  border-left: 2px solid #aaa;
+  padding-left: 10pt;
+}
+.snapshot-content cite {
+  font-style: normal;
+}

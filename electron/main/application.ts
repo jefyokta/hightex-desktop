@@ -200,7 +200,7 @@ export class Application {
     });
 
     app.on("open-url", (_, url) => {
-      new DeepLinkService(url).handle()
+      new DeepLinkService(url).handle();
     });
 
     this.win.webContents.on("did-finish-load", () => {
@@ -235,7 +235,7 @@ export class Application {
     await this.prepareCoreServices();
     this.registerHandlers();
     appEvent.addListener("unauthorized", () => {
-      SessionHandler.broadcastSession();
+      void SessionHandler.user();
     });
     EditorHandler.register();
     WindowHandler.register();

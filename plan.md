@@ -6,15 +6,43 @@ Tanggal: 21 Oktober 2026. Status: rencana bertahap; progres implementasi dicatat
 
 Checkpoint awal: `b2a498e` (`checkpoint`). Perubahan berikutnya dibuat sebagai satu fitur untuk direview sebelum lanjut ke workflow API.
 
+Setiap langkah ditutup dengan summary di [docs/codex-impl-summary](docs/codex-impl-summary/README.md). Pisahkan breaking changes dari penambahan fitur; jelaskan dampak, kompatibilitas, dan tindakan migrasi. Lanjut ke langkah berikutnya setelah review pengguna.
+
 **Langkah 1 — penulis per dokumen:** sudah diimplementasikan pada kode desktop. Identitas penulis/pembimbing dapat diedit pada sidebar pengaturan dokumen; CV dan foto diedit pada bab Daftar Riwayat Hidup. Preview/PDF membaca profil dokumen, dan profil beserta foto ikut dalam export/import v2. Dokumen lama tidak otomatis mengambil identitas akun/default; data default dapat diterapkan secara eksplisit.
 
 Variabel memakai tabel baru dengan kunci gabungan dokumen dan nama. Upgrade database mempertahankan tabel variabel lama sebagai cadangan dan tidak mengisi profil dokumen lama secara otomatis. Konfigurasi KP serta keyword Inggris dipertahankan saat round-trip v2. Komponen form, card, tombol dan alur sidebar mengikuti desain yang sudah ada.
 
 Panduan review: [tests/manual-test.md](tests/manual-test.md). Uji otomatis: [tests/document-profile.test.ts](tests/document-profile.test.ts).
 
-Validasi langkah 1: 29 test lolos, `tsc --noEmit` lolos, build Vite renderer/main/preload lolos, dan lint kode inti yang berubah lolos tanpa warning. Tampilan editor serta PDF aktual belum diuji lewat GUI; gunakan panduan review manual sebelum lanjut ke langkah berikutnya. Perubahan belum di-commit.
+Validasi langkah 1: 29 test lolos, `tsc --noEmit` lolos, build Vite renderer/main/preload lolos, dan lint kode inti yang berubah lolos tanpa warning. Tampilan editor serta PDF aktual belum diuji lewat GUI; gunakan panduan review manual. Implementasi sudah tercatat di commit `cb21591` dan pengguna menyetujui untuk lanjut.
 
 **Belum termasuk pada langkah 1:** reader snapshot review yang terisolasi, UI review/submission/advisor, login browser, profil akun online, serta perbaikan protokol/hash dan konflik cloud. Tidak ada klaim bahwa workflow review atau dukungan KP online sudah berjalan. Arsitektur `DocumentRef` untuk beberapa snapshot adalah tahap berikutnya; langkah pertama ini menutup jalur profil global pada render draft dan file portabel.
+
+**Langkah 2 — snapshot submission hanya baca:** menambahkan antrean/riwayat dari `GET /submission`, unduh snapshot melalui endpoint file submission dengan pemeriksaan SHA-256 dan ID dokumen, serta viewer paket terpisah dari editor. File `.hightex` lokal juga dapat dibuka untuk dibaca tanpa import/login. Profil, variabel, gambar, CV dan referensi dibaca dari paket; pembacaan tidak memanggil `Document.warm()` atau menulis database draft. Cache hanya di memori dan dibatasi oleh server, akun, sesi, dokumen, submission, serta hash.
+
+Bentuk respons dikonfirmasi melalui source lokal backend `hightex/app/Http/Controllers/Api/Submission.php` dan tests `ApiSubmissionTest.php`, tanpa mengubah repository backend. Viewer mendukung manifest desktop dengan `schema_version: 2` atau `version: 2`, dan format export web v1. Ini adalah viewer isi dokumen; layout PDF final dan aksi komentar/transisi review belum termasuk.
+
+Catatan untuk tahap pengajuan: source backend lokal memeriksa `manifest.version === 2` untuk archive desktop, sedangkan exporter desktop sekarang menulis `schema_version: 2`. Samakan kontrak sebelum mengaktifkan push → submit; jangan menganggap penerimaan archive desktop oleh endpoint submit sudah tervalidasi pada langkah kedua.
+
+Validasi langkah 2: 52 test lolos, typecheck dan lint kode inti terkait lolos, serta build renderer/main/preload lolos dengan warning ukuran chunk. GUI dan integrasi server aktif belum diuji. Detail, batas cakupan, catatan kompatibilitas, dan cara review: [summary langkah 2](docs/codex-impl-summary/STEP_2_SUMMARY.md). Status: siap direview; belum lanjut ke fitur berikutnya.
+
+## Checklist next steps
+
+Urutan ini menjadi urutan pengiriman setelah langkah 2. Nomor langkah implementasi berbeda dari nomor tahap arsitektur di bagian bawah. Setiap langkah menghasilkan satu fitur yang bisa dicoba, mengikuti desain dan gaya kode yang sudah ada, lalu berhenti untuk review pengguna.
+
+Lingkungan pengujian yang disediakan pengguna: server lokal berjalan di port **8000**; kandidat base URL API `http://127.0.0.1:8000/api/`. Kredensial demo berada di file lokal `demo-user`, yang mencantumkan konteks student dan advisor. Gunakan file itu saat pengujian; jangan menyalin password/token ke summary, fixture, atau log. Ketersediaan endpoint dan permission tetap perlu diuji langsung; informasi lingkungan ini belum berarti integrasi sudah lolos.
+
+- [ ] **Validasi integrasi langkah 2 di server lokal.** Coba login akun demo, daftar submission, unduh snapshot, dan verifikasi hash/header. Periksa penulis mahasiswa saat dibuka advisor, paket tanpa profil, logout saat request berjalan, dan akses ditolak. Catat hasil aktual pada summary langkah 2; perbaiki masalah yang ditemukan sebelum menambah workflow.
+- [ ] **Langkah 3 — sinkronisasi cloud aman.** Samakan manifest writer dengan backend; gunakan artifact dan hash byte yang sama untuk upload. Pisahkan binding/base SHA per server, akun, dan dokumen. Pull memvalidasi paket sebelum perubahan lokal; konflik, pembatalan, atau request akun lama tidak menimpa draft/binding. Riwayat tidak mengubah base; membuka versi lama tetap terpisah, restore eksplisit dengan backup. **Bisa direview:** push/pull, konflik dua perubahan, riwayat/restore, dan pergantian akun pada server demo.
+- [ ] **Langkah 4 — pengajuan mahasiswa lengkap.** Simpan dan bekukan versi, push, lalu ajukan hanya setelah upload berhasil. Tampilkan riwayat, status, dan snapshot server; tangani submission aktif, klik ganda, timeout, serta push berhasil tetapi submit gagal. Jelaskan batas jaminan versi sampai backend mendukung submit bersyarat SHA. **Bisa direview:** mahasiswa mengajukan dokumen dan membuka versi yang benar-benar diajukan; retry tidak diam-diam mengirim versi berbeda.
+- [ ] **Langkah 5 — workflow advisor lengkap.** Tambahkan mahasiswa bimbingan, riwayat yang dapat diakses, mulai review, komentar maksimal 200 karakter, selesai review, dan hasil untuk mahasiswa. Gunakan ID dokumen/submission sesuai endpoint. Tangani perubahan permission/status serta akun multi-role mengikuti kemampuan backend; dokumentasikan bila pemilihan konteks membutuhkan kontrak tambahan. **Bisa direview:** siklus mahasiswa mengajukan → advisor meninjau/berkomentar/menyelesaikan → mahasiswa melihat hasil, tanpa mencampur identitas penulis.
+- [ ] **Langkah 6 — preview dan PDF snapshot.** Hubungkan renderer/compiler dengan sumber data snapshot yang eksplisit, tanpa singleton draft atau profil akun. Sertakan cover, CV/foto, referensi, variabel, pagination, dan metadata PDF sesuai paket. **Bisa direview:** preview/PDF dua snapshot berbeda tetap memakai identitas dan versi masing-masing, sementara draft editor tidak berubah.
+- [ ] **Langkah 7 — autentikasi desktop lengkap.** Selesaikan login browser, callback deep link dengan validasi state/expiry, metadata expiry sesi, logout server dan lokal saat offline, serta pengalaman akun multi-role sesuai API yang tersedia. Pertahankan login langsung yang sudah diperbaiki. Validasi pelaporan issue termasuk batas judul API. **Bisa direview:** login dari browser saat aplikasi tertutup/aktif, pembatalan, callback kedaluwarsa, logout offline, dan perpindahan akun tanpa sesi lama muncul kembali.
+- [ ] **Langkah 8 — profil akun online dan penerapan ke dokumen.** Edit foto/CV melalui API, tampilkan error per field, dan pisahkan cache per akun/server. Sediakan penerapan data akun ke draft tertentu dengan tinjauan perbedaan/pilihan field; data null tidak menghapus isian manual secara diam-diam. **Bisa direview:** pembaruan profil akun dan penyalinan terpilih ke satu dokumen tidak mengubah dokumen lain maupun snapshot.
+- [ ] **Langkah 9 — kelengkapan data dokumen dan KP lokal.** Lengkapi form pembimbing kampus/instansi, lokasi, pejabat/penguji sesuai jenis dokumen, serta tanggal. Hilangkan nilai identitas/tanggal bawaan yang seolah data sebenarnya; pertahankan data lama dan round-trip archive. Terapkan kebijakan dukungan KP pada service dan UI. **Bisa direview:** dokumen KP lengkap dapat diedit, dipreview, diekspor, diimpor, dan dicetak tanpa server; fitur online yang belum didukung menjelaskan batasnya.
+- [ ] **Langkah 10 — penerimaan lintas fitur.** Jalankan skenario end-to-end akun demo, offline, pergantian akun/server, dua dokumen/versi, konflik, archive lama, serta output PDF TA/proposal/KP. Lengkapi matriks cakupan endpoint dan catat kebutuhan backend yang tersisa. **Bisa direview:** hasil uji aktual, daftar batas dukungan, dan seluruh summary implementasi konsisten dengan perilaku aplikasi.
+
+KP online tetap ditunda sampai kontrak backend tersedia; tidak menjadi klaim hasil langkah 9 atau 10. Summary setiap langkah disimpan di `docs/codex-impl-summary/STEP_<nomor>_SUMMARY.md`, dengan perubahan, validasi aktual, keterbatasan, breaking changes, dan migrasi bila ada. Daftar ini belum menandakan fitur berikutnya sudah mulai diimplementasikan.
 
 ## 1. Keputusan arsitektur yang disarankan
 
@@ -294,16 +322,9 @@ Bagian ini adalah usulan kontrak, bukan endpoint yang dianggap sudah tersedia. R
 
 ## 13. Validasi dan urutan pengiriman
 
-Kirim dalam perubahan kecil dengan hasil yang dapat diperiksa:
+Urutan pengiriman mengikuti **Checklist next steps** di awal dokumen. Model penulis per dokumen dan reader snapshot sudah menjadi langkah 1–2; pekerjaan lanjutan dikirim per fitur yang bisa direview. Perbaikan archive/sinkronisasi menjadi prasyarat pengajuan. Kelengkapan form KP dikerjakan pada langkah tersendiri, sedangkan dukungan KP online menunggu kontrak backend.
 
-1. Perbaikan API/sesi dan bug konflik sinkronisasi yang mendesak; uji regresi base SHA sebelum melanjutkan.
-2. Model per dokumen, migrasi, resolver, form KP, dan archive; tutup kehilangan data sebelum mengaktifkan alur submission.
-3. Login browser dan halaman profil akun lengkap.
-4. Submission mahasiswa beserta pemulihan kegagalan.
-5. Review advisor dan daftar mahasiswa.
-6. Dukungan KP online sesudah kontrak backend siap; editor lokal KP tetap tersedia sepanjang proses.
-
-Syarat sebelum mengaktifkan review: seluruh jalur render harus memakai `DocumentRef` dan data penulis snapshot; review tidak menulis repository draft; fallback profil global sudah dihapus dari pembacaan dokumen. Menambahkan halaman antrean dan tombol review saja belum memenuhi syarat ini.
+Syarat sebelum mengaktifkan setiap jalur review: render memakai sumber snapshot yang eksplisit dan data penulis snapshot; review tidak menulis repository draft; tidak ada fallback profil global. Viewer isi pada langkah 2 memenuhi batas pemisahan tersebut, tetapi belum memenuhi target preview/PDF final. Jalur compiler/PDF snapshot baru diaktifkan setelah pemisahannya selesai pada langkah 6. Menambahkan halaman antrean dan tombol review saja belum menyelesaikan seluruh target review.
 
 Matriks penerimaan pemisahan akun dan penulis:
 

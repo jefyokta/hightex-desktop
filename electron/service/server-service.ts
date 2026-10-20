@@ -21,7 +21,7 @@ export class ServerService {
     configStore.set("server.url", normalized);
   }
 
-     static getServerUrl(): string {
+  static getServerUrl(): string {
     if (!app.isPackaged && process.env.DEV_MODE) {
       return "http://0.0.0.0:8000/api/";
     }
@@ -53,6 +53,7 @@ export class ServerService {
     const token = SessionService.getToken();
 
     const headers: Record<string, string> = {
+      accept: "application/json",
       "content-type": "application/json",
       ...((options.headers as Record<string, string>) || {}),
     };
@@ -99,7 +100,7 @@ export class ServerService {
 
   private static buildUrl(endpoint: string): string {
     const base = this.getServerUrl();
-    const target = `${base}${endpoint.replace(/^\/+/, "")}`;
+    const target = `${base.endsWith("/") ? base : base + "/"}${endpoint.replace(/^\/+/, "")}`;
     return target;
   }
 

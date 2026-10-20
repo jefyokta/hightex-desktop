@@ -31,6 +31,7 @@ import { SnapshotViewer } from "./pages/snapshot-viewer";
 import { Splitter } from "./pages/splitter";
 import { Forms } from "./pages/forms";
 import { Submission } from "./pages/submission";
+import { Review } from "./pages/review";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
@@ -50,9 +51,10 @@ function App() {
               path="/dashboard/projects/cloud"
               element={<RemoteDocuments />}
             />
+            <Route path="/dashboard/submissions" element={<Submission />} />
             <Route
-              path="/dashboard/submissions"
-              element={<Submission />}
+              path="/dashboard/submissions/:documentId/:submissionId"
+              element={<Review />}
             />
 
             <Route path="/dashboard/present" element={<Present />} />

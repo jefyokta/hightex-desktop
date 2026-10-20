@@ -1,4 +1,4 @@
-import { VariableCase } from "@/editor/extensions/variable";
+import type { VariableCase } from "@/editor/extensions/variable";
 
 export function applyCase(value: string, mode: VariableCase) {
   switch (mode) {

@@ -632,5 +632,48 @@
     "copy_default_cv_confirm": "Replace this document’s CV and photo?",
     "copy_default_cv_description": "Copies the CV and photo from the local default profile into this document.",
     "default_cv_empty": "The default profile has no CV or photo."
+  },
+  "submission_review": {
+    "title": "Submissions",
+    "description": "Read the submitted version of a document.",
+    "back": "Back to submissions",
+    "read_only": "Read only",
+    "download": "Download .hightex",
+    "snapshot_label": "Submission #{id} · file verified",
+    "local_label": "Local file preview · not a server submission",
+    "missing_profile": "Some author details were not saved in this snapshot. Missing fields remain empty.",
+    "unsupported_content": "Some formatting or content is not supported by this viewer. Download the original package to inspect it.",
+    "author": "Author details",
+    "chapter": "Section {id}",
+    "cv": "Curriculum Vitae",
+    "references": "References in this file",
+    "not_recorded": "Not recorded in this file",
+    "missing_image": "Image not included in this file",
+    "unsupported_node": "Unsupported content: {type}",
+    "open_file": "Open .hightex to read",
+    "refresh": "Refresh",
+    "offline": "Connect to the internet to access submissions. You can still read a local .hightex file.",
+    "advisor_queue": "Submissions from your students awaiting review.",
+    "student_history": "Submission history for your document.",
+    "empty": "No submissions to display.",
+    "open_snapshot": "Read snapshot",
+    "errors": {
+      "not_authenticated": "Your session is no longer valid. Sign in again.",
+      "session_changed": "The account or server changed. Open the submission again from the list.",
+      "forbidden": "You do not have access to this submission. Check your account access and email verification.",
+      "not_found": "The submission or its snapshot file is unavailable. Older submissions may not contain a file.",
+      "invalid_response": "The server response does not match the supported submission format.",
+      "integrity_failed": "The downloaded file failed verification. Download it again.",
+      "request_failed": "Unable to load the submission. Check your connection and try again.",
+      "invalid_archive": "This file is not a valid HighTex archive.",
+      "unsupported_format": "This HighTex file version or content format is not supported.",
+      "invalid_content": "The file contains missing or invalid document data.",
+      "too_large": "The file exceeds the viewer limit: 64 MB archive, 128 MB unpacked."
+    },
+    "status": {
+      "waiting_for_review": "Waiting for review",
+      "on_review": "Under review",
+      "reviewed": "Reviewed"
+    }
   }
 }
