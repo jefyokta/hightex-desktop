@@ -11,14 +11,32 @@ declare global {
     indonesian: string[];
     english: string[];
   }
+  type Role = "student"|"advisor";
+  interface RawRole {
+    id:number,
+    name:Role
+  }
+  type RawRoles = RawRole[]
 
-  interface User {
+ type User<TRole extends Role = "student"> = RawUser & {
+  role: TRole;
+} & RoleSpecificProps<TRole>;
+
+  type RoleSpecificProps<TRole extends Role> = TRole extends "advisor"
+  ? { students?: User<"student">[] }
+  : TRole extends "student"
+  ? { advisors?: User<"advisor">[] }
+  : {};
+
+interface RawUser {
     id: string;
     name: string;
     email: string;
     advisors: Mentor[];
     identity_number: string;
-  }
+    roles:RawRoles
+
+}
 
   interface Variable {
     documentId: string;

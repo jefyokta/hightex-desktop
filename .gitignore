@@ -32,3 +32,5 @@ release/
 src/editor/extensions/ai
 src/editor/plugins/ai-suggestion.ts
 
+API_CLIENT.MD
+

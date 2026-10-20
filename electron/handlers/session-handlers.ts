@@ -21,7 +21,7 @@ export class SessionHandler {
 
   public static async user(): Promise<User | false> {
     try {
-      const res = await ServerService.request<{ message: User }>("/me");
+      const res = await ServerService.request<{ message: RawUser }>("/me");
 
       const currentUser = SessionService.getUser();
       const user = res.message || false;
@@ -36,7 +36,7 @@ export class SessionHandler {
         await this.broadcastSession();
       }
 
-      return user;
+      return SessionService.getUser() ?? false;
     } catch (err) {
       LoggerService.write(err, "session:user");
       SessionService.clearUser();

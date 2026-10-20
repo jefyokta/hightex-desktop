@@ -24,7 +24,6 @@ import {
 import { importHighTexV2Package } from "@/utils/import-v2";
 import { confirm } from "@/utils/confirm";
 import { useUser } from "@/hooks/use-user";
-import { useAuthModal } from "@/context/auth-modal-context";
 import { useOnline } from "@/hooks/use-online";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ParsedItalic } from "@/utils/parse-italic";
+import { LoginGate } from "@/components/login-gate";
 
 type Commit = CommitListResponse["commits"][number];
 type Task =
@@ -47,7 +47,6 @@ type Notice = { message: string; action?: { label: string; run: () => void } };
 
 export const RemoteDocuments = () => {
   const { user } = useUser();
-  const { openLogin } = useAuthModal();
   const online = useOnline();
 
   const [commits, setCommits] = useState<Commit[]>([]);
@@ -230,23 +229,7 @@ export const RemoteDocuments = () => {
 
   if (!user) {
     return (
-      <section className="mx-auto max-w-xl rounded-2xl bg-neutral-50 p-8 text-center dark:bg-neutral-900">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-muted">
-          <Cloud className="size-5" />
-        </div>
-        <h1 className="mt-4 text-lg font-semibold">Dokumenmu, kapan saja</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Masuk untuk menyimpan dokumen ke cloud dan mengambilnya lagi nanti.
-        </p>
-        <Button className="mt-5" onClick={openLogin} disabled={!online}>
-          Masuk
-        </Button>
-        {!online && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Sambungkan ke internet untuk masuk.
-          </p>
-        )}
-      </section>
+      <LoginGate />
     );
   }
 
@@ -268,7 +251,6 @@ export const RemoteDocuments = () => {
 
   return (
     <main className="flex items-stretch gap-6 pb-10">
-      {/* Kolom utama (selalu di tengah ruang yang tersisa) */}
       <div className="mx-auto w-full min-w-0 max-w-2xl flex-1 space-y-5">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -278,7 +260,6 @@ export const RemoteDocuments = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Di layar lebar, sidebar punya tombol sendiri */}
             <Button
               variant="outline"
               size="sm"
@@ -350,7 +331,6 @@ export const RemoteDocuments = () => {
           </div>
         )}
 
-        {/* Versi di cloud */}
         <section className="rounded-2xl bg-neutral-50 p-5 dark:bg-neutral-900">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
@@ -427,9 +407,8 @@ export const RemoteDocuments = () => {
               >
                 Detail teknis
                 <ChevronDown
-                  className={`size-3.5 transition-transform ${
-                    showTech ? "rotate-180" : ""
-                  }`}
+                  className={`size-3.5 transition-transform ${showTech ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {showTech && (
@@ -443,7 +422,6 @@ export const RemoteDocuments = () => {
           )}
         </section>
 
-        {/* Simpan ke cloud */}
         <section className="rounded-2xl bg-neutral-50 p-5 dark:bg-neutral-900">
           <div className="flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -556,12 +534,10 @@ export const RemoteDocuments = () => {
         </section>
       </div>
 
-      {/* Sidebar kanan (layar lebar): menempel di sisi kanan, bisa diciutkan jadi rail */}
       <aside
         aria-label="Riwayat versi"
-        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 lg:block ${
-          historyOpen ? "w-80" : "w-14"
-        }`}
+        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 lg:block ${historyOpen ? "w-80" : "w-14"
+          }`}
       >
         {historyOpen ? (
           <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-80 overflow-y-auto px-5">
@@ -591,7 +567,6 @@ export const RemoteDocuments = () => {
         )}
       </aside>
 
-      {/* Layar sempit: sidebar jadi drawer dari kanan */}
       {historyOpen && (
         <div className="lg:hidden">
           <div
