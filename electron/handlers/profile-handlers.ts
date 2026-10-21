@@ -1,9 +1,20 @@
+import { accountService } from "../service/account-service";
 import { ProfileService } from "../service/profile-service";
 import { DocumentProfileService } from "../service/document-profile-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 
 export class ProfileHandler {
   static register() {
+    IPCMain.handle("account:settings", (_, sessionId: string) =>
+      accountService.settings(sessionId),
+    );
+    IPCMain.handle("account:load", () => accountService.load());
+    IPCMain.handle("account:update", (_, input: AccountProfileInput) =>
+      accountService.update(input),
+    );
+    IPCMain.handle("account:picture", (_, sessionId: string) =>
+      accountService.picture(sessionId),
+    );
     IPCMain.handle("profile:set", (_event, profile: Partial<Profile>) => {
       return ProfileService.set(profile);
     });

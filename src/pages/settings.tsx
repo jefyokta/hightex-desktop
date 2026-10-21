@@ -1,3 +1,4 @@
+import { AccountProfile } from "@/components/account-profile";
 import { useEffect, useState } from "react";
 
 import {
@@ -102,6 +103,7 @@ export const Settings = () => {
         </p>
       </div>
       <AppInfoSection />
+      <AccountProfile />
       <ProfileSection />
       <Card>
         <CardHeader>

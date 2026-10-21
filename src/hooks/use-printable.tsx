@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { getStrictContext } from "@/lib/get-strict-context";
 import { Document } from "@/editor/document";
 import { resolveDocumentProfile } from "@/utils/document-profile";
+import { refreshCloudAcademic } from "@/cloud/academic-data";
 
 type PrintablePageMode = "single" | "full" | null;
 
@@ -60,8 +61,11 @@ const waitForPrintableApi = async () => {
 
 export const PrintableProvider = ({
   children,
+  // Working preview opts in; snapshots always keep their recorded profile.
+  refreshAcademic = false,
 }: {
   children?: React.ReactNode;
+  refreshAcademic?: boolean;
 }) => {
   const { id, chapterId } = useParams();
   const [document, setDocument] = useState<Document | null>(null);
@@ -83,7 +87,9 @@ export const PrintableProvider = ({
 
     const loadDocument = async () => {
       try {
-        await waitForPrintableApi();
+        const api = await waitForPrintableApi();
+        if (refreshAcademic) await refreshCloudAcademic(id, api);
+        if (!mounted) return;
 
         const nextDocument = new Document(id);
         await nextDocument.warm();
@@ -106,7 +112,7 @@ export const PrintableProvider = ({
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, refreshAcademic]);
 
   const value = useMemo(
     () => ({ document, profile, ready, pageMode, inFrame }),

@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { t } from "@/utils/lang";
 import { useState } from "react";
 import { useLogoutModal } from "../context/logout-modal-context";
 import { Modal } from "./modal";
@@ -11,7 +13,8 @@ export const LogoutModal = () => {
     setLoading(true);
 
     try {
-      await window.session.logout();
+      const result = await window.session.logout();
+      if (!result.revoked) toast.warning(t("desktop_auth.logout_unconfirmed"));
       closeLogout();
     } finally {
       setLoading(false);

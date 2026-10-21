@@ -49,6 +49,8 @@ export class Application {
 
   private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
+  private pendingLinks: string[] = [];
+  private linksReady = false;
   private updaterReady = false;
   private updateDownloaded = false;
   private checkingForUpdatesManually = false;
@@ -111,6 +113,16 @@ export class Application {
   ];
 
   public bootstrap() {
+    if (process.defaultApp && process.argv[1])
+      app.setAsDefaultProtocolClient("hightex", process.execPath, [
+        path.resolve(process.argv[1]),
+      ]);
+    else app.setAsDefaultProtocolClient("hightex");
+    app.on("open-url", (event, url) => {
+      event.preventDefault();
+      if (!this.linksReady) this.pendingLinks.push(url);
+      else void this.handleDeepLink(url);
+    });
     app.on("window-all-closed", async () => {
       if (process.platform !== "darwin") {
         app.quit();
@@ -199,10 +211,6 @@ export class Application {
       }
     });
 
-    app.on("open-url", (_, url) => {
-      new DeepLinkService(url).handle();
-    });
-
     this.win.webContents.on("did-finish-load", () => {
       if (this.windowOptions.show) {
         this.win?.show();
@@ -242,6 +250,9 @@ export class Application {
     this.registerUpdater();
     await this.createWindow();
     this.registerContextMenu();
+    this.linksReady = true;
+    for (const url of this.pendingLinks.splice(0))
+      await this.handleDeepLink(url);
     this.fileOpen?.flush();
     this.checkForUpdates();
   }
@@ -269,6 +280,19 @@ export class Application {
     new DatabaseBootstraper().tap();
     // PluginManager.loadAll();
     NetworkService.tap();
+  }
+
+  private async handleDeepLink(url: string) {
+    try {
+      await new DeepLinkService(url).handle();
+      this.win?.show();
+      this.win?.focus();
+    } catch {
+      LoggerService.write(
+        new Error("Deep link could not be handled"),
+        "deep-link",
+      );
+    }
   }
 
   private async handleCliArgs(args: string[]) {

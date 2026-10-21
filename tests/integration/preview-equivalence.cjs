@@ -34,7 +34,16 @@ let devServer;
 const devMode = process.argv.includes("--dev");
 const parent = `<!doctype html><html><body style="margin:0;background:white"><script>
 window.categories=[];window.config={get:()=>({language:'en'})};
-window.hightex={categories:async()=>window.categories};
+window.academicLoads=0;window.cloudLocked=false;window.cloudOffline=false;
+window.cloudSession={sessionId:'preview-session',accountId:'12',serverUrl:'http://demo/api/'};
+window.hightex={categories:async()=>window.categories,cloud:{
+ context:async()=>window.cloudSession,
+ binding:async()=>window.cloudLocked?{serverDocumentId:'server-doc'}:null,
+ academic:{locked:async()=>window.cloudLocked,load:async()=>{
+  window.academicLoads++;if(window.cloudOffline)throw Error('Offline');
+  return structuredClone(window.cloudAcademic);
+ }}
+}};
 window.profile={get(){throw Error('Actor profile accessed')},picture(){throw Error('Actor picture accessed')}};
 window.done=false;window.error=null;window.current=null;
 window.addEventListener('message',event=>{
@@ -259,6 +268,76 @@ app
       ),
       "base64",
     );
+    if (process.argv.includes("--cloud-advisors")) {
+      const category = {
+        id: 1,
+        name: "thesis",
+        variant: "thesis",
+        chapters: [{ chapter: "1", title: "PENDAHULUAN" }],
+      };
+      const a = fixture(category, "Student A", image);
+      // An older bound draft has no advisors cached; the archive retains its
+      // own original advisor and must not adopt the current server assignment.
+      a.doc.profile.advisorName = "";
+      a.doc.profile.advisorNip = "";
+      await seed(a);
+      await execute(`window.categories=${js([category])};window.cloudLocked=true;
+        window.cloudAcademic={session:window.cloudSession,serverDocumentId:'server-doc',
+          author:{name:'Student A',nim:'A001',advisorName:'Cloud Primary',advisorNip:'PRIMARY-NIP',secondAdvisor:{name:'Cloud Secondary',nip:'SECOND-NIP'}},
+          committee:{leader:'Chair',member_1:'Examiner One',member_2:'Examiner Two',kaprodi:{name:'Head',nip:'HEAD'},dekan:{name:'Dean',nip:'DEAN'}}};`);
+      const preview = async () => {
+        await execute("window.openFrame('/document/same-local-id/print',null)");
+        await waitForRender();
+        return (await metrics()).text.join(" ");
+      };
+      const both = await preview();
+      for (const value of [
+        "Pembimbing Pertama",
+        "Pembimbing Kedua",
+        "Cloud Primary",
+        "PRIMARY-NIP",
+        "Cloud Secondary",
+        "SECOND-NIP",
+      ])
+        assert.ok(both.includes(value), `Cloud preview missing ${value}`);
+      await execute(`window.cloudAcademic.author.advisorName='Updated Primary';
+        delete window.cloudAcademic.author.secondAdvisor;`);
+      const single = await preview();
+      assert.ok(single.includes("Updated Primary"));
+      assert.ok(!single.includes("Cloud Primary"));
+      assert.ok(!single.includes("Cloud Secondary"));
+      assert.ok(!single.includes("Pembimbing Kedua"));
+      await execute("window.cloudOffline=true");
+      const offline = await preview();
+      assert.ok(offline.includes("Updated Primary"));
+      await execute("window.cloudOffline=false;window.cloudLocked=false");
+      const local = fixture(category, "Student A", image);
+      await seed(local);
+      const loads = await execute("window.academicLoads");
+      assert.ok((await preview()).includes("Campus Advisor"));
+      assert.equal(await execute("window.academicLoads"), loads);
+      const before = await stateOfDB();
+      await execute(`window.cloudLocked=true;window.openFrame('/submission/print/same-local-id?request=cloud-archive',{
+        file:new Uint8Array(${js(local.file)}),source:{kind:'local',filename:'archive.hightex'},categories:window.categories})`);
+      await waitForRender();
+      const archive = (await metrics()).text.join(" ");
+      assert.ok(archive.includes("Campus Advisor"));
+      assert.ok(!archive.includes("Updated Primary"));
+      assert.equal(await execute("window.academicLoads"), loads);
+      assert.equal(await stateOfDB(), before);
+      console.log(
+        JSON.stringify({
+          cloudAdvisors: "passed",
+          emptyCacheRefreshed: true,
+          bothAdvisorsRendered: true,
+          changedAssignmentRefreshed: true,
+          offlineCacheRetained: true,
+          localAndArchiveIsolated: true,
+          artifacts: profilePath,
+        }),
+      );
+      return;
+    }
     for (const variant of ["thesis", "proposal", "intern"]) {
       const category = {
         id: 1,

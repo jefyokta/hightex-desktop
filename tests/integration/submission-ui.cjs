@@ -40,6 +40,13 @@ window.hightex={categories:async()=>[category],cloud:{academic:{locked:async()=>
  submit:async()=>{window.calls.submit++;if(window.uncertain){window.attempt={...window.attempt,state:'uncertain'};return window.attempt;}window.rows=[{id:'1',documentId:'server-a',title:doc.title,studentName:'Student A',ownerId:'12',status:'waiting_for_review',createdAt:'2026-10-21T00:00:00Z',reviewedAt:null}];window.attempt={...window.attempt,state:'submitted',submissionId:'1'};return window.attempt;},
  reconcile:async()=>{window.calls.check++;return window.attempt;},discard:async()=>{window.attempt=null;}}}};
 window.editor={has:async()=>window.editorOpen};
+window.advisorActor=false;window.reviewComments=[];window.reviewPending=null;window.reviewActions=[];window.reviewUncertain=false;window.releaseReceipt=false;window.historyRequests=[];
+window.hightex.submission.advisor={
+ directory:async()=>({ok:true,data:{session:context,queue:window.rows.filter(row=>row.status!=='reviewed'),students:[{id:'12',name:'Student A',nim:'A001',advisorRole:'primary',documents:window.rows.length?[{id:'server-a',title:'Dokumen mahasiswa'}]:[]}]}}),
+ history:async input=>{window.historyRequests.push(input);return input.documentId==='server-a'?{ok:true,data:{session:context,documentId:'server-a',ownerId:'12',title:'Dokumen mahasiswa',items:window.rows}}:{ok:false,error:{code:'forbidden'}};},
+ state:async()=>{if(window.releaseReceipt&&window.reviewPending){window.reviewComments.push({id:'late',author:'Advisor A',authorId:'24',text:window.reviewPending.comment,createdAt:null});window.reviewPending=null;window.releaseReceipt=false;}const row=window.rows[0];if(!row)return {ok:false,error:{code:'not_found'}};const comments=row.status==='reviewed'?(await window.hightex.submission.detail()).data.comments.concat(window.reviewComments):window.advisorActor?window.reviewComments:[];return {ok:true,data:{session:{...context,accountId:window.advisorActor?'24':'12'},submission:row,comments,canReview:window.advisorActor,active:row.status!=='reviewed',pending:window.reviewPending}};},
+ action:async input=>{window.reviewActions.push(input);await new Promise(resolve=>setTimeout(resolve,60));if(input.action==='start')window.rows[0].status='on_review';else if(input.action==='complete'){window.rows[0].status='reviewed';window.rows[0].reviewedAt=new Date().toISOString();}else if(window.reviewUncertain){window.reviewPending={...input,baselineCommentIds:window.reviewComments.map(comment=>comment.id)};}else window.reviewComments.push({id:String(window.reviewComments.length+10),author:'Advisor A',authorId:'24',text:input.comment,createdAt:null});return window.hightex.submission.advisor.state();}
+};
 const root=createRoot(document.getElementById('root'));let revision=0;
 window.mount=kind=>{revision++;const child=kind==='settings'?React.createElement(Routes,null,React.createElement(Route,{path:'/document/:id',element:React.createElement(Setting,{key:revision})})):kind==='result'?React.createElement(SubmissionReviewResult,{key:revision,documentId:'server-a',submissionId:'1'}):kind==='page'?React.createElement(UserContext.Provider,{value:{user:{id:'12',name:'Account Student',roles:window.roles.map(name=>({name}))},refresh:async()=>{}}},React.createElement(SubmissionListView,{key:revision})):React.createElement(StudentSubmission,{key:revision,onUpdated(){}});root.render(React.createElement(React.StrictMode,null,React.createElement(kind==='settings'?MemoryRouter:BrowserRouter,kind==='settings'?{initialEntries:['/document/local-a']}:null,React.createElement(ConfirmProvider,null,child))));};
 window.reset=async kind=>{window.calls={prepare:0,submit:0,check:0,detail:0};window.attempt=null;window.rows=[];window.editorOpen=kind==='editor';window.linked=kind!=='unlinked';window.uncertain=kind==='timeout';window.serverIncomplete=kind==='invalid';category.variant=kind==='kp'?'intern':'thesis';await db.documents.put({...doc,profile:{...doc.profile,name:kind==='invalid'?'':doc.profile.name}});window.mount();};
@@ -56,7 +63,7 @@ const until = async (code) => {
 };
 const clickText = (text) =>
   execute(
-    `(()=>{const button=Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)});if(!button)throw Error('Button missing');button.click();})()`,
+    `(()=>{const button=Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()===${JSON.stringify(text)});if(!button)throw Error('Button missing: '+${JSON.stringify(text)});button.click();})()`,
   );
 const loaded = () =>
   until(
@@ -66,6 +73,7 @@ const startSubmission = async () => {
   await clickText("Simpan dan ajukan review");
   await until(`Boolean(document.querySelector('[role="dialog"]'))`);
   await clickText("Confirm");
+  await until(`document.querySelector('[role="dialog"]')===null`);
 };
 app
   .whenReady()
@@ -227,6 +235,139 @@ app
     await until(
       `document.body.textContent.includes('Ajukan dokumen saya') && document.body.textContent.includes('Submission mahasiswa bimbingan')`,
     );
+    // Advisor controls use the same result card; history remains readable after completion.
+    await execute(
+      `window.roles=['advisor'];window.rows=[{id:'1',documentId:'server-a',title:'Dokumen mahasiswa',ownerId:'12',studentName:'Student A',status:'waiting_for_review',reviewedAt:null}];window.mount('page')`,
+    );
+    await until(`document.body.textContent.includes('Mahasiswa bimbingan')`);
+    await clickText("Lihat riwayat");
+    await clickText("Dokumen mahasiswa");
+    await until(
+      `document.querySelector('a[href="/dashboard/submissions/server-a/1"]')!==null && window.historyRequests.length===1`,
+    );
+    assert.equal(await execute(`window.historyRequests[0].studentId`), "12");
+    await execute(`window.advisorActor=true;window.mount('result')`);
+    await until(`document.body.textContent.includes('Mulai review')`);
+    await execute(
+      `(()=>{const button=Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()==='Mulai review');button.click();button.click();})()`,
+    );
+    await until(
+      `Boolean(document.getElementById('review-comment')) && !document.getElementById('review-comment').disabled`,
+    );
+    assert.equal(
+      await execute(
+        `window.reviewActions.filter(action=>action.action==='start').length`,
+      ),
+      1,
+    );
+    const enterComment = async (value) =>
+      execute(
+        `(()=>{const input=document.getElementById('review-comment');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}));})()`,
+      );
+    await enterComment("😀".repeat(201));
+    await until(`document.body.textContent.includes('201/200')`);
+    assert.equal(
+      await execute(
+        `Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()==='Kirim komentar').disabled`,
+      ),
+      true,
+    );
+    await enterComment("Perbaiki bab 1 😀");
+    await until(`document.body.textContent.includes('16/200')`);
+    await execute(
+      `(()=>{const button=Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()==='Kirim komentar');button.click();button.click();})()`,
+    );
+    await until(
+      `window.reviewComments.length===1 && document.getElementById('review-comment').value==='' && !document.getElementById('review-comment').disabled`,
+    );
+    assert.equal(
+      await execute(
+        `window.reviewActions.filter(action=>action.action==='comment').length`,
+      ),
+      1,
+    );
+    await until(
+      `document.body.textContent.includes('Perbaiki bab 1 😀') && !document.body.textContent.includes('Belum ada komentar review.')`,
+    );
+    await execute(
+      `new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`,
+    );
+    writeFileSync(
+      path.join(profile, "advisor-review.png"),
+      (await win.webContents.capturePage()).toPNG(),
+    );
+    await clickText("Selesaikan review");
+    await until(`Boolean(document.querySelector('[role="dialog"]'))`);
+    await clickText("Cancel");
+    await until(`document.querySelector('[role="dialog"]')===null`);
+    assert.equal(
+      await execute(
+        `window.reviewActions.filter(action=>action.action==='complete').length`,
+      ),
+      0,
+    );
+    await clickText("Selesaikan review");
+    await until(`Boolean(document.querySelector('[role="dialog"]'))`);
+    await execute(
+      `Array.from(document.querySelectorAll('[role="dialog"] button')).find(button=>button.textContent.trim()==='Selesaikan review').click()`,
+    );
+    await until(
+      `window.rows[0].status==='reviewed' && document.getElementById('review-comment')===null`,
+    );
+    assert.equal(
+      await execute(
+        `window.reviewActions.filter(action=>action.action==='complete').length`,
+      ),
+      1,
+    );
+    await execute(`window.advisorActor=false;window.mount('result')`);
+    await until(`document.body.textContent.includes('Perbaiki bab 1 😀')`);
+    assert.equal(
+      await execute(`document.getElementById('review-comment')===null`),
+      true,
+    );
+    // A delayed comment stays locked across remounts, and refresh never repeats the POST.
+    await execute(
+      `window.advisorActor=true;window.rows[0].status='on_review';window.reviewUncertain=true;window.mount('result')`,
+    );
+    await until(
+      `Boolean(document.getElementById('review-comment')) && !document.getElementById('review-comment').disabled`,
+    );
+    await enterComment("Komentar dengan respons terlambat");
+    await clickText("Kirim komentar");
+    await until(
+      `document.body.textContent.includes('Hasil aksi belum terkonfirmasi')`,
+    );
+    const sent = await execute(`window.reviewActions.length`);
+    await execute(`window.mount('result')`);
+    await until(`document.getElementById('review-comment')?.disabled===true`);
+    assert.equal(
+      await execute(`document.getElementById('review-comment').value`),
+      "Komentar dengan respons terlambat",
+    );
+    await clickText("Muat ulang");
+    await until(
+      `!Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()==='Muat ulang').disabled`,
+    );
+    assert.equal(await execute(`window.reviewActions.length`), sent);
+    await execute(`window.releaseReceipt=true`);
+    await clickText("Muat ulang");
+    await until(
+      `!document.getElementById('review-comment').disabled && document.getElementById('review-comment').value===''`,
+    );
+    assert.equal(await execute(`window.reviewActions.length`), sent);
+    await execute(
+      `window.advisorActor=false;window.rows[0].status='on_review';window.mount('result')`,
+    );
+    await until(
+      `document.body.textContent.includes('Komentar hasil review tersedia setelah review selesai.')`,
+    );
+    assert.equal(
+      await execute(
+        `document.getElementById('review-comment')===null && !document.body.textContent.includes('Komentar dengan respons terlambat')`,
+      ),
+      true,
+    );
     await execute(`window.serverIncomplete=false;window.mount('settings')`);
     await until(
       `document.body.textContent.includes('diisi otomatis dari server')`,
@@ -281,6 +422,9 @@ app
         multiRoleContexts: true,
         cloudAcademicAutofillAndLocks: true,
         localAuthorStillEditable: true,
+        advisorHistoryAndReview: true,
+        advisorDuplicateAndUnicodeGuards: true,
+        advisorPendingRecovery: true,
         artifacts: profile,
       }),
     );
@@ -293,6 +437,12 @@ app
   })
   .catch(async (error) => {
     console.error(error.stack ?? String(error));
+    if (win && !win.isDestroyed())
+      console.error(
+        await execute("document.body.innerText.slice(0,1200)").catch(
+          () => "UI unavailable",
+        ),
+      );
     win?.destroy();
     server?.close();
     await vite?.close();

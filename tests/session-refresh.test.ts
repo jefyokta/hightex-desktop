@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import { AuthClient, parseAccountUser } from "../electron/service/auth-client";
 
 // Isolate the real main-process handler without starting Electron or installing
 // module mocks that would affect other tests in the same Bun process.
@@ -35,6 +36,28 @@ const harness = (request: () => Promise<unknown>) => {
       },
     },
     "../service/server-service": { ServerService: { request } },
+    "../service/auth-client": { parseAccountUser },
+    "../service/auth-service": {
+      desktopAuth: new AuthClient({
+        serverUrl: () => "http://local/api/",
+        request: async () => ({ ok: true, status: 200, data: await request() }),
+        session: () => state,
+        save: (user, token) => {
+          state.user = user;
+          state.token = token;
+        },
+        clear: () => {
+          state.user = undefined;
+          state.token = undefined;
+        },
+        pending: () => undefined,
+        setPending: () => {},
+        broadcast: async () => {
+          sent.push(state.user ?? false);
+        },
+        open: async () => {},
+      }),
+    },
     "../service/logger-service": { LoggerService: { write: () => {} } },
     "../service/session-service": {
       SessionService: {
@@ -132,7 +155,7 @@ test("an old /me result cannot restore a user after logout or overwrite a new ac
 
 test("failed /me broadcasts cleared state and IPC login returns its real result", async () => {
   const failed = harness(async () => {
-    throw new Error("Expired");
+    throw Object.assign(new Error("Expired"), { response: { status: 401 } });
   });
   expect(await failed.handler.user()).toBe(false);
   expect(failed.state.user).toBeUndefined();
@@ -149,4 +172,20 @@ test("failed /me broadcasts cleared state and IPC login returns its real result"
   );
   expect(result).toEqual(loggedInUser);
   expect(login.state.token).toBe("new-token");
+});
+
+test("network failures and /me permission errors preserve the cached session without a request loop", async () => {
+  for (const status of [undefined, 403]) {
+    let requests = 0;
+    const context = harness(async () => {
+      requests++;
+      throw Object.assign(new Error("Unavailable"), {
+        response: status ? { status } : undefined,
+      });
+    });
+    expect(await context.handler.user()).toEqual(context.actor);
+    expect(context.state.token).toBe("token-a");
+    expect(context.sent).toHaveLength(0);
+    expect(requests).toBe(1);
+  }
 });

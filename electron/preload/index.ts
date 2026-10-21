@@ -44,6 +44,14 @@ loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
   submission: {
+    pdf: (input: SnapshotPDFInput) =>
+      ipcRenderer.invoke("hightex:snapshot:pdf", input),
+    advisor: {
+      directory: () => ipcRenderer.invoke("hightex:advisor:directory"),
+      history: (input) => ipcRenderer.invoke("hightex:advisor:history", input),
+      state: (input) => ipcRenderer.invoke("hightex:advisor:state", input),
+      action: (input) => ipcRenderer.invoke("hightex:advisor:action", input),
+    },
     context: () => ipcRenderer.invoke("hightex:submission:context"),
     list: () => ipcRenderer.invoke("hightex:submission:list"),
     file: (input) => ipcRenderer.invoke("hightex:submission:file", input),
@@ -138,7 +146,21 @@ contextBridge.exposeInMainWorld("hightex", {
       ipcRenderer.invoke("hightex:document:backup", sessionId, file),
   },
 } satisfies Window["hightex"]);
+contextBridge.exposeInMainWorld("snapshotPrint", {
+  init: (request: string) => ipcRenderer.invoke(`snapshot:pdf:init:${request}`),
+  result: (request: string, payload: SnapshotPDFPayload) =>
+    ipcRenderer.send("snapshot:pdf:result", request, payload),
+  error: (request: string, code: string) =>
+    ipcRenderer.send("snapshot:pdf:error", request, code),
+} satisfies SnapshotPrintAPI);
 contextBridge.exposeInMainWorld("session", {
+  signIn: (email: string, password: string) =>
+    ipcRenderer.invoke("session:sign-in", email, password),
+  browser: {
+    start: () => ipcRenderer.invoke("session:browser:start"),
+    status: () => ipcRenderer.invoke("session:browser:status"),
+    cancel: () => ipcRenderer.invoke("session:browser:cancel"),
+  },
   user: () => {
     return ipcRenderer.invoke("session:user");
   },
@@ -249,6 +271,15 @@ contextBridge.exposeInMainWorld("zotero", {
     ipcRenderer.invoke("zotero:exportBibtex", host, port, itemKey),
 } satisfies Window["zotero"]);
 
+contextBridge.exposeInMainWorld("account", {
+  settings: (sessionId: string) =>
+    ipcRenderer.invoke("account:settings", sessionId),
+  load: () => ipcRenderer.invoke("account:load"),
+  update: (input: AccountProfileInput) =>
+    ipcRenderer.invoke("account:update", input),
+  picture: (sessionId: string) =>
+    ipcRenderer.invoke("account:picture", sessionId),
+});
 contextBridge.exposeInMainWorld("profile", {
   get: () => {
     return ipcRenderer.invoke("profile:get");

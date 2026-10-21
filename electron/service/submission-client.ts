@@ -29,6 +29,31 @@ const id = (value: unknown) => {
 };
 const text = (value: unknown) => (typeof value === "string" ? value : null);
 
+export const parseSubmissionComments = (
+  value: unknown,
+  submissionId: string,
+): SubmissionComment[] => {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error("Invalid comments");
+  return value.map((value) => {
+    const comment = record(value);
+    if (
+      id(comment.submission_id) !== submissionId ||
+      typeof comment.comment !== "string"
+    )
+      throw new Error("Invalid comment");
+    return {
+      id: id(comment.id),
+      text: comment.comment,
+      author: comment.commentator
+        ? text(record(comment.commentator).name)
+        : null,
+      authorId: comment.advisor_id == null ? null : id(comment.advisor_id),
+      createdAt: text(comment.created_at),
+    };
+  });
+};
+
 // The two shapes follow Api/Submission::index in the connected backend source.
 export const parseSubmissionList = (
   value: unknown,
@@ -65,6 +90,10 @@ export const parseSubmissionList = (
         status,
         createdAt: text(submission.created_at),
         reviewedAt: text(submission.reviewed_at),
+        comments: parseSubmissionComments(
+          submission.comment,
+          id(submission.id),
+        ),
       };
     });
   });
@@ -239,6 +268,7 @@ export class SubmissionClient {
           session: context.data,
           documentId: input.documentId,
           ownerId: id(document.author),
+          title: text(document.title) ?? "",
           items: parseSubmissionList({ data: { document } }).items,
         },
       };
@@ -328,22 +358,10 @@ export class SubmissionClient {
           submission: parseSubmissionList({
             data: { document: { ...document, submission: [submission] } },
           }).items[0],
-          comments: submission.comment.map((value) => {
-            const comment = record(value);
-            if (
-              id(comment.submission_id) !== input.submissionId ||
-              typeof comment.comment !== "string"
-            )
-              throw new Error("Invalid comment");
-            return {
-              id: id(comment.id),
-              text: comment.comment,
-              author: comment.commentator
-                ? text(record(comment.commentator).name)
-                : null,
-              createdAt: text(comment.created_at),
-            };
-          }),
+          comments: parseSubmissionComments(
+            submission.comment,
+            input.submissionId,
+          ),
         },
       };
     } catch {

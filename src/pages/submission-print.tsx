@@ -5,16 +5,25 @@ import { PrintStyles } from "@/components/submission/print-styles";
 import { PrintableProvider } from "@/hooks/use-printable";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { readSnapshot, type SnapshotSource } from "@/review/snapshot-reader";
+import { resolveDocumentProfile } from "@/utils/document-profile";
 import { createSnapshotPreviewStore } from "@/review/snapshot-preview-store";
 
 export const SubmissionPrint = () => {
   const { id } = useParams();
   const [ready, setReady] = useState(false);
   const request = new URLSearchParams(window.location.search).get("request");
+  const pdf = new URLSearchParams(window.location.search).get("pdf") === "1";
   const target =
     window.location.origin === "null" ? "*" : window.location.origin;
   const onError = useCallback(
     (error: unknown) => {
+      if (pdf && request) {
+        window.snapshotPrint.error(
+          request,
+          error instanceof Error ? error.message : "preview_failed",
+        );
+        return;
+      }
       window.parent.postMessage(
         {
           type: "snapshot:preview:error",
@@ -28,29 +37,21 @@ export const SubmissionPrint = () => {
         target,
       );
     },
-    [request, target],
+    [request, target, pdf],
   );
 
   useEffect(() => {
-    if (window.parent === window || !request || !id) return;
+    if ((!pdf && window.parent === window) || !request || !id) return;
     let active = true;
     let received = false;
     let dispose: (() => void) | undefined;
-    const listener = (event: MessageEvent) => {
-      if (
-        event.source !== window.parent ||
-        event.origin !== window.location.origin ||
-        event.data?.type !== "snapshot:preview:init" ||
-        event.data.request !== request ||
-        received
-      )
-        return;
+    const initialize = (payload: {
+      file: Uint8Array;
+      source: SnapshotSource;
+      categories: Category[];
+    }) => {
+      if (received) return;
       received = true;
-      const payload = event.data as {
-        file: Uint8Array;
-        source: SnapshotSource;
-        categories: Category[];
-      };
       void (async () => {
         const snapshot = await readSnapshot(payload.file, payload.source);
         if (!active) return;
@@ -64,38 +65,91 @@ export const SubmissionPrint = () => {
           await store.db.delete();
           return;
         }
-        // This module runs only in the submission iframe's separate JS realm.
+        // This module runs in a separate iframe or PDF window JS realm.
         // Reuse the print components unchanged with this frame's memory store.
         HighTexDB.getInstance = () => store.db;
-        window.hightex = {
-          categories: async () => [store.category],
-        } as Window["hightex"];
-        window.ipcRenderer = {
-          send: (channel: string, error: unknown) => {
-            if (channel.startsWith("page:error:")) onError(error);
-          },
-        } as Window["ipcRenderer"];
+        if (!pdf)
+          window.hightex = {
+            categories: async () => [store.category],
+          } as Window["hightex"];
+        if (!pdf)
+          window.ipcRenderer = {
+            send: (channel: string, error: unknown) => {
+              if (channel.startsWith("page:error:")) onError(error);
+            },
+          } as Window["ipcRenderer"];
         dispose = () => {
           // Keep the frame bound to memory even if pending print tasks finish
           // during teardown; they must never fall back to the real draft store.
           void store.db.delete();
         };
+        if (pdf) {
+          const rendered = () => {
+            void (async () => {
+              await document.fonts.ready;
+              await Promise.all(
+                Array.from(document.images).map((image) =>
+                  image.decode().catch(() => {}),
+                ),
+              );
+              if (!active) return;
+              // The existing CV builder appends a fixed-height sheet outside Paged.js.
+              // Let that final sheet flow in native print; its padding otherwise
+              // adds an empty trailing PDF page. Keep compiler and preview unchanged.
+              const cv =
+                document.querySelector(".pagedjs_pages")?.nextElementSibling;
+              if (cv instanceof HTMLElement) {
+                cv.style.height = "auto";
+                cv.style.breakBefore = "page";
+              }
+              const profile = resolveDocumentProfile(snapshot.document);
+              window.snapshotPrint.result(request, {
+                documentId: snapshot.document.id,
+                sha256: snapshot.sha256,
+                title: snapshot.document.title,
+                author: profile.name,
+                keywords: snapshot.document.keywords.indonesian,
+                incomplete: Boolean(profile.incomplete),
+              });
+            })().catch(onError);
+          };
+          document.addEventListener("page:rendered", rendered, { once: true });
+          const disposeStore = dispose;
+          dispose = () => {
+            document.removeEventListener("page:rendered", rendered);
+            disposeStore?.();
+          };
+        }
         setReady(true);
       })().catch((error) => {
         if (active) onError(error);
       });
     };
+    const listener = (event: MessageEvent) => {
+      if (
+        pdf ||
+        event.source !== window.parent ||
+        event.origin !== window.location.origin ||
+        event.data?.type !== "snapshot:preview:init" ||
+        event.data.request !== request
+      )
+        return;
+      initialize(event.data);
+    };
     window.addEventListener("message", listener);
-    window.parent.postMessage(
-      { type: "snapshot:preview:ready", request },
-      target,
-    );
+    if (pdf)
+      void window.snapshotPrint.init(request).then(initialize).catch(onError);
+    else
+      window.parent.postMessage(
+        { type: "snapshot:preview:ready", request },
+        target,
+      );
     return () => {
       active = false;
       window.removeEventListener("message", listener);
       dispose?.();
     };
-  }, [id, request, target, onError]);
+  }, [id, request, target, onError, pdf]);
 
   return (
     <PrintStyles onError={onError}>

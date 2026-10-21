@@ -16,15 +16,36 @@ import {
 } from "@main/service/document-service";
 import { submissionService } from "@main/service/submission-service";
 import { submissionWorkflow } from "@main/service/submission-workflow-service";
+import { advisorService } from "@main/service/advisor-service";
+import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
+    IPCMain.handle("hightex:snapshot:pdf", (_, input: SnapshotPDFInput) =>
+      new SnapshotPDFService().export(input),
+    );
     IPCMain.handle("hightex:submission:context", () =>
       submissionService.context(),
     );
     IPCMain.handle("hightex:submission:list", () => submissionService.list());
+    IPCMain.handle("hightex:advisor:directory", () =>
+      advisorService.directory(),
+    );
+    IPCMain.handle(
+      "hightex:advisor:history",
+      (
+        _,
+        input: { sessionId: string; studentId: string; documentId: string },
+      ) => advisorService.history(input),
+    );
+    IPCMain.handle("hightex:advisor:state", (_, input: AdvisorReviewInput) =>
+      advisorService.state(input),
+    );
+    IPCMain.handle("hightex:advisor:action", (_, input: AdvisorActionInput) =>
+      advisorService.action(input),
+    );
     IPCMain.handle(
       "hightex:submission:history",
       (_, input: { sessionId: string; documentId: string }) =>
@@ -183,8 +204,13 @@ export class HighTexHandler {
           return await ServerService.request("/issues", {
             method: "POST",
             body: JSON.stringify({
-              title: `${payload.title} - HighTex Desktop ${app.getVersion()}`,
-              description,
+              // API limits include the desktop suffix and environment details.
+              title: [
+                ...`${payload.title.trim()} - HighTex Desktop ${app.getVersion()}`,
+              ]
+                .slice(0, 100)
+                .join(""),
+              description: [...description].slice(0, 65535).join(""),
             }),
           });
         } catch (err) {

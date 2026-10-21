@@ -22,11 +22,19 @@ export const Review = () => {
   const navigate = useNavigate();
   const [snapshot, setSnapshot] = useState<SnapshotReadModel>();
   const [error, setError] = useState<string>();
+  const [accessDenied, setAccessDenied] = useState(false);
+  const denyAccess = (code: SubmissionErrorCode) => {
+    setAccessDenied(true);
+    snapshotCache.clear();
+    setSnapshot(undefined);
+    setError(t(`submission_review.errors.${code}`));
+  };
 
   useEffect(() => {
     let canceled = false;
     setSnapshot(undefined);
     setError(undefined);
+    setAccessDenied(false);
     if (!user || !online || !documentId || !submissionId) return;
     const load = async () => {
       const context = await window.hightex.submission.context();
@@ -106,11 +114,12 @@ export const Review = () => {
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        {documentId && submissionId && (
+        {!accessDenied && documentId && submissionId && (
           <SubmissionReviewResult
             key={`${user.id}:${documentId}:${submissionId}`}
             documentId={documentId}
             submissionId={submissionId}
+            onAccessDenied={denyAccess}
           />
         )}
       </div>
@@ -129,6 +138,7 @@ export const Review = () => {
         key={`${user.id}:${documentId}:${submissionId}`}
         documentId={documentId!}
         submissionId={submissionId!}
+        onAccessDenied={denyAccess}
       />
       <SubmissionSnapshotViewer
         key={`${snapshot.source.session.sessionId}:${submissionId}:${snapshot.sha256}`}

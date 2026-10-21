@@ -672,13 +672,19 @@
       "invalid_content": "The file contains missing or invalid document data.",
       "too_large": "The file exceeds the viewer limit: 64 MB archive, 128 MB unpacked.",
       "active_submission": "A submission is waiting for review or being reviewed. Wait for review completion.",
-      "invalid_document": "Complete the title and chapter content; the server account must provide the author name and student number. The server may also reject an invalid archive."
+      "invalid_document": "Complete the title and chapter content; the server account must provide the author name and student number. The server may also reject an invalid archive.",
+      "invalid_comment": "Enter a comment of up to 200 characters.",
+      "state_changed": "The submission status or version changed. Refresh and check its history before continuing.",
+      "busy": "A review action is in progress.",
+      "outcome_unknown": "The action is not yet confirmed. Refresh to check the server. The action will not be sent again automatically.",
+      "pdf_failed": "Unable to export the snapshot PDF. Check your session and refresh the preview."
     },
     "status": {
       "waiting_for_review": "Waiting for review",
       "on_review": "Under review",
       "reviewed": "Reviewed"
-    }
+    },
+    "export_pdf": "Export PDF"
   },
   "submission_student": {
     "title": "Submit my document",
@@ -738,5 +744,89 @@
     "readonly": "Author, advisors, examiners, program head and dean are filled automatically from the server and cannot be edited on cloud documents.",
     "unavailable": "Cloud author and academic fields remain locked. Server data is unavailable; the last saved values are retained. Check the connection or owning account, then reopen settings.",
     "missing": "The server author record is incomplete. Update it through the academic data administrator; cloud author fields cannot be filled manually."
+  },
+  "submission_advisor": {
+    "students": "Advised students",
+    "students_description": "Choose a student to open their document submission history.",
+    "no_students": "No active advised students.",
+    "primary": "Primary advisor",
+    "secondary": "Secondary advisor",
+    "history": "View history",
+    "student_history": "History for {name}",
+    "document_hint": "Documents previously opened or seen in the queue appear above. For another document, enter the document ID shared by the student.",
+    "document_id": "Document ID",
+    "open_history": "Open history",
+    "start": "Start review",
+    "comment": "Review comment",
+    "send": "Send comment",
+    "complete": "Complete review",
+    "complete_title": "Complete this submission review?",
+    "complete_description": "The review result and comments will become available to the student. This submission cannot receive more comments through desktop.",
+    "unsent": "Send or clear your comment before completing the review.",
+    "mismatch": "The server returned a different version or result. Check the history and server status; actions are locked to avoid repeating a request for the wrong version.",
+    "no_comments": "No review comments yet."
+  },
+  "desktop_auth": {
+    "title": "Sign in to HighTex",
+    "description": "Continue in your browser or sign in with email and password.",
+    "browser": "Sign in with browser",
+    "direct": "Sign in",
+    "waiting": "Complete sign-in in your browser. The transaction is valid for 5 minutes.",
+    "exchanging": "Verifying sign-in…",
+    "cancel": "Cancel browser sign-in",
+    "logout_unconfirmed": "Signed out locally. Server token revocation could not be confirmed.",
+    "errors": {
+      "request_failed": "Unable to reach the server. Try again.",
+      "invalid_credentials": "Invalid email or password.",
+      "forbidden": "This account does not have access. Check email verification.",
+      "invalid_response": "Invalid sign-in response.",
+      "invalid_callback": "The callback does not match this sign-in transaction.",
+      "expired": "The sign-in transaction or code expired. Start browser sign-in again.",
+      "session_changed": "The session or server changed. Sign in again.",
+      "canceled": "Sign-in canceled."
+    }
+  },
+  "account_profile": {
+    "title": "Online account profile",
+    "description": "Your account photo and CV are stored on the server. Apply document changes separately.",
+    "loading": "Loading account profile…",
+    "no_roles": "No account roles assigned.",
+    "picture": "Account photo",
+    "picture_hint": "PNG, JPG/JPEG or WEBP, up to 2 MB.",
+    "cancel_picture": "Cancel new photo",
+    "save": "Save account profile",
+    "saved": "Account profile saved on the server.",
+    "apply": "Apply to a local document",
+    "apply_hint": "Choose a document and the fields to replace. Unavailable data does not clear existing values. Save account changes first. Cloud documents use automatic academic data.",
+    "document": "Choose a local document",
+    "apply_confirm": "Apply the selected fields?",
+    "apply_description": "Checked fields will replace data in “{title}”. Other documents keep their own data.",
+    "applied": "Selected fields applied to the document.",
+    "reload_confirm": "Reload and discard unsaved profile changes?",
+    "empty": "Empty",
+    "unavailable": "Unavailable",
+    "recorded": "Photo recorded",
+    "fields": {
+      "name": "Author name",
+      "nim": "Student / identity number",
+      "cv": "CV",
+      "picture": "Document photo"
+    },
+    "errors": {
+      "session_changed": "The session changed. Reload the profile before continuing.",
+      "not_authenticated": "Sign in to open your online profile.",
+      "forbidden": "This account cannot access the online profile.",
+      "invalid_response": "Invalid profile response.",
+      "request_failed": "Unable to load the profile. Check your connection and refresh.",
+      "invalid_image": "Choose PNG, JPG/JPEG or WEBP up to 2 MB.",
+      "validation": "Check the highlighted profile fields.",
+      "outcome_unknown": "The save result is unknown. Reload to check the server profile before saving again.",
+      "busy": "A profile update is in progress.",
+      "cloud_locked": "This action requires a local document that is not linked to cloud.",
+      "editor_open": "Close the document editor before applying the profile.",
+      "document_changed": "The document changed after review. Select it and check its data again."
+    },
+    "identity": "Identity number",
+    "web_settings": "Edit name and degrees on the web"
   }
 }

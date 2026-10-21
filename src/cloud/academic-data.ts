@@ -34,29 +34,32 @@ export const exportCloudArtifact = async (
 };
 
 /** Only a bound working document is refreshed. Review/archive readers never call this. */
-export const refreshCloudAcademic = async (id: string) => {
+export const refreshCloudAcademic = async (
+  id: string,
+  api = window.hightex,
+) => {
   const db = HighTexDB.getInstance();
   const document = await db.documents.get(id);
   let locked = Boolean(document?.cloudAcademic);
   try {
-    locked = locked || (await window.hightex.cloud.academic.locked(id));
+    locked = locked || (await api.cloud.academic.locked(id));
     if (!locked) return { locked: false };
-    const session = await window.hightex.cloud.context();
-    const binding = await window.hightex.cloud.binding(session.sessionId, id);
+    const session = await api.cloud.context();
+    const binding = await api.cloud.binding(session.sessionId, id);
     if (!binding || !sameScope(document?.cloudAcademic, session))
       return { locked: true, error: "academic_scope" };
-    const categories = await window.hightex.categories();
+    const categories = await api.categories();
     if (
       document?.config.intern ||
       categories.find((item) => String(item.id) === document?.category)
         ?.variant === "intern"
     )
       return { locked: true, error: "kp_unsupported" };
-    const data = await window.hightex.cloud.academic.load({
+    const data = await api.cloud.academic.load({
       sessionId: session.sessionId,
       serverDocumentId: binding.serverDocumentId,
     });
-    if ((await window.hightex.cloud.context()).sessionId !== session.sessionId)
+    if ((await api.cloud.context()).sessionId !== session.sessionId)
       throw new Error("cloud_error:session_changed");
     await db.cacheCloudAcademic(id, data);
     return { locked: true };

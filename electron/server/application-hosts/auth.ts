@@ -1,23 +1,14 @@
 import { Router } from "./contract";
-
+import { desktopAuth } from "../../service/auth-service";
 export class AuthRouter extends Router {
-    private static pendingState: string | null = null;
-
   async handle(url: URL): Promise<Response> {
-  if (url.pathname !== '/callback' ) {
-    return this.notFound();
-  }
-  const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
-   if (
-      !code ||
-      !state ||
-      !AuthRouter.pendingState ||
-      state !== AuthRouter.pendingState
-    ) {
-      return this.abort(403)
-    }
-    return new Response()
-    
+    if (url.pathname !== "/callback") return this.notFound();
+    const result = await desktopAuth.callback(url.toString());
+    return new Response(
+      result.ok
+        ? "Login completed. Return to HighTex."
+        : "Invalid or expired login callback.",
+      { status: result.ok ? 200 : 403 },
+    );
   }
 }

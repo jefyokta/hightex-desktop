@@ -5,6 +5,7 @@ type CliOpenCallback = (args: string[]) => void | Promise<void>;
 
 export class FileOpenManager {
   private pendingFiles: string[] = [];
+  private pendingLinks: string[] = [];
 
   private extensions: string[];
 
@@ -44,11 +45,14 @@ export class FileOpenManager {
     });
 
     app.on("second-instance", (_event, argv) => {
-      const deeplink =DeepLinkService.isDeepLink(argv);
+      const deeplink = DeepLinkService.isDeepLink(argv);
       if (deeplink) {
-          deeplink.handle()
+        if (!app.isReady()) {
+          this.pendingLinks.push(deeplink.toString());
+          return;
+        }
+        void Promise.resolve(deeplink.handle()).catch(() => {});
         return;
-        
       }
       const file = this.extractFromArgs(argv);
       if (!file) {
@@ -61,12 +65,16 @@ export class FileOpenManager {
   }
 
   flush() {
+    for (const url of this.pendingLinks.splice(0))
+      void new DeepLinkService(url).handle().catch(() => {});
     for (const file of this.pendingFiles) {
       this.emit(file);
     }
 
     this.pendingFiles = [];
 
+    const startupLink = DeepLinkService.isDeepLink(process.argv);
+    if (startupLink) void Promise.resolve(startupLink.handle()).catch(() => {});
     const startupFile = this.extractFromArgs(process.argv);
 
     if (startupFile) {

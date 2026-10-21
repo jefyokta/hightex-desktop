@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/use-user";
@@ -237,7 +238,11 @@ export const Splash: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={async () => await window.session.logout()}
+                  onClick={async () => {
+                    const result = await window.session.logout();
+                    if (!result.revoked)
+                      toast.warning(t("desktop_auth.logout_unconfirmed"));
+                  }}
                   className="px-5 py-2 rounded-xl bg-neutral-200 dark:bg-neutral-800"
                 >
                   {t("common.logout")}

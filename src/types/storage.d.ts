@@ -19,7 +19,7 @@ declare global {
   type RawRoles = RawRole[];
 
   type User<TRole extends Role = Role> = RawUser & {
-    role: TRole;
+    role: TRole | null;
   } & RoleSpecificProps<TRole>;
 
   type RoleSpecificProps<TRole extends Role> = TRole extends "advisor"

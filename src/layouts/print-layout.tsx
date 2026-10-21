@@ -48,7 +48,7 @@ export const PrintLayout = () => {
   }, []);
 
   return (
-    <PrintableProvider>
+    <PrintableProvider refreshAcademic>
       <CliDocumentsSlave />
       <Outlet />
     </PrintableProvider>

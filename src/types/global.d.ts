@@ -149,16 +149,26 @@ declare global {
   }
 
   interface Window {
+    account: AccountAPI;
+    snapshotPrint: SnapshotPrintAPI;
     session: {
+      signIn(email: string, password: string): Promise<AuthResult<User>>;
+      browser: {
+        start(): Promise<AuthResult<BrowserLoginState>>;
+        status(): Promise<BrowserLoginState>;
+        cancel(): Promise<void>;
+      };
       user(): Promise<User | false>;
       login(email: string, password: string): Promise<User | false>;
-      logout(): Promise<void>;
+      logout(): Promise<{ revoked: boolean }>;
       onChange?: (cb: (u: User | false) => void) => () => void;
     };
     file: FileApi;
     editor: EditorAPI;
     hightex: {
       submission: {
+        pdf(input: SnapshotPDFInput): Promise<{ path: string } | null>;
+        advisor: AdvisorAPI;
         context(): Promise<SubmissionResult<ReviewSession>>;
         list(): Promise<SubmissionResult<SubmissionList>>;
         history(input: {

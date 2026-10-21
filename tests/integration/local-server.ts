@@ -4,6 +4,8 @@ import { readSnapshot } from "../../src/review/snapshot-reader";
 import { syncScenario } from "./sync-scenario";
 import { submissionScenario } from "./submission-scenario";
 import { academicScenario } from "./academic-scenario";
+import { accountScenario } from "./account-scenario";
+import { advisorScenario } from "./advisor-scenario";
 
 const base = "http://127.0.0.1:8000/api/";
 // Public local demo accounts; independent of the context file.
@@ -20,6 +22,7 @@ const demoAccounts = [
   },
 ];
 
+const knownDocuments: { studentId: string; documentId: string }[] = [];
 for (const { role, email, password } of demoAccounts) {
   const login = await fetch(`${base}login`, {
     method: "POST",
@@ -77,6 +80,18 @@ for (const { role, email, password } of demoAccounts) {
         submissions: list.data.items.length,
       }),
     );
+    if (role === "student") {
+      for (const item of list.data.items) {
+        if (
+          item.ownerId &&
+          !knownDocuments.some((doc) => doc.documentId === item.documentId)
+        )
+          knownDocuments.push({
+            studentId: item.ownerId,
+            documentId: item.documentId,
+          });
+      }
+    }
     for (const item of list.data.items) {
       const result = await client.file({
         sessionId: list.data.session.sessionId,
@@ -136,6 +151,10 @@ for (const { role, email, password } of demoAccounts) {
       await submissionScenario(transport);
     if (role === "student" && process.argv.includes("--academic"))
       await academicScenario(transport);
+    if (role === "student" && process.argv.includes("--account"))
+      await accountScenario(transport, client);
+    if (role === "advisor" && process.argv.includes("--advisor"))
+      await advisorScenario(transport, client, knownDocuments);
     active = false;
     const loggedOut = await client.list();
     if (loggedOut.ok || loggedOut.error.code !== "not_authenticated")

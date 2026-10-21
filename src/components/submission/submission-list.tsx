@@ -13,7 +13,7 @@ import { LoginGate } from "../login-gate";
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
 import { SubmissionSnapshotViewer } from "./snapshot-viewer";
-import { SubmissionHistoryList } from "./history-list";
+import { AdvisorSubmissions } from "./advisor-submissions";
 import { StudentSubmission } from "./student-submission";
 
 export const SubmissionListView = () => {
@@ -181,12 +181,7 @@ export const SubmissionListView = () => {
         </div>
       ) : (
         result?.audience === "advisor" && (
-          <>
-            <p className="text-sm text-muted-foreground">
-              {t("submission_review.advisor_queue")}
-            </p>
-            <SubmissionHistoryList items={result.items} />
-          </>
+          <AdvisorSubmissions key={user.id} revision={revision} />
         )
       )}
     </main>

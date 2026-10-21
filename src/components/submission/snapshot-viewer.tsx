@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Download,
+  FileDown,
   Eye,
   Layout,
   LockKeyhole,
@@ -33,6 +34,7 @@ export const SubmissionSnapshotViewer = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const profile = resolveDocumentProfile(snapshot.document);
 
   useEffect(() => {
@@ -109,6 +111,8 @@ export const SubmissionSnapshotViewer = ({
     setFrameKey(crypto.randomUUID());
   };
   const download = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       const name =
@@ -122,6 +126,25 @@ export const SubmissionSnapshotViewer = ({
         { showDialog: true },
       );
     } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  };
+
+  const exportPDF = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      await window.hightex.submission.pdf({
+        file: snapshot.originalFile(),
+        source: snapshot.source,
+        documentId: snapshot.document.id,
+      });
+    } catch {
+      setError(t("submission_review.errors.pdf_failed"));
+    } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
@@ -151,6 +174,15 @@ export const SubmissionSnapshotViewer = ({
           <LockKeyhole className="size-3" />
           {t("submission_review.read_only")}
         </Badge>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={saving || loading || Boolean(error)}
+          onClick={() => void exportPDF()}
+        >
+          <FileDown className="size-4" />
+          {t("submission_review.export_pdf")}
+        </Button>
         <Button
           size="sm"
           variant="outline"
