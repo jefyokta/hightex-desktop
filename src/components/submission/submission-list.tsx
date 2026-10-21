@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Link } from "react-router-dom";
-import { FileText, FolderOpen, LoaderCircle, RefreshCw } from "lucide-react";
+import { FolderOpen, LoaderCircle, RefreshCw } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useOnline } from "@/hooks/use-online";
 import {
@@ -12,11 +11,10 @@ import { snapshotCache } from "@/review/snapshot-cache";
 import { t } from "@/utils/lang";
 import { LoginGate } from "../login-gate";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
 import { Alert, AlertDescription } from "../ui/alert";
-import { Card, CardContent } from "../ui/card";
-import { ParsedItalic } from "@/utils/parse-italic";
 import { SubmissionSnapshotViewer } from "./snapshot-viewer";
+import { SubmissionHistoryList } from "./history-list";
+import { StudentSubmission } from "./student-submission";
 
 export const SubmissionListView = () => {
   const { user } = useUser();
@@ -156,6 +154,19 @@ export const SubmissionListView = () => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      {user &&
+        online &&
+        (result?.audience === "student" ||
+          user.roles.some((role) => role.name === "student")) && (
+          <StudentSubmission
+            key={`${user.id}:${online}`}
+            revision={revision}
+            fallbackHistory={
+              result?.audience === "student" ? result.items : undefined
+            }
+            onUpdated={() => setRevision((value) => value + 1)}
+          />
+        )}
       {!user ? (
         <LoginGate />
       ) : !online ? (
@@ -169,58 +180,12 @@ export const SubmissionListView = () => {
           ))}
         </div>
       ) : (
-        result && (
+        result?.audience === "advisor" && (
           <>
             <p className="text-sm text-muted-foreground">
-              {t(
-                result.audience === "advisor"
-                  ? "submission_review.advisor_queue"
-                  : "submission_review.student_history",
-              )}
+              {t("submission_review.advisor_queue")}
             </p>
-            {!result.items.length && (
-              <div className="rounded-2xl bg-muted/30 p-8 text-center">
-                <FileText className="mx-auto size-8 text-muted-foreground" />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {t("submission_review.empty")}
-                </p>
-              </div>
-            )}
-            {result.items.map((item) => (
-              <Card key={`${item.documentId}:${item.id}`} size="sm">
-                <CardContent className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-0 space-y-1">
-                    <p className="font-medium">
-                      <ParsedItalic
-                        text={item.title || t("common.untitled_document")}
-                      />
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.studentName || t("submission_review.not_recorded")}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">
-                        {t(`submission_review.status.${item.status}`)}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        #{item.id}
-                        {item.createdAt &&
-                        !Number.isNaN(Date.parse(item.createdAt))
-                          ? ` · ${new Date(item.createdAt).toLocaleDateString()}`
-                          : ""}
-                      </span>
-                    </div>
-                  </div>
-                  <Button asChild size="sm" variant="outline">
-                    <Link
-                      to={`/dashboard/submissions/${encodeURIComponent(item.documentId)}/${encodeURIComponent(item.id)}`}
-                    >
-                      {t("submission_review.open_snapshot")}
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            <SubmissionHistoryList items={result.items} />
           </>
         )
       )}

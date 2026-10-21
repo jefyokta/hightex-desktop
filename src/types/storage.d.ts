@@ -102,6 +102,8 @@ declare global {
     keywords: Keywords;
     config: HighTexConfig;
     profile?: AuthorProfile;
+    // Local cloud policy/cache, deliberately excluded from portable archives.
+    cloudAcademic?: CloudAcademicSource;
     updatedAt?: Date;
     file?: string;
     min?: boolean;

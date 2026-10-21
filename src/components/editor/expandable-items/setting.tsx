@@ -26,6 +26,7 @@ import {
 import { TabHeader } from "./components/tab-header";
 import { DatePickerInput } from "@/components/ui/date-picker";
 import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
+import { refreshCloudAcademic } from "@/cloud/academic-data";
 
 export const Setting = () => {
   const db = HighTexDB.getInstance();
@@ -38,12 +39,16 @@ export const Setting = () => {
   const [loading, setLoading] = useState(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [academic, setAcademic] = useState<{ locked: boolean; error?: string }>(
+    { locked: false },
+  );
 
   useEffect(() => {
     let mounted = true;
 
     const load = async () => {
       if (!id) return;
+      const status = await refreshCloudAcademic(id);
       const initial = await db.documents.get(id);
 
       if (!initial || !mounted) return;
@@ -53,6 +58,7 @@ export const Setting = () => {
       if (!mounted) return;
 
       setCategories(ct);
+      setAcademic(status);
       setDoc(initial);
       setOriginal(JSON.stringify(initial));
     };
@@ -219,21 +225,37 @@ export const Setting = () => {
           </div>
         </Section>
 
-        <Section title={t("document_profile.title")}>
-          <p className="text-xs text-muted-foreground">
+        {academic.locked && (
+          <p
+            role="status"
+            className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground"
+          >
             {t(
-              doc.profile
-                ? "document_profile.description"
-                : "document_profile.missing",
+              academic.error
+                ? "cloud_academic.unavailable"
+                : "cloud_academic.readonly",
             )}
           </p>
+        )}
+        <Section disabled={academic.locked} title={t("document_profile.title")}>
+          {!academic.locked && (
+            <>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  doc.profile
+                    ? "document_profile.description"
+                    : "document_profile.missing",
+                )}
+              </p>
 
-          <Button size="sm" variant="outline" onClick={useDefaultProfile}>
-            {t("document_profile.use_default")}
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            {t("document_profile.default_hint")}
-          </p>
+              <Button size="sm" variant="outline" onClick={useDefaultProfile}>
+                {t("document_profile.use_default")}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                {t("document_profile.default_hint")}
+              </p>
+            </>
+          )}
 
           <Field
             label={t("settings.profile.name.label")}
@@ -262,23 +284,25 @@ export const Setting = () => {
 
           {!isInternDoc && (
             <>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  updateProfile({
-                    secondAdvisor: doc.profile?.secondAdvisor
-                      ? undefined
-                      : { name: "", nip: "" },
-                  })
-                }
-              >
-                {t(
-                  doc.profile?.secondAdvisor
-                    ? "document_profile.remove_second_advisor"
-                    : "settings.profile.second_advisor.enable_label",
-                )}
-              </Button>
+              {!academic.locked && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    updateProfile({
+                      secondAdvisor: doc.profile?.secondAdvisor
+                        ? undefined
+                        : { name: "", nip: "" },
+                    })
+                  }
+                >
+                  {t(
+                    doc.profile?.secondAdvisor
+                      ? "document_profile.remove_second_advisor"
+                      : "settings.profile.second_advisor.enable_label",
+                  )}
+                </Button>
+              )}
               {doc.profile?.secondAdvisor && (
                 <>
                   <Field
@@ -286,7 +310,10 @@ export const Setting = () => {
                     value={doc.profile.secondAdvisor.name}
                     onChange={(name) =>
                       updateProfile({
-                        secondAdvisor: { ...doc.profile!.secondAdvisor!, name },
+                        secondAdvisor: {
+                          ...doc.profile!.secondAdvisor!,
+                          name,
+                        },
                       })
                     }
                   />
@@ -295,7 +322,10 @@ export const Setting = () => {
                     value={doc.profile.secondAdvisor.nip}
                     onChange={(nip) =>
                       updateProfile({
-                        secondAdvisor: { ...doc.profile!.secondAdvisor!, nip },
+                        secondAdvisor: {
+                          ...doc.profile!.secondAdvisor!,
+                          nip,
+                        },
                       })
                     }
                   />
@@ -341,6 +371,7 @@ export const Setting = () => {
         </Section>
 
         <Section
+          disabled={academic.locked}
           title={t("editor.expandable.setting.thesis_examination_committee")}
         >
           <Field
@@ -589,9 +620,11 @@ export const Setting = () => {
 const Section = ({
   title,
   children,
+  disabled,
 }: {
   title: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }) => {
   return (
     <Card className="bg-muted/10">
@@ -599,7 +632,15 @@ const Section = ({
         <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">{children}</CardContent>
+      <CardContent className="space-y-4">
+        {disabled === undefined ? (
+          children
+        ) : (
+          <fieldset disabled={disabled} className="space-y-4 min-w-0">
+            {children}
+          </fieldset>
+        )}
+      </CardContent>
     </Card>
   );
 };

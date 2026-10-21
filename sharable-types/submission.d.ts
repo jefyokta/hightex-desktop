@@ -24,6 +24,8 @@ declare global {
     | "not_found"
     | "invalid_response"
     | "integrity_failed"
+    | "active_submission"
+    | "invalid_document"
     | "request_failed";
   type SubmissionResult<T> =
     | { ok: true; data: T }
@@ -42,5 +44,41 @@ declare global {
     documentId: string;
     sha256: string;
     file: Uint8Array;
+  }
+  interface SubmissionHistory {
+    session: ReviewSession;
+    documentId: string;
+    ownerId: string;
+    items: SubmissionSummary[];
+  }
+  interface SubmissionDetail {
+    submission: SubmissionSummary;
+    comments: {
+      id: string;
+      text: string;
+      author: string | null;
+      createdAt: string | null;
+    }[];
+  }
+  interface SubmissionAttempt {
+    id: string;
+    serverUrl: string;
+    accountId: string;
+    localDocumentId: string;
+    documentId: string;
+    title: string;
+    sha256: string;
+    baseline: string[];
+    state: "uploaded" | "uncertain" | "unverified" | "submitted" | "mismatch";
+    submissionId?: string;
+    snapshotSha256?: string;
+    error?: string;
+  }
+  interface SubmissionWorkflowAPI {
+    pending(sessionId: string): Promise<SubmissionAttempt | null>;
+    prepare(input: CloudPushInput): Promise<SubmissionAttempt>;
+    submit(sessionId: string): Promise<SubmissionAttempt>;
+    reconcile(sessionId: string): Promise<SubmissionAttempt>;
+    discard(sessionId: string): Promise<void>;
   }
 }

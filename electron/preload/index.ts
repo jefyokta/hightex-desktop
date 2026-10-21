@@ -47,6 +47,20 @@ contextBridge.exposeInMainWorld("hightex", {
     context: () => ipcRenderer.invoke("hightex:submission:context"),
     list: () => ipcRenderer.invoke("hightex:submission:list"),
     file: (input) => ipcRenderer.invoke("hightex:submission:file", input),
+    history: (input) => ipcRenderer.invoke("hightex:submission:history", input),
+    detail: (input) => ipcRenderer.invoke("hightex:submission:detail", input),
+    workflow: {
+      pending: (sessionId) =>
+        ipcRenderer.invoke("hightex:submission:pending", sessionId),
+      prepare: (input) =>
+        ipcRenderer.invoke("hightex:submission:prepare", input),
+      submit: (sessionId) =>
+        ipcRenderer.invoke("hightex:submission:submit", sessionId),
+      reconcile: (sessionId) =>
+        ipcRenderer.invoke("hightex:submission:reconcile", sessionId),
+      discard: (sessionId) =>
+        ipcRenderer.invoke("hightex:submission:discard", sessionId),
+    },
   },
   // compile() {},
   document: () => {
@@ -108,6 +122,10 @@ contextBridge.exposeInMainWorld("hightex", {
     },
   },
   cloud: {
+    academic: {
+      locked: (id) => ipcRenderer.invoke("hightex:academic:locked", id),
+      load: (input) => ipcRenderer.invoke("hightex:academic:load", input),
+    },
     context: () => ipcRenderer.invoke("hightex:document:context"),
     list: (sessionId) =>
       ipcRenderer.invoke("hightex:document:commits", sessionId),

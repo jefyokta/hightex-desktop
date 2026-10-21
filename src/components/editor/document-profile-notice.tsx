@@ -13,15 +13,18 @@ export const DocumentProfileNotice = ({
   documentId: string;
 }) => {
   const [missing, setMissing] = useState(false);
+  const [cloud, setCloud] = useState(false);
   const { setContent, setOpen } = useExpandableSidebar();
 
   useEffect(() => {
     let mounted = true;
     const update = (document?: HighTexDocument) => {
-      if (mounted)
+      if (mounted) {
+        setCloud(Boolean(document?.cloudAcademic));
         setMissing(
           !document?.profile?.name.trim() || !document.profile.nim.trim(),
         );
+      }
     };
     void HighTexDB.getInstance().documents.get(documentId).then(update);
     const off = Manager.app.on("document:updated", ({ document }) => {
@@ -40,7 +43,13 @@ export const DocumentProfileNotice = ({
       <Info />
       <AlertTitle>{t("document_profile.notice_title")}</AlertTitle>
       <AlertDescription>
-        <p>{t("document_profile.notice_description")}</p>
+        <p>
+          {t(
+            cloud
+              ? "cloud_academic.missing"
+              : "document_profile.notice_description",
+          )}
+        </p>
         <Button
           size="sm"
           variant="outline"

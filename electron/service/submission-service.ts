@@ -14,10 +14,10 @@ export const submissionService = new SubmissionClient({
         }
       : null;
   },
-  request: (endpoint) =>
+  request: (endpoint, options) =>
     ServerService.documentSyncRequest(
       endpoint,
-      { method: "GET" },
+      { method: "GET", signal: AbortSignal.timeout(30000), ...options },
       "submission",
     ),
 });

@@ -13,6 +13,7 @@ import { LoginGate } from "@/components/login-gate";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { t } from "@/utils/lang";
+import { SubmissionReviewResult } from "@/components/submission/review-result";
 
 export const Review = () => {
   const { documentId, submissionId } = useParams();
@@ -105,6 +106,13 @@ export const Review = () => {
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+        {documentId && submissionId && (
+          <SubmissionReviewResult
+            key={`${user.id}:${documentId}:${submissionId}`}
+            documentId={documentId}
+            submissionId={submissionId}
+          />
+        )}
       </div>
     );
   if (
@@ -116,10 +124,17 @@ export const Review = () => {
   )
     return <div className="h-96 animate-pulse rounded-xl bg-muted" />;
   return (
-    <SubmissionSnapshotViewer
-      key={`${snapshot.source.session.sessionId}:${submissionId}:${snapshot.sha256}`}
-      snapshot={snapshot}
-      onBack={() => navigate("/dashboard/submissions")}
-    />
+    <div className="space-y-4">
+      <SubmissionReviewResult
+        key={`${user.id}:${documentId}:${submissionId}`}
+        documentId={documentId!}
+        submissionId={submissionId!}
+      />
+      <SubmissionSnapshotViewer
+        key={`${snapshot.source.session.sessionId}:${submissionId}:${snapshot.sha256}`}
+        snapshot={snapshot}
+        onBack={() => navigate("/dashboard/submissions")}
+      />
+    </div>
   );
 };

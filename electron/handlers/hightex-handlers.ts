@@ -10,8 +10,12 @@ import { CategoryService } from "../service/category-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 import { ShouldSilent } from "@main/exception/should-silent";
 import { ConfigService } from "@main/service/config-service";
-import { documentService } from "@main/service/document-service";
+import {
+  documentService,
+  cloudAcademicService,
+} from "@main/service/document-service";
 import { submissionService } from "@main/service/submission-service";
+import { submissionWorkflow } from "@main/service/submission-workflow-service";
 
 export class HighTexHandler {
   private static store = new Store();
@@ -21,6 +25,33 @@ export class HighTexHandler {
       submissionService.context(),
     );
     IPCMain.handle("hightex:submission:list", () => submissionService.list());
+    IPCMain.handle(
+      "hightex:submission:history",
+      (_, input: { sessionId: string; documentId: string }) =>
+        submissionService.history(input),
+    );
+    IPCMain.handle(
+      "hightex:submission:detail",
+      (
+        _,
+        input: { sessionId: string; documentId: string; submissionId: string },
+      ) => submissionService.detail(input),
+    );
+    IPCMain.handle("hightex:submission:pending", (_, sessionId: string) =>
+      submissionWorkflow.pending(sessionId),
+    );
+    IPCMain.handle("hightex:submission:prepare", (_, input: CloudPushInput) =>
+      submissionWorkflow.prepare(input),
+    );
+    IPCMain.handle("hightex:submission:submit", (_, sessionId: string) =>
+      submissionWorkflow.submit(sessionId),
+    );
+    IPCMain.handle("hightex:submission:reconcile", (_, sessionId: string) =>
+      submissionWorkflow.reconcile(sessionId),
+    );
+    IPCMain.handle("hightex:submission:discard", (_, sessionId: string) =>
+      submissionWorkflow.discard(sessionId),
+    );
     IPCMain.handle(
       "hightex:submission:file",
       (
@@ -180,6 +211,14 @@ export class HighTexHandler {
     });
 
     IPCMain.handle("hightex:document:context", () => documentService.context());
+    IPCMain.handle("hightex:academic:locked", (_, id: string) =>
+      documentService.academicLocked(id),
+    );
+    IPCMain.handle(
+      "hightex:academic:load",
+      (_, input: { sessionId: string; serverDocumentId: string | null }) =>
+        cloudAcademicService.load(input),
+    );
     IPCMain.handle("hightex:document:pull", (_, input) =>
       documentService.pull(input),
     );

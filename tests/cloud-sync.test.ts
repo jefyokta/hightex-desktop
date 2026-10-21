@@ -145,6 +145,24 @@ test("refreshing commits neither sets nor clears the local base", async () => {
   expect(h.bindings).toEqual(saved);
 });
 
+test("academic validation failure stops a cloud push before any upload", async () => {
+  const h = new Harness();
+  h.transport.validatePush = async () => {
+    throw new Error("cloud_error:academic_changed");
+  };
+  await expect(h.client.push(h.input())).rejects.toThrow("academic_changed");
+  expect(h.writes).toHaveLength(0);
+});
+
+test("cloud academic lock remains discoverable after logout", async () => {
+  const h = new Harness();
+  h.remote = bytes("A");
+  await h.bind();
+  h.credentials = null;
+  expect(h.client.academicLocked(document.id)).toBe(true);
+  expect(h.client.academicLocked("unrelated-local-doc")).toBe(false);
+});
+
 test("pull stays unaccepted until local import succeeds; archive can never advance base", async () => {
   const h = new Harness();
   h.remote = bytes("A");

@@ -32,6 +32,7 @@ declare global {
     replace: boolean;
   }
   interface CloudAPI {
+    academic: CloudAcademicAPI;
     context(): Promise<CloudSession>;
     list(sessionId: string): Promise<CommitListResponse>;
     binding(sessionId: string, localId: string): Promise<CloudBinding | null>;
@@ -45,9 +46,7 @@ declare global {
       downloadId: string;
       localDocumentId: string;
     }): Promise<CloudBinding>;
-    push(
-      input: CloudPushInput,
-    ): Promise<
+    push(input: CloudPushInput): Promise<
       | {
           status: "saved";
           changed: boolean;

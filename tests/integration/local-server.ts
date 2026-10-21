@@ -2,6 +2,8 @@
 import { SubmissionClient } from "../../electron/service/submission-client";
 import { readSnapshot } from "../../src/review/snapshot-reader";
 import { syncScenario } from "./sync-scenario";
+import { submissionScenario } from "./submission-scenario";
+import { academicScenario } from "./academic-scenario";
 
 const base = "http://127.0.0.1:8000/api/";
 // Public local demo accounts; independent of the context file.
@@ -93,7 +95,10 @@ for (const { role, email, password } of demoAccounts) {
       }
       const model = await readSnapshot(result.data.file, {
         kind: "submission",
-        ...result.data,
+        session: result.data.session,
+        documentId: result.data.documentId,
+        submissionId: result.data.submissionId,
+        sha256: result.data.sha256,
       });
       console.log(
         JSON.stringify({
@@ -127,6 +132,10 @@ for (const { role, email, password } of demoAccounts) {
     );
     if (role === "student" && process.argv.includes("--sync"))
       await syncScenario(transport);
+    if (role === "student" && process.argv.includes("--submit"))
+      await submissionScenario(transport);
+    if (role === "student" && process.argv.includes("--academic"))
+      await academicScenario(transport);
     active = false;
     const loggedOut = await client.list();
     if (loggedOut.ok || loggedOut.error.code !== "not_authenticated")

@@ -6,6 +6,7 @@ import { isStaticVar } from "../is-static-var";
 import { t } from "@/utils/lang";
 import { writeProfileEntries } from "./profile";
 import { contentAssets } from "../content-assets";
+import { applyCloudAcademic } from "../cloud-academic";
 
 /**
  * export to ht | htx | hightex file
@@ -44,12 +45,12 @@ export class Exporter {
   }
 
   /** Freeze metadata, content and assets in one IndexedDB read transaction. */
-  async exportForPush(): Promise<{
+  async exportForPush(academic?: CloudAcademicData): Promise<{
     file: Uint8Array;
     hash: string;
     document: HighTexDocument;
   }> {
-    const { buffer, document } = await this.buildExport();
+    const { buffer, document } = await this.buildExport(academic);
     const digest = await crypto.subtle.digest(
       "SHA-256",
       new Uint8Array(buffer),
@@ -63,7 +64,7 @@ export class Exporter {
     };
   }
 
-  async buildExport() {
+  async buildExport(academic?: CloudAcademicData) {
     const snapshot = await this.db.transaction(
       "r",
       [
@@ -86,7 +87,9 @@ export class Exporter {
           .toArray();
         const assets = contentAssets(chapters);
         return {
-          document,
+          document: academic
+            ? applyCloudAcademic(document, academic)
+            : document,
           chapters,
           cites: await this.db.cite
             .filter(

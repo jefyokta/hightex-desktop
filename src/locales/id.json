@@ -670,12 +670,73 @@
       "invalid_archive": "File ini bukan archive HighTex yang valid.",
       "unsupported_format": "Versi atau format konten file HighTex ini belum didukung.",
       "invalid_content": "Data dokumen dalam file tidak lengkap atau tidak valid.",
-      "too_large": "File melebihi batas viewer: archive 64 MB, isi setelah dibuka 128 MB."
+      "too_large": "File melebihi batas viewer: archive 64 MB, isi setelah dibuka 128 MB.",
+      "active_submission": "Masih ada submission yang menunggu atau sedang direview. Tunggu sampai review selesai.",
+      "invalid_document": "Lengkapi judul dan isi bab; nama serta NIM harus tersedia pada data akun server. Server juga dapat menolak archive yang tidak valid."
     },
     "status": {
       "waiting_for_review": "Menunggu review",
       "on_review": "Sedang direview",
       "reviewed": "Selesai direview"
     }
+  },
+  "submission_student": {
+    "title": "Ajukan dokumen saya",
+    "description": "Kirim versi tersimpan dari dokumen lokal yang sudah tertaut ke cloud.",
+    "document": "Dokumen",
+    "choose_document": "Pilih dokumen lokal",
+    "link_first": "Tautkan dokumen melalui sinkronisasi cloud terlebih dahulu.",
+    "open_cloud": "Buka dokumen cloud",
+    "submit": "Simpan dan ajukan review",
+    "preparing": "Menyiapkan versi…",
+    "submitting": "Mengajukan…",
+    "retry": "Ajukan versi tersimpan",
+    "check": "Periksa hasil pengajuan",
+    "discard": "Batalkan rencana pengajuan",
+    "discard_title": "Batalkan rencana pengajuan ini?",
+    "discard_description": "Versi yang sudah diunggah tetap ada di cloud. Tindakan ini hanya membatalkan rencana pengajuan yang belum dikirim.",
+    "confirm_title": "Ajukan versi dokumen yang tersimpan?",
+    "confirm_description": "Isi tersimpan akan dibekukan, dikirim ke cloud, lalu diajukan untuk review. Tutup editor terlebih dahulu. Server memakai versi cloud terbaru; hindari mengubah cloud dari perangkat lain selama pengajuan.",
+    "commit_message": "Versi untuk pengajuan review",
+    "version_limit": "Tutup editor sebelum mengajukan agar perubahan tersimpan. Server memakai versi cloud terbaru; perubahan dari perangkat lain saat pengajuan masih dapat memengaruhi snapshot. Hasilnya diperiksa setelah pengajuan.",
+    "review_result": "Hasil review",
+    "review_pending": "Komentar hasil review tersedia setelah review selesai.",
+    "no_comments": "Review selesai tanpa komentar.",
+    "advisor": "Pembimbing",
+    "attempt": {
+      "uploaded": "Versi sudah tersimpan di cloud. Pengajuan belum dikonfirmasi. Coba ajukan versi tersimpan ini; perubahan draft berikutnya tidak ikut dikirim.",
+      "uncertain": "Hasil pengajuan belum diketahui. Periksa riwayat terlebih dahulu; aplikasi tidak mengirim pengajuan ulang selama hasilnya belum pasti.",
+      "unverified": "Server mengonfirmasi pengajuan, tetapi file snapshot belum berhasil diverifikasi. Periksa kembali tanpa membuat submission baru.",
+      "submitted": "Pengajuan terkonfirmasi. Snapshot server cocok dengan versi yang disiapkan.",
+      "mismatch": "Submission ada, tetapi snapshot server berbeda dari versi yang disiapkan. Buka snapshot untuk memeriksa versi yang benar-benar diajukan. Jangan mengajukan ulang sebelum review selesai."
+    },
+    "errors": {
+      "active_submission": "Masih ada submission yang menunggu atau sedang direview. Tunggu sampai review selesai.",
+      "invalid_document": "Lengkapi judul dan isi bab; nama serta NIM harus tersedia pada data akun server. Server juga dapat menolak archive yang tidak valid.",
+      "not_linked": "Dokumen belum tertaut ke slot cloud akun ini. Sinkronkan dokumen terlebih dahulu.",
+      "busy": "Proses pengajuan lain masih berjalan.",
+      "pending_attempt": "Selesaikan atau periksa pengajuan sebelumnya terlebih dahulu.",
+      "check_history": "Hasil pengajuan belum pasti. Gunakan Periksa hasil pengajuan; pengajuan ulang dinonaktifkan untuk menghindari duplikasi.",
+      "cloud_changed": "Versi cloud sudah berubah. Versi baru tidak diajukan otomatis. Batalkan rencana ini, periksa cloud dan siapkan pengajuan baru.",
+      "cloud_conflict": "Versi cloud berubah sejak versi dasar draft. Selesaikan konflik melalui Dokumen cloud sebelum mengajukan.",
+      "kp_unsupported": "Pengajuan KP online belum didukung server. Dokumen KP tetap dapat digunakan secara lokal.",
+      "editor_open": "Tutup editor dokumen terlebih dahulu agar perubahan selesai disimpan.",
+      "forbidden": "Akun tidak mempunyai izin mengajukan dokumen ini. Periksa hak akses dan verifikasi email.",
+      "not_authenticated": "Sesi sudah tidak berlaku. Masuk kembali untuk melanjutkan.",
+      "session_changed": "Akun atau server berubah. Muat ulang halaman pengajuan.",
+      "integrity_failed": "Snapshot server gagal pemeriksaan hash. Periksa kembali sebelum menganggap pengajuan berhasil.",
+      "not_found": "Dokumen atau snapshot server tidak tersedia.",
+      "invalid_response": "Respons server tidak sesuai kontrak. Periksa hasil pengajuan sebelum mencoba lagi.",
+      "request_failed": "Proses belum dapat diselesaikan. Periksa koneksi dan status pengajuan sebelum mencoba lagi.",
+      "pending_missing": "Tidak ada rencana pengajuan tersimpan untuk akun dan server ini.",
+      "academic_changed": "Data akademik server berubah atau belum diterapkan ke paket. Siapkan ulang versi dari data server terbaru.",
+      "academic_invalid": "Data akademik server tidak sesuai kontrak. Periksa penugasan pembimbing/penguji dan data universitas.",
+      "academic_scope": "Dokumen tertaut ke akun, server, atau dokumen cloud lain. Gunakan salinan lokal terpisah untuk akun ini."
+    }
+  },
+  "cloud_academic": {
+    "readonly": "Data penulis, pembimbing, penguji, kaprodi dan dekan diisi otomatis dari server dan tidak dapat diedit pada dokumen cloud.",
+    "unavailable": "Data penulis dan akademik dokumen cloud tetap dikunci. Data server belum dapat dimuat; nilai terakhir dipertahankan. Periksa koneksi atau akun pemilik, lalu buka kembali pengaturan.",
+    "missing": "Data penulis dari server belum lengkap. Lengkapi melalui pengelola data akademik; identitas dokumen cloud tidak dapat diisi manual."
   }
 }

@@ -248,3 +248,117 @@ describe("submission API session and integrity", () => {
     expect(requests).toBe(0);
   });
 });
+
+test("document history uses the document endpoint even for multi-role audiences", async () => {
+  const paths: string[] = [];
+  const client = new SubmissionClient({
+    session: () => credentials,
+    request: async (path) => {
+      paths.push(path);
+      return response({ data: document() });
+    },
+  });
+  expect(
+    await client.history({
+      sessionId: sessionId(client),
+      documentId: "student-doc",
+    }),
+  ).toMatchObject({
+    ok: true,
+    data: { documentId: "student-doc", ownerId: "12", items: [{ id: "87" }] },
+  });
+  expect(paths).toEqual(["/submission/student-doc"]);
+});
+
+test("create uses a bodyless POST and maps active/invalid archive responses", async () => {
+  for (const [status, code] of [
+    [409, "active_submission"],
+    [422, "invalid_document"],
+  ] as const) {
+    const client = new SubmissionClient({
+      session: () => credentials,
+      request: async (path, options) => {
+        expect(path).toBe("/submission");
+        expect(options?.method).toBe("POST");
+        expect(options?.body).toBeUndefined();
+        expect(options?.signal).toBeDefined();
+        return response({}, status);
+      },
+    });
+    expect(
+      await client.create({
+        sessionId: sessionId(client),
+        documentId: "student-doc",
+      }),
+    ).toMatchObject({ ok: false, error: { code, status } });
+  }
+});
+
+test("review detail validates document/submission/comment relationships and preserves comment text", async () => {
+  const data = {
+    id: 87,
+    document_id: "student-doc",
+    status: "reviewed",
+    document: document(),
+    comment: [
+      {
+        id: 1,
+        submission_id: 87,
+        comment: "<b>Review text</b>",
+        commentator: { name: "Advisor" },
+      },
+    ],
+  };
+  const client = new SubmissionClient({
+    session: () => credentials,
+    request: async () => response({ data }),
+  });
+  const input = {
+    sessionId: sessionId(client),
+    documentId: "student-doc",
+    submissionId: "87",
+  };
+  expect(await client.detail(input)).toMatchObject({
+    ok: true,
+    data: {
+      comments: [{ id: "1", text: "<b>Review text</b>", author: "Advisor" }],
+    },
+  });
+  data.comment[0].submission_id = 88;
+  expect(await client.detail(input)).toMatchObject({
+    ok: false,
+    error: { code: "invalid_response" },
+  });
+  data.comment[0].submission_id = 87;
+  data.status = "on_review";
+  expect(await client.detail(input)).toMatchObject({
+    ok: false,
+    error: { code: "invalid_response" },
+  });
+});
+
+test("history/detail/create reject stale session IDs without requests", async () => {
+  let count = 0;
+  const client = new SubmissionClient({
+    session: () => credentials,
+    request: async () => {
+      count++;
+      return response({});
+    },
+  });
+  const input = {
+    sessionId: "stale",
+    documentId: "student-doc",
+    submissionId: "87",
+  };
+  for (const result of await Promise.all([
+    client.history(input),
+    client.detail(input),
+    client.create(input),
+  ]))
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "session_changed" },
+    });
+  expect(count).toBe(0);
+});

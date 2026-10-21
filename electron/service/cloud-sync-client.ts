@@ -18,6 +18,10 @@ export interface CloudTransport {
   writeBindings(bindings: Record<string, CloudBinding>): void;
   backup(session: CloudSession, file: Uint8Array): Promise<string>;
   category(document: HighTexDocument): Promise<Category | undefined>;
+  validatePush?(
+    input: CloudPushInput,
+    serverDocumentId: string | null,
+  ): Promise<void>;
 }
 
 const hash = (file: Uint8Array) =>
@@ -87,6 +91,13 @@ export class CloudSyncClient {
   binding(sessionId: string, localId: string): CloudBinding | null {
     const session = this.require(sessionId);
     return this.transport.readBindings()[this.key(session, localId)] ?? null;
+  }
+
+  academicLocked(localId: string) {
+    if (!validId(localId)) return fail("invalid_request");
+    return Object.values(this.transport.readBindings()).some(
+      (binding) => binding.localDocumentId === localId,
+    );
   }
 
   private saveBinding(
@@ -220,9 +231,7 @@ export class CloudSyncClient {
     return path;
   }
 
-  async push(
-    input: CloudPushInput,
-  ): Promise<
+  async push(input: CloudPushInput): Promise<
     | {
         status: "saved";
         changed: boolean;
@@ -259,6 +268,8 @@ export class CloudSyncClient {
       );
       if ((current?.document_id ?? null) !== input.expectedServerDocumentId)
         return fail("cloud_changed");
+      await this.transport.validatePush?.(input, current?.document_id ?? null);
+      this.require(input.sessionId);
       const binding = this.binding(input.sessionId, input.document.id);
       const linked =
         binding?.serverDocumentId === current?.document_id && Boolean(current);

@@ -9,6 +9,7 @@ interface SubmissionTransport {
   session(): SessionCredentials | null;
   request(
     endpoint: string,
+    options?: RequestInit,
   ): Promise<{ ok: boolean; status: number; data: unknown; headers: Headers }>;
 }
 
@@ -112,7 +113,11 @@ export class SubmissionClient {
           ? "forbidden"
           : status === 404
             ? "not_found"
-            : "request_failed";
+            : status === 409
+              ? "active_submission"
+              : status === 422
+                ? "invalid_document"
+                : "request_failed";
     return { ok: false, error: { code, status } };
   }
 
@@ -201,6 +206,154 @@ export class SubmissionClient {
         error: {
           code: this.isCurrent(context.data)
             ? "request_failed"
+            : "session_changed",
+        },
+      };
+    }
+  }
+
+  async history(input: {
+    sessionId: string;
+    documentId: string;
+  }): Promise<SubmissionResult<SubmissionHistory>> {
+    const context = this.context();
+    if (!context.ok) return context;
+    if (input?.sessionId !== context.data.sessionId)
+      return { ok: false, error: { code: "session_changed" } };
+    let received = false;
+    try {
+      id(input.documentId);
+      const response = await this.transport.request(
+        `/submission/${encodeURIComponent(input.documentId)}`,
+      );
+      received = true;
+      if (!this.isCurrent(context.data))
+        return { ok: false, error: { code: "session_changed" } };
+      if (!response.ok) return this.failure(response.status);
+      const document = record(record(response.data).data);
+      if (id(document.id) !== input.documentId)
+        throw new Error("Document mismatch");
+      return {
+        ok: true,
+        data: {
+          session: context.data,
+          documentId: input.documentId,
+          ownerId: id(document.author),
+          items: parseSubmissionList({ data: { document } }).items,
+        },
+      };
+    } catch {
+      return {
+        ok: false,
+        error: {
+          code: this.isCurrent(context.data)
+            ? received
+              ? "invalid_response"
+              : "request_failed"
+            : "session_changed",
+        },
+      };
+    }
+  }
+
+  async create(input: {
+    sessionId: string;
+    documentId: string;
+  }): Promise<SubmissionResult<SubmissionSummary>> {
+    const context = this.context();
+    if (!context.ok) return context;
+    if (input?.sessionId !== context.data.sessionId)
+      return { ok: false, error: { code: "session_changed" } };
+    try {
+      id(input.documentId);
+      const response = await this.transport.request("/submission", {
+        method: "POST",
+        signal: AbortSignal.timeout(30000),
+      });
+      if (!this.isCurrent(context.data))
+        return { ok: false, error: { code: "session_changed" } };
+      if (!response.ok) return this.failure(response.status);
+      const submission = record(record(response.data).data);
+      const document = record(submission.document);
+      if (response.status !== 201 || id(document.id) !== input.documentId)
+        throw new Error("Document mismatch");
+      const items = parseSubmissionList({
+        data: { document: { ...document, submission: [submission] } },
+      }).items;
+      return { ok: true, data: items[0] };
+    } catch {
+      return {
+        ok: false,
+        error: {
+          code: this.isCurrent(context.data)
+            ? "request_failed"
+            : "session_changed",
+        },
+      };
+    }
+  }
+
+  async detail(input: {
+    sessionId: string;
+    documentId: string;
+    submissionId: string;
+  }): Promise<SubmissionResult<SubmissionDetail>> {
+    const context = this.context();
+    if (!context.ok) return context;
+    if (input?.sessionId !== context.data.sessionId)
+      return { ok: false, error: { code: "session_changed" } };
+    let received = false;
+    try {
+      id(input.submissionId);
+      id(input.documentId);
+      const response = await this.transport.request(
+        `/submission/${encodeURIComponent(input.submissionId)}/detail`,
+      );
+      received = true;
+      if (!this.isCurrent(context.data))
+        return { ok: false, error: { code: "session_changed" } };
+      if (!response.ok) return this.failure(response.status);
+      const submission = record(record(response.data).data);
+      const document = record(submission.document);
+      if (
+        id(document.id) !== input.documentId ||
+        id(submission.id) !== input.submissionId ||
+        submission.status !== "reviewed" ||
+        !Array.isArray(submission.comment)
+      )
+        throw new Error("Submission mismatch");
+      return {
+        ok: true,
+        data: {
+          submission: parseSubmissionList({
+            data: { document: { ...document, submission: [submission] } },
+          }).items[0],
+          comments: submission.comment.map((value) => {
+            const comment = record(value);
+            if (
+              id(comment.submission_id) !== input.submissionId ||
+              typeof comment.comment !== "string"
+            )
+              throw new Error("Invalid comment");
+            return {
+              id: id(comment.id),
+              text: comment.comment,
+              author: comment.commentator
+                ? text(record(comment.commentator).name)
+                : null,
+              createdAt: text(comment.created_at),
+            };
+          }),
+        },
+      };
+    } catch {
+      return {
+        ok: false,
+        error: {
+          code: this.isCurrent(context.data)
+            ? received
+              ? "invalid_response"
+              : "request_failed"
             : "session_changed",
         },
       };

@@ -39,6 +39,7 @@ import { ZoomUI } from "@/components/editor/zoom-ui";
 import { LoadingDocument } from "@/components/editor/loading-document";
 import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
 import { DocumentNotFound } from "@/exception/document-not-found";
+import { refreshCloudAcademic } from "@/cloud/academic-data";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -75,6 +76,7 @@ export const Editor: React.FC = () => {
 
     const init = async () => {
       setLoaded(false);
+      if (id && !version) await refreshCloudAcademic(id);
       const doc = await new Document(id!, version).warm();
       const currentChapter = doc.chapters.find(
         (c) => c.getChapter() == (chapter ?? 1),

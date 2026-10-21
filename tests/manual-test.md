@@ -51,3 +51,28 @@ Restart aplikasi dengan `bun run dev`; mode development memakai server lokal `12
 9. Untuk file cloud lama dengan hash sebagian JSON, reader baru menolak hash yang tidak cocok dengan byte ZIP. Jangan menghapus draft atau database. Migrasi label hash backend perlu ditangani terpisah; penggantian slot juga dihentikan bila backup tidak dapat diverifikasi.
 
 Otomatis: `bun test`. Integrasi read-only: `bun run tests/integration/local-server.ts`. Opsi `--sync` menulis fixture dan hanya boleh digunakan pada slot demo yang kosong; script sengaja berhenti bila sudah ada commit. Hasil lengkap, breaking changes dan keterbatasan atomicity backend ada di `docs/codex-impl-summary/STEP_3_SUMMARY.md`.
+
+### Pengajuan mahasiswa — langkah keempat
+
+Restart aplikasi agar IPC/preload baru dimuat. Pengujian langkah ini telah membuat submission demo **#1** dari **Codex sync demo**; status dibiarkan **menunggu review**. File cloud fixture B dan riwayat A tetap tersedia.
+
+1. Login mahasiswa, buka **Cloud → Submissions**, lalu **Baca snapshot** pada #1. Identitas harus mengikuti paket. Login advisor untuk membaca snapshot yang sama; akun advisor tidak menjadi penulis.
+2. Untuk pengajuan baru setelah review aktif selesai: tautkan draft ke cloud terlebih dahulu, lengkapi judul, nama/NIM dan isi bab, lalu tutup editor. Pilih draft dan tekan **Simpan dan ajukan review**. Periksa dialog konfirmasi dan snapshot hasilnya.
+3. Dokumen belum tertaut, KP, profil kosong dan editor yang masih terbuka harus menghentikan pengajuan. Submission aktif juga mencegah pengajuan berikutnya.
+4. Bila upload berhasil tetapi submit ditolak pasti, **Ajukan versi tersimpan** tidak boleh mengirim perubahan draft baru. Bila cloud sudah berubah, retry harus dihentikan; pembatalan rencana tidak menghapus file cloud.
+5. Setelah timeout ambigu, pindah halaman/restart lalu gunakan **Periksa hasil pengajuan**. Tidak boleh ada POST ulang otomatis. Jika riwayat terus kosong, status tetap belum pasti; kontrak backend belum menjamin retry idempoten.
+6. Periksa riwayat dokumen web tanpa file cloud dan akun dengan kedua role. Riwayat sendiri dan antrean advisor harus tetap terpisah. Pada submission `reviewed`, komentar tampil sebagai teks, termasuk ketika file snapshot lama tidak tersedia.
+
+Unit test: `tests/submission-workflow.test.ts` dan `tests/submission-client.test.ts`. GUI fixture: `env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron tests/integration/submission-ui.cjs`. Integrasi server opt-in: `bun run tests/integration/local-server.ts --submit`; hanya menerima fixture Codex yang sudah ada dan tidak membuat pengajuan tambahan ketika review masih aktif.
+
+Detail validasi, batas timeout/versi bersamaan dan breaking changes: [summary langkah 4](../docs/codex-impl-summary/STEP_4_SUMMARY.md).
+
+### Data akademik cloud otomatis
+
+1. Restart aplikasi. Buka draft yang tertaut ke cloud menggunakan akun pemiliknya. Data penulis, pembimbing, penguji, kaprodi/dekan harus otomatis terisi dari server dan terkunci pada pengaturan.
+2. Judul, isi bab, tanggal, CV/foto tetap dapat diubah. Data penulis pada dokumen lokal tanpa binding tetap dapat diubah.
+3. Periksa pembimbing dengan urutan array server yang berbeda: primary/secondary mengikuti `advisor_role`. Assignment kosong tidak boleh mempertahankan nilai manual lama.
+4. Saat offline/logout, field cloud tetap terkunci dengan cache terakhir. Akun lain tidak boleh mengganti penulis dokumen lama.
+5. Push dan pengajuan harus memakai data server terbaru; assignment yang berubah saat proses dapat menghentikan operasi. Snapshot submission lama tetap memakai isi paketnya.
+
+Integrasi read-only: `bun run tests/integration/local-server.ts --academic`. Validasi dan breaking changes lengkap: [summary data akademik cloud](../docs/codex-impl-summary/CLOUD_ACADEMIC_SUMMARY.md).

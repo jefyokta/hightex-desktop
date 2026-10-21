@@ -161,6 +161,16 @@ declare global {
       submission: {
         context(): Promise<SubmissionResult<ReviewSession>>;
         list(): Promise<SubmissionResult<SubmissionList>>;
+        history(input: {
+          sessionId: string;
+          documentId: string;
+        }): Promise<SubmissionResult<SubmissionHistory>>;
+        detail(input: {
+          sessionId: string;
+          documentId: string;
+          submissionId: string;
+        }): Promise<SubmissionResult<SubmissionDetail>>;
+        workflow: SubmissionWorkflowAPI;
         file(input: {
           sessionId: string;
           submissionId: string;

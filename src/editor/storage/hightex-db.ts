@@ -11,6 +11,10 @@ import {
   getProfileVariables,
   isProfileVariable,
 } from "@/utils/document-profile";
+import {
+  withCloudAcademicSource,
+  preserveCloudAcademic,
+} from "@/utils/cloud-academic";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -79,7 +83,7 @@ export class HighTexDB extends Dexie {
     const updated = await this.transaction("rw", this.documents, async () => {
       const current = await this.documents.get(document.id);
       const profile = current ? current.profile : document.profile;
-      const next = {
+      const next = preserveCloudAcademic(current, {
         ...document,
         // Metadata changes must not overwrite a profile edited elsewhere.
         profile: authorDetails
@@ -90,7 +94,7 @@ export class HighTexDB extends Dexie {
             }
           : profile,
         updatedAt: new Date(),
-      };
+      });
       await this.documents.put(next);
       return next;
     });
@@ -103,17 +107,38 @@ export class HighTexDB extends Dexie {
       const document = await this.documents.get(documentId);
       if (!document) throw new Error("Document not found");
 
-      const next = {
+      const next = preserveCloudAcademic(document, {
         ...document,
         profile: { ...emptyAuthorProfile(), ...document.profile, ...patch },
         updatedAt: new Date(),
-      };
+      });
       await this.documents.put(next);
       return next;
     });
     Manager.app.dispatch("document:updated", { document: updated });
     return updated;
   }
+  async cacheCloudAcademic(documentId: string, data: CloudAcademicData) {
+    if (!data.serverDocumentId) throw new Error("cloud_error:cloud_changed");
+    const updated = await this.transaction("rw", this.documents, async () => {
+      const document = await this.documents.get(documentId);
+      if (!document) throw new Error("Document not found");
+      const source = document.cloudAcademic;
+      if (
+        source &&
+        (source.accountId !== data.session.accountId ||
+          source.serverUrl !== data.session.serverUrl ||
+          source.serverDocumentId !== data.serverDocumentId)
+      )
+        throw new Error("cloud_error:academic_scope");
+      const next = withCloudAcademicSource(document, data);
+      await this.documents.put(next);
+      return next;
+    });
+    Manager.app.dispatch("document:updated", { document: updated });
+    return updated;
+  }
+
   async deleteDocument(documentId: string) {
     if ("editor" in window) {
       const windowOpened = await window.editor.has(documentId);

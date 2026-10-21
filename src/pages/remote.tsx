@@ -39,6 +39,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { LoginGate } from "@/components/login-gate";
+import { exportCloudArtifact } from "@/cloud/academic-data";
+import { withCloudAcademicSource } from "@/utils/cloud-academic";
 
 type Commit = CommitListResponse["commits"][number];
 type Task =
@@ -245,6 +247,24 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       if (sha256 && !restore)
         prepared.state.document.title += " (Salinan riwayat)";
       if (asCopy) prepared.state.document.title += " (Salinan cloud)";
+      if (!sha256 && !asCopy) {
+        const academic = await window.hightex.cloud.academic.load({
+          sessionId: session.sessionId,
+          serverDocumentId: current.document_id,
+        });
+        const source = before.document?.cloudAcademic;
+        if (
+          source &&
+          (source.accountId !== session.accountId ||
+            source.serverUrl !== session.serverUrl ||
+            source.serverDocumentId !== current.document_id)
+        )
+          throw new Error("cloud_error:academic_scope");
+        prepared.state.document = withCloudAcademicSource(
+          prepared.state.document,
+          academic,
+        );
+      }
       await assertCurrent(session);
       if (await window.editor.has(id))
         throw new Error("cloud_error:editor_open");
@@ -302,7 +322,11 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       )
         return;
       await assertCurrent(session);
-      const artifact = await new Exporter(selectedDoc.id).exportForPush();
+      const artifact = await exportCloudArtifact(
+        selectedDoc.id,
+        session,
+        current?.document_id ?? null,
+      );
       await assertCurrent(session);
       const response = await window.hightex.cloud.push({
         sessionId: session.sessionId,
@@ -325,6 +349,10 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
         });
         return;
       }
+      await HighTexDB.getInstance().cacheCloudAcademic(selectedDoc.id, {
+        ...artifact.academic,
+        serverDocumentId: response.serverDocumentId,
+      });
       toast.success(
         response.changed
           ? "Perubahan tersimpan di cloud."
@@ -918,6 +946,12 @@ function errorMessage(error: unknown) {
     unsupported_content:
       "Paket memuat format konten yang belum didukung editor. Buka melalui viewer hanya baca untuk memeriksanya.",
     busy: "Transfer cloud lain masih berjalan. Tunggu sampai selesai.",
+    academic_changed:
+      "Data akademik server berubah atau belum diterapkan ke paket. Muat ulang data, lalu coba simpan kembali.",
+    academic_invalid:
+      "Data akademik dari server tidak sesuai kontrak. Periksa pembimbing, data sidang, serta data universitas.",
+    academic_scope:
+      "Dokumen terikat ke akun, server, atau dokumen cloud lain. Gunakan salinan lokal terpisah untuk akun ini.",
     http_401: "Sesi server sudah tidak berlaku. Silakan login kembali.",
     http_403: "Akun ini tidak memiliki akses untuk operasi tersebut.",
     http_422:
