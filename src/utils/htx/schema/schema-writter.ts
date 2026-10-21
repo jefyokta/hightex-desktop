@@ -14,7 +14,6 @@ export class SchemaWritter {
   constructor() {
     this.entries["meta/export.json"] = this.jsonToU8({
       exported_by: "HighTex Engine",
-      timestamp: new Date().toISOString(),
     });
   }
   setContentFormat(format: ContentFormat) {

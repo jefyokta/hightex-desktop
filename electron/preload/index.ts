@@ -108,25 +108,16 @@ contextBridge.exposeInMainWorld("hightex", {
     },
   },
   cloud: {
-    push(...args) {
-      return ipcRenderer.invoke("hightex:document:push", ...args);
-    },
-    pull(docId?: string, sha256?: string) {
-      return ipcRenderer.invoke("hightex:document:pull", docId, sha256);
-    },
-    list() {
-      return ipcRenderer.invoke("hightex:document:commits");
-    },
-    link(serverId: string, localId: string) {
-      return ipcRenderer.invoke(
-        "hightex:document:alias:set",
-        serverId,
-        localId,
-      );
-    },
-    resolve(serverId: string): Promise<string | undefined> {
-      return ipcRenderer.invoke("hightex:document:alias:get", serverId);
-    },
+    context: () => ipcRenderer.invoke("hightex:document:context"),
+    list: (sessionId) =>
+      ipcRenderer.invoke("hightex:document:commits", sessionId),
+    binding: (sessionId, localId) =>
+      ipcRenderer.invoke("hightex:document:binding", sessionId, localId),
+    pull: (input) => ipcRenderer.invoke("hightex:document:pull", input),
+    accept: (input) => ipcRenderer.invoke("hightex:document:accept", input),
+    push: (input) => ipcRenderer.invoke("hightex:document:push", input),
+    backup: (sessionId, file) =>
+      ipcRenderer.invoke("hightex:document:backup", sessionId, file),
   },
 } satisfies Window["hightex"]);
 contextBridge.exposeInMainWorld("session", {

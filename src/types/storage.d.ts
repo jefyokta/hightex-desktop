@@ -110,6 +110,7 @@ declare global {
   interface CiteRecord {
     key: string;
     bib: string;
+    documentId?: string;
   }
 
   interface ChapterGraph {

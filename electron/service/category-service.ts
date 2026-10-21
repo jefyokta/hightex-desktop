@@ -56,8 +56,10 @@ export class CategoryService extends HasStorage<string> {
     return categories.find((c) => String(c.id) === id);
   }
 
-  static normilize(rawStr: string): Category[] {
-    const { data } = JSON.parse(rawStr) as {
+  static normilize(rawStr: unknown): Category[] {
+    const { data } = (
+      typeof rawStr === "string" ? JSON.parse(rawStr) : rawStr
+    ) as {
       data: (RawCategory | Category)[];
     };
 

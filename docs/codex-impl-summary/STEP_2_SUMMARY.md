@@ -78,4 +78,10 @@ Tidak perlu menghapus database atau mengimpor ulang draft.
 5. Logout atau berganti akun saat request berlangsung; hasil akun lama tidak boleh muncul pada akun baru. Periksa juga kondisi offline, akses ditolak, dan file snapshot lama yang belum tersedia.
 6. Simpan salinan paket dari viewer dan bandingkan dengan file asal; byte harus sama.
 
-Panduan tambahan: [tests/manual-test.md](../../tests/manual-test.md). Langkah berikutnya menunggu review fitur ini.
+Panduan tambahan: [tests/manual-test.md](../../tests/manual-test.md). Implementasi sudah di-commit sebagai `5766f6e` dan pengguna menyetujui untuk lanjut.
+
+## Pengujian Integrasi Lanjutan — 21 Oktober 2026
+
+Server lokal port 8000 sudah diuji memakai akun student/advisor dari `demo-user`. Login berhasil, bentuk daftar sesuai client dan daftar submission kedua akun masih kosong. Endpoint file untuk submission yang tidak tersedia menghasilkan `404`; token uji berhasil dicabut dengan `200`.
+
+Belum ada snapshot submission nyata untuk menguji unduhan positif serta identitas mahasiswa saat diakses advisor. Skenario tersebut tetap perlu dilengkapi saat fixture/workflow submission tersedia. Detail uji cloud terpisah ada di [summary langkah 3](STEP_3_SUMMARY.md#pengujian-server-lokal); uji tersebut tidak membuat submission.

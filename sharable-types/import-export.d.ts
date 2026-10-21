@@ -25,6 +25,7 @@ declare global {
   interface HighTexManifestV2 extends BaseManifest {
     format: ContentFormat;
     schema_version: 2;
+    version?: 2;
     document: {
       id: string;
       title?: { id?: string; en?: string };

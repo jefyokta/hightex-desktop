@@ -23,7 +23,7 @@ export class ServerService {
 
   static getServerUrl(): string {
     if (!app.isPackaged && process.env.DEV_MODE) {
-      return "http://0.0.0.0:8000/api/";
+      return "http://127.0.0.1:8000/api/";
     }
 
     const url = configStore.get("server.url") as string | undefined;

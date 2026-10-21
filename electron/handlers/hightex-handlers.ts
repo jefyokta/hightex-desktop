@@ -10,8 +10,7 @@ import { CategoryService } from "../service/category-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 import { ShouldSilent } from "@main/exception/should-silent";
 import { ConfigService } from "@main/service/config-service";
-import { DocumentService } from "@main/service/document-service";
-import { DocumentAliasService } from "@main/service/document-alias-service";
+import { documentService } from "@main/service/document-service";
 import { submissionService } from "@main/service/submission-service";
 
 export class HighTexHandler {
@@ -180,37 +179,29 @@ export class HighTexHandler {
       return DocumentProfileService.get();
     });
 
-    IPCMain.handle(
-      "hightex:document:pull",
-      (_, doc?: string, sha256?: string) => {
-        return DocumentService.pull(doc, sha256);
-      },
+    IPCMain.handle("hightex:document:context", () => documentService.context());
+    IPCMain.handle("hightex:document:pull", (_, input) =>
+      documentService.pull(input),
+    );
+    IPCMain.handle("hightex:document:push", (_, input: CloudPushInput) =>
+      documentService.push(input),
+    );
+    IPCMain.handle("hightex:document:commits", (_, sessionId: string) =>
+      documentService.list(sessionId),
     );
     IPCMain.handle(
-      "hightex:document:push",
-      (
-        _,
-        file: Uint8Array,
-        hash: string,
-        doc: HighTexDocument,
-        message: string,
-        force = false,
-      ) => {
-        return DocumentService.push(file, hash, doc, message, force);
-      },
+      "hightex:document:binding",
+      (_, sessionId: string, localId: string) =>
+        documentService.binding(sessionId, localId),
     );
-    IPCMain.handle("hightex:document:commits", () => {
-      return DocumentService.listCommits();
-    });
+    IPCMain.handle("hightex:document:accept", (_, input) =>
+      documentService.accept(input),
+    );
     IPCMain.handle(
-      "hightex:document:alias:set",
-      (_, serverId: string, localId: string) => {
-        DocumentAliasService.link(serverId, localId);
-      },
+      "hightex:document:backup",
+      (_, sessionId: string, file: Uint8Array) =>
+        documentService.backup(sessionId, file),
     );
-    IPCMain.handle("hightex:document:alias:get", (_, serverId: string) => {
-      return DocumentAliasService.resolve(serverId);
-    });
     IPCMain.handle(
       "hightex:export",
       async (

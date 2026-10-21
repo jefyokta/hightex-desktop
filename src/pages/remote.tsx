@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowDownToLine,
@@ -18,10 +18,12 @@ import {
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Exporter } from "@/utils/htx/exporter";
 import {
-  HighTexImporter as LegacyPackageReader,
-  importHighTexPackage,
-} from "@/utils/import-hightex";
-import { importHighTexV2Package } from "@/utils/import-v2";
+  captureDraft,
+  draftRevision,
+  installCloudDraft,
+  prepareCloudDraft,
+  rollbackCloudDraft,
+} from "@/cloud/draft-transfer";
 import { confirm } from "@/utils/confirm";
 import { useUser } from "@/hooks/use-user";
 import { useOnline } from "@/hooks/use-online";
@@ -48,11 +50,29 @@ type Notice = { message: string; action?: { label: string; run: () => void } };
 export const RemoteDocuments = () => {
   const { user } = useUser();
   const online = useOnline();
+  if (!user) return <LoginGate />;
+  return (
+    <RemoteDocumentsContent key={`${user.id}:${online}`} online={online} />
+  );
+};
 
+const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
+  const alive = useRef(true);
+  const operation = useRef(false);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  const [session, setSession] = useState<CloudSession>();
+  const [bindings, setBindings] = useState<Record<string, CloudBinding | null>>(
+    {},
+  );
+  const [categories, setCategories] = useState<Category[]>([]);
   const [commits, setCommits] = useState<Commit[]>([]);
   const [localDocs, setLocalDocs] = useState<HighTexDocument[]>([]);
   const [selectedId, setSelectedId] = useState("");
-  const [linkedLocalId, setLinkedLocalId] = useState<string>();
   const [commitMessage, setCommitMessage] = useState("");
   const [task, setTask] = useState<Task | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -79,139 +99,231 @@ export const RemoteDocuments = () => {
     [commits],
   );
   const selectedDoc = localDocs.find((doc) => doc.id === selectedId);
+  const linkedLocalId =
+    localDocs.find(
+      (doc) =>
+        bindings[doc.id]?.serverDocumentId === current?.document_id &&
+        doc.id === selectedId,
+    )?.id ??
+    localDocs.find(
+      (doc) => bindings[doc.id]?.serverDocumentId === current?.document_id,
+    )?.id;
   const linkedDoc = localDocs.find((doc) => doc.id === linkedLocalId);
-  const isLinked = Boolean(selectedDoc && linkedLocalId === selectedDoc.id);
+  const isLinked = Boolean(
+    selectedDoc &&
+    bindings[selectedDoc.id]?.serverDocumentId === current?.document_id &&
+    current,
+  );
+  const kp = Boolean(
+    selectedDoc &&
+    (selectedDoc.config.intern ||
+      categories.find(
+        (category) => String(category.id) === selectedDoc.category,
+      )?.variant === "intern"),
+  );
 
-  // Ambil data tanpa mengubah `task` supaya bisa dipakai ulang oleh push/pull.
+  const assertCurrent = async (context: CloudSession) => {
+    if (
+      !alive.current ||
+      (await window.hightex.cloud.context()).sessionId !== context.sessionId
+    )
+      throw new Error("cloud_error:session_changed");
+  };
+
   const load = useCallback(async () => {
-    if (!user || !online) return;
-    const [response, docs] = await Promise.all([
-      window.hightex.cloud.list(),
+    if (!online) return;
+    const context = await window.hightex.cloud.context();
+    const [response, docs, available] = await Promise.all([
+      window.hightex.cloud.list(context.sessionId),
       HighTexDB.getInstance().documents.toArray(),
+      window.hightex.categories(),
     ]);
-    const nextCommits = response.commits || [];
-    const nextCurrent = nextCommits.find((commit) => commit.type === "current");
-    const mappedId = nextCurrent?.document_id
-      ? await window.hightex.cloud.resolve(nextCurrent.document_id)
-      : undefined;
-    const validMappedId =
-      mappedId && docs.some((doc) => doc.id === mappedId)
-        ? mappedId
-        : undefined;
-
-    setCommits(nextCommits);
+    const mapped = Object.fromEntries(
+      await Promise.all(
+        docs.map(async (doc) => [
+          doc.id,
+          await window.hightex.cloud.binding(context.sessionId, doc.id),
+        ]),
+      ),
+    );
+    if (
+      !alive.current ||
+      (await window.hightex.cloud.context()).sessionId !== context.sessionId
+    )
+      return;
+    setSession(context);
+    setCommits(response.commits);
     setLocalDocs(docs);
-    setLinkedLocalId(validMappedId);
-    setSelectedId((previous) => {
-      if (validMappedId) return validMappedId;
-      if (docs.some((doc) => doc.id === previous)) return previous;
-      return docs[0]?.id || "";
-    });
-  }, [online, user]);
+    setBindings(mapped);
+    setCategories(available);
+    setSelectedId((previous) =>
+      docs.some((doc) => doc.id === previous)
+        ? previous
+        : (docs.find(
+            (doc) =>
+              mapped[doc.id]?.serverDocumentId ===
+              response.commits.find((item) => item.type === "current")
+                ?.document_id,
+          )?.id ??
+          docs[0]?.id ??
+          ""),
+    );
+  }, [online]);
 
   const refresh = useCallback(async () => {
-    if (!user || !online) return;
+    if (!online || operation.current) return;
+    operation.current = true;
     setTask({ kind: "refresh" });
     setNotice(null);
     try {
       await load();
     } catch (cause) {
-      setNotice({ message: errorMessage(cause) });
+      if (alive.current) setNotice({ message: errorMessage(cause) });
     } finally {
-      setTask(null);
-      setLoaded(true);
+      operation.current = false;
+      if (alive.current) {
+        setTask(null);
+        setLoaded(true);
+      }
     }
-  }, [load, online, user]);
+  }, [load, online]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
-  const pull = async (sha256?: string) => {
+  const pull = async (sha256?: string, restore = false, asCopy = false) => {
+    if (!session || !current || operation.current || !online) return;
+    if (restore && !selectedDoc) return;
+    operation.current = true;
     setTask({ kind: "pull", sha: sha256 });
     setNotice(null);
+    const db = HighTexDB.getInstance();
+    let installed = false;
+    let accepted = false;
+    let before: Awaited<ReturnType<typeof captureDraft>> | undefined;
+    let prepared: Awaited<ReturnType<typeof prepareCloudDraft>> | undefined;
     try {
-      const result = await window.hightex.cloud.pull(undefined, sha256);
-      if (result.status === "empty") {
-        toast.info("Belum ada versi dokumen di cloud.");
+      const result = await window.hightex.cloud.pull({
+        sessionId: session.sessionId,
+        serverDocumentId: current.document_id,
+        sha256,
+      });
+      await assertCurrent(session);
+      if (result.status !== "downloaded") {
+        toast.info("Versi cloud belum tersedia atau sudah tidak tersimpan.");
         return;
       }
-      if (result.status === "not_found") {
-        toast.info("Belum ada dokumen tersimpan untuk akun ini.");
-        return;
+      const id = restore
+        ? selectedDoc!.id
+        : !sha256 && !asCopy && linkedDoc
+          ? linkedDoc.id
+          : crypto.randomUUID();
+      prepared = await prepareCloudDraft(result.file, id, categories);
+      before = await captureDraft(db, id);
+      if (await window.editor.has(id))
+        throw new Error("cloud_error:editor_open");
+      if (before.document) {
+        if (
+          !(await confirm({
+            title: `Ganti salinan lokal “${before.document.title}”?`,
+            desc: restore
+              ? "Isi akan diganti dengan versi riwayat. Salinan saat ini dibackup terlebih dahulu. Versi dasar sinkronisasi tetap dipertahankan."
+              : "Paket cloud menggantikan isi lokal. Salinan saat ini dibackup terlebih dahulu.",
+          }))
+        )
+          return;
+        await assertCurrent(session);
+        const backup = await new Exporter(id).exportForPush();
+        if (
+          (await draftRevision(await captureDraft(db, id))) !==
+          (await draftRevision(before))
+        )
+          throw new Error("cloud_error:local_changed");
+        await window.hightex.cloud.backup(session.sessionId, backup.file);
       }
-
-      const file = new File([new Uint8Array(result.file)], "remote.hightex");
-      const reader = await LegacyPackageReader.create(file);
-      const documentId = reader.manifest.document.id;
-      const existing = await HighTexDB.getInstance().documents.get(documentId);
-      if (
-        existing &&
-        !(await confirm({
-          title: `Ganti salinan lokal “${existing.title}”?`,
-          desc: "Paket cloud akan menggantikan isi dokumen lokal dengan ID yang sama.",
-        }))
-      ) {
-        return;
-      }
-
-      // Buang slash di akhir path (sebelumnya `slice(-1)` justru menyisakan "/").
-      const userData = await window.file.getUserDataPath();
-      const base = userData.replace(/[\\/]+$/, "");
-      const filePath = `${base}/documents/${documentId}.hightex`;
-
-      const imported =
-        reader.manifest.schema_version === 2
-          ? await importHighTexV2Package(file, filePath)
-          : await importHighTexPackage(file);
-
-      const latest = await window.hightex.cloud.list();
-      const serverId = latest.commits.find(
-        (item) => item.type === "current",
-      )?.document_id;
-      if (serverId) {
-        await window.hightex.cloud.link(serverId, imported.id);
-        setLinkedLocalId(imported.id);
-      }
+      if (sha256 && !restore)
+        prepared.state.document.title += " (Salinan riwayat)";
+      if (asCopy) prepared.state.document.title += " (Salinan cloud)";
+      await assertCurrent(session);
+      if (await window.editor.has(id))
+        throw new Error("cloud_error:editor_open");
+      await installCloudDraft(db, prepared, before);
+      installed = true;
+      await assertCurrent(session);
+      if (!sha256 && !asCopy)
+        await window.hightex.cloud.accept({
+          sessionId: session.sessionId,
+          downloadId: result.downloadId,
+          localDocumentId: id,
+        });
+      accepted = true;
+      if (!alive.current) return;
       toast.success(
-        `“${imported.title}” berhasil disimpan sebagai dokumen lokal.`,
+        `“${prepared.state.document.title}” berhasil disimpan sebagai dokumen lokal.`,
       );
       await load();
     } catch (cause) {
-      setNotice({ message: errorMessage(cause) });
+      if (installed && !accepted && prepared && before) {
+        try {
+          await rollbackCloudDraft(db, prepared, before);
+        } catch {
+          if (alive.current)
+            setNotice({
+              message:
+                "Penerimaan cloud gagal. Ada perubahan lokal baru sehingga rollback otomatis dihentikan; backup sebelumnya tetap tersedia di folder cloud-backups aplikasi.",
+            });
+          return;
+        }
+      }
+      if (alive.current) setNotice({ message: errorMessage(cause) });
     } finally {
-      setTask(null);
+      operation.current = false;
+      if (alive.current) setTask(null);
     }
   };
 
   const push = async () => {
-    if (!selectedDoc) return;
+    if (!session || !selectedDoc || operation.current || !online) return;
+    operation.current = true;
     setTask({ kind: "push" });
     setNotice(null);
     try {
-      const { file, hash } = await new Exporter(selectedDoc.id).exportForPush();
-      const response = await window.hightex.cloud.push(
-        file,
-        hash,
-        { ...selectedDoc, profile: undefined },
-        commitMessage.trim(),
-      );
-      if ("error" in response) {
+      if (kp) throw new Error("cloud_error:kp_unsupported");
+      if (await window.editor.has(selectedDoc.id))
+        throw new Error("cloud_error:editor_open");
+      const replace = Boolean(current && !isLinked);
+      if (
+        replace &&
+        !(await confirm({
+          title: "Ganti dokumen pada slot cloud akun ini?",
+          desc: "Server menyediakan satu slot dokumen untuk akun ini. Versi cloud saat ini dibackup sebelum diganti dengan dokumen yang dipilih. Draft lokal lainnya tetap tersimpan.",
+        }))
+      )
+        return;
+      await assertCurrent(session);
+      const artifact = await new Exporter(selectedDoc.id).exportForPush();
+      await assertCurrent(session);
+      const response = await window.hightex.cloud.push({
+        sessionId: session.sessionId,
+        file: artifact.file,
+        document: { ...artifact.document, profile: undefined },
+        message: commitMessage.trim(),
+        expectedServerDocumentId: current?.document_id ?? null,
+        expectedCloudSha256: current?.sha256 ?? null,
+        replace,
+      });
+      await assertCurrent(session);
+      if (response.status === "conflict") {
         setNotice({
           message:
-            "Cloud sudah memiliki versi yang lebih baru. Unduh versi terbaru dulu sebelum menyimpan lagi.",
-          action: { label: "Unduh versi terbaru", run: () => void pull() },
+            "Versi cloud berubah sejak versi dasar draft ini. Perubahan lokal tetap tersimpan. Unduh cloud sebagai salinan untuk dibandingkan.",
+          action: {
+            label: "Unduh salinan cloud",
+            run: () => void pull(undefined, false, true),
+          },
         });
         return;
-      }
-
-      const latest = await window.hightex.cloud.list();
-      const serverId = latest.commits.find(
-        (item) => item.type === "current",
-      )?.document_id;
-      if (serverId) {
-        await window.hightex.cloud.link(serverId, selectedDoc.id);
-        setLinkedLocalId(selectedDoc.id);
       }
       toast.success(
         response.changed
@@ -221,21 +333,20 @@ export const RemoteDocuments = () => {
       setCommitMessage("");
       await load();
     } catch (cause) {
-      setNotice({ message: errorMessage(cause) });
+      if (alive.current) setNotice({ message: errorMessage(cause) });
     } finally {
-      setTask(null);
+      operation.current = false;
+      if (alive.current) setTask(null);
     }
   };
 
-  if (!user) {
-    return <LoginGate />;
-  }
-
   const pushHint = !online
     ? "Butuh koneksi internet untuk menyimpan."
-    : loaded && !localDocs.length
-      ? "Belum ada dokumen lokal untuk disimpan."
-      : "";
+    : kp
+      ? "KP tersedia secara lokal; sinkronisasi KP menunggu dukungan server."
+      : loaded && !localDocs.length
+        ? "Belum ada dokumen lokal untuk disimpan."
+        : "";
 
   const historyList = (
     <HistoryList
@@ -244,6 +355,8 @@ export const RemoteDocuments = () => {
       busy={busy}
       pullingSha={pullingSha}
       onPull={(sha) => void pull(sha)}
+      onRestore={(sha) => void pull(sha, true)}
+      canRestore={Boolean(selectedDoc)}
     />
   );
 
@@ -415,6 +528,10 @@ export const RemoteDocuments = () => {
                   <TechRow label="Server ID" value={current.document_id} />
                   <TechRow label="Local ID" value={linkedLocalId} />
                   <TechRow label="SHA-256" value={current.sha256} />
+                  <TechRow
+                    label="Base SHA-256 draft terpilih"
+                    value={bindings[selectedId]?.baseSha256}
+                  />
                 </dl>
               )}
             </div>
@@ -499,14 +616,14 @@ export const RemoteDocuments = () => {
                   </span>
                 </span>
                 <span className="text-[11px] font-normal text-muted-foreground">
-                  {commitMessage.length}/500
+                  {[...commitMessage].length}/255
                 </span>
               </label>
               <Textarea
                 id="cloud-commit-message"
                 value={commitMessage}
                 onChange={(event) => setCommitMessage(event.target.value)}
-                maxLength={500}
+                maxLength={255}
                 rows={2}
                 placeholder="Contoh: Merapikan bab metodologi"
                 disabled={busy}
@@ -518,7 +635,9 @@ export const RemoteDocuments = () => {
               <p className="text-xs text-muted-foreground">{pushHint}</p>
               <Button
                 onClick={() => void push()}
-                disabled={!online || busy || !selectedDoc}
+                disabled={
+                  !online || busy || !selectedDoc || kp || !loaded || !session
+                }
                 className="ml-auto w-full sm:w-auto"
               >
                 {task?.kind === "push" ? (
@@ -632,12 +751,16 @@ function HistoryList({
   busy,
   pullingSha,
   onPull,
+  onRestore,
+  canRestore,
 }: {
   archives: Commit[];
   online: boolean;
   busy: boolean;
   pullingSha: string | null;
   onPull: (sha?: string) => void;
+  onRestore: (sha: string) => void;
+  canRestore: boolean;
 }) {
   if (!archives.length) {
     return (
@@ -680,7 +803,15 @@ function HistoryList({
             ) : (
               <ArrowDownToLine className="size-4" />
             )}
-            Unduh
+            Salinan
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!online || busy || !canRestore || !commit.sha256}
+            onClick={() => commit.sha256 && onRestore(commit.sha256)}
+          >
+            Pulihkan
           </Button>
         </li>
       ))}
@@ -754,5 +885,46 @@ function timeAgo(value?: string | null) {
 }
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
+  const message = error instanceof Error ? error.message : String(error);
+  const code = /cloud_error:(\w+)/.exec(message)?.[1];
+  const messages: Record<string, string> = {
+    not_authenticated:
+      "Sesi login sudah tidak tersedia. Silakan login kembali.",
+    session_changed:
+      "Akun, server, atau sesi berubah. Muat ulang sebelum melanjutkan.",
+    invalid_request:
+      "Data pengiriman tidak valid. Catatan maksimal 255 karakter dan ukuran paket maksimal 64 MiB.",
+    invalid_response:
+      "Respons cloud tidak lengkap atau tidak sesuai kontrak. Draft dan versi dasarnya tetap dipertahankan.",
+    invalid_download:
+      "Unduhan sudah kedaluwarsa. Unduh kembali sebelum menerapkan ke draft.",
+    integrity_failed:
+      "Hash paket cloud tidak cocok dengan byte file. Paket belum diterapkan. File dari client lama mungkin memakai kontrak hash lama; periksa atau pulihkan paket melalui web terlebih dahulu.",
+    cloud_changed:
+      "Dokumen cloud berubah saat operasi berjalan. Muat ulang untuk memeriksa hasil server sebelum mencoba lagi.",
+    replacement_required:
+      "Dokumen belum tertaut atau slot cloud berubah. Muat ulang dan tinjau penggantian dokumen cloud.",
+    editor_open:
+      "Tutup jendela editor dokumen ini terlebih dahulu agar tidak ada penulisan bersamaan saat transfer cloud.",
+    local_changed:
+      "Dokumen lokal berubah selama proses. Operasi dihentikan; tinjau perubahan lalu coba lagi.",
+    kp_unsupported:
+      "Sinkronisasi KP belum didukung server. Dokumen KP tetap dapat dipakai secara lokal.",
+    unknown_category:
+      "Kategori dokumen tidak dikenali. Perbarui kategori atau periksa paket sebelum melanjutkan.",
+    external_asset:
+      "Paket mengandalkan gambar eksternal. Lengkapi aset dalam paket sebelum mengimpor.",
+    invalid_archive: "Isi paket cloud tidak valid. Draft belum diganti.",
+    unsupported_content:
+      "Paket memuat format konten yang belum didukung editor. Buka melalui viewer hanya baca untuk memeriksanya.",
+    busy: "Transfer cloud lain masih berjalan. Tunggu sampai selesai.",
+    http_401: "Sesi server sudah tidak berlaku. Silakan login kembali.",
+    http_403: "Akun ini tidak memiliki akses untuk operasi tersebut.",
+    http_422:
+      "Server menolak paket atau metadata dokumen. Periksa kategori dan catatan pengiriman.",
+  };
+  return code
+    ? (messages[code] ??
+        "Transfer cloud gagal. Periksa koneksi dan status server, lalu muat ulang.")
+    : message;
 }

@@ -56,9 +56,9 @@ class DatabaseSeeder extends Seeder
         ]);
         $compiler->assignRole('compiler');
         // $this->call(FakeRelease::class);
-        // Mentorship::create([
-        //     "student_id" => $student->id,
-        //     "advisor_id" => $advisor->id
-        // ]);
+         Mentorship::create([
+             "student_id" => $student->id,
+             "advisor_id" => $advisor->id
+         ]);
     }
 }

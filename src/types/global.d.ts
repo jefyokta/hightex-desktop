@@ -189,19 +189,7 @@ declare global {
         error?: any;
       }): Promise<void>;
       snapshot: SnapshotApi;
-      cloud: {
-        pull(docId?: string, sha256?: string): Promise<PullResponse>;
-        push(
-          file: Uint8Array,
-          hash: string,
-          document: HighTexDocument,
-          message: string,
-          force?: boolean,
-        ): Promise<PushResponse>;
-        list(): Promise<CommitListResponse>;
-        link(serverId: string, localId: string): Promise<void>;
-        resolve(serverId: string): Promise<string | undefined>;
-      };
+      cloud: CloudAPI;
     };
 
     config: ConfigAPI;

@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import Dexie from "dexie";
 import { indexedDB, IDBKeyRange } from "fake-indexeddb";
-import { zipSync } from "fflate";
+import { zipSync, unzipSync, strFromU8 } from "fflate";
 import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Exporter } from "../src/utils/htx/exporter";
 import { HighTexImporter } from "../src/utils/import-v2";
@@ -164,6 +164,50 @@ describe("document authors and variables", () => {
 });
 
 describe("portable author profile", () => {
+  test("cloud artifact is deterministic and its SHA includes image and profile photo bytes", async () => {
+    await db.documents.put(makeDocument("a", "Student A"));
+    await db.chapters.put({ id: "a.1", content: [{ type: "paragraph" }] });
+    await db.images.put({
+      id: "image",
+      blob: new Blob(["A"], { type: "image/webp" }),
+      documentId: "a",
+      createdAt: 0,
+    });
+    const exporter = new Exporter("a");
+    const first = await exporter.exportForPush();
+    await Bun.sleep(5);
+    const second = await exporter.exportForPush();
+    expect(second.file).toEqual(first.file);
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new Uint8Array(first.file),
+    );
+    expect(first.hash).toBe(
+      Array.from(new Uint8Array(digest), (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join(""),
+    );
+    const manifest = JSON.parse(
+      strFromU8(unzipSync(first.file)["manifest.json"]),
+    );
+    expect(manifest.version).toBe(2);
+    expect(manifest.schema_version).toBe(2);
+    await db.images.update("image", {
+      blob: new Blob(["B"], { type: "image/webp" }),
+    });
+    const changedImage = await exporter.exportForPush();
+    expect(changedImage.hash).not.toBe(first.hash);
+    await db.updateProfile("a", {
+      picture: new Blob(["photo"], { type: "image/webp" }),
+    });
+    expect((await exporter.exportForPush()).hash).not.toBe(changedImage.hash);
+    await db.images.delete("image");
+    await db.chapters.delete("a.1");
+    const entries = unzipSync((await exporter.exportForPush()).file);
+    expect(entries["files/assets/images/image.webp"]).toBeUndefined();
+    expect(entries["files/chapters/1.json"]).toBeUndefined();
+  });
+
   test("export/import preserves author, CV/photo, KP settings and both keyword languages", async () => {
     const original = makeDocument("kp", "Student A");
     original.profile = {

@@ -33,6 +33,7 @@ export class Schema<TVersion extends SchemaVersion = 2> {
     return {
       format,
       schema_version: 2,
+      version: 2,
       document: {
         id: doc.id,
         title: {

@@ -35,3 +35,19 @@ Restart aplikasi development dengan `bun run dev` agar handler IPC baru ikut dim
 Viewer langkah kedua menampilkan isi paket per bagian; pagination, halaman depan yang dihasilkan compiler, dan layout PDF final belum menjadi bagian fitur ini. Referensi yang valid diformat dari data dalam paket; gambar yang hanya menunjuk URL eksternal ditandai tidak tersedia dan tidak diunduh otomatis.
 
 Test otomatis tambahan: `submission-client.test.ts` dan `review-snapshot.test.tsx`. Test mencakup kontrak API yang diperiksa dari source backend, integritas file, sesi lama, render identitas/citation per snapshot, serta pembuktian bahwa tabel draft dan dokumen editor aktif tidak berubah.
+
+### Sinkronisasi cloud — langkah ketiga
+
+Restart aplikasi dengan `bun run dev`; mode development memakai server lokal `127.0.0.1:8000`. Gunakan akun demo yang tercantum pada konstanta `demoAccounts` di `tests/integration/local-server.ts`. File `demo-user` hanya konteks awal, bukan dependensi test. Jangan salin password/token ke hasil pengujian.
+
+1. Buka **Dokumen cloud** dengan akun student. Fixture **Codex sync demo** versi B sudah dibuat melalui uji integrasi; versi A tersedia di riwayat. Belum ada submission dari pengujian ini.
+2. Unduh versi terbaru. Jika belum tertaut, aplikasi membuat dokumen lokal baru tanpa mengganti dokumen lama yang kebetulan memiliki ID paket sama. Periksa data penulis/CV dari paket dan buka **Detail teknis** untuk melihat SHA server serta base draft.
+3. Tutup editor dokumen sebelum transfer. Simpan dua kali tanpa perubahan; penyimpanan kedua harus melaporkan versi sudah tersedia. Ganti hanya gambar atau foto lalu simpan: hash harus berubah.
+4. Gunakan dua instance/perangkat uji dengan akun sama. Keduanya menerima A; perangkat kedua mengirim B; perangkat pertama memuat ulang riwayat lalu mengirim edit dari A. Hasil wajib konflik. Unduhan salinan cloud dari pesan konflik harus membuat salinan B, dengan edit draft A tetap utuh.
+5. Pada riwayat, **Salinan** selalu membuat ID lokal baru dan tidak mengubah binding/base. **Pulihkan** mengganti dokumen yang dipilih setelah konfirmasi dan backup; base draft dipertahankan sehingga konflik berikutnya tetap terdeteksi bila cloud sudah berubah.
+6. Pull terbaru yang mengganti draft tertaut meminta konfirmasi. Batalkan: konten dan base harus tetap sama. Terima: backup disimpan pada `<userData>/cloud-backups/<scope>/<sha>.hightex`; file dapat dibuka melalui viewer/import lokal.
+7. Pilih dokumen berbeda dari yang tertaut lalu simpan. Harus ada konfirmasi penggantian satu slot cloud akun dan backup paket server sebelum upload. Kegagalan backup harus menghentikan upload.
+8. Coba offline, logout/berganti akun saat request berjalan, editor masih terbuka, kategori paket tidak dikenal, atau push KP. Respons lama tidak boleh mengikat dokumen ke akun baru; pesan harus menjelaskan penyebab operasi dihentikan.
+9. Untuk file cloud lama dengan hash sebagian JSON, reader baru menolak hash yang tidak cocok dengan byte ZIP. Jangan menghapus draft atau database. Migrasi label hash backend perlu ditangani terpisah; penggantian slot juga dihentikan bila backup tidak dapat diverifikasi.
+
+Otomatis: `bun test`. Integrasi read-only: `bun run tests/integration/local-server.ts`. Opsi `--sync` menulis fixture dan hanya boleh digunakan pada slot demo yang kosong; script sengaja berhenti bila sudah ada commit. Hasil lengkap, breaking changes dan keterbatasan atomicity backend ada di `docs/codex-impl-summary/STEP_3_SUMMARY.md`.
