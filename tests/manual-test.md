@@ -24,7 +24,7 @@ Pengujian otomatis ada di `document-profile.test.ts`, mencakup database asli mel
 Restart aplikasi development dengan `bun run dev` agar handler IPC baru ikut dimuat.
 
 1. Export dokumen A/B yang memiliki identitas, CV, foto, gambar, variabel, dan referensi berbeda. Buka **Cloud → Submissions → Buka .hightex untuk dibaca**. Fitur file lokal dapat dicoba tanpa login, termasuk saat offline.
-2. Periksa **Data penulis**, setiap bagian, **Daftar Riwayat Hidup**, dan **Referensi dalam file**. Tidak ada kontrol mengedit dokumen. Paket tanpa profil harus menandai data belum tersedia, tanpa memakai profil akun yang membuka.
+2. Bandingkan preview penuh dengan preview draft dari paket yang sama: cover, halaman depan, bab, daftar isi, **Daftar Riwayat Hidup**, foto dan referensi. Coba zoom, refresh dan indikator layout; loading harus selesai, pagination tetap sama saat zoom berubah. Paket tanpa profil tidak boleh memakai profil akun yang membuka.
 3. Kembali ke draft A/B dan pastikan konten serta data penulisnya tidak berubah. Buka file dengan ID dokumen, key referensi, dan ID gambar yang sama untuk memastikan data tidak saling tercampur.
 4. Masuk sebagai advisor yang mempunyai submission aktif pada server pengujian. Antrean diambil dari server; klik **Baca snapshot**. Nama/identitas dalam viewer harus berasal dari paket mahasiswa, sementara akun login tetap advisor.
 5. Masuk sebagai mahasiswa dan periksa riwayat dari endpoint yang sama. Akun multi-role mengikuti respons/permission server; belum ada pemilih konteks untuk memaksa riwayat mahasiswa ketika server memprioritaskan antrean advisor.
@@ -32,7 +32,7 @@ Restart aplikasi development dengan `bun run dev` agar handler IPC baru ikut dim
 7. Logout atau ganti akun selama unduhan; hasil permintaan lama tidak boleh muncul pada sesi baru. Putuskan internet ketika snapshot server terbuka; viewer server ditutup sampai akses online dapat diperiksa kembali.
 8. Unduh `.hightex` dari viewer ke lokasi uji. Byte file harus sama dengan file asli/snapshot, bukan export ulang yang mengubah profil/metadata.
 
-Viewer langkah kedua menampilkan isi paket per bagian; pagination, halaman depan yang dihasilkan compiler, dan layout PDF final belum menjadi bagian fitur ini. Referensi yang valid diformat dari data dalam paket; gambar yang hanya menunjuk URL eksternal ditandai tidak tersedia dan tidak diunduh otomatis.
+Pembaruan viewer memakai komponen preview penuh lama di iframe dengan database snapshot dalam memori. Compiler/resolver dan database draft tidak diubah. Kategori yang tidak dikenali menampilkan pesan gagal. Gambar URL eksternal tidak diunduh otomatis. Export PDF snapshot belum termasuk; lihat [summary perbaikan viewer](../docs/codex-impl-summary/SUBMISSION_PREVIEW_FIX_SUMMARY.md).
 
 Test otomatis tambahan: `submission-client.test.ts` dan `review-snapshot.test.tsx`. Test mencakup kontrak API yang diperiksa dari source backend, integritas file, sesi lama, render identitas/citation per snapshot, serta pembuktian bahwa tabel draft dan dokumen editor aktif tidak berubah.
 

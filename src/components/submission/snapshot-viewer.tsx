@@ -1,32 +1,23 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, Download, LockKeyhole } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  Download,
+  Eye,
+  Layout,
+  LockKeyhole,
+  RefreshCw,
+  ZoomIn,
+} from "lucide-react";
 import type { SnapshotReadModel } from "@/review/snapshot-reader";
 import { resolveDocumentProfile } from "@/utils/document-profile";
-import { sanitizeCvHtml } from "@/utils/sanitize-cv-html";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { t } from "@/utils/lang";
-import { formatInTextCitation } from "@/utils/citation";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { Slider } from "../ui/slider";
+import { Switch } from "../ui/switch";
 import { Alert, AlertDescription } from "../ui/alert";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Paper } from "../paper";
-import { SnapshotContent } from "./snapshot-content";
-import "@/css/snapshot-review.css";
-
-const formatReference = (key: string, bib: string) => {
-  try {
-    return formatInTextCitation([{ key, bib }]).biblios[0] ?? bib;
-  } catch {
-    return bib;
-  }
-};
+import { PreviewFrame } from "./preview-frame";
 
 export const SubmissionSnapshotViewer = ({
   snapshot,
@@ -35,32 +26,88 @@ export const SubmissionSnapshotViewer = ({
   snapshot: SnapshotReadModel;
   onBack(): void;
 }) => {
-  const [section, setSection] = useState("profile");
-  const [images, setImages] = useState<ReadonlyMap<string, string>>(new Map());
-  const [picture, setPicture] = useState<string>();
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [frameKey, setFrameKey] = useState(() => crypto.randomUUID());
+  const [zoom, setZoom] = useState(40);
+  const [layoutIndicator, setLayoutIndicator] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
   const [saving, setSaving] = useState(false);
   const profile = resolveDocumentProfile(snapshot.document);
-  const chapter = snapshot.chapters.find(
-    (chapter) => `chapter:${chapter.id}` === section,
-  );
 
   useEffect(() => {
-    const urls = new Map<Blob, string>();
-    const url = (blob: Blob) => {
-      if (!urls.has(blob)) urls.set(blob, URL.createObjectURL(blob));
-      return urls.get(blob)!;
+    let active = true;
+    const target =
+      window.location.origin === "null" ? "*" : window.location.origin;
+    const initialize = async () => {
+      const categories = await window.hightex.categories();
+      if (!active) return;
+      frameRef.current?.contentWindow?.postMessage(
+        {
+          type: "snapshot:preview:init",
+          request: frameKey,
+          file: snapshot.originalFile(),
+          source: snapshot.source,
+          categories,
+        },
+        target,
+      );
     };
-    setImages(
-      new Map([...snapshot.images].map(([key, blob]) => [key, url(blob)])),
-    );
-    setPicture(
-      snapshot.document.profile?.picture
-        ? url(snapshot.document.profile.picture)
-        : undefined,
-    );
-    return () => urls.forEach((value) => URL.revokeObjectURL(value));
-  }, [snapshot]);
+    const listener = (event: MessageEvent) => {
+      if (
+        event.source !== frameRef.current?.contentWindow ||
+        event.origin !== window.location.origin ||
+        event.data?.request !== frameKey
+      )
+        return;
+      if (event.data.type === "snapshot:preview:ready")
+        void initialize().catch(() => {
+          if (active) {
+            setError(t("submission_review.errors.preview_failed"));
+            setLoading(false);
+          }
+        });
+      if (event.data.type === "snapshot:preview:error") {
+        setError(
+          t(
+            event.data.code === "snapshot_category_missing"
+              ? "submission_review.errors.snapshot_category_missing"
+              : "submission_review.errors.preview_failed",
+          ),
+        );
+        setLoading(false);
+      }
+    };
+    window.addEventListener("message", listener);
+    const timer = setTimeout(() => {
+      if (active) {
+        setError(t("submission_review.errors.preview_failed"));
+        setLoading(false);
+      }
+    }, 60000);
+    const rendered = (event: MessageEvent) => {
+      if (
+        event.source === frameRef.current?.contentWindow &&
+        event.data?.type === "page:rendered"
+      ) {
+        clearTimeout(timer);
+        setLoading(false);
+      }
+    };
+    window.addEventListener("message", rendered);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      window.removeEventListener("message", listener);
+      window.removeEventListener("message", rendered);
+    };
+  }, [snapshot, frameKey]);
 
+  const reload = () => {
+    setError(undefined);
+    setLoading(true);
+    setFrameKey(crypto.randomUUID());
+  };
   const download = async () => {
     setSaving(true);
     try {
@@ -80,45 +127,46 @@ export const SubmissionSnapshotViewer = ({
   };
 
   return (
-    <main className="space-y-5 pb-10">
+    <main className="flex flex-col gap-3 h-[calc(100vh-6rem)] min-h-100">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <Button size="sm" variant="ghost" onClick={onBack}>
           <ArrowLeft className="size-4" />
           {t("submission_review.back")}
         </Button>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">
-            <LockKeyhole className="size-3" />
-            {t("submission_review.read_only")}
-          </Badge>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={saving}
-            onClick={download}
-          >
-            <Download className="size-4" />
-            {t("submission_review.download")}
-          </Button>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-sm font-semibold truncate">
+            <ParsedItalic
+              text={snapshot.document.title || t("common.untitled_document")}
+            />
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {snapshot.source.kind === "submission"
+              ? t("submission_review.snapshot_label", {
+                  id: snapshot.source.submissionId,
+                })
+              : t("submission_review.local_label")}
+          </p>
         </div>
+        <Badge variant="secondary">
+          <LockKeyhole className="size-3" />
+          {t("submission_review.read_only")}
+        </Badge>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={saving}
+          onClick={download}
+        >
+          <Download className="size-4" />
+          {t("submission_review.download")}
+        </Button>
       </header>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">
-          <ParsedItalic
-            text={snapshot.document.title || t("common.untitled_document")}
-          />
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {snapshot.source.kind === "submission"
-            ? t("submission_review.snapshot_label", {
-                id: snapshot.source.submissionId,
-              })
-            : t("submission_review.local_label")}
-        </p>
-      </div>
-      {(profile.incomplete || snapshot.unsupportedNodes.length > 0) && (
-        <Alert>
+      {(error ||
+        profile.incomplete ||
+        snapshot.unsupportedNodes.length > 0) && (
+        <Alert variant={error ? "destructive" : "default"}>
           <AlertDescription>
+            {error && <p>{error}</p>}
             {profile.incomplete && (
               <p>{t("submission_review.missing_profile")}</p>
             )}
@@ -128,127 +176,60 @@ export const SubmissionSnapshotViewer = ({
           </AlertDescription>
         </Alert>
       )}
-      <Select value={section} onValueChange={setSection}>
-        <SelectTrigger className="w-full sm:w-80">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="profile">
-            {t("submission_review.author")}
-          </SelectItem>
-          {snapshot.chapters.map((chapter) => (
-            <SelectItem key={chapter.id} value={`chapter:${chapter.id}`}>
-              {t("submission_review.chapter", { id: chapter.id })}
-            </SelectItem>
-          ))}
-          <SelectItem value="cv">{t("submission_review.cv")}</SelectItem>
-          <SelectItem value="references">
-            {t("submission_review.references")}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-      <div className="overflow-x-auto rounded-lg bg-muted/30 p-3 sm:p-6">
-        <Paper className="mx-auto text-black dark:bg-white">
-          {section === "profile" && (
-            <div className="space-y-5">
-              <h1 className="text-center text-[14pt] font-bold">
-                <ParsedItalic text={snapshot.document.title} />
-              </h1>
-              <dl className="space-y-3">
-                {[
-                  [t("settings.profile.name.label"), profile.name],
-                  [t("settings.profile.nim.label"), profile.nim],
-                  [
-                    t("settings.profile.advisor.name.label"),
-                    profile.advisorName,
-                  ],
-                  [t("settings.profile.advisor.nip.label"), profile.advisorNip],
-                  ...(profile.secondAdvisor
-                    ? [
-                        [
-                          t("settings.profile.second_advisor.name.label"),
-                          profile.secondAdvisor.name,
-                        ],
-                        [
-                          t("settings.profile.second_advisor.nip.label"),
-                          profile.secondAdvisor.nip,
-                        ],
-                      ]
-                    : []),
-                  ...(snapshot.document.config.intern
-                    ? [
-                        [
-                          t("editor.expandable.setting.onsite_location"),
-                          snapshot.document.config.intern.onsite_at,
-                        ],
-                        [
-                          t(
-                            "editor.expandable.setting.internship_advisor_name",
-                          ),
-                          snapshot.document.config.intern.advisor?.name,
-                        ],
-                      ]
-                    : []),
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="font-bold">{label}</dt>
-                    <dd>
-                      {typeof value === "string" && value
-                        ? value
-                        : t("submission_review.not_recorded")}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
-          {chapter && (
-            <SnapshotContent
-              snapshot={snapshot}
-              nodes={chapter.content}
-              images={images}
+      <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
+        <div className="flex items-center gap-2 min-w-35 text-xs">
+          <Eye className="w-4 h-4 opacity-60 shrink-0" />
+          Full Document
+        </div>
+        <div className="flex items-center gap-2 flex-1 min-w-40 max-w-60 border rounded-lg px-2 py-1 h-8 bg-background">
+          <ZoomIn className="w-4 h-4 opacity-60 shrink-0" />
+          <span className="text-xs text-muted-foreground select-none w-8 text-right">
+            {zoom}%
+          </span>
+          <Slider
+            value={[zoom]}
+            min={10}
+            max={100}
+            step={5}
+            onValueChange={(values) => setZoom(values[0])}
+            className="flex-1 cursor-pointer"
+          />
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0"
+            onClick={reload}
+            aria-label={t("submission_review.refresh")}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+          <div className="flex items-center gap-2 rounded-lg border px-2.5 py-1 h-8 bg-background">
+            <Layout className="w-4 h-4 opacity-60" />
+            <span className="text-xs text-muted-foreground select-none">
+              Layout
+            </span>
+            <Switch
+              checked={layoutIndicator}
+              onCheckedChange={setLayoutIndicator}
             />
-          )}
-          {section === "cv" && (
-            <div className="snapshot-content text-justify">
-              <h1>{t("submission_review.cv")}</h1>
-              {picture && (
-                <img
-                  src={picture}
-                  alt={t("document_profile.picture")}
-                  className="float-left mr-[10pt] mb-[5pt]"
-                  style={{ width: "3cm", height: "4cm", objectFit: "cover" }}
-                />
-              )}
-              {profile.cv ? (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeCvHtml(profile.cv),
-                  }}
-                />
-              ) : (
-                <p>{t("submission_review.not_recorded")}</p>
-              )}
-            </div>
-          )}
-          {section === "references" && (
-            <div className="snapshot-content">
-              <h1>{t("submission_review.references")}</h1>
-              {Object.keys(snapshot.references).length === 0 && (
-                <p>{t("submission_review.not_recorded")}</p>
-              )}
-              {Object.entries(snapshot.references).map(([key, bib]) => (
-                <div key={key} className="mb-5">
-                  <p className="font-bold">{key}</p>
-                  <p className="whitespace-pre-wrap">
-                    {formatReference(key, bib)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </Paper>
+          </div>
+        </div>
       </div>
+      <PreviewFrame
+        src={`/submission/print/${encodeURIComponent(snapshot.document.id)}?request=${frameKey}`}
+        frameKey={frameKey}
+        frameRef={frameRef}
+        zoom={zoom}
+        layoutIndicator={layoutIndicator}
+        loading={loading}
+        onRendered={() => setLoading(false)}
+        onError={() => {
+          setError(t("submission_review.errors.preview_failed"));
+          setLoading(false);
+        }}
+      />
     </main>
   );
 };

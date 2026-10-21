@@ -658,6 +658,8 @@
     "empty": "No submissions to display.",
     "open_snapshot": "Read snapshot",
     "errors": {
+      "preview_failed": "Unable to render the document preview. Try refreshing.",
+      "snapshot_category_missing": "The package category is unavailable. Preview cannot select its document template.",
       "not_authenticated": "Your session is no longer valid. Sign in again.",
       "session_changed": "The account or server changed. Open the submission again from the list.",
       "forbidden": "You do not have access to this submission. Check your account access and email verification.",

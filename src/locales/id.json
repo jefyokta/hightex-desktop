@@ -658,6 +658,8 @@
     "empty": "Belum ada submission untuk ditampilkan.",
     "open_snapshot": "Baca snapshot",
     "errors": {
+      "preview_failed": "Preview dokumen gagal dimuat. Coba muat ulang.",
+      "snapshot_category_missing": "Kategori dokumen dalam paket tidak tersedia. Preview tidak dapat memilih template yang sesuai.",
       "not_authenticated": "Sesimu sudah tidak berlaku. Silakan masuk kembali.",
       "session_changed": "Akun atau server telah berubah. Buka kembali submission dari daftar.",
       "forbidden": "Kamu tidak memiliki akses ke submission ini. Periksa hak akses akun dan verifikasi email.",

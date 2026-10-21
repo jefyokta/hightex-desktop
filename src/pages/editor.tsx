@@ -38,6 +38,7 @@ import { uniqId } from "@/utils/uniq-id";
 import { ZoomUI } from "@/components/editor/zoom-ui";
 import { LoadingDocument } from "@/components/editor/loading-document";
 import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
+import { DocumentNotFound } from "@/exception/document-not-found";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -88,7 +89,12 @@ export const Editor: React.FC = () => {
       setLoaded(true);
     };
 
-    init();
+    init().catch((e) => {
+      if (e instanceof DocumentNotFound) {
+        window
+
+      }
+    });
 
     return () => {
       alive = false;

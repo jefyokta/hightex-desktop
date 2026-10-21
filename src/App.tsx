@@ -32,12 +32,14 @@ import { Splitter } from "./pages/splitter";
 import { Forms } from "./pages/forms";
 import { Submission } from "./pages/submission";
 import { Review } from "./pages/review";
+import { SubmissionPrint } from "./pages/submission-print";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/submission/print/:id" element={<SubmissionPrint />} />
         <Route element={<MainLayout />}>
           <Route path="/" element={<Splash />} />
           <Route element={<SharingLayout />}>
