@@ -53,7 +53,7 @@ Proyek ini awalnya dikembangkan sebagai aplikasi web, kemudian berkembang menjad
 
 Nama tersebut sudah ada sebelum rancangan aplikasi seperti sekarang.
 
-Proposal tugas akhir saya awalnya bertujuan mempermudah penulisan menggunakan LaTeX. Ide pertamanya adalah mengonversi HTML menjadi kode LaTeX, kemudian menggunakan compiler LaTeX untuk menghasilkan PDF. Dari situlah nama *High-Level of LaTeX* berasal.
+Proposal tugas akhir saya awalnya bertujuan mempermudah penulisan menggunakan LaTeX. Ide pertamanya adalah mengonversi HTML menjadi kode LaTeX, kemudian menggunakan compiler LaTeX untuk menghasilkan PDF. Dari situlah nama _High-Level of LaTeX_ berasal.
 
 Dosen pembimbing saya menolak pendekatan tersebut karena compiler LaTeX tidak diperlukan selama format dokumen tetap dapat dipertahankan.
 
@@ -122,7 +122,7 @@ Proses membaca dan mengonversi DOCX cukup kompleks serta membutuhkan upaya besar
 
 #### Integrasi Data Institusi
 
-Integrasi data institusi tidak tersedia di versi desktop karena arsitektur *hybrid*-nya mengutamakan kemampuan penggunaan offline. Integrasi data institusi, seperti nama dosen dan informasi akademik lainnya, akan menimbulkan ketergantungan pada layanan online.
+Integrasi data institusi tidak tersedia di versi desktop karena arsitektur _hybrid_-nya mengutamakan kemampuan penggunaan offline. Integrasi data institusi, seperti nama dosen dan informasi akademik lainnya, akan menimbulkan ketergantungan pada layanan online.
 
 Ini merupakan salah satu keterbatasan terbesar versi desktop. Integrasi data institusi adalah salah satu hal utama yang membedakan HighTex dari alat penulisan konvensional seperti LaTeX atau Microsoft Word. Tanpa kemampuan ini, pengguna desktop tidak dapat menikmati sepenuhnya salah satu keunggulan utama HighTex.
 

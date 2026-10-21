@@ -1,4 +1,4 @@
-import { protocol} from "electron";
+import { protocol } from "electron";
 import { LoggerService } from "@main/service/logger-service";
 import { Controller } from "./application-hosts/controller";
 
@@ -7,7 +7,6 @@ export class HightexProtocol {
   static readonly HOST = "app";
 
   private started = false;
-
 
   static registerSchemesAsPrivileged() {
     protocol.registerSchemesAsPrivileged([
@@ -37,8 +36,7 @@ export class HightexProtocol {
     protocol.handle(HightexProtocol.SCHEME, async (req) => {
       try {
         const url = new URL(req.url);
-        return await  Controller.handle(url);
-  
+        return await Controller.handle(url);
       } catch (error) {
         LoggerService.write(error, "hightex-protocol");
         return new Response("Internal Server Error", { status: 500 });

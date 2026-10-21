@@ -53,7 +53,7 @@ The project started as a web application and later evolved into a desktop applic
 
 The name came before the application's current design.
 
-My original thesis proposal aimed to make writing with LaTeX easier. The initial idea was to convert HTML into LaTeX code and use a LaTeX compiler to generate PDFs. That was the origin of the name *High-Level of LaTeX*.
+My original thesis proposal aimed to make writing with LaTeX easier. The initial idea was to convert HTML into LaTeX code and use a LaTeX compiler to generate PDFs. That was the origin of the name _High-Level of LaTeX_.
 
 My advisor rejected that approach, explaining that a LaTeX compiler was unnecessary as long as the document's formatting could be preserved.
 

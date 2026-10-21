@@ -93,8 +93,7 @@ export const Editor: React.FC = () => {
 
     init().catch((e) => {
       if (e instanceof DocumentNotFound) {
-        window
-
+        window;
       }
     });
 

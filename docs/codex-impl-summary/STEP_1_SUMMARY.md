@@ -11,16 +11,16 @@ Workflow review advisor belum diimplementasikan pada langkah ini.
 
 ## Perubahan Perilaku
 
-| Area | Sebelumnya | Sekarang |
-| --- | --- | --- |
-| Identitas penulis | Mengandalkan profil global | Disimpan pada masing-masing dokumen |
-| Pengaturan penulis | Di pengaturan aplikasi | Ada bagian **Penulis dokumen** pada sidebar **Setting** editor |
-| CV dan foto | Dipakai bersama oleh semua dokumen | Diedit dan disimpan otomatis untuk dokumen yang sedang dibuka |
-| Preview dan PDF | Ada pembacaan profil global, termasuk pada CV builder | Membaca profil penulis dari dokumen yang dirender |
-| Export/import `.hightex` v2 | Profil dan foto tidak ikut dalam paket | Profil, CV, dan foto ikut dalam paket |
-| Profil global | Menjadi sumber profil dokumen saat dibaca | Menjadi default untuk dokumen baru; dapat disalin secara eksplisit ke dokumen lama |
-| Dokumen tanpa profil | Berpotensi memakai profil pengguna yang membuka | Menampilkan data penulis belum lengkap dan menyediakan akses ke pengaturan dokumen |
-| Variabel | Nama variabel menjadi primary key tunggal | Memakai gabungan ID dokumen dan nama variabel |
+| Area                        | Sebelumnya                                            | Sekarang                                                                           |
+| --------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Identitas penulis           | Mengandalkan profil global                            | Disimpan pada masing-masing dokumen                                                |
+| Pengaturan penulis          | Di pengaturan aplikasi                                | Ada bagian **Penulis dokumen** pada sidebar **Setting** editor                     |
+| CV dan foto                 | Dipakai bersama oleh semua dokumen                    | Diedit dan disimpan otomatis untuk dokumen yang sedang dibuka                      |
+| Preview dan PDF             | Ada pembacaan profil global, termasuk pada CV builder | Membaca profil penulis dari dokumen yang dirender                                  |
+| Export/import `.hightex` v2 | Profil dan foto tidak ikut dalam paket                | Profil, CV, dan foto ikut dalam paket                                              |
+| Profil global               | Menjadi sumber profil dokumen saat dibaca             | Menjadi default untuk dokumen baru; dapat disalin secara eksplisit ke dokumen lama |
+| Dokumen tanpa profil        | Berpotensi memakai profil pengguna yang membuka       | Menampilkan data penulis belum lengkap dan menyediakan akses ke pengaturan dokumen |
+| Variabel                    | Nama variabel menjadi primary key tunggal             | Memakai gabungan ID dokumen dan nama variabel                                      |
 
 Form, card, tombol, sidebar, dan layout CV menggunakan komponen serta gaya tampilan yang sudah ada. Teks antarmuka baru tersedia dalam Bahasa Indonesia dan Inggris.
 

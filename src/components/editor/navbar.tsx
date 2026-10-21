@@ -410,16 +410,17 @@ export const NavBar: React.FC = () => {
                   title="Save"
                   icon={Save}
                   onClick={async () => {
-                    if (!Document.instance) return
-                    const exporter = new Exporter(Document.instance?.id)
-                    const { buffer } = await exporter.buildExport()
-                    const newPath = await window.editor.save(buffer,`${Document.instance.getDocument().title.replace("_","")}.hightex`);
+                    if (!Document.instance) return;
+                    const exporter = new Exporter(Document.instance?.id);
+                    const { buffer } = await exporter.buildExport();
+                    const newPath = await window.editor.save(
+                      buffer,
+                      `${Document.instance.getDocument().title.replace("_", "")}.hightex`,
+                    );
                     if (!newPath) {
-                      throw new ShouldNotified("Failed to save document")
+                      throw new ShouldNotified("Failed to save document");
                     }
-                    await  Document.instance.setFilePath(newPath)
-
-
+                    await Document.instance.setFilePath(newPath);
                   }}
                 />
 
@@ -493,10 +494,11 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
 
         text-neutral-700 dark:text-neutral-200
-        ${active
-              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-              : ""
-            }
+        ${
+          active
+            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+            : ""
+        }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

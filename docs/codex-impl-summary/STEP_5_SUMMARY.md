@@ -8,15 +8,15 @@ Advisor sekarang dapat melihat antrean submission dan mahasiswa bimbingan aktif,
 
 UI menggunakan Card, Badge, Button, Textarea, dialog, warna dan bentuk panel yang sudah dipakai aplikasi. Kontrol review berada di kartu hasil review pada halaman snapshot yang sama. Snapshot tetap hanya baca; membuka/meninjau dokumen mahasiswa tidak membuat binding cloud advisor atau menerapkan profil advisor ke dokumen.
 
-| Bagian | Implementasi |
-| --- | --- |
-| Daftar bimbingan | `GET /advisor/students`, hanya mentorship aktif; tandai pembimbing utama/kedua |
-| Antrean | `GET /submission`; cocokkan pemilik dokumen dengan mahasiswa bimbingan |
-| Riwayat | `GET /submission/{documentId}`; validasi pemilik sesuai mahasiswa yang dipilih |
-| Mulai review | POST tanpa body ke `/submission/{documentId}/on-review`, hanya untuk versi aktif berstatus `waiting_for_review` |
-| Komentar | POST `/submission/{submissionId}/comment` dengan `{ comment }`, hanya versi aktif `on_review`; komentar kosong atau lebih dari 200 karakter ditolak sebelum request |
-| Selesai review | POST tanpa body ke `/submission/{documentId}/review`, hanya versi aktif `on_review`; komentar yang belum dikirim harus dikirim/dikosongkan terlebih dahulu |
-| Hasil mahasiswa | Detail hasil hanya diminta setelah `reviewed`; komentar HTML ditampilkan sebagai teks |
+| Bagian           | Implementasi                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Daftar bimbingan | `GET /advisor/students`, hanya mentorship aktif; tandai pembimbing utama/kedua                                                                                      |
+| Antrean          | `GET /submission`; cocokkan pemilik dokumen dengan mahasiswa bimbingan                                                                                              |
+| Riwayat          | `GET /submission/{documentId}`; validasi pemilik sesuai mahasiswa yang dipilih                                                                                      |
+| Mulai review     | POST tanpa body ke `/submission/{documentId}/on-review`, hanya untuk versi aktif berstatus `waiting_for_review`                                                     |
+| Komentar         | POST `/submission/{submissionId}/comment` dengan `{ comment }`, hanya versi aktif `on_review`; komentar kosong atau lebih dari 200 karakter ditolak sebelum request |
+| Selesai review   | POST tanpa body ke `/submission/{documentId}/review`, hanya versi aktif `on_review`; komentar yang belum dikirim harus dikirim/dikosongkan terlebih dahulu          |
+| Hasil mahasiswa  | Detail hasil hanya diminta setelah `reviewed`; komentar HTML ditampilkan sebagai teks                                                                               |
 
 Akses mengikuti pemilik, mentorship dan respons API, bukan role pertama akun. Akun dengan role student/advisor tetap memiliki konteks dokumen sendiri dan bimbingan yang terpisah. Dokumen sendiri tidak memperoleh kontrol advisor. Saat pemeriksaan ulang menemukan akses dicabut atau sesi berubah, kontrol ditolak dan halaman melepaskan snapshot yang sedang ditampilkan.
 

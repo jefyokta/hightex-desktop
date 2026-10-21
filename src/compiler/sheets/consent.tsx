@@ -14,7 +14,6 @@ export const Constent = () => {
           display: "flex",
           justifyContent: "space-between",
         }}
-        
       >
         <div
           style={{

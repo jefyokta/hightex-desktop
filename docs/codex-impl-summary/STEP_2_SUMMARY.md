@@ -10,17 +10,17 @@ Identitas akun yang membuka file tetap terpisah dari penulis dokumen. Nama, NIM,
 
 ## Perubahan
 
-| Area | Hasil |
-| --- | --- |
-| Daftar submission | `GET /submission` ditampilkan sebagai antrean advisor atau riwayat mahasiswa sesuai bentuk respons server, bukan berdasarkan role pertama akun |
-| Buka snapshot server | Mengunduh `GET /submission/{submission}/file`; memeriksa SHA-256 seluruh byte dan `X-Document-ID` sebelum menampilkan paket |
-| Buka file lokal | Tombol buka `.hightex` tersedia tanpa login dan saat offline; file diberi konteks lokal, bukan dianggap sebagai submission server terverifikasi |
-| Viewer | Pilihan identitas penulis, bab, CV/foto, dan referensi; konten hanya dapat dibaca |
-| Penyimpanan | Reader terpisah dari editor, tidak menjalankan import atau `Document.warm()`, dan tidak menulis tabel draft |
-| Cache | Hanya memori, maksimum tiga snapshot, dipisahkan berdasarkan server, akun, sesi, dokumen, submission, dan hash |
-| Pergantian sesi | Respons lama tidak dipasang setelah sesi berubah; cache dibersihkan saat konteks akun berubah atau akses server offline/logout |
-| Simpan paket | Menyimpan salinan byte asli, tanpa mengekspor ulang atau mengubah metadata paket |
-| Tampilan | Menggunakan komponen Card, Button, Badge, Select, dan Paper yang sudah ada; teks baru tersedia dalam Bahasa Indonesia dan Inggris |
+| Area                 | Hasil                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Daftar submission    | `GET /submission` ditampilkan sebagai antrean advisor atau riwayat mahasiswa sesuai bentuk respons server, bukan berdasarkan role pertama akun  |
+| Buka snapshot server | Mengunduh `GET /submission/{submission}/file`; memeriksa SHA-256 seluruh byte dan `X-Document-ID` sebelum menampilkan paket                     |
+| Buka file lokal      | Tombol buka `.hightex` tersedia tanpa login dan saat offline; file diberi konteks lokal, bukan dianggap sebagai submission server terverifikasi |
+| Viewer               | Pilihan identitas penulis, bab, CV/foto, dan referensi; konten hanya dapat dibaca                                                               |
+| Penyimpanan          | Reader terpisah dari editor, tidak menjalankan import atau `Document.warm()`, dan tidak menulis tabel draft                                     |
+| Cache                | Hanya memori, maksimum tiga snapshot, dipisahkan berdasarkan server, akun, sesi, dokumen, submission, dan hash                                  |
+| Pergantian sesi      | Respons lama tidak dipasang setelah sesi berubah; cache dibersihkan saat konteks akun berubah atau akses server offline/logout                  |
+| Simpan paket         | Menyimpan salinan byte asli, tanpa mengekspor ulang atau mengubah metadata paket                                                                |
+| Tampilan             | Menggunakan komponen Card, Button, Badge, Select, dan Paper yang sudah ada; teks baru tersedia dalam Bahasa Indonesia dan Inggris               |
 
 Reader mendukung manifest desktop `schema_version: 2` maupun `version: 2`, serta export web schema v1. ID lokal dalam archive boleh berbeda dari ID dokumen server; identitas target server diperiksa terhadap header respons.
 

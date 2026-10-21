@@ -4,14 +4,14 @@ Perubahan lanjutan setelah langkah 4, belum di-commit. Instruksi pengguna memper
 
 ## Sumber Data
 
-| Field dokumen | Sumber server |
-| --- | --- |
-| Nama/NIM penulis | `/me`: `name`, `identity_number` |
+| Field dokumen          | Sumber server                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| Nama/NIM penulis       | `/me`: `name`, `identity_number`                                               |
 | Pembimbing utama/kedua | `/me.advisors`, dengan `advisor_role: primary/secondary` dari mentorship aktif |
-| Ketua sidang | `/me.thesis_data.session_chair.name` |
-| Penguji pertama/kedua | `/me.thesis_data.first_examiner.name`, `second_examiner.name` |
-| Nama/NIP kaprodi | `/university-data.data.lead_program_study` |
-| Nama/NIP dekan | `/university-data.data.dean` |
+| Ketua sidang           | `/me.thesis_data.session_chair.name`                                           |
+| Penguji pertama/kedua  | `/me.thesis_data.first_examiner.name`, `second_examiner.name`                  |
+| Nama/NIP kaprodi       | `/university-data.data.lead_program_study`                                     |
+| Nama/NIP dekan         | `/university-data.data.dean`                                                   |
 
 Nama dipakai sesuai format server, termasuk gelar; tidak ditambah gelar lagi. Urutan array pembimbing dan role pertama akun tidak dipakai untuk menentukan penugasan. Assignment kosong mengosongkan nilai manual lama. Assignment ambigu atau respons tidak sesuai kontrak ditolak.
 

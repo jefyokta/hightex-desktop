@@ -12,22 +12,22 @@ Form, dialog konfirmasi, tombol, pemilih dokumen, badge dan kartu riwayat memaka
 
 ## Perubahan Utama
 
-| Area | Perilaku |
-| --- | --- |
-| Persiapan | Editor harus ditutup agar penyimpanan selesai. Exporter lama membaca metadata, bab dan aset dalam satu transaksi, lalu menghasilkan artifact tetap |
-| Validasi | Judul, nama/NIM penulis dan isi bab wajib tersedia. Paket desktop harus JSON v2. KP ditolak oleh UI dan service cloud |
-| Target | Hanya dokumen dengan binding ke slot cloud akun yang aktif; tidak mengganti slot milik draft lain melalui pengajuan |
-| Sebelum upload | Membaca riwayat dokumen dan memeriksa pemilik serta submission aktif. Gagal/konflik push menghentikan alur sebelum POST submission |
-| Sebelum submit | Memeriksa ID/hash versi cloud, mengunduh file dengan pemeriksaan hash, lalu memeriksa riwayat lagi |
-| Pengajuan | `POST /submission` tanpa body. Tidak ada retry POST otomatis. Request submission dibatasi 30 detik |
-| Hasil | Mengambil file submission melalui endpoint file, memeriksa hash byte dan ID server, lalu membandingkannya dengan hash artifact |
-| Pemulihan | Catatan percobaan disimpan per server/akun melalui Electron Store `submission-attempts`, termasuk sebelum POST dikirim |
-| Retry kegagalan pasti | **Ajukan versi tersimpan** memakai versi cloud yang sudah disiapkan; tidak mengekspor atau push ulang draft terbaru. Bila cloud berubah, retry dihentikan |
-| Timeout/hasil ambigu | **Periksa hasil pengajuan** hanya membaca riwayat/file. Submission baru yang muncul diverifikasi; percobaan lama tidak langsung dikirim ulang |
-| Perubahan versi bersamaan | Bila snapshot berbeda, tampilkan hasil **berbeda**, bukan sukses; tombol membuka snapshot yang benar-benar dibuat server |
-| Riwayat | Dokumen cloud memakai `GET /submission/{document}`. Riwayat mahasiswa dari `GET /submission` tetap tampil untuk dokumen web yang belum mempunyai file cloud |
-| Akun multi-role | Riwayat dokumen sendiri memakai ID slot akun; antrean advisor tetap terpisah. Pemeriksaan role UI melihat seluruh array, sementara service tetap memeriksa pemilik dan izin server |
-| Hasil review | Status dan komentar dibaca lewat riwayat serta endpoint detail saat `reviewed`. Komentar ditampilkan sebagai teks React. Hasil review tetap dapat dibaca ketika file snapshot lama tidak tersedia |
+| Area                      | Perilaku                                                                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Persiapan                 | Editor harus ditutup agar penyimpanan selesai. Exporter lama membaca metadata, bab dan aset dalam satu transaksi, lalu menghasilkan artifact tetap                                                |
+| Validasi                  | Judul, nama/NIM penulis dan isi bab wajib tersedia. Paket desktop harus JSON v2. KP ditolak oleh UI dan service cloud                                                                             |
+| Target                    | Hanya dokumen dengan binding ke slot cloud akun yang aktif; tidak mengganti slot milik draft lain melalui pengajuan                                                                               |
+| Sebelum upload            | Membaca riwayat dokumen dan memeriksa pemilik serta submission aktif. Gagal/konflik push menghentikan alur sebelum POST submission                                                                |
+| Sebelum submit            | Memeriksa ID/hash versi cloud, mengunduh file dengan pemeriksaan hash, lalu memeriksa riwayat lagi                                                                                                |
+| Pengajuan                 | `POST /submission` tanpa body. Tidak ada retry POST otomatis. Request submission dibatasi 30 detik                                                                                                |
+| Hasil                     | Mengambil file submission melalui endpoint file, memeriksa hash byte dan ID server, lalu membandingkannya dengan hash artifact                                                                    |
+| Pemulihan                 | Catatan percobaan disimpan per server/akun melalui Electron Store `submission-attempts`, termasuk sebelum POST dikirim                                                                            |
+| Retry kegagalan pasti     | **Ajukan versi tersimpan** memakai versi cloud yang sudah disiapkan; tidak mengekspor atau push ulang draft terbaru. Bila cloud berubah, retry dihentikan                                         |
+| Timeout/hasil ambigu      | **Periksa hasil pengajuan** hanya membaca riwayat/file. Submission baru yang muncul diverifikasi; percobaan lama tidak langsung dikirim ulang                                                     |
+| Perubahan versi bersamaan | Bila snapshot berbeda, tampilkan hasil **berbeda**, bukan sukses; tombol membuka snapshot yang benar-benar dibuat server                                                                          |
+| Riwayat                   | Dokumen cloud memakai `GET /submission/{document}`. Riwayat mahasiswa dari `GET /submission` tetap tampil untuk dokumen web yang belum mempunyai file cloud                                       |
+| Akun multi-role           | Riwayat dokumen sendiri memakai ID slot akun; antrean advisor tetap terpisah. Pemeriksaan role UI melihat seluruh array, sementara service tetap memeriksa pemilik dan izin server                |
+| Hasil review              | Status dan komentar dibaca lewat riwayat serta endpoint detail saat `reviewed`. Komentar ditampilkan sebagai teks React. Hasil review tetap dapat dibaca ketika file snapshot lama tidak tersedia |
 
 Catatan percobaan berisi ID, judul, hash, riwayat awal dan status; tidak menyimpan token atau salinan draft. File yang sudah diunggah tetap berada di server. Membatalkan rencana yang belum dikirim tidak menghapus file cloud. Catatan `uncertain`/`unverified` tidak dapat dibatalkan dari tombol tersebut.
 

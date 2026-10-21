@@ -1,4 +1,3 @@
-
 import {
   ChevronDown,
   Cloud,
@@ -40,18 +39,15 @@ export const Sidebar = ({ recent = [] }: Props) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const navItem = (
-    path: string,
-    icon: React.ReactNode,
-    label: string,
-  ) => (
+  const navItem = (path: string, icon: React.ReactNode, label: string) => (
     <button
       key={path}
       onClick={() => navigate(path)}
       className={`flex w-full items-center gap-2 rounded-lg p-2 text-xs transition
-        ${isActive(path)
-          ? "bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
-          : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+        ${
+          isActive(path)
+            ? "bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
+            : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         }`}
     >
       {icon}
@@ -59,17 +55,15 @@ export const Sidebar = ({ recent = [] }: Props) => {
     </button>
   );
 
-  const cloudPaths = [
-    "/dashboard/projects/cloud",
-    "/dashboard/submissions",
-  ];
+  const cloudPaths = ["/dashboard/projects/cloud", "/dashboard/submissions"];
 
   const isCloudActive = cloudPaths.some(isActive);
 
   return (
     <div
-      className={`flex h-full w-56 flex-col bg-neutral-50 p-4 dark:bg-neutral-950 ${isMac ? "pt-2" : ""
-        }`}
+      className={`flex h-full w-56 flex-col bg-neutral-50 p-4 dark:bg-neutral-950 ${
+        isMac ? "pt-2" : ""
+      }`}
     >
       <div>
         {!isMac && (
@@ -95,9 +89,10 @@ export const Sidebar = ({ recent = [] }: Props) => {
               <CollapsibleTrigger asChild>
                 <button
                   className={`group flex w-full items-center gap-2 rounded-lg p-2 text-xs transition
-                    ${isCloudActive
-                      ? "bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
-                      : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                    ${
+                      isCloudActive
+                        ? "bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
+                        : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                     }`}
                 >
                   <Cloud size={14} />
@@ -122,7 +117,6 @@ export const Sidebar = ({ recent = [] }: Props) => {
                     <FileText size={14} />,
                     "Submissions",
                   )}
-
                 </div>
               </CollapsibleContent>
             </Collapsible>
@@ -149,10 +143,10 @@ export const Sidebar = ({ recent = [] }: Props) => {
               {recent.slice(0, 5).map((doc) => {
                 const time = doc.updatedAt
                   ? formatDistanceToNow(new Date(doc.updatedAt), {
-                    addSuffix: true,
-                    // @ts-ignore date-fns locale mapping
-                    locale: locales[locale],
-                  })
+                      addSuffix: true,
+                      // @ts-ignore date-fns locale mapping
+                      locale: locales[locale],
+                    })
                   : null;
 
                 return (
@@ -200,11 +194,7 @@ export const Sidebar = ({ recent = [] }: Props) => {
               "Present",
             )}
 
-            {navItem(
-              "/dashboard/forms",
-              <FileStack size={14} />,
-              "Forms",
-            )}
+            {navItem("/dashboard/forms", <FileStack size={14} />, "Forms")}
           </div>
         </div>
 
@@ -214,18 +204,9 @@ export const Sidebar = ({ recent = [] }: Props) => {
           </div>
 
           <div className="space-y-1">
-            {navItem(
-              "/dashboard/citation",
-              <Quote size={14} />,
-              "Citation",
-            )}
+            {navItem("/dashboard/citation", <Quote size={14} />, "Citation")}
 
-            {!isMac &&
-              navItem(
-                "/settings",
-                <Settings size={14} />,
-                "Settings",
-              )}
+            {!isMac && navItem("/settings", <Settings size={14} />, "Settings")}
           </div>
         </div>
       </div>
@@ -265,9 +246,7 @@ const Avatar = ({ user }: { user: User }) => {
 
       <div className="min-w-0">
         <div className="truncate text-neutral-500">{user.name}</div>
-        <div className="truncate text-neutral-400">
-          {user.identity_number}
-        </div>
+        <div className="truncate text-neutral-400">{user.identity_number}</div>
       </div>
     </button>
   );

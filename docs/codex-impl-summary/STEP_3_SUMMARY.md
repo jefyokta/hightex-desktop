@@ -10,22 +10,22 @@ Contoh regresi yang sudah diperbaiki: draft berbasis versi A, server sudah versi
 
 ## Perubahan Utama
 
-| Area | Perilaku sekarang |
-| --- | --- |
-| Binding/base | Disimpan per URL server, akun, dan ID dokumen lokal, dengan ID dokumen server terpisah |
-| Daftar riwayat | Tidak menyimpan atau menghapus base draft |
-| Push | Metadata, konten, variabel dan aset dibaca dalam satu transaksi; main process menghitung SHA-256 seluruh byte yang dikirim |
-| Export | Urutan entry dan waktu ZIP dibuat tetap; metadata export tidak lagi memuat waktu saat tombol ditekan. Gambar dan foto ikut menentukan hash |
-| Manifest | Writer menulis `schema_version: 2` dan `version: 2`, sesuai kebutuhan reader desktop dan backend lokal |
-| Konfirmasi push | Base baru disimpan setelah respons SHA sesuai artifact dan commit server mengonfirmasi ID/versi; hasil sesi lama ditolak |
-| Pull | Memeriksa hash byte, header ID server dan SHA riwayat yang diminta; download sendiri tidak mengubah base |
-| Import cloud | Validasi dan persiapan sebelum menulis; penggantian tabel draft dalam satu transaksi; tidak memanggil import/warm singleton editor |
-| Penerimaan pull | Base diterapkan setelah import lokal berhasil; bila penerimaan gagal, upaya rollback mempertahankan edit lokal yang lebih baru |
-| Konflik | Tidak retry force; tombol menawarkan unduhan cloud sebagai salinan untuk dibandingkan |
-| Riwayat | **Salinan** membuat dokumen dengan ID lokal baru tanpa binding atau perubahan base; **Pulihkan** mengganti draft terpilih setelah konfirmasi dan backup, tanpa mengubah base yang sudah dimiliki draft |
-| Penggantian slot cloud | Draft yang belum tertaut perlu konfirmasi eksplisit; file cloud lama diverifikasi dan dibackup sebelum upload |
-| Backup draft lokal | Penggantian draft yang sudah ada dibackup dahulu; perubahan yang terjadi selama proses membatalkan penggantian |
-| Akses KP | Push KP ditolak pada UI dan service; pull paket yang tersedia tetap bisa mempertahankan data KP sebagai data lokal |
+| Area                   | Perilaku sekarang                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Binding/base           | Disimpan per URL server, akun, dan ID dokumen lokal, dengan ID dokumen server terpisah                                                                                                                 |
+| Daftar riwayat         | Tidak menyimpan atau menghapus base draft                                                                                                                                                              |
+| Push                   | Metadata, konten, variabel dan aset dibaca dalam satu transaksi; main process menghitung SHA-256 seluruh byte yang dikirim                                                                             |
+| Export                 | Urutan entry dan waktu ZIP dibuat tetap; metadata export tidak lagi memuat waktu saat tombol ditekan. Gambar dan foto ikut menentukan hash                                                             |
+| Manifest               | Writer menulis `schema_version: 2` dan `version: 2`, sesuai kebutuhan reader desktop dan backend lokal                                                                                                 |
+| Konfirmasi push        | Base baru disimpan setelah respons SHA sesuai artifact dan commit server mengonfirmasi ID/versi; hasil sesi lama ditolak                                                                               |
+| Pull                   | Memeriksa hash byte, header ID server dan SHA riwayat yang diminta; download sendiri tidak mengubah base                                                                                               |
+| Import cloud           | Validasi dan persiapan sebelum menulis; penggantian tabel draft dalam satu transaksi; tidak memanggil import/warm singleton editor                                                                     |
+| Penerimaan pull        | Base diterapkan setelah import lokal berhasil; bila penerimaan gagal, upaya rollback mempertahankan edit lokal yang lebih baru                                                                         |
+| Konflik                | Tidak retry force; tombol menawarkan unduhan cloud sebagai salinan untuk dibandingkan                                                                                                                  |
+| Riwayat                | **Salinan** membuat dokumen dengan ID lokal baru tanpa binding atau perubahan base; **Pulihkan** mengganti draft terpilih setelah konfirmasi dan backup, tanpa mengubah base yang sudah dimiliki draft |
+| Penggantian slot cloud | Draft yang belum tertaut perlu konfirmasi eksplisit; file cloud lama diverifikasi dan dibackup sebelum upload                                                                                          |
+| Backup draft lokal     | Penggantian draft yang sudah ada dibackup dahulu; perubahan yang terjadi selama proses membatalkan penggantian                                                                                         |
+| Akses KP               | Push KP ditolak pada UI dan service; pull paket yang tersedia tetap bisa mempertahankan data KP sebagai data lokal                                                                                     |
 
 Backup berbentuk paket `.hightex` pada `<userData>/cloud-backups/<hash-scope-server-akun>/<sha-file>.hightex`. Tidak ada penghapusan backup otomatis pada langkah ini.
 
