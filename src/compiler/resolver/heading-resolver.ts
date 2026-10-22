@@ -2,7 +2,7 @@ import { Engine } from "../engine";
 import { Resolver } from "./resolver";
 
 export class HeadingResolver implements Resolver {
-  async resolve(engine: Engine): Promise<void> {
+ resolve(engine: Engine): Awaited<any> {
     const ctx = engine.config.parser;
     const headings = Array.from(
       engine.root.querySelectorAll<HTMLHeadingElement>(

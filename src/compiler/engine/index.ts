@@ -51,13 +51,17 @@ export class Engine {
   public error: Error | null = null;
   private document: Window["document"];
 
+  private cleanup:()=>void
+
   constructor() {
+    this.cleanup = this.interceptError()
     this.pipeline = new EnginePipeline(this);
 
     this.document = this.isInFrame() ? window.parent.document : document;
   }
 
   static getInstance() {
+    
     return new Engine();
   }
 
@@ -191,7 +195,6 @@ export class Engine {
   }
 
   async createPaged() {
-    const cleanup = this.interceptError();
     this.error = null;
     let shadowHost: HTMLElement | null = null;
     try {
@@ -227,7 +230,7 @@ export class Engine {
 
       if (this.isInFrame()) await new Interactable().resolve(this);
 
-      cleanup();
+      this.cleanup();
 
       if (this.error) {
         throw this.error;
@@ -252,7 +255,7 @@ export class Engine {
 
       return chunker;
     } finally {
-      cleanup();
+      this.cleanup();
       shadowHost?.remove();
     }
   }
