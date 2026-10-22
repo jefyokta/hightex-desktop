@@ -1,4 +1,5 @@
 # Ignore artifacts:
+/packages/
 build
 coverage
 node_modules/
