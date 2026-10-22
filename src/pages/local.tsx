@@ -1,8 +1,7 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { HighTexDB } from "../editor/storage/hightex-db";
 import { Manager } from "@/editor/manager";
-import { HighTexImporter, importHighTexPackage } from "@/utils/import-hightex";
-import { importHighTexV2Package } from "@/utils/import-v2";
+import { HighTexImporter } from "@/utils/import-v2";
 import { toast } from "sonner";
 import { truncate } from "@/utils/truncate";
 import { Exporter } from "@/utils/htx/exporter";
@@ -33,7 +32,7 @@ export const Dashboard = () => {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [db.documents]);
 
   const createDocument = async () => {
     const categories = await window.hightex.categories();
@@ -88,23 +87,22 @@ export const Dashboard = () => {
     if (!file) return;
     const id = toast.loading(t("common.importing"));
     try {
-      const manifest = (await HighTexImporter.create(file)).manifest;
-
-      const { id, title } = manifest.document;
-      const exitst = await HighTexDB.getInstance().documents.get(id);
-
-      if (exitst) {
+      const importer = await HighTexImporter.create(
+        file,
+        await window.file.getPath(file),
+      );
+      if (importer.exists) {
         const confirmed = await confirm(
-          `Document '${truncate(title.main, 10)}' is already exists wanna override it`,
+          `Document '${truncate(importer.model.document.title, 10)}' is already exists wanna override it`,
         );
         if (!confirmed) return;
       }
-      const importedDocument =
-        manifest.schema_version == 1
-          ? await importHighTexPackage(file)
-          : await importHighTexV2Package(file, await window.file.getPath(file));
+      const importedDocument = await importer.import();
 
-      setDocuments((prev) => [importedDocument, ...prev]);
+      setDocuments((prev) => [
+        importedDocument,
+        ...prev.filter((doc) => doc.id !== importedDocument.id),
+      ]);
       toast.success(`${truncate(importedDocument.title)} added`);
     } finally {
       toast.dismiss(id);

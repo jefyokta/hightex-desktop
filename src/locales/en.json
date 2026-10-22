@@ -247,20 +247,6 @@
         "save": "Save",
         "saved": "Author names updated"
       },
-      "scanner": {
-        "title": "Scanner",
-        "description": "Validate document structure",
-        "scan": "Scan",
-        "empty": "Click scan to validate document",
-        "chapter": "Chapter",
-        "text_errors": "Text Errors",
-        "node_errors": "Node Errors",
-        "range": "Range",
-        "no_issues": "No issues found",
-        "no_issues_chapter": "No issues found on {chapter}",
-        "chapter_passed": "Chapter `{chapter}` passed validation",
-        "all_chapters_passed": "All Chapters passed validation"
-      },
       "chapters": {
         "header": "List of chapters in this document"
       },
@@ -466,10 +452,8 @@
     "htx": {
       "export_failed": "HighTex export failed",
       "document_not_found_for_export": "Document not found for export.",
-      "import_failed": "HighTex import failed",
-      "manifest_missing": "Cannot find the manifest file",
-      "manifest_broken": "Manifest file is broken",
-      "manifest_package_missing": "manifest.json not found in HighTex package."
+      "unsupported_version": "Only HighTex v2 documents are supported.",
+      "import_failed": "HighTex import failed"
     }
   },
   "back": "Back",

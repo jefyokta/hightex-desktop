@@ -13,8 +13,6 @@ import { ConfigHandler } from "../handlers/config-handler";
 import { ProfileHandler } from "../handlers/profile-handlers";
 import { SessionHandler } from "../handlers/session-handlers";
 import { HighTexHandler } from "../handlers/hightex-handlers";
-import { KeyManagerService } from "../service/key-manager-service";
-import { DefaultPluginsBootstrapper } from "../plugins/plugin-default-boostraper";
 import { ZoteroHandler } from "../handlers/zotero-handler";
 import { FileOpenManager } from "../service/file-open-service";
 import { SharingHandler } from "../handlers/sharing-handler";
@@ -274,11 +272,8 @@ export class Application {
 
   private async prepareCoreServices() {
     await ServerService.checkForHost().catch(() => {});
-    KeyManagerService.ensure();
 
-    DefaultPluginsBootstrapper.installAll();
     new DatabaseBootstraper().tap();
-    // PluginManager.loadAll();
     NetworkService.tap();
   }
 
@@ -346,8 +341,6 @@ export class Application {
     SessionHandler.register();
     ProfileHandler.register();
     HighTexHandler.register();
-    // PluginHandler.register();
-    // PluginScannerHandler.register();
     SnapshotHandler.register();
     ZoteroHandler.register();
     DocumentErrorHandler.register();

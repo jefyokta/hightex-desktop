@@ -18,6 +18,7 @@ import {
   resolveDocumentProfile,
 } from "../src/utils/document-profile";
 import { readProfileEntries } from "../src/utils/htx/profile";
+import { captureDraft } from "../src/utils/htx/draft-transfer";
 
 const category: Category = {
   id: 1,
@@ -279,13 +280,88 @@ describe("portable author profile", () => {
     await db.documents.put(makeDocument("a", "Student A"));
     const { entries } = await new Exporter("a").buildExport();
     entries["files/profile.json"] = new TextEncoder().encode('{"name":42}');
-    const importer = await HighTexImporter.create(
-      new File([new Uint8Array(zipSync(entries))], "bad.hightex"),
-      "/test/bad.hightex",
-    );
-    await expect(importer.import()).rejects.toThrow();
+    await expect(
+      HighTexImporter.create(
+        new File([new Uint8Array(zipSync(entries))], "bad.hightex"),
+        "/test/bad.hightex",
+      ),
+    ).rejects.toThrow();
     expect((await db.documents.get("a"))?.profile?.name).toBe("Student A");
   });
+});
+
+test("local package import rejects v1 before changing stored documents", async () => {
+  await db.documents.put(makeDocument("a", "Existing author"));
+  const before = await captureDraft(db, "a");
+  const file = new File(
+    [
+      new Uint8Array(
+        zipSync({
+          "manifest.json": new TextEncoder().encode(
+            JSON.stringify({ schema_version: 1, document: { id: "a" } }),
+          ),
+        }),
+      ),
+    ],
+    "v1.hightex",
+  );
+  await expect(
+    HighTexImporter.create(file, "/test/v1.hightex"),
+  ).rejects.toMatchObject({
+    description: "Only HighTex v2 documents are supported.",
+  });
+  expect(await captureDraft(db, "a")).toEqual(before);
+});
+
+test("local package import rolls back a failed asset/reference write before warming the editor", async () => {
+  await db.documents.put(makeDocument("a", "Existing author"));
+  await db.chapters.put({ id: "a.stale", content: [{ type: "paragraph" }] });
+  const before = await captureDraft(db, "a");
+  const { entries } = await new Exporter("a").buildExport();
+  entries["files/assets/references.json"] = new TextEncoder().encode(
+    JSON.stringify({ ref: "@book{ref,title={Imported}}" }),
+  );
+  const importer = await HighTexImporter.create(
+    new File([new Uint8Array(zipSync(entries))], "new.hightex"),
+    "/test/new.hightex",
+  );
+  const failWrite = () => {
+    throw new Error("local reference write failed");
+  };
+  db.cite.hook("creating", failWrite);
+  try {
+    await expect(importer.import()).rejects.toMatchObject({
+      description: "local reference write failed",
+    });
+    expect(await captureDraft(db, "a")).toEqual(before);
+    expect(await db.cite.count()).toBe(0);
+  } finally {
+    db.cite.hook("creating").unsubscribe(failWrite);
+  }
+});
+
+test("local package overwrite clears stale rows and namespaces aliases", async () => {
+  await db.documents.put(makeDocument("a", "Imported author"));
+  const { entries } = await new Exporter("a").buildExport();
+  entries["files/chapters/1.json"] = new TextEncoder().encode(
+    JSON.stringify([{ type: "paragraph" }]),
+  );
+  entries["files/assets/aliases.json"] = new TextEncoder().encode(
+    JSON.stringify([{ key: "a.caption", value: "Caption" }]),
+  );
+  await db.chapters.put({ id: "a.stale", content: [{ type: "paragraph" }] });
+  await db.setVar("stale", "old", "a");
+  const importer = await HighTexImporter.create(
+    new File([new Uint8Array(zipSync(entries))], "new.hightex"),
+    "/test/new.hightex",
+  );
+  expect(importer.exists).toBe(true);
+  await importer.import();
+  expect(await db.chapters.get("a.stale")).toBeUndefined();
+  expect(await db.documentVariables.get(["a", "stale"])).toBeUndefined();
+  expect(await db.getAliases("a")).toEqual([
+    { key: "caption", value: "Caption" },
+  ]);
 });
 
 test("v1 migration preserves old records as backup without assigning the global profile to old documents", async () => {

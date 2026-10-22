@@ -25,6 +25,8 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@hightex/importer": ["./packages/importer"],
+      "@hightex/scanner": ["./packages/scanner"],
       "@main/*": ["./electron/*"],
       "pagedjs": ["./src/types/pagedjs"]
     }
@@ -36,7 +38,6 @@
     "src/components/**/*.tsx",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "signer.ts",
     "create-release.ts",
     "scripts/*.ts",
     "sharable-types/*.d.ts",

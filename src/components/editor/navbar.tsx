@@ -269,14 +269,6 @@ export const NavBar: React.FC = () => {
                     setOpen(true);
                   }}
                 />
-                {/* <Button
-                  icon={ScanText}
-                  title="scanner"
-                  onClick={() => {
-                    setContent("scanner");
-                    setOpen(true);
-                  }}
-                /> */}
                 <Button
                   icon={Search}
                   title="search & replace"

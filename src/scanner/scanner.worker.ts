@@ -1,6 +1,9 @@
-import { scan } from "./scan";
-import { plugins, type ScanEvent } from "./plugins";
-import type { ScanContext } from "./context";
+import {
+  scan,
+  plugins,
+  type DefaultScanEvent as ScanEvent,
+  type ScanContext,
+} from "@hightex/scanner";
 
 const worker = self as unknown as DedicatedWorkerGlobalScope;
 const send = (event: ScanEvent) => worker.postMessage(event);

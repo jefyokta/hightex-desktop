@@ -103,20 +103,6 @@ jobs:
       - name: Rebuild native dependencies
         run: bunx electron-builder install-app-deps
 
-      - name: Build default plugins
-        run: bun run build:plugin
-
-      - name: Sign default plugins
-        run: bun run sign:plugin
-        env:
-          PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
-          PLUGIN_KEY_ID: hightex-core
-
-      - name: Generate public key
-        run: node scripts/generate-public-key.js
-        env:
-          PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
-
       - name: Build mac
         if: matrix.os == 'macos-latest'
         run: bun run build:mac

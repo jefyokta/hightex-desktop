@@ -1,35 +1,16 @@
-import { ApplicationError } from "@/exception/interfaces/application-error";
 import { SchemaWritter } from "./schema/schema-writter";
-import { SchemaReader } from "./schema/schema-reader";
 
-export class Schema<TVersion extends SchemaVersion = 2> {
+/** V2 export schema. Import and validation are provided by @hightex/importer. */
+export class Schema {
   public readonly writter: SchemaWritter;
-  public readonly reader?: SchemaReader;
-  constructor(
-    private version: TVersion,
-    private format: ContentFormat = "json",
-    readOption?: {
-      file: File;
-      manifest: BaseManifest;
-    },
-  ) {
+  constructor(format: ContentFormat = "json") {
     this.writter = new SchemaWritter();
-    if (readOption) {
-      this.reader = new SchemaReader(
-        version,
-        readOption.file,
-        readOption.manifest as any,
-      );
-    }
-    this.writter.setContentFormat(this.format);
+    this.writter.setContentFormat(format);
   }
   createManifest(
     doc: HighTexDocument,
     format: ContentFormat = "json",
   ): HighTexManifestV2 {
-    if (this.version == 1) {
-      throw new ApplicationError("Creating schema v1 is not supported");
-    }
     return {
       format,
       schema_version: 2,

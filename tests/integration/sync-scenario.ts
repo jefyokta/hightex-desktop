@@ -32,7 +32,7 @@ export const syncScenario = async (
     },
   };
   const makeFile = async (version: string) => {
-    const schema = new Schema(2);
+    const schema = new Schema();
     schema.writter.putManifest(schema.createManifest(doc));
     schema.writter.putConfig(doc.config);
     schema.writter.putChapter("1", [

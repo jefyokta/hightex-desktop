@@ -251,17 +251,6 @@ contextBridge.exposeInMainWorld("updater", {
   download: () => ipcRenderer.invoke("updater:download"),
 } satisfies Window["updater"]);
 
-contextBridge.exposeInMainWorld("plugin", {
-  scanner: {
-    all: () => ipcRenderer.invoke("plugin:list"),
-    paragraph: (plugin: string, text: string, context: ScannerContext) =>
-      ipcRenderer.invoke("plugin:scanner.text", plugin, text, context),
-    node(pluginId, node, context) {
-      return ipcRenderer.invoke("plugin:scanner.node", pluginId, node, context);
-    },
-  },
-} satisfies Window["plugin"]);
-
 contextBridge.exposeInMainWorld("zotero", {
   testConnection: (host: string, port: number) =>
     ipcRenderer.invoke("zotero:test", host, port),

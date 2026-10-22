@@ -6,6 +6,7 @@ import { CiteUtils } from "bibtex.js";
 export {};
 
 declare global {
+  type Promisable<T = void> = T | Promise<T>;
   type ThemeMode = "light" | "dark" | "system";
   type SupportedLanguage = "en" | "id";
 
@@ -49,14 +50,6 @@ declare global {
       scope: "full" | "current";
     };
 
-    scanner: {
-      autoUpdate: boolean;
-      /**
-       * @deprecated
-       * its always all now
-       */
-      scope: "current" | "all";
-    };
     editor: {
       spellCheck?: boolean;
       preferCloudProfile?: boolean;
@@ -125,29 +118,6 @@ declare global {
     keywords?: string[];
     detail: Record<number, { start: number; end: number }>;
   };
-  /**
-   * @deprecated
-   * @since 0.7.5+
-   */
-  interface PluginScannerAPI {
-    paragraph(
-      pluginId: string,
-
-      text: string,
-
-      context: ScannerContext,
-    ): Promise<TextError[]>;
-
-    node(
-      pluginId: string,
-
-      node: JSONContent,
-
-      context: ScannerContext,
-    ): Promise<NodeError[]>;
-    all(): Promise<SerialableHightexPlugin[]>;
-  }
-
   interface Window {
     account: AccountAPI;
     snapshotPrint: SnapshotPrintAPI;
@@ -214,11 +184,6 @@ declare global {
 
     config: ConfigAPI;
     zotero: ZoteroAPI;
-    /**
-     * @deprecated
-     * @since 0.7.5+
-     */
-    plugin: { scanner: PluginScannerAPI };
     sharing: SharingAPI;
     //cmn ada di frame yach
     /**

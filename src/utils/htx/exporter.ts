@@ -13,7 +13,7 @@ import { applyCloudAcademic } from "../cloud-academic";
  */
 export class Exporter {
   private db = HighTexDB.getInstance();
-  private scheme: Schema<2>;
+  private scheme: Schema;
 
   constructor(
     private documentId: string,
@@ -22,7 +22,7 @@ export class Exporter {
       ext: "hightex",
     },
   ) {
-    this.scheme = new Schema(2);
+    this.scheme = new Schema();
   }
 
   async export(): Promise<{ canceled: boolean; filePath?: string }> {
@@ -119,7 +119,7 @@ export class Exporter {
     );
     const { document } = snapshot;
     // A new writer prevents deleted chapters/images surviving a second export.
-    this.scheme = new Schema(2);
+    this.scheme = new Schema();
     this.scheme.writter.setContentFormat(this.options.format);
     this.scheme.writter.putManifest(
       this.scheme.createManifest(document, this.options.format),
@@ -150,10 +150,5 @@ export class Exporter {
       entries,
       buffer: zipSync(entries, { level: 9, mtime: new Date(1980, 0, 1) }),
     };
-  }
-
-  *exportLazy() {
-    yield 1;
-    return "";
   }
 }

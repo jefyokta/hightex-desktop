@@ -1,3 +1,4 @@
+import { supportedNodes, supportedMarks } from "@/utils/htx/content-policy";
 import { strFromU8, unzipSync } from "fflate";
 import type { JSONContent } from "@tiptap/core";
 import {
@@ -49,49 +50,6 @@ export class SnapshotReadError extends Error {
 
 const MAX_ARCHIVE = 64 * 1024 * 1024;
 const MAX_CONTENT = 128 * 1024 * 1024;
-const supportedNodes = new Set([
-  "doc",
-  "text",
-  "paragraph",
-  "heading",
-  "hardBreak",
-  "bulletList",
-  "orderedList",
-  "listItem",
-  "blockquote",
-  "codeBlock",
-  "horizontalRule",
-  "image",
-  "imageFigure",
-  "figure",
-  "figcaption",
-  "figureTable",
-  "table",
-  "tableRow",
-  "tableCell",
-  "tableHeader",
-  "grid",
-  "gridRow",
-  "gridCell",
-  "mathInline",
-  "blockMath",
-  "cite",
-  "variable",
-  "refComponent",
-  "ref",
-  "dots",
-]);
-const supportedMarks = new Set([
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "code",
-  "subscript",
-  "superscript",
-  "note",
-  "link",
-]);
 const object = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
     throw new SnapshotReadError("invalid_content");

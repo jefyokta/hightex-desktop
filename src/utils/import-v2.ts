@@ -1,319 +1,72 @@
-import { JSONContent } from "@tiptap/core";
-import { unzipSync, strFromU8 } from "fflate";
+import type { ImportedHighTexV2 } from "@hightex/importer";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { Storage } from "@/editor/storage";
 import { HighTexImportError } from "@/exception/hightex-import";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { Document } from "@/editor/document";
-import { t } from "@/utils/lang";
-import { readProfileEntries } from "./htx/profile";
+import {
+  captureDraft,
+  installDraft,
+  prepareDraftImport,
+  type DraftState,
+} from "./htx/draft-transfer";
+import { archiveSha256, readImportModel } from "./htx/import-model";
 
+/** Desktop persistence adapter; archive parsing belongs to @hightex/importer. */
 export class HighTexImporter {
-  public context!: ImportContext;
-  public filePath!: string;
+  private constructor(
+    readonly model: ImportedHighTexV2,
+    readonly filePath: string,
+    private readonly hash: string,
+    private readonly before: DraftState,
+  ) {}
 
   static async create(file: File, filePath: string) {
-    const importer = new HighTexImporter();
-    await importer.init(file, filePath);
-    return importer;
-  }
-
-  private async init(file: File, filePath: string) {
-    const buffer = await file.arrayBuffer();
-    this.filePath = filePath;
-    const entries = unzipSync(new Uint8Array(buffer));
-
-    const manifest = this.findManifest(entries);
-
-    const documentId = manifest?.document?.id || "";
-
-    const db = HighTexDB.getInstance();
-    const doc = await db.documents.get(documentId);
-    const exists = !!doc;
-
-    this.context = {
-      file,
-      buffer,
-      entries,
-      manifest,
-      documentId,
-      actualDocumentId: doc?.id || documentId,
-      exists,
-      db,
-    };
-  }
-
-  get manifest() {
-    return this.context.manifest;
-  }
-
-  get entries() {
-    return this.context.entries;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const model = readImportModel(bytes);
+    const before = await captureDraft(
+      HighTexDB.getInstance(),
+      model.document.id,
+    );
+    return new HighTexImporter(
+      model,
+      filePath,
+      await archiveSha256(bytes),
+      before,
+    );
   }
 
   get exists() {
-    return this.context.exists;
+    return !!this.before.document;
   }
-
   get actualDocumentId() {
-    return this.context.actualDocumentId;
+    return this.model.document.id;
   }
 
-  async import() {
+  async import(): Promise<HighTexDocument> {
     try {
-      const document = await this.createDocument();
-
-      await this.importChapters(document.id);
-      await this.importReferences();
-      await this.importImages(document.id);
-      await this.importVariables();
-      await this.importAliases();
-      await Storage.instance.setDocument(document);
-
-      const doc = new Document(document.id);
-      await doc.warm();
-      doc.destroy();
-
-      return document;
-    } catch (error) {
-      if (error instanceof ShouldNotified) {
-        throw error;
-      }
-
-      const message = error instanceof Error ? error.message : String(error);
-
-      throw new HighTexImportError(message);
-    }
-  }
-
-  async importVariables() {
-    const vars = this.entries["files/assets/variables.json"];
-    if (!vars) return;
-    try {
-      const vs = (JSON.parse(strFromU8(vars)) as Variable[]) || [];
-      for (const v of vs) {
-        // console.log(v);
-        await this.context.db.setVar(
-          v.name,
-          v.value,
-          this.context.actualDocumentId,
-        );
-      }
-    } catch (error) {}
-  }
-  async importAliases() {
-    const aliases = this.entries["files/assets/aliases.json"];
-    if (!aliases) return;
-    try {
-      const vs = (JSON.parse(strFromU8(aliases)) as Alias[]) || [];
-      for (const v of vs) {
-        this.context.db.aliases.put({
-          key: v.key,
-          value: v.value,
-          documentId: this.context.actualDocumentId,
-        });
-      }
-    } catch (error) {}
-  }
-
-  async createDocument(): Promise<HighTexDocument> {
-    const manifest = this.manifest;
-
-    const remoteCategories = await window.hightex.categories();
-
-    const categoryId = manifest.document?.category;
-
-    const category =
-      remoteCategories.find((item) => item.id.toString() === categoryId) ??
-      remoteCategories[0];
-
-    return {
-      id: this.actualDocumentId,
-      category: category?.id.toString() ?? "0",
-      title: manifest.document?.title?.id ?? "Imported Document",
-      altTitle: manifest.document?.title?.en ?? "",
-      keywords: normalizeKeywords(manifest.document?.keywords),
-      config: this.getConfig(),
-      profile: readProfileEntries(this.entries, manifest.profile),
-      updatedAt: new Date(),
-      file: this.filePath,
-    } satisfies HighTexDocument;
-  }
-
-  async importChapters(documentId: string) {
-    const keys = Object.keys(this.entries);
-    // console.log(keys)
-    const chapterKeys = keys.filter((k) => k.startsWith("files/chapters/"));
-
-    for (const key of chapterKeys) {
-      const entry = this.entries[key];
-      if (!entry) continue;
-
-      const fileName = key.split("/").pop() ?? key;
-      const chapterName = mapFileToChapterName(
-        fileName.replace(/\.json$/i, ""),
+      const db = HighTexDB.getInstance();
+      const categories = await window.hightex.categories();
+      const prepared = await prepareDraftImport(
+        this.model,
+        this.actualDocumentId,
+        categories,
+        `local_${this.actualDocumentId}_${this.hash.slice(0, 16)}_`,
       );
-
-      const content = normalizeChapterContent(JSON.parse(strFromU8(entry)));
-      // console.log(content)
-
-      const chapterId = `${documentId}.${chapterName}`;
-
-      await this.context.db.chapters.put({ id: chapterId, content });
-    }
-  }
-
-  async importReferences() {
-    const entry = findZipEntry(this.entries, "files/assets/references.json");
-    if (!entry) return;
-
-    const refs = JSON.parse(strFromU8(entry));
-
-    await this.context.db.cite.bulkPut(convertReferenceToCollection(refs));
-  }
-
-  async importImages(documentId: string) {
-    const keys = Object.keys(this.entries).filter(
-      (k) => k.endsWith(".webp") && k.includes("files/assets/images/"),
-    );
-
-    for (const key of keys) {
-      const entry = this.entries[key];
-      if (!entry) continue;
-
-      const fileName = key.split("/").pop() ?? key;
-      const id = fileName.replace(/\.webp$/i, "");
-
-      const blob = new Blob([entry.slice().buffer], { type: "image/webp" });
-
-      const record: ImageRecord = {
-        id,
-        blob,
-        documentId,
-        createdAt: Date.now(),
-      };
-
+      prepared.state.document.file = this.filePath;
+      await installDraft(db, prepared, this.before);
+      // Editor setup follows the database commit and runs outside its transaction.
+      const doc = new Document(this.actualDocumentId);
       try {
-        await this.context.db.images.add(record);
-      } catch (e) {
-        // if exists, replace
-        await this.context.db.images.put(record);
+        await doc.warm();
+      } finally {
+        doc.destroy();
       }
+      return prepared.state.document;
+    } catch (error) {
+      if (error instanceof ShouldNotified) throw error;
+      throw new HighTexImportError(
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
-
-  getConfig() {
-    const configEntry = findZipEntry(this.entries, "files/config.json");
-
-    if (!configEntry) return {};
-
-    const raw = JSON.parse(strFromU8(configEntry));
-
-    return {
-      ...raw,
-      consentDate: parseDateField(raw.consentDate),
-      validityDate: parseDateField(raw.validityDate),
-      statementDate: parseDateField(raw.statementDate),
-      leader: raw.leader,
-      member_1: raw.member_1,
-      member_2: raw.member_2,
-      intern: raw.intern
-        ? {
-            ...raw.intern,
-            validity: parseDateField(raw.intern.validity),
-          }
-        : undefined,
-    };
-  }
-
-  private findManifest(entries: Record<string, Uint8Array>) {
-    const manifestEntryKey = Object.keys(entries).find((name) =>
-      name.endsWith("manifest.json"),
-    );
-
-    if (!manifestEntryKey) {
-      throw new HighTexImportError(t("error.htx.manifest_package_missing"));
-    }
-
-    return JSON.parse(
-      strFromU8(entries[manifestEntryKey]),
-    ) as HighTexManifestV2;
-  }
 }
-
-export async function importHighTexV2Package(file: File, filePath: string) {
-  const importer = await HighTexImporter.create(file, filePath);
-
-  return importer.import();
-}
-
-const normalizeKeywords = (
-  keywords: HighTexManifestV2["document"]["keywords"],
-): Keywords => {
-  return {
-    indonesian: Array.isArray(keywords?.id) ? keywords.id : [],
-    english: Array.isArray(keywords?.en) ? keywords.en : [],
-  };
-};
-
-const normalizeChapterContent = (value: any): JSONContent[] => {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (value && Array.isArray(value?.content)) {
-    return value.content;
-  }
-
-  if (value) {
-    return [value];
-  }
-
-  return [];
-};
-
-const parseDateField = (value: unknown): Date | undefined => {
-  if (!value) return undefined;
-
-  const date = new Date(String(value));
-
-  return Number.isNaN(date.getTime()) ? undefined : date;
-};
-
-const mapFileToChapterName = (filePath: string) => {
-  const fileName = filePath.split("/").pop() ?? "";
-
-  const map: Record<string, string> = {
-    id: "abstract",
-    en: "abstract-en",
-    "abstract-en": "abstract-en",
-    abstract: "abstract",
-    foreword: "foreword",
-    presentation: "presentation",
-    attachment: "attachment",
-    reference: "reference",
-    config: "config",
-    document: "document",
-  };
-
-  return map[fileName] ?? fileName;
-};
-
-const findZipEntry = (entries: Record<string, Uint8Array>, path: string) => {
-  const normalized = path.replace(/^\/+/, "");
-
-  if (entries[normalized]) {
-    return entries[normalized];
-  }
-
-  const match = Object.keys(entries).find((key) => key.endsWith(normalized));
-
-  return match ? entries[match] : undefined;
-};
-
-const convertReferenceToCollection = (record: Record<string, string>) => {
-  return Object.keys(record).map((key) => ({
-    key,
-    bib: record[key],
-  })) satisfies CiteRecord[];
-};

@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { textOf } from "@/utils/text-of";
-import { plugins, type ScanResults } from "@/scanner/plugins";
+import { plugins, type ScanResults } from "@hightex/scanner";
 import { useScan } from "@/hooks/use-scan";
 import { Manager } from "@/editor/manager";
 import { Chapter } from "@/editor/chapter";

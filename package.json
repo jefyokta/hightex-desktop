@@ -8,19 +8,18 @@
         "email": "jefyokta@gmail.com"
     },
     "scripts": {
-        "dev": "vite",
-        "build:mac": "tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder --publish never",
-        "build:win": "tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder --publish never",
-        "build:linux": "tsc && vite build && electron-builder --publish never",
-        "publish:mac": "tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder --mac --publish always",
-        "publish:win": "tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder --win --publish always",
-        "publish:linux": "tsc && vite build && electron-builder --linux --publish always",
+        "dev": "bun run build:libraries && vite",
+        "build:mac": "bun run build:libraries && tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder --publish never",
+        "build:win": "bun run build:libraries && tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder --publish never",
+        "build:linux": "bun run build:libraries && tsc && vite build && electron-builder --publish never",
+        "publish:mac": "bun run build:libraries && tsc && vite build && cp hightex.icns dist/hightex.icns && electron-builder --mac --publish always",
+        "publish:win": "bun run build:libraries && tsc && vite build && bunx shx cp electron-vite.ico dist/hightex.ico && electron-builder --win --publish always",
+        "publish:linux": "bun run build:libraries && tsc && vite build && electron-builder --linux --publish always",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
-        "test": "bun test",
+        "test": "bun run build:libraries && bun test ./tests",
         "prettier": "bunx prettier . --write",
-        "build:plugin": "bun build electron/plugins/default/reference/index.ts --outdir=electron/plugins/default/reference/ && bun build electron/plugins/default/text-lint/index.ts --outdir=electron/plugins/default/text-lint/ && bun build electron/plugins/default/abstract/index.ts --outdir=electron/plugins/default/abstract/",
-        "sign:plugin": "bun signer.ts"
+        "build:libraries": "tsc -p packages/importer/tsconfig.json && tsc -p packages/scanner/tsconfig.json"
     },
     "dependencies": {
         "@base-ui-components/react": "^1.0.0-rc.0",
@@ -118,7 +117,9 @@
         "typescript": "^5.9.3",
         "vite": "^5.4.21",
         "vite-plugin-electron": "^0.28.8",
-        "vite-plugin-electron-renderer": "^0.14.7"
+        "vite-plugin-electron-renderer": "^0.14.7",
+        "@hightex/importer": "0.1.0",
+        "@hightex/scanner": "0.1.0"
     },
     "main": "./dist-electron/index.js"
 }

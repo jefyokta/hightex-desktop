@@ -11,10 +11,6 @@ const DEFAULT_CONFIG: ConfigShape = {
     scope: "current",
   },
 
-  scanner: {
-    autoUpdate: false,
-    scope: "current",
-  },
   editor: {
     spellCheck: false,
     preferCloudProfile: true,
@@ -43,10 +39,6 @@ export class ConfigService {
         ...DEFAULT_CONFIG.previewer,
         ...(saved?.previewer || {}),
       },
-      scanner: {
-        ...DEFAULT_CONFIG.scanner,
-        ...(saved?.scanner || {}),
-      },
       export: {
         ...DEFAULT_CONFIG.export,
         ...(saved?.export || {}),
@@ -71,10 +63,6 @@ export class ConfigService {
       previewer: {
         ...current.previewer,
         ...(patch.previewer || {}),
-      },
-      scanner: {
-        ...current.scanner,
-        ...(patch.scanner || {}),
       },
       export: {
         ...current.export,

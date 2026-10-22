@@ -247,20 +247,6 @@
         "save": "Simpan",
         "saved": "Nama penulis diperbarui"
       },
-      "scanner": {
-        "title": "Pemindai",
-        "description": "Validasi struktur dokumen",
-        "scan": "Pindai",
-        "empty": "Klik pindai buat memvalidasi dokumen",
-        "chapter": "Bab",
-        "text_errors": "Kesalahan Teks",
-        "node_errors": "Kesalahan Node",
-        "range": "Rentang",
-        "no_issues": "Tidak ada masalah ditemukan",
-        "no_issues_chapter": "Tidak ada masalah di {chapter}",
-        "chapter_passed": "Bab `{chapter}` lolos validasi",
-        "all_chapters_passed": "Semua Bab lolos validasi"
-      },
       "chapters": {
         "header": "Daftar bab dalam dokumen ini"
       },
@@ -466,10 +452,8 @@
     "htx": {
       "export_failed": "Ekspor HighTex gagal",
       "document_not_found_for_export": "Dokumen tidak ditemukan untuk diekspor.",
-      "import_failed": "Impor HighTex gagal",
-      "manifest_missing": "File manifest tidak ditemukan",
-      "manifest_broken": "File manifest rusak",
-      "manifest_package_missing": "manifest.json tidak ditemukan dalam paket HighTex."
+      "unsupported_version": "Hanya dokumen HighTex v2 yang didukung.",
+      "import_failed": "Impor HighTex gagal"
     }
   },
   "back": "Kembali",

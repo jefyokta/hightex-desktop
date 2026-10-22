@@ -1,5 +1,3 @@
-import { HighTexDB } from "@/editor/storage/hightex-db";
-
 export {};
 
 declare global {
@@ -17,13 +15,9 @@ declare global {
     ext: HighTexFileExt;
   }
   type ContentFormat = "ht" | "json";
-  type SchemaVersion = 1 | 2;
-  interface BaseManifest {
-    schema_version: SchemaVersion;
-    profile?: Profile;
-  }
-  interface HighTexManifestV2 extends BaseManifest {
+  interface HighTexManifestV2 {
     format: ContentFormat;
+    profile?: Profile;
     schema_version: 2;
     version?: 2;
     document: {
@@ -33,49 +27,4 @@ declare global {
       category?: string;
     };
   }
-  type ImportContext = {
-    file: File;
-    buffer: ArrayBuffer;
-    entries: Record<string, Uint8Array>;
-    manifest: HighTexManifestV2;
-    documentId: string;
-    actualDocumentId: string;
-    exists: boolean;
-    db: HighTexDB;
-  };
-
-  //soon will be removed
-  interface HighTexManifest extends BaseManifest {
-    document: {
-      id: string;
-      title: {
-        main: string;
-        alt?: string;
-      };
-      keywords?: {
-        indonesian?: string[];
-        english?: string[];
-      };
-      category?: {
-        name?: string;
-        chapters?: number;
-      };
-    };
-    structure?: {
-      chapters?: Array<{ file: string; id: string }>;
-      assets?: string[];
-      excluded?: string[];
-    };
-  }
-
-  type ImportContextV1 = {
-    file: File;
-    buffer: ArrayBuffer;
-    entries: Record<string, Uint8Array>;
-    manifest: HighTexManifest;
-    documentId: string;
-    actualDocumentId: string;
-    exists: boolean;
-    db: HighTexDB;
-  };
 }

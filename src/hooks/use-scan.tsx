@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Document } from "@/editor/document";
 import { createSnapshot } from "@/scanner/snapshot";
-import type { ScanEvent, ScanResults } from "@/scanner/plugins";
+import type {
+  DefaultScanEvent as ScanEvent,
+  ScanResults,
+} from "@hightex/scanner";
 
 export type ScanStatus = "idle" | "scanning" | "done" | "cancelled";
 export type ScanError = { id: string; message: string };
@@ -37,6 +40,10 @@ export function useScan() {
           { id: event.id, message: event.message },
         ]);
         if (event.id !== "*") setCompleted((n) => n + 1);
+        break;
+      case "cancelled":
+        setCurrent(null);
+        setStatus("cancelled");
         break;
       case "done":
         setCurrent(null);
@@ -78,7 +85,10 @@ export function useScan() {
       w.onmessage = ({ data }: MessageEvent<ScanEvent>) => {
         if (id !== runId.current) return;
         handle(data);
-        if (data.type === "done") w.terminate();
+        if (data.type === "done" || data.type === "cancelled") {
+          w.terminate();
+          worker.current = null;
+        }
       };
       w.onerror = (e) => {
         if (id !== runId.current) return;

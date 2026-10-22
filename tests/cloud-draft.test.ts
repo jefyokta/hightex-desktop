@@ -324,7 +324,7 @@ test("rollback preserves newer edits and legacy packages do not retain a stale a
   expect((await db.documents.get("draft"))?.title).toBe("New edit");
 });
 
-test("web v1 maps its category by name without fallback and restores recorded author only", async () => {
+test("web v1 import is rejected before changing any draft state", async () => {
   const entries = unzipSync(await archive());
   const desktop = JSON.parse(strFromU8(entries["files/chapters/1.json"]));
   const web = zipSync({
@@ -345,8 +345,9 @@ test("web v1 maps its category by name without fallback and restores recorded au
     ),
     "data/1.json": strToU8(JSON.stringify(desktop)),
   });
-  const prepared = await prepareCloudDraft(web, "copy", categories);
-  expect(prepared.state.document.profile?.name).toBe("Recorded author");
-  expect(prepared.state.document.profile?.nim).toBe("");
-  expect(prepared.state.document.category).toBe("1");
+  const before = await captureDraft(db, "copy");
+  await expect(prepareCloudDraft(web, "copy", categories)).rejects.toThrow(
+    "unsupported_content",
+  );
+  expect(await captureDraft(db, "copy")).toEqual(before);
 });

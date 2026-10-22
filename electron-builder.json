@@ -9,12 +9,8 @@
   "directories": {
     "output": "release/${version}"
   },
-  "files": ["dist", "dist-electron"],
+  "files": ["dist", "dist-electron", "!packages{,/**/*}"],
   "extraResources": [
-    {
-      "from": "public.key",
-      "to": "public.key"
-    },
     {
       "from": "resources/category-backup.json",
       "to": "category-backup.json"
