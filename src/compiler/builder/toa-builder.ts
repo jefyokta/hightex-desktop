@@ -38,6 +38,7 @@ export class TOABuilder {
     const parent = document.createElement("div");
 
     parent.style.display = "contents";
+    parent.style.lineHeight = "1.5"
 
     const key = document.createElement("div");
     key.textContent = alias.key;
