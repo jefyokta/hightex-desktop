@@ -1,0 +1,110 @@
+name: HighTex Desktop feature request
+description: Suggest an improvement to the thesis-writing workflow in HighTex Desktop.
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Explain how this feature would improve writing a thesis with HighTex Desktop.
+        Fields marked as optional can be skipped. Remove personal information from examples and attachments.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before requesting
+      options:
+        - label: I have searched existing issues for a similar request.
+          required: true
+        - label: I have read the relevant README or documentation to check available features.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or need
+      description: What makes your current workflow difficult, and who is affected?
+      placeholder: For example, I have to manually fix bibliography entries before submitting my thesis.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-areas
+    attributes:
+      label: Feature areas
+      description: Select all that apply. Use additional context below to explain Other.
+      multiple: true
+      options:
+        - Editor
+        - Document management
+        - Thesis formatting
+        - PDF preview / export
+        - Citations / bibliography / Zotero
+        - Equations / tables / images
+        - Document validator
+        - Presentations / local network sharing
+        - Account / cloud sync
+        - Accessibility
+        - Other
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you want and how users would access it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: example-workflow
+    attributes:
+      label: Example workflow (optional)
+      description: Give a concrete example from the user's action to the expected result.
+      placeholder: |
+        1. The user ...
+        2. HighTex Desktop ...
+        3. The result is ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds (optional)
+      description: How do you handle this today, and what are the limitations?
+    validations:
+      required: false
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success criteria (optional)
+      description: What observable results would show that the feature meets your needs?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: connectivity
+    attributes:
+      label: Connectivity needs (optional)
+      options:
+        - Must work offline
+        - Requires an online service or integration
+        - Should support both offline and online use
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context (optional)
+      description: |
+        Include mockups, screenshots, sample input/output, or references to other apps.
+        For academic formatting or validator rules, name your institution/program and link or quote the relevant guidelines.
+        Mention any OS requirements or external integrations.
+    validations:
+      required: false

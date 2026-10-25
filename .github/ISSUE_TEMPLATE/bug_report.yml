@@ -1,0 +1,181 @@
+name: HighTex Desktop bug report
+description: Report a problem with the editor, documents, PDF output, or other HighTex Desktop features.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem in HighTex Desktop. Fields marked as optional can be skipped.
+        Remove personal information, private thesis content, and tokens from attachments and logs.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before reporting
+      options:
+        - label: I have searched existing issues for a similar report.
+          required: true
+        - label: I have checked the latest release and included the affected version below.
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem summary
+      description: Describe the problem and how it affects your work.
+      placeholder: For example, the last row of a table is cut off in the exported PDF.
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: HighTex Desktop version
+      description: Find this under Settings → About. If running from source, include the commit hash.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version or Linux distribution
+      placeholder: For example, Windows 11 24H2, macOS 15.5, or Ubuntu 24.04.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Device architecture (optional)
+      options:
+        - x64 (Intel / AMD)
+        - ARM64 (including Apple Silicon)
+        - Other
+        - Not sure
+    validations:
+      required: false
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: Installation method (optional)
+      options:
+        - Release installer
+        - Homebrew
+        - Installation script
+        - Running from source
+        - Other
+        - Not sure
+    validations:
+      required: false
+
+  - type: dropdown
+    id: affected-features
+    attributes:
+      label: Affected features
+      description: Select all that apply. Use additional context below to explain Other.
+      multiple: true
+      options:
+        - Installation / updates
+        - Editor
+        - Document storage / import
+        - Document formatting
+        - PDF preview / export
+        - Citations / bibliography / Zotero
+        - Equations / tables / images
+        - Document validator
+        - Presentations / local network sharing
+        - Account / cloud sync
+        - Other
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the initial document state and any relevant settings.
+      placeholder: |
+        1. Open HighTex Desktop and ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: What happens instead? Include the exact error message, if any.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: document-scope
+    attributes:
+      label: Affected documents (optional)
+      options:
+        - All documents, including new documents
+        - Multiple existing documents
+        - One specific document
+        - Not related to a document
+        - Not sure
+    validations:
+      required: false
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequency (optional)
+      options:
+        - Every time
+        - Sometimes
+        - Happened once
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Evidence and additional context (optional)
+      description: |
+        Attach screenshots, recordings, or a minimal sample document if available.
+        For PDF problems, compare the editor/preview with the exported PDF and include affected pages and document settings.
+        For formatting or validation problems, include the expected rule and a reference to your institution's guidelines.
+        For local sharing, include both devices' operating systems, the receiving browser/version if used, and whether they share a network.
+        For Zotero or cloud sync, include the Zotero version or relevant connection details.
+        Mention whether the issue started after an update or another change.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs (optional)
+      description: Paste relevant error output or an excerpt from hightex.log in the application data directory. Remove personal information and tokens.
+      render: text
+    validations:
+      required: false
