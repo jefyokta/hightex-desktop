@@ -197,3 +197,7 @@ Electron mungkin bukan solusi yang paling elegan, tetapi teknologi inilah yang m
 ## Status Saat Ini
 
 HighTex Desktop masih dalam pengembangan aktif. Fitur, arsitektur, dan alur kerja dapat terus berubah seiring berkembangnya proyek.
+
+## Kredit
+
+Lihat [Credits](./credits.md) untuk daftar kontributor, proyek open-source, dan ucapan terima kasih.

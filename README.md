@@ -197,3 +197,7 @@ Electron may not be the most elegant solution, but it is the one that allows Hig
 ## Current Status
 
 HighTex Desktop is under active development. Features, architecture, and workflows may continue to evolve as the project grows.
+
+## Credits
+
+See [Credits](./credits.md) for contributors, open-source projects, and acknowledgements.
