@@ -1,6 +1,5 @@
 import { Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GitHubSupport } from "@/components/splash/github-support";
 import {
   Dialog,
   DialogContent,
@@ -101,9 +100,6 @@ export const ContributorsDialog = () => (
             {t("splash.contributor_note")}
           </p>
         </section>
-      </div>
-      <div className="rounded-b-2xl border-t bg-muted/20 px-6 py-5">
-        <GitHubSupport />
       </div>
     </DialogContent>
   </Dialog>
