@@ -316,6 +316,11 @@ figure[data-type="figureTable"] > table {
   width: 100%;
 }
 
+.content td:not(.table-header-like):not(thead td),
+.attachment td:not(.table-header-like):not(thead td) {
+  vertical-align: top;
+}
+
 .content h2::before {
   content: attr(data-numbering) " ";
   font-weight: bold;

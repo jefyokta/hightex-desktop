@@ -197,6 +197,10 @@ figure[data-type="imageFigure"] .node-image {
   width: 100%;
 }
 
+.page td:not(.table-header-like):not(thead td) {
+  vertical-align: top;
+}
+
 td.center p,
 th.center p {
   text-align: center;
