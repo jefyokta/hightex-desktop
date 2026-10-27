@@ -215,6 +215,13 @@
     "contributors_description": "Made better by the people who build, test, and support HighTex.",
     "creator": "Creator & maintainer",
     "community": "Community contributors",
+    "made_together": "Made better, together.",
+    "contributor_note": "Every idea, test, and contribution helps HighTex grow.",
+    "github": {
+      "description": "Enjoy HighTex? Give us a star on GitHub to support the project.",
+      "star": "Star on GitHub",
+      "open_failed": "Unable to open GitHub. Please try again."
+    },
     "preview": {
       "cover_title": "Your thesis title",
       "author": "Author name",

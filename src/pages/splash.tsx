@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
 import { ContributorsDialog } from "@/components/splash/contributors-dialog";
 import { SplashDocumentPreview } from "@/components/splash/document-preview";
+import { GitHubSupport } from "@/components/splash/github-support";
 import { t, useAppLanguage } from "@/utils/lang";
 import HighTexLogo from "@/assets/icons/hightex";
 import "@/css/splash.css";
@@ -211,10 +212,8 @@ export const Splash = () => {
         </main>
 
         <footer className="relative mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 pb-6 sm:px-10 lg:px-12">
-          <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-xs text-muted-foreground">
-              {t("splash.lightweight")}
-            </div>
+          <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:gap-6">
+            <GitHubSupport />
             <ContributorsDialog />
           </div>
           <div className="min-h-8 pb-1">

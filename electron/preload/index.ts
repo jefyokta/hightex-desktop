@@ -338,6 +338,9 @@ contextBridge.exposeInMainWorld("file", {
   openPath(path) {
     return ipcRenderer.invoke("fs:open", path);
   },
+  openExternal(url) {
+    return ipcRenderer.invoke("fs:external", url);
+  },
   openFolder(folderPath) {
     return ipcRenderer.invoke("fs:folder", folderPath);
   },

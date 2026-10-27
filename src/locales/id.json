@@ -215,6 +215,13 @@
     "contributors_description": "Dikembangkan dan disempurnakan bersama para kontributor HighTex.",
     "creator": "Kreator & pengelola",
     "community": "Kontributor komunitas",
+    "made_together": "Lebih baik, berkat kalian.",
+    "contributor_note": "Setiap ide, pengujian, dan kontribusi membantu HighTex berkembang.",
+    "github": {
+      "description": "Suka HighTex? Beri star di GitHub untuk mendukung pengembangannya.",
+      "star": "Beri star di GitHub",
+      "open_failed": "GitHub belum bisa dibuka. Silakan coba lagi."
+    },
     "preview": {
       "cover_title": "Judul tugas akhir Anda",
       "author": "Nama penulis",

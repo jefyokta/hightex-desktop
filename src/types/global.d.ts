@@ -281,6 +281,7 @@ declare global {
   interface FileApi {
     save(fileName: string, file: Uint8Array): Promise<string>;
     openPath(path: string): Promise<string>;
+    openExternal(url: string): Promise<void>;
     showInFolder(path: string): Promise<void>;
     openFolder(folderPath: string): Promise<void>;
     getPath(file: File): Promise<string>;

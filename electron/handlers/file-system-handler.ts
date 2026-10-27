@@ -5,6 +5,9 @@ import { dirname } from "path";
 
 export class FileSystemHandler {
   static register() {
+    IPCMain.handle("fs:external", async (_, url: string) => {
+      return FileSystemService.openExternal(url);
+    });
     IPCMain.handle("fs:open", async (_, filePath) => {
       return FileSystemService.openFile(filePath);
     });
