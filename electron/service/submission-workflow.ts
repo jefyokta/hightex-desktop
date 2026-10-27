@@ -79,7 +79,7 @@ export class SubmissionWorkflow {
     >,
     private submissions: Pick<
       SubmissionClient,
-      "context" | "history" | "create" | "file"
+      "context" | "history" | "create" | "file" | "recipients"
     >,
     private store: WorkflowStore,
     private validateStored?: (input: {
@@ -125,6 +125,18 @@ export class SubmissionWorkflow {
     return structuredClone(attempt);
   }
 
+  private async recipient(sessionId: string, recipientId?: string) {
+    if (!recipientId) return fail("recipient_required");
+    const { review } = this.context(sessionId);
+    const result = await this.submissions.recipients({
+      sessionId: review.sessionId,
+    });
+    this.context(sessionId);
+    if (!result.ok) return fail(result.error.code);
+    const recipient = result.data.items.find((item) => item.id === recipientId);
+    return recipient ?? fail("invalid_recipient");
+  }
+
   private async history(sessionId: string, documentId: string) {
     const { session, review } = this.context(sessionId);
     const result = await this.submissions.history({
@@ -147,7 +159,7 @@ export class SubmissionWorkflow {
     }
   }
 
-  async prepare(input: CloudPushInput): Promise<SubmissionAttempt> {
+  async prepare(input: SubmissionPrepareInput): Promise<SubmissionAttempt> {
     return this.exclusive(async () => {
       const { session } = this.context(input.sessionId);
       const previous = this.pending(input.sessionId);
@@ -167,11 +179,21 @@ export class SubmissionWorkflow {
       )
         return fail("not_linked");
       validateArtifact(input);
+      const recipient = await this.recipient(
+        input.sessionId,
+        input.recipientId,
+      );
       const baseline = await this.history(
         input.sessionId,
         binding.serverDocumentId,
       );
-      if (baseline.some((item) => item.status !== "reviewed"))
+      if (
+        baseline.some(
+          (item) =>
+            item.recipientId === input.recipientId &&
+            item.status !== "reviewed",
+        )
+      )
         return fail("active_submission");
       const pushed = await this.cloud.push(input);
       this.context(input.sessionId);
@@ -182,6 +204,9 @@ export class SubmissionWorkflow {
         return fail("cloud_changed");
       return this.save(input.sessionId, {
         id: randomUUID(),
+        recipientId: recipient.id,
+        recipientName: recipient.name,
+        recipientRoles: recipient.roles,
         serverUrl: session.serverUrl,
         accountId: session.accountId,
         localDocumentId: input.document.id,
@@ -199,6 +224,7 @@ export class SubmissionWorkflow {
       const attempt = this.pending(sessionId);
       if (!attempt || attempt.state !== "uploaded")
         return fail("check_history");
+      await this.recipient(sessionId, attempt.recipientId);
       // A changed cloud version must never be submitted by retrying this receipt.
       const current = (await this.cloud.list(sessionId)).commits.find(
         (item) => item.type === "current",
@@ -224,11 +250,23 @@ export class SubmissionWorkflow {
         serverDocumentId: attempt.documentId,
       });
       const items = await this.history(sessionId, attempt.documentId);
-      if (items.some((item) => !attempt.baseline.includes(item.id))) {
+      if (
+        items.some(
+          (item) =>
+            item.recipientId === attempt.recipientId &&
+            !attempt.baseline.includes(item.id),
+        )
+      ) {
         this.save(sessionId, { ...attempt, state: "uncertain" });
         return this.resolve(sessionId);
       }
-      if (items.some((item) => item.status !== "reviewed"))
+      if (
+        items.some(
+          (item) =>
+            item.recipientId === attempt.recipientId &&
+            item.status !== "reviewed",
+        )
+      )
         return fail("active_submission");
       // Persist before POST: a timeout or app exit must not enable a blind retry.
       this.save(sessionId, {
@@ -240,6 +278,7 @@ export class SubmissionWorkflow {
       const result = await this.submissions.create({
         sessionId: review.sessionId,
         documentId: attempt.documentId,
+        recipientId: attempt.recipientId!,
       });
       this.context(sessionId);
       if (result.ok) {
@@ -252,6 +291,7 @@ export class SubmissionWorkflow {
         [
           "forbidden",
           "invalid_document",
+          "invalid_recipient",
           "not_found",
           "not_authenticated",
         ].includes(result.error.code)
@@ -279,10 +319,12 @@ export class SubmissionWorkflow {
       return attempt;
     try {
       const items = await this.history(sessionId, attempt.documentId);
-      const candidates = items.filter((item) =>
-        attempt.submissionId
-          ? item.id === attempt.submissionId
-          : !attempt.baseline.includes(item.id),
+      const candidates = items.filter(
+        (item) =>
+          (!attempt.recipientId || item.recipientId === attempt.recipientId) &&
+          (attempt.submissionId
+            ? item.id === attempt.submissionId
+            : !attempt.baseline.includes(item.id)),
       );
       const snapshots: SubmissionSnapshot[] = [];
       for (const item of candidates) {

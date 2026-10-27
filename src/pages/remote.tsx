@@ -41,11 +41,12 @@ import { ParsedItalic } from "@/utils/parse-italic";
 import { LoginGate } from "@/components/login-gate";
 import { exportCloudArtifact } from "@/cloud/academic-data";
 import { withCloudAcademicSource } from "@/utils/cloud-academic";
+import { Link } from "react-router-dom";
 
 type Commit = CommitListResponse["commits"][number];
 type Task =
   | { kind: "refresh" }
-  | { kind: "push" }
+  | { kind: "push"; force: boolean }
   | { kind: "pull"; sha?: string };
 type Notice = { message: string; action?: { label: string; run: () => void } };
 
@@ -84,12 +85,20 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
   const [historyOpen, setHistoryOpen] = useState(
     () =>
       typeof window !== "undefined" &&
-      window.matchMedia("(min-width: 1024px)").matches,
+      window.matchMedia("(min-width: 1280px)").matches,
   );
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1280px)");
+    const resize = () => {
+      if (!media.matches) setHistoryOpen(false);
+    };
+    media.addEventListener("change", resize);
+    return () => media.removeEventListener("change", resize);
+  }, []);
 
   const busy = task !== null;
   const pullingSha = task?.kind === "pull" ? (task.sha ?? "latest") : null;
-  const showSkeleton = !loaded && online;
+  const showSkeleton = !loaded && online && task?.kind === "refresh";
 
   const current = useMemo(
     () => commits.find((commit) => commit.type === "current"),
@@ -122,6 +131,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       categories.find(
         (category) => String(category.id) === selectedDoc.category,
       )?.variant === "intern"),
+  );
+  const cloudAhead = Boolean(
+    isLinked && bindings[selectedId]?.baseSha256 !== current?.sha256,
   );
 
   const assertCurrent = async (context: CloudSession) => {
@@ -176,16 +188,17 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
     if (!online || operation.current) return;
     operation.current = true;
     setTask({ kind: "refresh" });
+    setLoaded(false);
     setNotice(null);
     try {
       await load();
+      if (alive.current) setLoaded(true);
     } catch (cause) {
       if (alive.current) setNotice({ message: errorMessage(cause) });
     } finally {
       operation.current = false;
       if (alive.current) {
         setTask(null);
-        setLoaded(true);
       }
     }
   }, [load, online]);
@@ -303,21 +316,27 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
     }
   };
 
-  const push = async () => {
-    if (!session || !selectedDoc || operation.current || !online) return;
+  const push = async (force = false) => {
+    if (!session || !selectedDoc || operation.current || !online || !loaded)
+      return;
     operation.current = true;
-    setTask({ kind: "push" });
+    setTask({ kind: "push", force });
     setNotice(null);
     try {
       if (kp) throw new Error("cloud_error:kp_unsupported");
       if (await window.editor.has(selectedDoc.id))
         throw new Error("cloud_error:editor_open");
       const replace = Boolean(current && !isLinked);
+      if (force && !current) return;
       if (
-        replace &&
+        (force || replace) &&
         !(await confirm({
-          title: "Ganti dokumen pada slot cloud akun ini?",
-          desc: "Server menyediakan satu slot dokumen untuk akun ini. Versi cloud saat ini dibackup sebelum diganti dengan dokumen yang dipilih. Draft lokal lainnya tetap tersimpan.",
+          title: force
+            ? "Timpa versi cloud dengan dokumen lokal ini?"
+            : "Ganti dokumen pada slot cloud akun ini?",
+          desc: force
+            ? `Force push akan menggantikan seluruh isi cloud dengan “${selectedDoc.title || "Tanpa judul"}”, termasuk perubahan dari perangkat lain. Versi cloud saat ini dibackup ke perangkat ini sebelum dikirim. Riwayat server menyimpan maksimal empat versi sebelumnya.`
+            : "Server menyediakan satu slot dokumen untuk akun ini. Versi cloud saat ini dibackup sebelum diganti dengan dokumen yang dipilih. Draft lokal lainnya tetap tersimpan.",
         }))
       )
         return;
@@ -336,6 +355,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
         expectedServerDocumentId: current?.document_id ?? null,
         expectedCloudSha256: current?.sha256 ?? null,
         replace,
+        force,
       });
       await assertCurrent(session);
       if (response.status === "conflict") {
@@ -370,11 +390,15 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
 
   const pushHint = !online
     ? "Butuh koneksi internet untuk menyimpan."
-    : kp
-      ? "KP tersedia secara lokal; sinkronisasi KP menunggu dukungan server."
-      : loaded && !localDocs.length
-        ? "Belum ada dokumen lokal untuk disimpan."
-        : "";
+    : busy
+      ? "Tunggu proses yang sedang berjalan selesai."
+      : !loaded || !session
+        ? "Muat ulang status cloud sebelum menyimpan."
+        : !selectedDoc
+          ? "Buat atau pilih dokumen lokal terlebih dahulu."
+          : kp
+            ? "KP tersedia secara lokal; sinkronisasi KP menunggu dukungan server."
+            : "";
 
   const historyList = (
     <HistoryList
@@ -390,19 +414,20 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
 
   return (
     <main className="flex items-stretch gap-6 pb-10">
-      <div className="mx-auto w-full min-w-0 max-w-2xl flex-1 space-y-5">
+      <div className="mx-auto w-full min-w-0 max-w-3xl flex-1 space-y-5">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold">Dokumen cloud</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Simpan versi terbaru, atau ambil lagi versi yang pernah disimpan.
+              Kelola salinan lokal, cadangkan ke cloud, lalu ajukan untuk
+              review.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="lg:hidden"
+              className="xl:hidden"
               onClick={() => setHistoryOpen(true)}
             >
               <History className="size-4" />
@@ -428,6 +453,27 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
             </Button>
           </div>
         </header>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            [
+              "1. Pilih dokumen",
+              "Dokumen lokal tetap tersimpan di perangkat ini.",
+            ],
+            [
+              "2. Simpan versi",
+              "Satu dokumen cloud dan empat versi sebelumnya.",
+            ],
+            ["3. Ajukan review", "Kirim versi tersimpan kepada pembimbing."],
+          ].map(([title, description]) => (
+            <div key={title} className="rounded-xl border bg-background p-4">
+              <p className="text-sm font-medium">{title}</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {description}
+              </p>
+            </div>
+          ))}
+        </div>
 
         {!online && (
           <div className="flex items-start gap-3 rounded-2xl bg-neutral-50 p-4 text-sm text-muted-foreground dark:bg-neutral-900">
@@ -511,28 +557,38 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   </div>
                 ) : (
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    {online
+                    {online && loaded
                       ? "Belum ada versi di cloud. Simpan dokumenmu di bawah untuk memulai."
-                      : "Status cloud tidak bisa dimuat saat offline."}
+                      : "Status cloud belum tersedia. Hubungkan internet lalu muat ulang."}
                   </p>
                 )}
               </div>
             </div>
 
-            {current?.sha256 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void pull()}
-                disabled={!online || busy}
-              >
-                {pullingSha === "latest" ? (
-                  <LoaderCircle className="size-4 animate-spin" />
-                ) : (
-                  <ArrowDownToLine className="size-4" />
-                )}
-                Unduh
-              </Button>
+            {current?.sha256 && loaded && (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void pull()}
+                  disabled={!online || busy}
+                >
+                  {pullingSha === "latest" ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <ArrowDownToLine className="size-4" />
+                  )}
+                  {linkedDoc ? "Perbarui salinan lokal" : "Unduh dokumen"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void pull(undefined, false, true)}
+                  disabled={!online || busy}
+                >
+                  Unduh sebagai salinan
+                </Button>
+              </div>
             )}
           </div>
 
@@ -630,6 +686,31 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   )}
                 </p>
               )}
+              {selectedDoc && loaded && (
+                <div
+                  role="status"
+                  className={`rounded-xl border p-3 text-sm ${cloudAhead ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" : "bg-background"}`}
+                >
+                  <p className="font-medium">
+                    {kp
+                      ? "Dokumen KP — tersedia secara lokal"
+                      : cloudAhead
+                        ? "Versi cloud sudah berubah"
+                        : isLinked
+                          ? "Dokumen tertaut ke cloud"
+                          : current
+                            ? "Dokumen ini akan menggantikan slot cloud"
+                            : "Siap untuk pencadangan pertama"}
+                  </p>
+                  <p className="mt-1 text-xs leading-5">
+                    {cloudAhead
+                      ? "Unduh sebagai salinan untuk membandingkan perubahan, atau gunakan Force push jika isi lokal yang ingin dipertahankan."
+                      : isLinked
+                        ? "Simpan versi untuk mengirim perubahan lokal terbaru sebelum mengajukan review."
+                        : "Periksa dokumen yang dipilih sebelum menyimpan. Server menyediakan satu slot per akun."}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -660,13 +741,21 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">{pushHint}</p>
+              <p
+                id="cloud-push-readiness"
+                role="status"
+                className="text-xs text-muted-foreground"
+              >
+                {pushHint}
+              </p>
               <Button
                 onClick={() => void push()}
                 disabled={
                   !online || busy || !selectedDoc || kp || !loaded || !session
                 }
                 className="ml-auto w-full sm:w-auto"
+                aria-describedby="cloud-push-readiness"
+                title={pushHint || "Simpan perubahan lokal ke cloud"}
               >
                 {task?.kind === "push" ? (
                   <LoaderCircle className="size-4 animate-spin" />
@@ -676,13 +765,48 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 {task?.kind === "push" ? "Menyimpan…" : "Simpan versi"}
               </Button>
             </div>
+            {current && (
+              <details className="rounded-xl border border-amber-200 p-4 dark:border-amber-900">
+                <summary className="cursor-pointer text-sm font-medium">
+                  Timpa versi cloud (Force push)
+                </summary>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  Gunakan jika versi lokal harus menggantikan cloud meskipun
+                  terjadi konflik. Seluruh isi cloud diganti; versi cloud
+                  diunduh dan dibackup terlebih dahulu.
+                </p>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="mt-3"
+                  disabled={Boolean(pushHint)}
+                  aria-describedby="cloud-push-readiness"
+                  onClick={() => void push(true)}
+                >
+                  {task?.kind === "push" && task.force ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <UploadCloud className="size-4" />
+                  )}
+                  Force push dokumen lokal
+                </Button>
+              </details>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm">
+              <p className="text-muted-foreground">
+                Sudah siap menerima masukan pembimbing?
+              </p>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/dashboard/submissions">Buka pengajuan review</Link>
+              </Button>
+            </div>
           </div>
         </section>
       </div>
 
       <aside
         aria-label="Riwayat versi"
-        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 lg:block ${
+        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 xl:block ${
           historyOpen ? "w-80" : "w-14"
         }`}
       >
@@ -715,7 +839,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       </aside>
 
       {historyOpen && (
-        <div className="lg:hidden">
+        <div className="xl:hidden">
           <div
             className="fixed inset-0 z-30 bg-black/30"
             onClick={() => setHistoryOpen(false)}

@@ -82,6 +82,7 @@ class Harness {
       const headers = new Headers(options.headers);
       if (
         this.remote &&
+        headers.get("X-HighTex-Force") !== "true" &&
         headers.get("X-HighTex-Base-SHA256") !== sha(this.remote)
       )
         return this.response(
@@ -91,7 +92,6 @@ class Harness {
       const file = (options.body as FormData).get("file") as Blob;
       const incoming = new Uint8Array(await file.arrayBuffer());
       expect(headers.get("X-HighTex-SHA256")).toBe(sha(incoming));
-      expect(headers.has("X-HighTex-Force")).toBe(false);
       const changed = !this.remote || sha(this.remote) !== sha(incoming);
       if (this.remote) this.history.set(sha(this.remote), this.remote);
       this.remote = incoming;
@@ -211,6 +211,86 @@ test("A base survives viewing B: push sends A and receives conflict without retr
   );
   expect(h.bindings).toEqual(saved);
   expect(h.remote).toEqual(bytes("B"));
+  expect(new Headers(h.writes[0].headers).has("X-HighTex-Force")).toBe(false);
+});
+
+test("explicit force push backs up the observed cloud before overwriting a stale linked base", async () => {
+  const h = new Harness();
+  h.remote = bytes("base A");
+  await h.bind();
+  h.remote = bytes("cloud B");
+  const result = await h.client.push({
+    ...h.input(bytes("local C")),
+    force: true,
+  });
+  expect(result.status).toBe("saved");
+  expect(h.backups).toEqual([bytes("cloud B")]);
+  expect(h.history.get(sha(bytes("cloud B")))).toEqual(bytes("cloud B"));
+  expect(new Headers(h.writes[0].headers).get("X-HighTex-Force")).toBe("true");
+  expect(new Headers(h.writes[0].headers).get("X-HighTex-Base-SHA256")).toBe(
+    sha(bytes("base A")),
+  );
+  expect(h.client.binding(h.context().sessionId, document.id)?.baseSha256).toBe(
+    sha(bytes("local C")),
+  );
+});
+
+test("force push cannot overwrite a cloud version that changed since confirmation", async () => {
+  const h = new Harness();
+  h.remote = bytes("A");
+  await h.bind();
+  const input = { ...h.input(bytes("local")), force: true };
+  h.remote = bytes("unseen B");
+  await expect(h.client.push(input)).rejects.toThrow("cloud_changed");
+  expect(h.writes).toHaveLength(0);
+  expect(h.backups).toHaveLength(0);
+});
+
+test("force push stops when backup fails or downloaded cloud bytes changed", async () => {
+  for (const failure of ["backup", "changed"]) {
+    const h = new Harness();
+    h.remote = bytes("A");
+    await h.bind();
+    const binding = structuredClone(h.bindings);
+    if (failure === "backup")
+      h.transport.backup = async () => {
+        throw new Error("disk full");
+      };
+    else {
+      const request = h.transport.request;
+      h.transport.request = async (endpoint, options) => {
+        if (endpoint.includes("pull"))
+          h.remote = bytes("changed during download");
+        return request(endpoint, options);
+      };
+    }
+    await expect(
+      h.client.push({ ...h.input(bytes("local")), force: true }),
+    ).rejects.toThrow();
+    expect(h.writes).toHaveLength(0);
+    expect(h.bindings).toEqual(binding);
+  }
+});
+
+test("force push cannot bypass replacement consent, category or academic validation", async () => {
+  const h = new Harness();
+  h.remote = bytes("A");
+  await expect(h.client.push({ ...h.input(), force: true })).rejects.toThrow(
+    "replacement_required",
+  );
+  await h.bind();
+  h.allowedCategory = { ...category, variant: "intern" };
+  await expect(h.client.push({ ...h.input(), force: true })).rejects.toThrow(
+    "kp_unsupported",
+  );
+  h.allowedCategory = category;
+  h.transport.validatePush = async () => {
+    throw new Error("cloud_error:academic_changed");
+  };
+  await expect(h.client.push({ ...h.input(), force: true })).rejects.toThrow(
+    "academic_changed",
+  );
+  expect(h.writes).toHaveLength(0);
 });
 
 test("successful push hashes full bytes, persists its confirmed base and detects identical artifact", async () => {

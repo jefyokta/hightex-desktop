@@ -180,6 +180,16 @@ export const SubmissionReviewResult = ({
           {error}
         </p>
       )}
+      {state?.submission.recipientName && (
+        <p className="text-sm text-muted-foreground">
+          {t("submission_student.recipient")}: {state.submission.recipientName}
+        </p>
+      )}
+      {state?.submission.snapshotPurgedAt && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {t("submission_review.archive_purged")}
+        </p>
+      )}
       {state?.pending && (
         <p role="status" className="text-sm text-muted-foreground">
           {t(

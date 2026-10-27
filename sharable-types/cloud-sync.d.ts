@@ -30,6 +30,8 @@ declare global {
     expectedServerDocumentId: string | null;
     expectedCloudSha256: string | null;
     replace: boolean;
+    /** Explicitly overwrite a reviewed cloud version after backing it up. */
+    force?: boolean;
   }
   interface CloudAPI {
     academic: CloudAcademicAPI;

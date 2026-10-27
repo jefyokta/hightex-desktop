@@ -14,6 +14,10 @@ const document = (documentId = "student-doc", submissionId = 87) => ({
     {
       id: submissionId,
       document_id: documentId,
+      recipient_id: 24,
+      recipient_name: "Advisor A",
+      recipient_roles: { primary_advisor: "Pembimbing I" },
+      snapshot_purged_at: null,
       status: "waiting_for_review",
       created_at: "2026-10-21T00:00:00Z",
     },
@@ -270,7 +274,7 @@ test("document history uses the document endpoint even for multi-role audiences"
   expect(paths).toEqual(["/submission/student-doc"]);
 });
 
-test("create uses a bodyless POST and maps active/invalid archive responses", async () => {
+test("create sends the selected recipient and maps active/invalid archive responses", async () => {
   for (const [status, code] of [
     [409, "active_submission"],
     [422, "invalid_document"],
@@ -280,7 +284,9 @@ test("create uses a bodyless POST and maps active/invalid archive responses", as
       request: async (path, options) => {
         expect(path).toBe("/submission");
         expect(options?.method).toBe("POST");
-        expect(options?.body).toBeUndefined();
+        expect(JSON.parse(String(options?.body))).toEqual({
+          recipient_id: "24",
+        });
         expect(options?.signal).toBeDefined();
         return response({}, status);
       },
@@ -289,6 +295,7 @@ test("create uses a bodyless POST and maps active/invalid archive responses", as
       await client.create({
         sessionId: sessionId(client),
         documentId: "student-doc",
+        recipientId: "24",
       }),
     ).toMatchObject({ ok: false, error: { code, status } });
   }
@@ -332,8 +339,8 @@ test("review detail validates document/submission/comment relationships and pres
   data.comment[0].submission_id = 87;
   data.status = "on_review";
   expect(await client.detail(input)).toMatchObject({
-    ok: false,
-    error: { code: "invalid_response" },
+    ok: true,
+    data: { submission: { status: "on_review" } },
   });
 });
 
@@ -348,6 +355,7 @@ test("history/detail/create reject stale session IDs without requests", async ()
   });
   const input = {
     sessionId: "stale",
+    recipientId: "24",
     documentId: "student-doc",
     submissionId: "87",
   };
@@ -361,4 +369,76 @@ test("history/detail/create reject stale session IDs without requests", async ()
       error: { code: "session_changed" },
     });
   expect(count).toBe(0);
+});
+
+test("recipient choices are validated and scoped to the active session", async () => {
+  let actor = { ...credentials };
+  let payload: unknown = {
+    data: [
+      { id: 24, name: "Advisor A", roles: { primary_advisor: "Pembimbing I" } },
+    ],
+  };
+  let switchAccount = false;
+  const client = new SubmissionClient({
+    session: () => actor,
+    request: async (path) => {
+      expect(path).toBe("/submission/recipients");
+      if (switchAccount) actor = { ...actor, accountId: "another-account" };
+      return response(payload);
+    },
+  });
+  const input = { sessionId: sessionId(client) };
+  expect(await client.recipients(input)).toMatchObject({
+    ok: true,
+    data: { items: [{ id: "24", name: "Advisor A" }] },
+  });
+  payload = { data: [{ id: 24, name: "A", roles: [] }] };
+  expect(await client.recipients(input)).toMatchObject({
+    ok: false,
+    error: { code: "invalid_response" },
+  });
+  switchAccount = true;
+  expect(await client.recipients(input)).toMatchObject({
+    ok: false,
+    error: { code: "session_changed" },
+  });
+});
+
+test("parses recipient metadata, purged archives and serialized author relationships", () => {
+  const doc = document();
+  const result = parseSubmissionList({
+    data: [
+      {
+        ...doc,
+        author: { id: 12, name: "Student A" },
+        submission: [
+          { ...doc.submission[0], snapshot_purged_at: "2026-10-28T00:00:00Z" },
+        ],
+      },
+    ],
+  });
+  expect(result.items[0]).toMatchObject({
+    ownerId: "12",
+    recipientId: "24",
+    recipientName: "Advisor A",
+    snapshotPurgedAt: "2026-10-28T00:00:00Z",
+  });
+});
+
+test("invalid recipient validation is distinct from invalid document content", async () => {
+  const client = new SubmissionClient({
+    session: () => credentials,
+    request: async () =>
+      response({ errors: { recipient_id: ["Not active"] } }, 422),
+  });
+  expect(
+    await client.create({
+      sessionId: sessionId(client),
+      documentId: "student-doc",
+      recipientId: "24",
+    }),
+  ).toMatchObject({
+    ok: false,
+    error: { code: "invalid_recipient", status: 422 },
+  });
 });

@@ -142,6 +142,9 @@ declare global {
         advisor: AdvisorAPI;
         context(): Promise<SubmissionResult<ReviewSession>>;
         list(): Promise<SubmissionResult<SubmissionList>>;
+        recipients(input: {
+          sessionId: string;
+        }): Promise<SubmissionResult<SubmissionRecipients>>;
         history(input: {
           sessionId: string;
           documentId: string;

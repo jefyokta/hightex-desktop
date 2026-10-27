@@ -72,7 +72,22 @@ export const submissionScenario = async (
   });
   assert.ok(history.ok);
   if (!history.ok) throw Error("History unavailable");
-  const active = history.data.items.find((item) => item.status !== "reviewed");
+  const recipientId = process.env.HIGHTEX_SUBMISSION_RECIPIENT_ID;
+  assert.ok(
+    recipientId,
+    "Set HIGHTEX_SUBMISSION_RECIPIENT_ID explicitly for this opt-in scenario",
+  );
+  const recipients = await submissions.recipients({
+    sessionId: context.data.sessionId,
+  });
+  assert.ok(
+    recipients.ok &&
+      recipients.data.items.some((item) => item.id === recipientId),
+    "Choose an active recipient assigned to this account",
+  );
+  const active = history.data.items.find(
+    (item) => item.recipientId === recipientId && item.status !== "reviewed",
+  );
   let submissionId: string;
   let created = false;
   if (active) {
@@ -90,6 +105,7 @@ export const submissionScenario = async (
       localDocumentId: model.document.id,
     });
     const prepared = await workflow.prepare({
+      recipientId,
       sessionId: session.sessionId,
       file: file.file,
       document: { ...structuredClone(model.document), profile: undefined },

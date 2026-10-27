@@ -7,6 +7,18 @@ declare global {
     serverUrl: string;
     accountId: string;
   }
+  interface SubmissionRecipient {
+    id: string;
+    name: string;
+    roles: Record<string, string>;
+  }
+  interface SubmissionRecipients {
+    session: ReviewSession;
+    items: SubmissionRecipient[];
+  }
+  interface SubmissionPrepareInput extends CloudPushInput {
+    recipientId: string;
+  }
   interface SubmissionSummary {
     id: string;
     documentId: string;
@@ -16,6 +28,10 @@ declare global {
     status: SubmissionStatus;
     createdAt: string | null;
     reviewedAt: string | null;
+    recipientId: string | null;
+    recipientName: string | null;
+    recipientRoles: Record<string, string>;
+    snapshotPurgedAt: string | null;
     comments?: SubmissionComment[];
   }
   type SubmissionErrorCode =
@@ -27,6 +43,8 @@ declare global {
     | "integrity_failed"
     | "active_submission"
     | "invalid_document"
+    | "invalid_recipient"
+    | "recipient_required"
     | "invalid_comment"
     | "state_changed"
     | "busy"
@@ -124,6 +142,10 @@ declare global {
     ): Promise<SubmissionResult<AdvisorReviewState>>;
   }
   interface SubmissionAttempt {
+    // Optional for receipts persisted by older desktop versions. Never inferred on retry.
+    recipientId?: string;
+    recipientName?: string;
+    recipientRoles?: Record<string, string>;
     id: string;
     serverUrl: string;
     accountId: string;
@@ -139,7 +161,7 @@ declare global {
   }
   interface SubmissionWorkflowAPI {
     pending(sessionId: string): Promise<SubmissionAttempt | null>;
-    prepare(input: CloudPushInput): Promise<SubmissionAttempt>;
+    prepare(input: SubmissionPrepareInput): Promise<SubmissionAttempt>;
     submit(sessionId: string): Promise<SubmissionAttempt>;
     reconcile(sessionId: string): Promise<SubmissionAttempt>;
     discard(sessionId: string): Promise<void>;

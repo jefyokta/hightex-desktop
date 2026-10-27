@@ -7,6 +7,7 @@ import { readSnapshot } from "@/review/snapshot-reader";
 import { confirm } from "@/utils/confirm";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { t } from "@/utils/lang";
+import { useOnline } from "@/hooks/use-online";
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
 import {
@@ -27,6 +28,7 @@ export const StudentSubmission = ({
   fallbackHistory?: SubmissionSummary[];
   revision?: number;
 }) => {
+  const online = useOnline();
   const alive = useRef(true);
   const operation = useRef(false);
   const [session, setSession] = useState<CloudSession>();
@@ -36,6 +38,8 @@ export const StudentSubmission = ({
     {},
   );
   const [selected, setSelected] = useState("");
+  const [recipients, setRecipients] = useState<SubmissionRecipient[]>([]);
+  const [recipientId, setRecipientId] = useState("");
   const [current, setCurrent] =
     useState<CommitListResponse["commits"][number]>();
   const [history, setHistory] = useState<SubmissionSummary[]>([]);
@@ -52,6 +56,7 @@ export const StudentSubmission = ({
       throw new Error("submission_error:session_changed");
   };
   const load = useCallback(async () => {
+    setLoaded(false);
     const context = await window.hightex.cloud.context();
     const [list, local, available, pending] = await Promise.all([
       window.hightex.cloud.list(context.sessionId),
@@ -69,6 +74,7 @@ export const StudentSubmission = ({
     );
     const latest = list.commits.find((item) => item.type === "current");
     let items: SubmissionSummary[] = [];
+    let targets: SubmissionRecipient[] = [];
     if (latest) {
       const review = await window.hightex.submission.context();
       if (!review.ok) throw new Error(`submission_error:${review.error.code}`);
@@ -81,6 +87,12 @@ export const StudentSubmission = ({
       if (response.data.ownerId !== context.accountId)
         throw new Error("submission_error:forbidden");
       items = response.data.items;
+      const availableRecipients = await window.hightex.submission.recipients({
+        sessionId: review.data.sessionId,
+      });
+      if (!availableRecipients.ok)
+        throw new Error(`submission_error:${availableRecipients.error.code}`);
+      targets = availableRecipients.data.items;
     }
     await assertCurrent(context);
     setSession(context);
@@ -89,6 +101,10 @@ export const StudentSubmission = ({
     setBindings(mapped);
     setCurrent(latest);
     setHistory(items);
+    setRecipients(targets);
+    setRecipientId((previous) =>
+      targets.some((item) => item.id === previous) ? previous : "",
+    );
     setAttempt(pending);
     setLoaded(true);
     setSelected((previous) =>
@@ -144,20 +160,58 @@ export const StudentSubmission = ({
     selectedDoc &&
     bindings[selectedDoc.id]?.serverDocumentId === current.document_id,
   );
-  const active = history.some((item) => item.status !== "reviewed");
+  const recipient = recipients.find((item) => item.id === recipientId);
+  const active = history.some(
+    (item) => item.recipientId === recipientId && item.status !== "reviewed",
+  );
   const ongoing =
     attempt && ["uploaded", "uncertain", "unverified"].includes(attempt.state);
   const busy = task !== null;
+  const blockers = [
+    !online && t("submission_student.readiness.offline"),
+    busy &&
+      t(
+        task === "load"
+          ? "submission_student.readiness.loading"
+          : "submission_student.readiness.busy",
+      ),
+    !busy && !loaded && t("submission_student.readiness.load_failed"),
+    loaded && !selectedDoc && t("submission_student.readiness.no_document"),
+    loaded &&
+      selectedDoc &&
+      !category &&
+      t("submission_student.readiness.unknown_category"),
+    loaded && kp && t("submission_student.errors.kp_unsupported"),
+    loaded && selectedDoc && !linked && t("submission_student.link_first"),
+    loaded && active && t("submission_student.errors.active_submission"),
+    loaded &&
+      linked &&
+      !recipients.length &&
+      t("submission_student.no_recipients"),
+    loaded &&
+      linked &&
+      recipients.length > 0 &&
+      !recipient &&
+      t("submission_student.readiness.recipient_required"),
+  ].filter((message): message is string => Boolean(message));
   const prepare = () =>
     run("prepare", async () => {
-      if (!session || !selectedDoc || !current || !linked || !category) return;
+      if (
+        blockers.length ||
+        !session ||
+        !selectedDoc ||
+        !current ||
+        !category ||
+        !recipient
+      )
+        return;
       if (kp) throw new Error("submission_error:kp_unsupported");
       if (await window.editor.has(selectedDoc.id))
         throw new Error("submission_error:editor_open");
       if (
         !(await confirm({
           title: t("submission_student.confirm_title"),
-          desc: t("submission_student.confirm_description"),
+          desc: `${t("submission_student.recipient")}: ${recipient.name}. ${t("submission_student.confirm_description")}`,
         }))
       )
         return;
@@ -181,6 +235,7 @@ export const StudentSubmission = ({
         throw new Error("submission_error:invalid_document");
       await assertCurrent(session);
       const prepared = await window.hightex.submission.workflow.prepare({
+        recipientId: recipient.id,
         sessionId: session.sessionId,
         file: artifact.file,
         document: { ...artifact.document, profile: undefined },
@@ -272,6 +327,11 @@ export const StudentSubmission = ({
               {attempt.state === "submitted" && <Check className="size-4" />}
               <ParsedItalic text={attempt.title} />
             </p>
+            {attempt.recipientName && (
+              <p className="text-sm text-muted-foreground">
+                {t("submission_student.recipient")}: {attempt.recipientName}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {t(`submission_student.attempt.${attempt.state}`)}
             </p>
@@ -363,36 +423,50 @@ export const StudentSubmission = ({
                   ))}
                 </SelectContent>
               </Select>
-              {kp ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("submission_student.errors.kp_unsupported")}
-                </p>
-              ) : (
-                !linked &&
-                loaded && (
-                  <p className="text-sm text-muted-foreground">
-                    {t("submission_student.link_first")}{" "}
-                    <Link
-                      className="underline underline-offset-4"
-                      to="/dashboard/projects/cloud"
-                    >
-                      {t("submission_student.open_cloud")}
-                    </Link>
-                  </p>
-                )
-              )}
             </div>
-            {active && (
-              <p className="text-sm text-muted-foreground">
-                {t("submission_student.errors.active_submission")}
-              </p>
-            )}
+            <div className="space-y-2">
+              <label
+                htmlFor="submission-recipient"
+                className="text-sm font-medium"
+              >
+                {t("submission_student.recipient")}
+              </label>
+              <Select
+                value={recipientId}
+                onValueChange={setRecipientId}
+                disabled={busy || !linked || !recipients.length}
+              >
+                <SelectTrigger
+                  id="submission-recipient"
+                  className="w-full bg-white dark:bg-neutral-950"
+                >
+                  <SelectValue
+                    placeholder={t("submission_student.choose_recipient")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {recipients.map((target) => (
+                    <SelectItem key={target.id} value={target.id}>
+                      {target.name}
+                      {Object.values(target.roles).length
+                        ? ` · ${Object.values(target.roles).join(", ")}`
+                        : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("submission_student.archive_policy")}
+            </p>
             <p className="text-xs text-muted-foreground">
               {t("submission_student.version_limit")}
             </p>
             <Button
               size="sm"
-              disabled={busy || !loaded || !linked || kp || active || !category}
+              disabled={blockers.length > 0}
+              aria-describedby="submission-readiness"
+              title={blockers.join(" ")}
               onClick={() => void prepare()}
             >
               {busy ? (
@@ -408,6 +482,34 @@ export const StudentSubmission = ({
                     : "submission_student.submit",
               )}
             </Button>
+            <div
+              id="submission-readiness"
+              role="status"
+              className="rounded-xl border bg-background p-3 text-sm"
+            >
+              <p className="font-medium">
+                {t(
+                  blockers.length
+                    ? "submission_student.readiness.blocked"
+                    : "submission_student.readiness.ready",
+                )}
+              </p>
+              {blockers.length > 0 && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                  {blockers.map((message) => (
+                    <li key={message}>{message}</li>
+                  ))}
+                </ul>
+              )}
+              {loaded && selectedDoc && !linked && (
+                <Link
+                  className="mt-2 inline-block underline underline-offset-4"
+                  to="/dashboard/projects/cloud"
+                >
+                  {t("submission_student.open_cloud")}
+                </Link>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -435,6 +537,8 @@ const submissionError = (cause: unknown) => {
   const known = [
     "active_submission",
     "invalid_document",
+    "invalid_recipient",
+    "recipient_required",
     "not_linked",
     "busy",
     "pending_attempt",

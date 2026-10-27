@@ -31,6 +31,7 @@ const fixture = () => {
   ) => ({
     id,
     document_id,
+    recipient_id: 24,
     status,
     created_at: "2026-10-21T00:00:00Z",
     reviewed_at: null as string | null,
@@ -287,8 +288,12 @@ test("start, comment, complete use document/submission IDs correctly and expose 
     "/submission/87/comment",
     "/submission/student-doc/review",
   ]);
-  expect(f.posts[0].options.body).toBeUndefined();
-  expect(f.posts[2].options.body).toBeUndefined();
+  expect(JSON.parse(String(f.posts[0].options.body))).toEqual({
+    submission_id: "87",
+  });
+  expect(JSON.parse(String(f.posts[2].options.body))).toEqual({
+    submission_id: "87",
+  });
   expect(JSON.parse(String(f.posts[1].options.body))).toEqual({
     comment: "Perbaiki bab 1",
   });
@@ -531,4 +536,28 @@ test("a definitive access rejection is reported without changing review status",
   });
   expect(f.documents[0].submission[0].status).toBe("waiting_for_review");
   expect(f.posts).toHaveLength(1);
+});
+
+test("another active advisor recipient cannot gain review controls or send a POST", async () => {
+  const f = fixture();
+  f.documents[0].submission[0].recipient_id = 25;
+  expect(await f.client.action(f.action("start"))).toMatchObject({
+    ok: false,
+    error: { code: "forbidden" },
+  });
+  expect(f.posts).toHaveLength(0);
+});
+
+test("another recipient pending submission does not prevent this advisor from reviewing their own", async () => {
+  const f = fixture();
+  f.documents[0].submission.unshift({
+    ...f.documents[0].submission[0],
+    id: 88,
+    recipient_id: 25,
+  });
+  const state = await f.client.state(f.input());
+  expect(state).toMatchObject({
+    ok: true,
+    data: { active: true, canReview: true },
+  });
 });

@@ -180,7 +180,10 @@ export class AdvisorClient {
       session,
       students,
       queue: listed.items.filter(
-        (item) => item.ownerId && seen.has(item.ownerId),
+        (item) =>
+          item.recipientId === session.accountId &&
+          item.ownerId &&
+          seen.has(item.ownerId),
       ),
     };
   }
@@ -257,12 +260,15 @@ export class AdvisorClient {
     let canReview = false;
     if (history.ownerId !== session.accountId) {
       const directory = await this.directoryData(session);
-      canReview = directory.students.some(
-        (student) => student.id === history.ownerId,
-      );
+      canReview =
+        submission.recipientId === session.accountId &&
+        directory.students.some((student) => student.id === history.ownerId);
       if (!canReview) return fail("forbidden");
     }
-    const active = history.items.filter((item) => item.status !== "reviewed");
+    const active = history.items.filter(
+      (item) =>
+        item.recipientId === session.accountId && item.status !== "reviewed",
+    );
     let comments = submission.comments ?? [];
     if (submission.status === "reviewed")
       comments = unwrap(await this.submissions.detail(input)).comments;
@@ -368,7 +374,10 @@ export class AdvisorClient {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ comment: input.comment }),
                 }
-              : {}),
+              : {
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ submission_id: input.submissionId }),
+                }),
           });
         } catch {
           this.context(session.sessionId);

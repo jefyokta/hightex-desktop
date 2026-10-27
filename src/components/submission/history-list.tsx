@@ -32,6 +32,21 @@ export const SubmissionHistoryList = ({
             <p className="text-sm text-muted-foreground">
               {item.studentName || t("submission_review.not_recorded")}
             </p>
+            <p className="text-sm text-muted-foreground">
+              {t("submission_student.recipient")}:{" "}
+              {item.recipientName ?? t("submission_student.recipient_unknown")}
+            </p>
+            {item.recipientRoles &&
+              Object.keys(item.recipientRoles).length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {Object.values(item.recipientRoles).join(", ")}
+                </p>
+              )}
+            {item.snapshotPurgedAt && (
+              <p className="text-xs text-muted-foreground">
+                {t("submission_review.archive_purged")}
+              </p>
+            )}
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">
                 {t(`submission_review.status.${item.status}`)}
@@ -48,7 +63,11 @@ export const SubmissionHistoryList = ({
             <Link
               to={`/dashboard/submissions/${encodeURIComponent(item.documentId)}/${encodeURIComponent(item.id)}`}
             >
-              {t("submission_review.open_snapshot")}
+              {t(
+                item.snapshotPurgedAt
+                  ? "submission_student.review_result"
+                  : "submission_review.open_snapshot",
+              )}
             </Link>
           </Button>
         </CardContent>

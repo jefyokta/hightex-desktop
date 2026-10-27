@@ -54,6 +54,8 @@ contextBridge.exposeInMainWorld("hightex", {
     },
     context: () => ipcRenderer.invoke("hightex:submission:context"),
     list: () => ipcRenderer.invoke("hightex:submission:list"),
+    recipients: (input) =>
+      ipcRenderer.invoke("hightex:submission:recipients", input),
     file: (input) => ipcRenderer.invoke("hightex:submission:file", input),
     history: (input) => ipcRenderer.invoke("hightex:submission:history", input),
     detail: (input) => ipcRenderer.invoke("hightex:submission:detail", input),

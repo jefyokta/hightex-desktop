@@ -702,22 +702,36 @@
       "unsupported_format": "This HighTex file version or content format is not supported.",
       "invalid_content": "The file contains missing or invalid document data.",
       "too_large": "The file exceeds the viewer limit: 64 MB archive, 128 MB unpacked.",
-      "active_submission": "A submission is waiting for review or being reviewed. Wait for review completion.",
+      "active_submission": "This advisor already has a pending submission. Choose another advisor or wait for review completion.",
       "invalid_document": "Complete the title and chapter content; the server account must provide the author name and student number. The server may also reject an invalid archive.",
       "invalid_comment": "Enter a comment of up to 200 characters.",
       "state_changed": "The submission status or version changed. Refresh and check its history before continuing.",
       "busy": "A review action is in progress.",
       "outcome_unknown": "The action is not yet confirmed. Refresh to check the server. The action will not be sent again automatically.",
-      "pdf_failed": "Unable to export the snapshot PDF. Check your session and refresh the preview."
+      "pdf_failed": "Unable to export the snapshot PDF. Check your session and refresh the preview.",
+      "invalid_recipient": "The recipient advisor is no longer available. Refresh and choose an active advisor.",
+      "recipient_required": "Choose a recipient advisor before submitting. Discard older prepared attempts without a recipient and prepare a new submission."
     },
     "status": {
       "waiting_for_review": "Waiting for review",
       "on_review": "Under review",
       "reviewed": "Reviewed"
     },
-    "export_pdf": "Export PDF"
+    "export_pdf": "Export PDF",
+    "archive_purged": "The archive file has been removed. Review history and comments remain available."
   },
   "submission_student": {
+    "readiness": {
+      "blocked": "Before you can submit",
+      "ready": "Ready to save and submit for review.",
+      "offline": "Connect to the internet to submit a document.",
+      "loading": "Loading cloud status, categories and submission history…",
+      "busy": "An operation is running. Wait for it to finish.",
+      "load_failed": "Submission status could not be loaded. Use Refresh to try again.",
+      "no_document": "Create or import a local document, then choose it here.",
+      "unknown_category": "The selected document category is unavailable. Refresh categories or choose a supported document.",
+      "recipient_required": "Choose a recipient advisor before submitting."
+    },
     "title": "Submit my document",
     "description": "Send a saved version of a local document linked to your cloud slot.",
     "document": "Document",
@@ -748,7 +762,7 @@
       "mismatch": "A submission exists, but the server snapshot differs from the prepared version. Open the snapshot to inspect the version actually submitted. Wait for review completion before another submission."
     },
     "errors": {
-      "active_submission": "A submission is waiting for review or being reviewed. Wait for review completion.",
+      "active_submission": "This advisor already has a pending submission. Choose another advisor or wait for review completion.",
       "invalid_document": "Complete the title and chapter content; the server account must provide the author name and student number. The server may also reject an invalid archive.",
       "not_linked": "This document is not linked to the account cloud slot. Synchronize it first.",
       "busy": "Another submission operation is running.",
@@ -768,8 +782,15 @@
       "pending_missing": "There is no saved submission plan for this account and server.",
       "academic_changed": "Server academic data changed or has not been applied to the package. Prepare the version again using current server data.",
       "academic_invalid": "Server academic data does not match the contract. Check advisor/examiner assignments and university data.",
-      "academic_scope": "This document is linked to another account, server, or cloud document. Use a separate local copy for this account."
-    }
+      "academic_scope": "This document is linked to another account, server, or cloud document. Use a separate local copy for this account.",
+      "recipient_required": "Choose a recipient advisor before submitting. Discard older prepared attempts without a recipient and prepare a new submission.",
+      "invalid_recipient": "The recipient advisor is no longer available. Refresh and choose an active advisor."
+    },
+    "recipient": "Recipient advisor",
+    "choose_recipient": "Choose one advisor",
+    "recipient_unknown": "Recipient not recorded on this older submission",
+    "no_recipients": "No active advisor is available. Contact your program administrator.",
+    "archive_policy": "The two latest completed archives are kept per advisor. Completed archives for inactive mentorships are removed; history and comments remain available."
   },
   "cloud_academic": {
     "readonly": "Author, advisors, examiners, program head and dean are filled automatically from the server and cannot be edited on cloud documents.",
@@ -792,7 +813,7 @@
     "send": "Send comment",
     "complete": "Complete review",
     "complete_title": "Complete this submission review?",
-    "complete_description": "The review result and comments will become available to the student. This submission cannot receive more comments through desktop.",
+    "complete_description": "Approve the submission addressed to you. Submissions to other advisors remain unchanged.",
     "unsent": "Send or clear your comment before completing the review.",
     "mismatch": "The server returned a different version or result. Check the history and server status; actions are locked to avoid repeating a request for the wrong version.",
     "no_comments": "No review comments yet."

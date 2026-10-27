@@ -31,6 +31,10 @@ export class HighTexHandler {
       submissionService.context(),
     );
     IPCMain.handle("hightex:submission:list", () => submissionService.list());
+    IPCMain.handle(
+      "hightex:submission:recipients",
+      (_, input: { sessionId: string }) => submissionService.recipients(input),
+    );
     IPCMain.handle("hightex:advisor:directory", () =>
       advisorService.directory(),
     );
@@ -62,8 +66,9 @@ export class HighTexHandler {
     IPCMain.handle("hightex:submission:pending", (_, sessionId: string) =>
       submissionWorkflow.pending(sessionId),
     );
-    IPCMain.handle("hightex:submission:prepare", (_, input: CloudPushInput) =>
-      submissionWorkflow.prepare(input),
+    IPCMain.handle(
+      "hightex:submission:prepare",
+      (_, input: SubmissionPrepareInput) => submissionWorkflow.prepare(input),
     );
     IPCMain.handle("hightex:submission:submit", (_, sessionId: string) =>
       submissionWorkflow.submit(sessionId),

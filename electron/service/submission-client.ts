@@ -28,6 +28,13 @@ const id = (value: unknown) => {
   return result;
 };
 const text = (value: unknown) => (typeof value === "string" ? value : null);
+const roles = (value: unknown): Record<string, string> => {
+  if (value == null) return {};
+  const result = record(value);
+  if (Object.values(result).some((label) => typeof label !== "string"))
+    throw new Error("Invalid recipient roles");
+  return result as Record<string, string>;
+};
 
 export const parseSubmissionComments = (
   value: unknown,
@@ -86,7 +93,19 @@ export const parseSubmissionList = (
         documentId,
         title: text(document.title) ?? "",
         studentName: text(author?.name),
-        ownerId: document.author == null ? null : id(document.author),
+        ownerId:
+          document.author == null
+            ? null
+            : id(
+                typeof document.author === "object"
+                  ? record(document.author).id
+                  : document.author,
+              ),
+        recipientId:
+          submission.recipient_id == null ? null : id(submission.recipient_id),
+        recipientName: text(submission.recipient_name),
+        recipientRoles: roles(submission.recipient_roles),
+        snapshotPurgedAt: text(submission.snapshot_purged_at),
         status,
         createdAt: text(submission.created_at),
         reviewedAt: text(submission.reviewed_at),
@@ -134,7 +153,17 @@ export class SubmissionClient {
     return current.ok && current.data.sessionId === session.sessionId;
   }
 
-  private failure(status: number): SubmissionResult<never> {
+  private failure(status: number, data?: unknown): SubmissionResult<never> {
+    if (
+      status === 422 &&
+      data &&
+      typeof data === "object" &&
+      "errors" in data
+    ) {
+      const errors = (data as { errors?: Record<string, unknown> }).errors;
+      if (errors && typeof errors === "object" && "recipient_id" in errors)
+        return { ok: false, error: { code: "invalid_recipient", status } };
+    }
     const code =
       status === 401
         ? "not_authenticated"
@@ -150,6 +179,54 @@ export class SubmissionClient {
     return { ok: false, error: { code, status } };
   }
 
+  async recipients(input: {
+    sessionId: string;
+  }): Promise<SubmissionResult<SubmissionRecipients>> {
+    const context = this.context();
+    if (!context.ok) return context;
+    if (input?.sessionId !== context.data.sessionId)
+      return { ok: false, error: { code: "session_changed" } };
+    let received = false;
+    try {
+      const response = await this.transport.request("/submission/recipients");
+      received = true;
+      if (!this.isCurrent(context.data))
+        return { ok: false, error: { code: "session_changed" } };
+      if (!response.ok) return this.failure(response.status, response.data);
+      const data = record(response.data).data;
+      if (!Array.isArray(data)) throw new Error("Invalid recipients");
+      const items = data.map((value) => {
+        const recipient = record(value);
+        const recipientId = id(recipient.id);
+        if (
+          !/^[1-9][0-9]*$/.test(recipientId) ||
+          typeof recipient.name !== "string" ||
+          !recipient.name.trim()
+        )
+          throw new Error("Invalid recipient");
+        return {
+          id: recipientId,
+          name: recipient.name,
+          roles: roles(recipient.roles),
+        };
+      });
+      if (new Set(items.map((item) => item.id)).size !== items.length)
+        throw new Error("Duplicate recipients");
+      return { ok: true, data: { session: context.data, items } };
+    } catch {
+      return {
+        ok: false,
+        error: {
+          code: !this.isCurrent(context.data)
+            ? "session_changed"
+            : received
+              ? "invalid_response"
+              : "request_failed",
+        },
+      };
+    }
+  }
+
   async list(): Promise<SubmissionResult<SubmissionList>> {
     const context = this.context();
     if (!context.ok) return context;
@@ -157,7 +234,7 @@ export class SubmissionClient {
       const response = await this.transport.request("/submission");
       if (!this.isCurrent(context.data))
         return { ok: false, error: { code: "session_changed" } };
-      if (!response.ok) return this.failure(response.status);
+      if (!response.ok) return this.failure(response.status, response.data);
       try {
         return {
           ok: true,
@@ -204,7 +281,7 @@ export class SubmissionClient {
       );
       if (!this.isCurrent(context.data))
         return { ok: false, error: { code: "session_changed" } };
-      if (!response.ok) return this.failure(response.status);
+      if (!response.ok) return this.failure(response.status, response.data);
       const sha256 = response.headers.get("X-HighTex-SHA256")?.toLowerCase();
       const documentId = response.headers.get("X-Document-ID");
       if (
@@ -258,7 +335,7 @@ export class SubmissionClient {
       received = true;
       if (!this.isCurrent(context.data))
         return { ok: false, error: { code: "session_changed" } };
-      if (!response.ok) return this.failure(response.status);
+      if (!response.ok) return this.failure(response.status, response.data);
       const document = record(record(response.data).data);
       if (id(document.id) !== input.documentId)
         throw new Error("Document mismatch");
@@ -289,6 +366,7 @@ export class SubmissionClient {
   async create(input: {
     sessionId: string;
     documentId: string;
+    recipientId: string;
   }): Promise<SubmissionResult<SubmissionSummary>> {
     const context = this.context();
     if (!context.ok) return context;
@@ -296,13 +374,17 @@ export class SubmissionClient {
       return { ok: false, error: { code: "session_changed" } };
     try {
       id(input.documentId);
+      if (!/^[1-9][0-9]*$/.test(input.recipientId ?? ""))
+        return { ok: false, error: { code: "invalid_recipient" } };
       const response = await this.transport.request("/submission", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipient_id: input.recipientId }),
         signal: AbortSignal.timeout(30000),
       });
       if (!this.isCurrent(context.data))
         return { ok: false, error: { code: "session_changed" } };
-      if (!response.ok) return this.failure(response.status);
+      if (!response.ok) return this.failure(response.status, response.data);
       const submission = record(record(response.data).data);
       const document = record(submission.document);
       if (response.status !== 201 || id(document.id) !== input.documentId)
@@ -310,6 +392,8 @@ export class SubmissionClient {
       const items = parseSubmissionList({
         data: { document: { ...document, submission: [submission] } },
       }).items;
+      if (items[0]?.recipientId !== input.recipientId)
+        throw new Error("Recipient mismatch");
       return { ok: true, data: items[0] };
     } catch {
       return {
@@ -342,13 +426,12 @@ export class SubmissionClient {
       received = true;
       if (!this.isCurrent(context.data))
         return { ok: false, error: { code: "session_changed" } };
-      if (!response.ok) return this.failure(response.status);
+      if (!response.ok) return this.failure(response.status, response.data);
       const submission = record(record(response.data).data);
       const document = record(submission.document);
       if (
         id(document.id) !== input.documentId ||
         id(submission.id) !== input.submissionId ||
-        submission.status !== "reviewed" ||
         !Array.isArray(submission.comment)
       )
         throw new Error("Submission mismatch");

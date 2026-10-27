@@ -53,8 +53,12 @@ const fixture = () => {
   let bindings: Record<string, CloudBinding> = {};
   let receipts: Record<string, SubmissionAttempt> = {};
   const snapshots = new Map<string, Uint8Array>();
-  const rows: { id: string; document_id: string; status: SubmissionStatus }[] =
-    [];
+  const rows: {
+    id: string;
+    document_id: string;
+    status: SubmissionStatus;
+    recipient_id: string;
+  }[] = [];
   const calls: { path: string; method: string }[] = [];
   let post:
     | ((options: RequestInit) => Promise<ReturnType<typeof response>>)
@@ -70,10 +74,19 @@ const fixture = () => {
     author_data: { name: "Account Student" },
     submission: hideHistory ? [] : rows,
   });
-  const create = () => {
+  let recipients = [
+    { id: 24, name: "Advisor A", roles: { primary_advisor: "Pembimbing I" } },
+    {
+      id: 25,
+      name: "Advisor B",
+      roles: { secondary_advisor: "Pembimbing II" },
+    },
+  ];
+  const create = (recipientId = "24") => {
     const row = {
       id: String(rows.length + 1),
       document_id: "server-a",
+      recipient_id: recipientId,
       status: "waiting_for_review" as const,
     };
     snapshots.set(row.id, new Uint8Array(current));
@@ -108,10 +121,14 @@ const fixture = () => {
             "X-Document-ID": "server-a",
           }),
         );
+      if (path === "/submission/recipients")
+        return response({ data: recipients });
       if (path === "/submission/server-a")
         return response({ data: rawDocument() });
       if (path === "/submission" && options.method === "POST")
-        return post ? post(options) : create();
+        return post
+          ? post(options)
+          : create(JSON.parse(String(options.body)).recipient_id);
       if (/^\/submission\/\d+\/file$/.test(path)) {
         const file = snapshots.get(path.split("/")[2]);
         return file
@@ -155,7 +172,8 @@ const fixture = () => {
     serverDocumentId: "server-a",
     baseSha256: hash(current),
   };
-  const input = (): CloudPushInput => ({
+  const input = (): SubmissionPrepareInput => ({
+    recipientId: "24",
     sessionId,
     document: structuredClone(document),
     file: artifact(),
@@ -168,12 +186,16 @@ const fixture = () => {
     cloud,
     submissions,
     workflow,
+    store,
     sessionId,
     input,
     calls,
     rows,
     snapshots,
     create,
+    setRecipients: (value: typeof recipients) => {
+      recipients = value;
+    },
     rebuild: (
       validate?: (input: {
         sessionId: string;
@@ -215,7 +237,7 @@ const posts = (f: ReturnType<typeof fixture>) =>
     (call) => call.path === "/submission" && call.method === "POST",
   );
 
-test("freezes, pushes, creates bodyless submission and verifies server snapshot without importing", async () => {
+test("freezes, pushes, creates targeted submission and verifies server snapshot without importing", async () => {
   const f = fixture();
   const input = f.input();
   const staged = await f.workflow.prepare(input);
@@ -293,7 +315,7 @@ test("double clicks and a second stage cannot replace an in-flight artifact", as
 test("definite 422 failure retains the uploaded version for retry, without another push/export", async () => {
   const f = fixture();
   f.setPost(async (options) => {
-    expect(options.body).toBeUndefined();
+    expect(JSON.parse(String(options.body))).toEqual({ recipient_id: "24" });
     return response({ errors: { document: ["Invalid"] } }, 422);
   });
   const prepared = await f.workflow.prepare(f.input());
@@ -429,4 +451,91 @@ test("account switch during POST keeps the uncertain receipt only for the origin
   expect(f.workflow.pending(sessionId)?.state).toBe("uncertain");
   expect((await f.rebuild().reconcile(sessionId)).state).toBe("submitted");
   expect(posts(f)).toHaveLength(1);
+});
+
+test("targeted pending reviews do not block submissions to another advisor", async () => {
+  const f = fixture();
+  f.create("25");
+  const prepared = await f.workflow.prepare(f.input());
+  expect(prepared).toMatchObject({
+    recipientId: "24",
+    recipientName: "Advisor A",
+  });
+  // Another advisor receives the same uploaded bytes after preparation.
+  f.create("25");
+  const result = await f.workflow.submit(f.sessionId);
+  expect(result).toMatchObject({
+    state: "submitted",
+    recipientId: "24",
+    submissionId: "3",
+  });
+  expect(posts(f)).toHaveLength(1);
+});
+
+test("the selected recipient is frozen with the receipt and checked again before POST", async () => {
+  const f = fixture();
+  const input = f.input();
+  await f.workflow.prepare(input);
+  input.recipientId = "25";
+  f.setRecipients([
+    {
+      id: 25,
+      name: "Advisor B",
+      roles: { secondary_advisor: "Pembimbing II" },
+    },
+  ]);
+  await expect(f.workflow.submit(f.sessionId)).rejects.toThrow(
+    "invalid_recipient",
+  );
+  expect(f.workflow.pending(f.sessionId)).toMatchObject({
+    recipientId: "24",
+    state: "uploaded",
+  });
+  expect(posts(f)).toHaveLength(0);
+});
+
+test("a missing or unknown recipient cannot upload or create a submission", async () => {
+  for (const [recipientId, error] of [
+    ["", "recipient_required"],
+    ["999", "invalid_recipient"],
+  ]) {
+    const f = fixture();
+    await expect(
+      f.workflow.prepare({ ...f.input(), recipientId }),
+    ).rejects.toThrow(error);
+    expect(f.calls.some((call) => call.method === "POST")).toBe(false);
+  }
+});
+
+test("a lost response cannot be confirmed from an identical snapshot sent to another recipient", async () => {
+  const f = fixture();
+  await f.workflow.prepare(f.input());
+  f.setPost(async () => {
+    f.create("25");
+    throw Error("lost response");
+  });
+  const result = await f.workflow.submit(f.sessionId);
+  expect(result.state).toBe("uncertain");
+  expect(result.submissionId).toBeUndefined();
+  await f.workflow.reconcile(f.sessionId);
+  expect(posts(f)).toHaveLength(1);
+});
+
+test("older prepared receipts never guess a recipient when retried", async () => {
+  const f = fixture();
+  await f.workflow.prepare(f.input());
+  f.store.write(
+    Object.fromEntries(
+      Object.entries(f.store.read()).map(([key, value]) => [
+        key,
+        { ...value, recipientId: undefined },
+      ]),
+    ),
+  );
+  await expect(f.workflow.submit(f.sessionId)).rejects.toThrow(
+    "recipient_required",
+  );
+  expect(posts(f)).toHaveLength(0);
+  await f.workflow.discard(f.sessionId);
+  expect(f.workflow.pending(f.sessionId)).toBeNull();
 });

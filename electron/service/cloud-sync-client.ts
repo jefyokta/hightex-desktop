@@ -248,7 +248,8 @@ export class CloudSyncClient {
       !input.file.length ||
       input.file.length > 64 * 1024 * 1024 ||
       typeof input.message !== "string" ||
-      [...input.message].length > 255
+      [...input.message].length > 255 ||
+      (input.force !== undefined && typeof input.force !== "boolean")
     )
       return fail("invalid_request");
     if (input.document.config.intern) return fail("kp_unsupported");
@@ -268,14 +269,22 @@ export class CloudSyncClient {
       );
       if ((current?.document_id ?? null) !== input.expectedServerDocumentId)
         return fail("cloud_changed");
+      if (
+        input.force &&
+        (!current || input.expectedCloudSha256 !== current.sha256)
+      )
+        return fail("cloud_changed");
       await this.transport.validatePush?.(input, current?.document_id ?? null);
       this.require(input.sessionId);
       const binding = this.binding(input.sessionId, input.document.id);
       const linked =
         binding?.serverDocumentId === current?.document_id && Boolean(current);
       let base = linked ? binding!.baseSha256 : undefined;
-      if (current && !linked) {
-        if (!input.replace || input.expectedCloudSha256 !== current.sha256)
+      if (current && (!linked || input.force)) {
+        if (
+          (!linked && !input.replace) ||
+          input.expectedCloudSha256 !== current.sha256
+        )
           return fail("replacement_required");
         const previous = await this.pull({
           sessionId: input.sessionId,
@@ -287,7 +296,7 @@ export class CloudSyncClient {
         )
           return fail("cloud_changed");
         await this.backup(input.sessionId, previous.file);
-        base = current.sha256!;
+        if (!linked) base = current.sha256!;
       }
       const file = new Uint8Array(input.file);
       const sha256 = hash(file);
@@ -313,6 +322,7 @@ export class CloudSyncClient {
       };
       // An occupied slot must conflict even if it appeared after our preflight.
       headers["X-HighTex-Base-SHA256"] = base ?? "0".repeat(64);
+      if (input.force) headers["X-HighTex-Force"] = "true";
       this.require(input.sessionId);
       const response = await this.transport.request("/v2/documents/push", {
         method: "POST",

@@ -43,6 +43,21 @@ export const Review = () => {
         setError(t(`submission_review.errors.${context.error.code}`));
         return;
       }
+      const detail = await window.hightex.submission.detail({
+        sessionId: context.data.sessionId,
+        documentId,
+        submissionId,
+      });
+      if (canceled) return;
+      if (!detail.ok) {
+        denyAccess(detail.error.code);
+        return;
+      }
+      if (detail.data.submission.snapshotPurgedAt) {
+        snapshotCache.clear();
+        setError(t("submission_review.archive_purged"));
+        return;
+      }
       const response = await window.hightex.submission.file({
         sessionId: context.data.sessionId,
         documentId,
