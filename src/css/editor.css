@@ -75,7 +75,6 @@ figcaption {
 figure[data-type="figureTable"] table:not([data-type="grid"]) {
   margin-inline: auto;
 }
-
 .page h1 {
   font-size: 14pt;
   font-weight: 700;
@@ -418,6 +417,20 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   font-size: 0.8rem;
   padding: 0;
 }
+
+.page[data-table-resize-guides="true"]
+  .tiptap[contenteditable="true"]
+  :is(td, th)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  background: rgba(98, 98, 245, 0.4);
+  pointer-events: none;
+}
+
 .column-resize-handle {
   position: absolute;
   top: 0;

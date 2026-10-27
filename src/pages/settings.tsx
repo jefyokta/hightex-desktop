@@ -209,6 +209,20 @@ export const Settings = () => {
           />
 
           <SettingSwitch
+            label={t("settings.editor.table_resize_guides")}
+            description={t("settings.editor.table_resize_guides_description")}
+            value={config.editor?.tableResizeGuides ?? true}
+            onChange={async (val) => {
+              await patchConfig({
+                editor: {
+                  ...config.editor,
+                  tableResizeGuides: val,
+                },
+              });
+            }}
+          />
+
+          <SettingSwitch
             label={
               <>
                 {/* 

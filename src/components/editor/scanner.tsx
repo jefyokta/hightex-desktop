@@ -14,6 +14,11 @@ import { Manager } from "@/editor/manager";
 import { Chapter } from "@/editor/chapter";
 import { useParams } from "@/hooks/use-params";
 import { useNavigate } from "react-router-dom";
+import { useCurrentEditor } from "@/hooks/use-editor";
+import {
+  SCANNER_PARAGRAPH_PREFIX,
+  scrollToPunctuationParagraph,
+} from "@/scanner/navigation";
 
 type PunctuationIssue = ScanResults["punctuation"][number];
 const visible = (s: string) => s.replace(/ /g, "·").replace(/\n/g, "↵");
@@ -76,27 +81,56 @@ const ChapterGroup = ({
     </summary>
     <ul className="divide-y border-t">
       {issues.map((issue, i) => (
-        <li key={i} className="space-y-1.5 px-3 py-2 text-xs hover:bg-muted/50">
-          <div className="flex items-baseline justify-between gap-2">
-            <span>{issue.message}</span>
-            <span className="shrink-0 text-muted-foreground">
-              Par. {issue.paragraph}
-            </span>
-          </div>
-          <p className="wrap-break-word rounded bg-muted px-2 py-1.5 font-mono leading-relaxed">
-            <span className="text-muted-foreground">
-              {issue.excerpt.before}
-            </span>
-            <mark className="rounded bg-destructive/20 px-0.5 text-destructive">
-              {visible(issue.excerpt.match)}
-            </mark>
-            <span className="text-muted-foreground">{issue.excerpt.after}</span>
-          </p>
-        </li>
+        <PunctuationRow key={i} issue={issue} />
       ))}
     </ul>
   </details>
 );
+
+const PunctuationRow = ({ issue }: { issue: PunctuationIssue }) => {
+  const { editor } = useCurrentEditor();
+  const { setParams } = useParams();
+  const go = useNavigate();
+
+  const navigate = () => {
+    const current = Chapter.instance;
+    if (!current) return;
+    if (current.getId() === issue.chapter.id) {
+      if (editor) scrollToPunctuationParagraph(editor, issue.paragraph);
+      return;
+    }
+
+    const [documentId, chapter, version] = issue.chapter.id.split(".");
+    if (documentId !== current.document.id || !chapter) return;
+    setParams([`${SCANNER_PARAGRAPH_PREFIX}${issue.paragraph}`]);
+    go(`/document/${documentId}/${chapter}${version ? `/${version}` : ""}`);
+  };
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={navigate}
+        className="block w-full cursor-pointer space-y-1.5 px-3 py-2 text-left text-xs hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      >
+        <span className="flex items-baseline justify-between gap-2">
+          <span>{issue.message}</span>
+          <span className="shrink-0 text-muted-foreground">
+            Par. {issue.paragraph}
+          </span>
+        </span>
+        <span className="block wrap-break-word rounded bg-muted px-2 py-1.5 font-mono leading-relaxed">
+          <span className="text-muted-foreground">{issue.excerpt.before}</span>
+          <mark className="rounded bg-destructive/20 px-0.5 text-destructive">
+            {visible(issue.excerpt.match)}
+          </mark>
+          <span className="text-muted-foreground">{issue.excerpt.after}</span>
+        </span>
+      </button>
+    </li>
+  );
+};
+
 const FigureRow = ({
   kind,
   label,

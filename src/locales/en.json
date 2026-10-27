@@ -12,7 +12,9 @@
       "title": "Editor",
       "description": "Writing and editing behavior",
       "spell_check": "Spell Check",
-      "scrollbar": "Editor's Scrollbar"
+      "scrollbar": "Editor's Scrollbar",
+      "table_resize_guides": "Always show column resize guides",
+      "table_resize_guides_description": "When disabled, guides appear when hovering over a column edge."
     },
     "data": {
       "clear_cache": {

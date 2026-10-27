@@ -12,7 +12,9 @@
       "title": "Editor",
       "description": "Perilaku penulisan dan pengeditan",
       "spell_check": "Pemeriksa Ejaan",
-      "scrollbar": "Scrollbar Editor"
+      "scrollbar": "Scrollbar Editor",
+      "table_resize_guides": "Selalu tampilkan garis bantu ukuran kolom",
+      "table_resize_guides_description": "Jika dimatikan, garis bantu muncul saat kursor berada di tepi kolom."
     },
     "data": {
       "clear_cache": {

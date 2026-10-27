@@ -14,6 +14,7 @@ const DEFAULT_CONFIG: ConfigShape = {
   editor: {
     spellCheck: false,
     preferCloudProfile: true,
+    tableResizeGuides: true,
   },
   export: {
     saveDialog: false,
@@ -35,6 +36,10 @@ export class ConfigService {
     return {
       ...DEFAULT_CONFIG,
       ...(saved || {}),
+      editor: {
+        ...DEFAULT_CONFIG.editor,
+        ...(saved?.editor || {}),
+      },
       previewer: {
         ...DEFAULT_CONFIG.previewer,
         ...(saved?.previewer || {}),
@@ -60,6 +65,10 @@ export class ConfigService {
     const next: ConfigShape = {
       ...current,
       ...patch,
+      editor: {
+        ...current.editor,
+        ...(patch.editor || {}),
+      },
       previewer: {
         ...current.previewer,
         ...(patch.previewer || {}),

@@ -40,6 +40,10 @@ import { LoadingDocument } from "@/components/editor/loading-document";
 import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
 import { DocumentNotFound } from "@/exception/document-not-found";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
+import {
+  SCANNER_PARAGRAPH_PREFIX,
+  scrollToPunctuationParagraph,
+} from "@/scanner/navigation";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -213,7 +217,14 @@ const EditorComponent = () => {
       const target = params.pop();
       if (target) {
         setTimeout(() => {
-          Manager.scrollTo(target);
+          if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
+            scrollToPunctuationParagraph(
+              editor,
+              Number(target.slice(SCANNER_PARAGRAPH_PREFIX.length)),
+            );
+          } else {
+            Manager.scrollTo(target);
+          }
         }, 200);
       }
       editor.view.dom.addEventListener("input", () => {
@@ -301,6 +312,7 @@ const EditorComponent = () => {
   return (
     <div
       id="page"
+      data-table-resize-guides={config?.editor?.tableResizeGuides ?? true}
       style={{
         //@ts-ignore
         "--start-counter": Chapter.instance!.getNumber(),

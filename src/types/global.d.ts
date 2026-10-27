@@ -55,6 +55,7 @@ declare global {
       preferCloudProfile?: boolean;
       scrollBar?: boolean;
       aliasHint?: boolean;
+      tableResizeGuides?: boolean;
     };
     export: {
       saveDialog: boolean;

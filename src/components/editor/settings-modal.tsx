@@ -64,6 +64,13 @@ export const SettingModal: React.FC<SettingModalProps> = ({
           />
 
           <SettingSwitch
+            label={t("settings.editor.table_resize_guides")}
+            description={t("settings.editor.table_resize_guides_description")}
+            value={config?.editor?.tableResizeGuides ?? true}
+            onChange={(value) => saveEditor({ tableResizeGuides: value })}
+          />
+
+          <SettingSwitch
             label={
               <>
                 {/* note for translator: alias = singkatan */}
