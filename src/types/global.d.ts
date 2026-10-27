@@ -159,8 +159,10 @@ declare global {
         }): Promise<SubmissionResult<SubmissionSnapshot>>;
       };
       document(): Promise<{ document: HighTexDocument }>;
-      prefetch(): Promise<void>;
-      onPrefetchProgress(cb: (data: any) => void): void;
+      prefetch(): Promise<boolean>;
+      onPrefetchProgress(
+        cb: (data: { status: string; progress?: number }) => void,
+      ): () => void;
       onPdfProgress(
         cb: (data: {
           status: string;

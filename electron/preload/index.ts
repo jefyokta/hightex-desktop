@@ -78,8 +78,13 @@ contextBridge.exposeInMainWorld("hightex", {
     return ipcRenderer.invoke("hightex:prefetch");
   },
 
-  onPrefetchProgress: (cb: (data: any) => void) => {
+  onPrefetchProgress: (
+    cb: (data: { status: string; progress?: number }) => void,
+  ) => {
     progressCallback = cb;
+    return () => {
+      if (progressCallback === cb) progressCallback = null;
+    };
   },
   onPdfProgress: (
     cb: (data: {

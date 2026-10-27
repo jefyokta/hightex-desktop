@@ -187,14 +187,40 @@
     "no_documents": "No documents yet. Create your first document to start writing."
   },
   "splash": {
-    "preparing": "Preparing HighTex...",
+    "preparing": "Preparing HighTex…",
     "tagline_1": "just focus on your ideas",
     "tagline_2": "write without formatting distractions",
     "tagline_3": "citations handled automatically",
     "tagline_4": "structured writing without effort",
     "tagline_5": "research first, formatting later",
-    "lightweight": "Lightweight • Offline-ready",
-    "thanks_to": "From Jepi Okta Mipa, Thanks to"
+    "lightweight": "Made for focus. Ready to work offline.",
+    "thanks_to": "From Jepi Okta Mipa, thanks to",
+    "workspace": "A place for your ideas",
+    "eyebrow": "Your academic workspace",
+    "headline": "Your next chapter",
+    "headline_end": "starts here.",
+    "description": "Write, organize references, and prepare your thesis in one focused workspace.",
+    "feature_writing": "Structured writing",
+    "feature_citations": "Citations",
+    "feature_pdf": "PDF export",
+    "start_writing": "Start writing",
+    "no_account": "No account needed to start writing.",
+    "welcome_back": "Welcome back, {name}.",
+    "getting_ready": "Getting your workspace ready",
+    "ready": "Ready for your next chapter.",
+    "local_ready": "Your local workspace is available.",
+    "online": "Online",
+    "offline": "Offline",
+    "contributors": "Contributors",
+    "contributors_description": "Made better by the people who build, test, and support HighTex.",
+    "creator": "Creator & maintainer",
+    "community": "Community contributors",
+    "preview": {
+      "cover_title": "Your thesis title",
+      "author": "Author name",
+      "cover_label": "HighTex cover template",
+      "cover_detail": "The same layout as your PDF"
+    }
   },
   "present": {
     "title": "Presentation Planner",

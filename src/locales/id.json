@@ -187,14 +187,40 @@
     "no_documents": "Belum ada dokumen. Buat dokumen pertamamu buat mulai nulis."
   },
   "splash": {
-    "preparing": "Preparing HighTex...",
+    "preparing": "Menyiapkan HighTex…",
     "tagline_1": "just focus on your ideas",
     "tagline_2": "write without formatting distractions",
     "tagline_3": "citations handled automatically",
     "tagline_4": "structured writing without effort",
     "tagline_5": "research first, formatting later",
-    "lightweight": "Lightweight • Offline-ready",
-    "thanks_to": "From Jepi Okta Mipa, Thanks to"
+    "lightweight": "Dibuat untuk fokus. Bisa digunakan offline.",
+    "thanks_to": "Dari Jepi Okta Mipa, terima kasih untuk",
+    "workspace": "Ruang untuk gagasanmu",
+    "eyebrow": "Ruang kerja akademikmu",
+    "headline": "Bab berikutnya",
+    "headline_end": "dimulai di sini.",
+    "description": "Tulis, kelola referensi, dan susun tugas akhir dalam satu ruang kerja yang tertata.",
+    "feature_writing": "Penulisan terstruktur",
+    "feature_citations": "Sitasi",
+    "feature_pdf": "Ekspor PDF",
+    "start_writing": "Mulai menulis",
+    "no_account": "Mulai menulis tanpa harus masuk akun.",
+    "welcome_back": "Selamat datang kembali, {name}.",
+    "getting_ready": "Menyiapkan ruang kerjamu",
+    "ready": "Siap untuk bab berikutnya.",
+    "local_ready": "Ruang kerja lokal tetap tersedia.",
+    "online": "Online",
+    "offline": "Offline",
+    "contributors": "Kontributor",
+    "contributors_description": "Dikembangkan dan disempurnakan bersama para kontributor HighTex.",
+    "creator": "Kreator & pengelola",
+    "community": "Kontributor komunitas",
+    "preview": {
+      "cover_title": "Judul tugas akhir Anda",
+      "author": "Nama penulis",
+      "cover_label": "Template cover HighTex",
+      "cover_detail": "Layout yang sama dengan hasil PDF"
+    }
   },
   "present": {
     "title": "Perencana Presentasi",
