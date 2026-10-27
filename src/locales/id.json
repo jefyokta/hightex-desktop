@@ -225,6 +225,13 @@
   },
   "profile": {},
   "editor": {
+    "save": {
+      "idle": "Simpan (Ctrl+S / ⌘S)",
+      "saving": "Menyimpan…",
+      "saved": "Tersimpan",
+      "error": "Gagal menyimpan. Klik untuk mencoba lagi.",
+      "failed": "Dokumen tidak dapat disimpan. Silakan coba lagi."
+    },
     "expandable": {
       "citation": {
         "title": "Sitasi",

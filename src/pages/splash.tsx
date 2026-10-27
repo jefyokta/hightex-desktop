@@ -2,7 +2,6 @@ import { toast } from "sonner";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/use-user";
-import { useAuthModal } from "../context/auth-modal-context";
 import { useOnline } from "../hooks/use-online";
 import { motion } from "motion/react";
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
@@ -65,7 +64,6 @@ const Marquee = ({ items }: { items: string[] }) => {
 export const Splash: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { openLogin } = useAuthModal();
   const online = useOnline();
 
   const [loading, setLoading] = useState(false);

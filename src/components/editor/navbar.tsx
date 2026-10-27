@@ -21,6 +21,8 @@ import {
   Loader2,
   Settings,
   Save,
+  Check,
+  AlertCircle,
   // MessageCircle,
 } from "lucide-react";
 
@@ -42,8 +44,7 @@ import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { SettingModal } from "./settings-modal";
-import { Exporter } from "@/utils/htx/exporter";
-import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { useSaveDocument } from "@/hooks/use-save-document";
 // import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 // import { cn } from "@/lib/utils";
 // import { CommentStorage } from "@/editor/storage/comment";
@@ -53,6 +54,7 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
   const { chapter } = useChapterStore();
+  const { save, status: saveStatus } = useSaveDocument(editor, chapter);
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [pdfProgress, setPdfProgress] = React.useState<number>(0);
@@ -399,21 +401,20 @@ export const NavBar: React.FC = () => {
               </ButtonGroup>
               <ButtonGroup>
                 <Button
-                  title="Save"
-                  icon={Save}
-                  onClick={async () => {
-                    if (!Document.instance) return;
-                    const exporter = new Exporter(Document.instance?.id);
-                    const { buffer } = await exporter.buildExport();
-                    const newPath = await window.editor.save(
-                      buffer,
-                      `${Document.instance.getDocument().title.replace("_", "")}.hightex`,
-                    );
-                    if (!newPath) {
-                      throw new ShouldNotified("Failed to save document");
-                    }
-                    await Document.instance.setFilePath(newPath);
-                  }}
+                  title={t(`editor.save.${saveStatus}`)}
+                  icon={
+                    saveStatus === "saving"
+                      ? Loader2
+                      : saveStatus === "saved"
+                        ? Check
+                        : saveStatus === "error"
+                          ? AlertCircle
+                          : Save
+                  }
+                  disabled={saveStatus === "saving"}
+                  busy={saveStatus === "saving"}
+                  shortcut="Control+S Meta+S"
+                  onClick={() => void save()}
                 />
 
                 <Button
@@ -460,6 +461,8 @@ type ButtonProps = {
   handleHover?: boolean;
   active?: boolean;
   spinnable?: boolean;
+  busy?: boolean;
+  shortcut?: string;
 };
 
 const Button: React.FC<ButtonProps & PropsWithChildren> = ({
@@ -471,6 +474,8 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   handleHover = true,
   active = false,
   spinnable = true,
+  busy,
+  shortcut,
 }) => {
   return (
     <Tooltip>
@@ -478,6 +483,9 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         <button
           onClick={onClick}
           title={title}
+          aria-label={title}
+          aria-busy={busy}
+          aria-keyshortcuts={shortcut}
           disabled={disabled}
           className={`
         flex items-center justify-center

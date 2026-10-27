@@ -225,6 +225,13 @@
   },
   "profile": {},
   "editor": {
+    "save": {
+      "idle": "Save (Ctrl+S / ⌘S)",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Save failed. Click to retry.",
+      "failed": "Unable to save the document. Please try again."
+    },
     "expandable": {
       "citation": {
         "title": "Citation",

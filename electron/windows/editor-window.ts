@@ -91,6 +91,7 @@ export class EditorWindow {
 
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, buffer);
+    state.document.filePath = filePath;
     return filePath;
   }
 
