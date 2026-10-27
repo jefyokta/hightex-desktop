@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { bibToObject, CiteUtils } from "bibtex.js";
 import { HighTexDB } from "../editor/storage/hightex-db";
 import { parseBibtexInput, isCitationValid } from "@/utils/citation";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
-import { t } from "@/utils/lang";
+import { t, useAppLanguage } from "@/utils/lang";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -95,17 +102,20 @@ export const Citation = () => {
     });
   }, [citations, query]);
 
-  const deleteCitation = async (id: string) => {
-    setCitations((previous) =>
-      previous.filter((citation) => citation.getId() !== id),
-    );
+  const deleteCitation = useCallback(
+    async (id: string) => {
+      setCitations((previous) =>
+        previous.filter((citation) => citation.getId() !== id),
+      );
 
-    await db.cite.delete(id);
-  };
+      await db.cite.delete(id);
+    },
+    [db],
+  );
 
-  const copyCitation = async (text: string) => {
+  const copyCitation = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text);
-  };
+  }, []);
 
   const closeModal = () => {
     setBibText("");
@@ -432,20 +442,11 @@ export const Citation = () => {
                 {t("citation.empty")}
               </div>
             ) : (
-              <div className="h-full divide-y divide-muted/40 overflow-y-auto rounded-xl">
-                {filtered.map((cite) => (
-                  <div
-                    key={cite.getId()}
-                    className="px-3 py-2 transition hover:bg-muted/30"
-                  >
-                    <CitationRow
-                      cite={cite}
-                      onDelete={deleteCitation}
-                      onCopy={copyCitation}
-                    />
-                  </div>
-                ))}
-              </div>
+              <CitationList
+                cites={filtered}
+                onDelete={deleteCitation}
+                onCopy={copyCitation}
+              />
             )}
           </div>
         </div>
@@ -709,7 +710,29 @@ type CitationRowProps = {
   onCopy: (text: string) => void;
 };
 
+const CitationList = memo(function CitationList({
+  cites,
+  onDelete,
+  onCopy,
+}: Omit<CitationRowProps, "cite"> & { cites: CiteUtils[] }) {
+  useAppLanguage();
+  return (
+    <div className="h-full divide-y divide-muted/40 overflow-y-auto rounded-xl">
+      {cites.map((cite) => (
+        <div
+          key={cite.getId()}
+          className="px-3 py-2 transition hover:bg-muted/30"
+        >
+          <CitationRow cite={cite} onDelete={onDelete} onCopy={onCopy} />
+        </div>
+      ))}
+    </div>
+  );
+});
+
 const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
+  const citation = useMemo(() => cite.toCite(), [cite]);
+
   return (
     <div className="group flex items-start justify-between gap-4 px-4 py-4 transition hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
       <div className="min-w-0 flex-1">
@@ -728,7 +751,7 @@ const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
 
           <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
             <pre className="break-all whitespace-pre-wrap text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-              {cite.toCite()}
+              {citation}
             </pre>
           </div>
         </div>
@@ -737,7 +760,7 @@ const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
       <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
         <button
           type="button"
-          onClick={() => onCopy(cite.toCite())}
+          onClick={() => onCopy(citation)}
           className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
           aria-label={t("citation.copy")}
           title={t("citation.copy")}

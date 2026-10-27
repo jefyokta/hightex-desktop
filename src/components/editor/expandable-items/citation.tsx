@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Copy,
   Search,
@@ -18,7 +18,7 @@ import { TabHeader } from "./components/tab-header";
 import { CiteUtils, objectToBib } from "bibtex.js";
 import { Dropdown } from "@/components/dropdown";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { t } from "@/utils/lang";
+import { t, useAppLanguage } from "@/utils/lang";
 import { parseBibtexInput, isCitationValid } from "@/utils/citation";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
 import {
@@ -60,6 +60,11 @@ export const Citation = () => {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<CiteUtils | null>(null);
   const [authors, setAuthors] = useState<AuthorInput[]>([]);
+
+  const editAuthors = useCallback((cite: CiteUtils) => {
+    setEditing(cite);
+    setAuthors(getAuthorInputs(cite));
+  }, []);
 
   const db = HighTexDB.getInstance();
   const reload = async () => setCites(await db.getCites());
@@ -287,18 +292,7 @@ export const Citation = () => {
         )}
 
         {!loading && filtered.length > 0 && (
-          <div className="space-y-4">
-            {filtered.map((cite) => (
-              <CitationItem
-                key={cite.getId()}
-                cite={cite}
-                onEdit={() => {
-                  setEditing(cite);
-                  setAuthors(getAuthorInputs(cite));
-                }}
-              />
-            ))}
-          </div>
+          <CitationList cites={filtered} onEdit={editAuthors} />
         )}
       </div>
       <Dialog
@@ -499,23 +493,46 @@ export const Citation = () => {
   );
 };
 
+type CitationListProps = {
+  cites: CiteUtils[];
+  onEdit: (cite: CiteUtils) => void;
+};
+
+// Form input changes must not re-render and reformat the reference library.
+const CitationList = memo(function CitationList({
+  cites,
+  onEdit,
+}: CitationListProps) {
+  useAppLanguage();
+  return (
+    <div className="space-y-4">
+      {cites.map((cite) => (
+        <CitationItem key={cite.getId()} cite={cite} onEdit={onEdit} />
+      ))}
+    </div>
+  );
+});
+
 type CitationItemProps = {
   cite: CiteUtils;
-  onEdit: () => void;
+  onEdit: CitationListProps["onEdit"];
 };
 
 const CitationItem = ({ cite, onEdit }: CitationItemProps) => {
   const [copied, setCopied] = useState<CopyType | null>(null);
 
-  const title = cite.getTitle();
-
-  const biblio = new Cite(cite.getCite()).format("bibliography", {
-    format: "text",
-    template: "apa",
-    lang: "id-ID",
-  });
-
-  const author = cite.toCiteA();
+  const { title, biblio, author } = useMemo(
+    () => ({
+      title: cite.getTitle(),
+      biblio: new Cite(cite.getCite()).format("bibliography", {
+        format: "text",
+        template: "apa",
+        lang: "id-ID",
+      }),
+      author: cite.toCiteA(),
+    }),
+    [cite],
+  );
 
   const copy = async (type: CopyType) => {
     const text =
@@ -599,7 +616,7 @@ const CitationItem = ({ cite, onEdit }: CitationItemProps) => {
       </div>
       <button
         type="button"
-        onClick={onEdit}
+        onClick={() => onEdit(cite)}
         className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
       >
         <Pencil className="h-3 w-3" />
