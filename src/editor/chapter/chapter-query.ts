@@ -16,9 +16,13 @@ export class ChapterQuery {
   }
 
   async create() {
-    return await HighTexDB.getInstance().chapters.put({
-      id: this.chapter.getId(),
-      content: [],
+    const db = HighTexDB.getInstance();
+    const id = this.chapter.getId();
+    return db.transaction("rw", db.chapters, async () => {
+      // Another document load may already have created or saved this chapter.
+      if (!(await db.chapters.get(id)))
+        await db.chapters.add({ id, content: [] });
+      return id;
     });
   }
 

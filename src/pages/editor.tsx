@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { NavBar } from "../components/editor/navbar";
 import { EditorContent, useEditor } from "@tiptap/react";
 
@@ -25,6 +32,7 @@ import { openContextMenu } from "@/hooks/use-context-menu";
 import { Eye, TrashIcon } from "lucide-react";
 import { FrameNotOpened } from "@/exception/frame-not-opened";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { TableMenu } from "@/editor/components/table-menu";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
@@ -48,7 +56,10 @@ export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
   const { id, version, chapter } = useParams<EditorParams>();
-  const [loaded, setLoaded] = useState(false);
+  const [loadedChapter, setLoadedChapter] = useState<Chapter | null>(null);
+  const chapterId = `${id}.${chapter ?? "1"}${version ? `.${version}` : ""}`;
+  const currentChapter =
+    loadedChapter?.getId() === chapterId ? loadedChapter : null;
   const { config } = useConfig();
 
   const [editorKey, setEditorKey] = useState(uniqId());
@@ -79,9 +90,11 @@ export const Editor: React.FC = () => {
     let alive = true;
 
     const init = async () => {
-      setLoaded(false);
+      setLoadedChapter(null);
       if (id && !version) await refreshCloudAcademic(id);
-      const doc = await new Document(id!, version).warm();
+      if (!alive) return;
+      const doc = await new Document(id!, version).warm({ activate: false });
+      if (!alive) return;
       const currentChapter = doc.chapters.find(
         (c) => c.getChapter() == (chapter ?? 1),
       );
@@ -89,10 +102,9 @@ export const Editor: React.FC = () => {
         console.log("chapter not found", chapter);
         throw new ChapterNotFound(chapter);
       }
+      doc.activate();
       Document.setCurrentChapter(currentChapter);
-
-      if (!alive) return;
-      setLoaded(true);
+      setLoadedChapter(currentChapter);
     };
 
     init().catch((e) => {
@@ -121,6 +133,12 @@ export const Editor: React.FC = () => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
+
+      if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "s") {
+        // Suppress the browser's Save Page action even while the editor is loading.
+        e.preventDefault();
+        return;
+      }
 
       if (mod && e.key === "f") {
         e.preventDefault();
@@ -151,7 +169,7 @@ export const Editor: React.FC = () => {
           ref={containerRef}
           className="flex flex-col items-center py-3 space-y-2 px-5"
         >
-          {loaded && id && <DocumentProfileNotice documentId={id} />}
+          {currentChapter && id && <DocumentProfileNotice documentId={id} />}
           <ContextMenuPopup />
           <FindReplaceBar
             visible={showFind}
@@ -172,11 +190,14 @@ export const Editor: React.FC = () => {
               transformOrigin: "top center",
             }}
           >
-            {loaded && Chapter.instance ? (
-              Chapter.instance.frozen ? (
+            {currentChapter ? (
+              currentChapter.frozen ? (
                 <FrozenChapter key={`${id}.${chapter}`} />
               ) : (
-                <EditorComponent key={editorKey} />
+                <EditorComponent
+                  key={`${chapterId}:${editorKey}`}
+                  chapter={currentChapter}
+                />
               )
             ) : (
               <LoadingDocument />
@@ -188,10 +209,21 @@ export const Editor: React.FC = () => {
   );
 };
 
-const EditorComponent = () => {
+const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const { setEditor } = useCurrentEditor();
   const { params } = param();
   const { config } = useConfig();
+  const [ready, setReady] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const alive = useRef(true);
+  const contentError = useRef(false);
+  const commitTimer = useRef<ReturnType<typeof setTimeout>>();
+  const navigationFrame = useRef<number>();
+  const removeListeners = useRef<() => void>();
+  const extensions = useMemo(
+    () => chapter.extensions.get(config?.editor.aliasHint),
+    [chapter, config?.editor.aliasHint],
+  );
 
   const { setContent, setOpen } = useExpandableSidebar();
   useEffect(() => {
@@ -210,13 +242,31 @@ const EditorComponent = () => {
 
   const editor = useEditor({
     content: "",
-    extensions: Chapter.instance!.extensions.get(config?.editor.aliasHint),
+    editable: false,
+    extensions,
 
     onCreate: async ({ editor }) => {
-      let timer: any;
+      let initialized: boolean;
+      try {
+        initialized = await Manager.emit("create", {
+          editor,
+          chapter,
+          isCurrent: () => alive.current && !contentError.current,
+        });
+      } catch (error) {
+        if (!alive.current || editor.isDestroyed) return;
+        console.error("Unable to load chapter", error);
+        setLoadFailed(true);
+        return;
+      }
+      if (!initialized || !alive.current || editor.isDestroyed) return;
+
+      setReady(true);
+      setEditor(editor);
       const target = params.pop();
-      if (target) {
-        setTimeout(() => {
+      navigationFrame.current = requestAnimationFrame(() => {
+        if (!alive.current || editor.isDestroyed) return;
+        if (target) {
           if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
             scrollToPunctuationParagraph(
               editor,
@@ -225,17 +275,20 @@ const EditorComponent = () => {
           } else {
             Manager.scrollTo(target);
           }
-        }, 200);
-      }
-      editor.view.dom.addEventListener("input", () => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
+        } else {
+          editor.commands.focus();
+        }
+      });
+      const onInput = () => {
+        clearTimeout(commitTimer.current);
+        commitTimer.current = setTimeout(() => {
+          if (!alive.current) return;
           Manager.app.dispatch("chapter:commit", {
-            chapter: Document.current!,
+            chapter,
           });
         }, 800);
-      });
-      editor.view.dom.addEventListener("contextmenu", (e) => {
+      };
+      const onContextMenu = (e: MouseEvent) => {
         e.preventDefault();
 
         const target = e.target as HTMLElement | null;
@@ -283,12 +336,14 @@ const EditorComponent = () => {
           ],
           target,
         );
-      });
-
-      setEditor(editor);
-      await Manager.emit("create", {
-        editor,
-      });
+      };
+      const root = editor.view.dom;
+      root.addEventListener("input", onInput);
+      root.addEventListener("contextmenu", onContextMenu);
+      removeListeners.current = () => {
+        root.removeEventListener("input", onInput);
+        root.removeEventListener("contextmenu", onContextMenu);
+      };
     },
 
     onUpdate: async ({ editor }) => {
@@ -298,36 +353,71 @@ const EditorComponent = () => {
     },
 
     onContentError: async (props) => {
+      contentError.current = true;
+      setLoadFailed(true);
       console.log(props.editor.getJSON(), props.error);
       props.editor.setEditable(false);
       await window.hightex.saveContentError({
         content: props.editor.getJSON(),
-        fileName: `${Document.instance?.id}-${Chapter.instance?.getId()}.json`,
+        fileName: `${chapter.document.id}-${chapter.getId()}.json`,
       });
       throw new EditorContentError(props.editor);
     },
     enableContentCheck: true,
   });
 
+  useLayoutEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      clearTimeout(commitTimer.current);
+      if (navigationFrame.current !== undefined) {
+        cancelAnimationFrame(navigationFrame.current);
+      }
+      removeListeners.current?.();
+      if (editor) Manager.emit("destroy", { editor });
+      setEditor((current) => (current === editor ? null : current));
+    };
+  }, [editor, setEditor]);
+
   return (
-    <div
-      id="page"
-      data-table-resize-guides={config?.editor?.tableResizeGuides ?? true}
-      style={{
-        //@ts-ignore
-        "--start-counter": Chapter.instance!.getNumber(),
-      }}
-      className={`page ${Chapter.instance?.getHtmlClass()} bg-white dark:bg-neutral-900! rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]`}
-    >
-      <EditorContent
-        spellCheck={config?.editor.spellCheck || false}
-        lang={config?.language || "id-ID"}
-        editor={editor}
-      />
-      {(() => Chapter.instance?.getDecorator())()}
-      <BubbleMenu editor={editor} />
-      <TableMenu editor={editor} />
-      <CommentSlave />
-    </div>
+    <>
+      {!ready &&
+        (loadFailed ? (
+          <Alert className="w-[21cm] max-w-full">
+            <AlertTitle>{t("editor.error.load_failed.title")}</AlertTitle>
+            <AlertDescription>
+              <p>{t("editor.error.load_failed.description")}</p>
+              <Button
+                onClick={() => Manager.app.dispatch("chapter:reload", {})}
+              >
+                {t("editor.error.load_failed.retry")}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <LoadingDocument />
+        ))}
+      <div
+        id="page"
+        hidden={!ready}
+        aria-busy={!ready}
+        data-table-resize-guides={config?.editor?.tableResizeGuides ?? true}
+        style={
+          { "--start-counter": chapter.getNumber() } as React.CSSProperties
+        }
+        className={`page ${chapter.getHtmlClass()} bg-white dark:bg-neutral-900! rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]`}
+      >
+        <EditorContent
+          spellCheck={config?.editor.spellCheck || false}
+          lang={config?.language || "id-ID"}
+          editor={editor}
+        />
+        {chapter.getDecorator()}
+        <BubbleMenu editor={editor} />
+        <TableMenu editor={editor} />
+        <CommentSlave />
+      </div>
+    </>
   );
 };

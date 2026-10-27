@@ -296,6 +296,11 @@
       }
     },
     "error": {
+      "load_failed": {
+        "title": "Unable to load this chapter",
+        "description": "Editing and saving are paused until the chapter loads.",
+        "retry": "Try again"
+      },
       "pagging_stopped": {
         "title": "Pagging Stopped",
         "description": "content page limit cause an error. Adjust content in the previous page or split it into a new page."

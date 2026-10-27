@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import type { Chapter } from "@/editor/chapter";
-import { Document } from "@/editor/document";
+import { getEditorChapter } from "@/editor/event";
+import { Manager } from "@/editor/manager";
 import { Exporter } from "@/utils/htx/exporter";
 import { t } from "@/utils/lang";
 import { toast } from "sonner";
@@ -35,11 +36,13 @@ export function useSaveDocument(
   }, [status]);
 
   const save = useCallback(async (): Promise<void> => {
-    const doc = Document.instance;
+    const boundChapter = editor ? getEditorChapter(editor) : undefined;
+    const doc = boundChapter?.document;
     if (
       saving.current ||
       !doc ||
       !chapter ||
+      boundChapter !== chapter ||
       chapter.frozen ||
       chapter.document.id !== doc.id ||
       !editor ||
@@ -54,7 +57,7 @@ export function useSaveDocument(
     const content = editor.state.doc;
     setStatus("saving");
     try {
-      await chapter.setContent(editor.getJSON().content ?? []);
+      await Manager.emit("update", { editor });
       const { buffer, document } = await new Exporter(doc.id).buildExport();
       const filePath = await window.editor.save(
         buffer,

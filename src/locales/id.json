@@ -296,6 +296,11 @@
       }
     },
     "error": {
+      "load_failed": {
+        "title": "Bab tidak dapat dimuat",
+        "description": "Pengeditan dan penyimpanan dijeda sampai bab berhasil dimuat.",
+        "retry": "Coba lagi"
+      },
       "pagging_stopped": {
         "title": "Penghalaman Terhenti",
         "description": "Batas halaman konten bikin error. Sesuaikan konten di halaman sebelumnya atau pecah jadi halaman baru."

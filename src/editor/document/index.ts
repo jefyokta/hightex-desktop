@@ -60,9 +60,8 @@ export class Document {
     );
   }
 
-  async warm() {
+  async warm({ activate = true }: { activate?: boolean } = {}) {
     try {
-      Document.instance = this;
       this.doc = await this.get();
       this.scheme = await this.loadSchemeFromExternal();
       this.chapters = this.buildChaptersFromScheme();
@@ -78,13 +77,18 @@ export class Document {
       );
       this.ready = true;
 
-      Manager.app.dispatch("document:warmed", { document: this });
+      if (activate) this.activate();
 
       return this;
     } catch (e) {
       console.error("WARM FAILED:", e);
       throw e;
     }
+  }
+
+  activate() {
+    Document.instance = this;
+    Manager.app.dispatch("document:warmed", { document: this });
   }
 
   async getGraphs(): Promise<ChapterGraphData[]> {
@@ -164,6 +168,7 @@ export class Document {
       chapters.push(
         new Chapter({
           documentId: this.id,
+          document: this,
           chapter: c.chapter,
           version: this.version,
           isolated: true,
@@ -174,6 +179,7 @@ export class Document {
     chapters.push(
       new Chapter({
         documentId: this.id,
+        document: this,
         chapter: "attachment",
         version: this.version,
         isolated: true,
@@ -182,6 +188,7 @@ export class Document {
     chapters.push(
       new Chapter({
         documentId: this.id,
+        document: this,
         chapter: "cv",
         version: this.version,
         isolated: true,
@@ -209,7 +216,9 @@ export class Document {
     def.push(
       new Chapter({
         documentId: this.id,
+        document: this,
         chapter: "foreword",
+        version: this.version,
         isolated: true,
       }).setTitle("KATA PENGANTAR"),
     );
@@ -217,7 +226,9 @@ export class Document {
       def.push(
         new Chapter({
           documentId: this.id,
+          document: this,
           chapter: "presentation",
+          version: this.version,
           isolated: true,
         }).setTitle("LEMBAR PERSEMBAHAN"),
       );
@@ -225,20 +236,26 @@ export class Document {
     def.push(
       new Chapter({
         documentId: this.id,
+        document: this,
         chapter: "abstract",
+        version: this.version,
         isolated: true,
       }).setTitle("ABSTRAK"),
       new Chapter({
         documentId: this.id,
+        document: this,
         chapter: "abstract-en",
+        version: this.version,
         isolated: true,
       }).setTitle("ABSTRACT"),
     );
     def.push(
       new Chapter({
         documentId: this.id,
+        document: this,
         chapter: "abbrevation",
-        // isolated:true,
+        version: this.version,
+        isolated: true,
         frozen: true,
       }).setTitle("DAFTAR SINGKATAN"),
     );

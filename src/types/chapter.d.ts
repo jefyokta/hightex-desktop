@@ -1,4 +1,5 @@
 import { Chapter } from "@/editor/chapter";
+import type { Document } from "@/editor/document";
 
 declare global {
   interface WalkContext {
@@ -19,8 +20,8 @@ declare global {
   interface ChapterOptions {
     chapter: string | number;
     documentId: string;
+    document?: Document;
     version?: string;
-    //should be removed, unused
     isolated?: boolean;
     frozen?: boolean;
   }

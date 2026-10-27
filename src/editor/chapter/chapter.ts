@@ -61,7 +61,7 @@ export class Chapter {
     frozen?: boolean;
   } {
     if (args.length === 1 && typeof args[0] === "object") {
-      const { chapter, documentId, version, isolated, frozen } =
+      const { chapter, documentId, document, version, isolated, frozen } =
         args[0] as ChapterOptions;
 
       const chapterName = String(chapter);
@@ -71,9 +71,10 @@ export class Chapter {
           ? `${documentId}.${chapterName}.${version}`
           : `${documentId}.${chapterName}`,
         document:
-          Document.instance && Document.instance.id === documentId
+          document ??
+          (Document.instance && Document.instance.id === documentId
             ? Document.instance
-            : new Document(documentId, version),
+            : new Document(documentId, version)),
         isolated,
         frozen,
       };
