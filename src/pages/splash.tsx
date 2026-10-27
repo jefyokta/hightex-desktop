@@ -255,15 +255,9 @@ export const Splash: React.FC = () => {
                 onClick={() => navigate("/dashboard")}
                 className="px-5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700"
               >
-                {t("common.continue_as_guest")}
+                Start
               </button>
 
-              <button
-                onClick={openLogin}
-                className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
-              >
-                {t("common.login")}
-              </button>
             </>
           )}
         </div>

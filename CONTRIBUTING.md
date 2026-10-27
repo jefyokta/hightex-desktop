@@ -1,263 +1,161 @@
-# Contributing Guide
+# Contributing to HighTex Desktop
 
-Thank you for contributing to **HighTex Desktop**. Please follow the conventions below to keep the codebase consistent, maintainable, and easy to review.
+This guide is for contributors preparing a pull request for **HighTex Desktop**. It explains how to choose a change, follow the project's conventions, verify your work, and make your PR ready for review.
 
-## Pinned
+## Before You Start
 
-Please stop prompting such like `find any issue in this project and make a PR to fix it` to your agent!
+- Read the [README](./README.md) to understand the project and its goals.
+- Search existing issues and pull requests to avoid duplicating work.
+- Start with a specific problem or improvement that you can explain. For a bug fix, reproduce the problem before changing the code whenever possible.
+- Discuss major features, architectural changes, or new dependencies in an issue before investing in a large implementation.
+- Keep each PR focused on one problem. Leave unrelated refactors, formatting changes, and dependency upgrades for separate PRs.
 
-It's not forbidden to use AI, but please make sure you really understand the problem and how it should be fixed before making a PR.
+If you only want to report a bug or suggest a feature, use the repository's issue templates.
 
-## Code Quality
+## Using AI in Pull Requests
 
-### Always Use Types
+AI tools are welcome, but you are responsible for every change you submit.
 
-This project uses **TypeScript**.
+Do not open a PR based only on a broad prompt such as **“find any issue in this project and make a PR to fix it.”** First confirm that the problem exists, understand its impact, and decide whether the proposed fix fits the project.
 
-- Always define types for function parameters and return values.
-- Avoid `any` unless there is a specific and justified reason.
-- Prefer existing types over creating duplicate or equivalent types.
-- Keep shared types in the appropriate type/module directory.
-- Do not weaken type safety just to make an implementation easier.
+Before submitting AI-assisted work:
 
-```ts
-// Good
-function getDocument(id: string): Document | undefined {
-  // ...
-}
+- Read and understand the generated code, tests, and documentation.
+- Check that the proposed fix addresses the actual problem and follows the existing architecture.
+- Remove unrelated edits, unnecessary abstractions, invented APIs, and unsupported claims.
+- Run the relevant checks and manually verify affected behavior where needed.
+- Be prepared to explain your implementation, its tradeoffs, and the evidence that it works.
 
-// Avoid
-function getDocument(id: any): any {
-  // ...
-}
+An AI-generated explanation or a successful tool run alone is not enough to establish that a change is correct. Your PR description should reflect what you personally reviewed and verified.
+
+## Local Development
+
+Fork the repository, clone your fork, and create a branch for your change. The project uses **Bun**, **Electron**, **React**, and **TypeScript**.
+
+Install dependencies and start the development application:
+
+```bash
+bun install
+bun run dev
 ```
 
-### Follow DRY
+See [package.json](./package.json) for the available scripts and [contributor documentation](./docs/contributors/readme.md) for additional project notes. Check those notes against the current implementation when working in an unfamiliar area.
 
-**Don't Repeat Yourself.**
+## Implementation Guidelines
 
-- Do not duplicate the same logic across multiple components or services.
-- Extract reusable logic when it has a clear and meaningful responsibility.
-- Reuse existing utilities, hooks, services, and types before creating new ones.
-- Avoid premature abstractions when code is only coincidentally similar.
+### Types and Naming
 
-### Keep Responsibilities Focused
+- Define types for function parameters and return values. Avoid `any` unless there is a specific, justified need.
+- Reuse existing types instead of duplicating them or weakening type safety to make a change easier.
+- Use specific unions and project types rather than broad strings where appropriate.
+- Keep shared renderer types in `src/types/` and cross-process contracts in `sharable-types/` when they belong there.
+- Use names that explain the value, action, or responsibility, and follow the surrounding module's naming style.
 
-Each file, class, function, and component should have a clear purpose.
+### Structure and Responsibilities
 
-- Avoid **God Objects**.
-- Split large files when they start handling multiple responsibilities.
-- Prefer small, focused modules over large files containing unrelated logic.
-- A file should be easy to describe in one sentence.
+- Check for an existing component, utility, hook, service, or type before adding another one.
+- Put files beside related functionality and avoid unnecessary top-level folders.
+- Keep components, functions, and services focused on a clear responsibility.
+- Share repeated behavior when it represents the same responsibility. Avoid abstractions based only on similar-looking code.
+- Keep business logic, persistence, and external integrations in the appropriate services or modules.
+- Reuse document types and shared behavior for thesis, proposal, and internship documents. Keep document-specific behavior explicit.
 
-If a class or component becomes difficult to understand or maintain, consider splitting it into smaller modules.
+### Electron and IPC
 
-## Project Structure
-
-Put files in the folder that matches their responsibility.
-
-Before creating a new file:
-
-1. Check whether an existing module already provides the required functionality.
-2. Check the existing folder structure.
-3. Place the new file beside related functionality.
-4. Avoid creating unnecessary top-level folders.
-
-Do not place files in convenient locations simply because they are easy to import.
-
-## Naming Conventions
-
-Use clear and consistent names.
-
-### General Rules
-
-- Names should describe **what something represents or does**.
-- Functions should describe an **action**.
-- Variables should describe the **value they contain**.
-- Classes should describe the **thing or responsibility they represent**.
-- Types and interfaces should describe the **shape or concept they represent**.
-- Avoid vague names such as `data`, `thing`, `helper`, `utils`, or `manager` unless their meaning is genuinely clear from context.
-
-```ts
-// Good
-const documentSettings = ...
-function loadProjectSettings() { ... }
-
-// Avoid
-const data = ...
-function handleData() { ... }
-```
-
-Use the existing naming style of the surrounding module instead of introducing a different convention.
-
-## Components
-
-For React components:
-
-- Keep components focused on their UI responsibility.
-- Extract reusable logic into hooks or services when appropriate.
-- Avoid putting application/business logic directly into large UI components.
-- Keep component files reasonably small.
-- Reuse existing UI components before creating new ones.
-
-Do not create a new abstraction only for the sake of abstraction.
-
-## Services
-
-Application and integration logic should live in the appropriate service/module rather than being duplicated across components.
-
-For example:
-
-- Electron-specific functionality belongs in the appropriate Electron layer.
-- Project/document operations belong in their corresponding service.
-- Persistence/database operations should not be scattered throughout UI components.
-- External integrations should have a clear boundary.
-
-Components should consume these services rather than reimplementing their logic.
-
-## Types
-
-Prefer centralized and reusable types when a type is shared across multiple modules.
-
-For HighTex Desktop:
-
-- Keep shared application types in the project's designated `types` directory.
-- Do not duplicate the same type definition in multiple components.
-- Use specific types instead of broad objects.
-
-```ts
-// Good
-type ProjectType = "thesis" | "proposal" | "intern";
-
-// Avoid
-type ProjectType = string;
-```
-
-When extending an existing data structure, reuse or compose the existing type where possible.
-
-## HighTex Desktop Specific Rules
-
-HighTex Desktop is an **Electron + React + TypeScript** application. Keep the separation between the different application environments clear.
-
-### Electron vs Renderer
-
-Do not unnecessarily mix Electron/main-process code with renderer code.
-
-- Electron-specific APIs belong in the main/preload side.
-- Renderer code should communicate through the existing preload/API boundary.
-- Do not access Node/Electron APIs directly from React components unless the project's architecture explicitly allows it.
-- Reuse the existing `window.*` APIs exposed by the preload layer.
-
-### IPC and Window APIs
-
-When adding Electron functionality:
-
-- Follow the existing IPC/preload architecture.
-- Keep IPC channels and exposed APIs clearly named.
-- Do not expose unnecessary Node/Electron functionality to the renderer.
-- Keep the API surface minimal and purposeful.
-  > Note: write the api's type when u register new one
+- Keep Electron/main-process logic in `electron/` and React renderer code in `src/`.
+- Communicate through the existing preload boundary and `window.*` APIs.
+- Follow the existing handler, IPC channel, and preload registration patterns.
+- Add or update the corresponding TypeScript declarations when exposing an API. Renderer window API declarations are in `src/types/global.d.ts`.
+- Expose only the functionality needed by the renderer; avoid exposing unrestricted Node.js or Electron access.
 
 ### State and Persistence
 
-Use the existing persistence mechanisms for their intended purpose.
+- Use existing application stores for application state and settings.
+- Use the existing database and storage services for persistent document data.
+- Keep direct persistence access out of unrelated components.
+- Introduce another state or persistence mechanism only when the existing approach cannot meet a clearly explained requirement.
 
-For example:
+### UI and Localization
 
-- Use the existing application store for application-level settings.
-- Use the existing database/storage layer for persistent project data.
-- Use the existing Dexie/database abstractions instead of accessing storage directly from unrelated components.
+- Use **shadcn/ui** as the primary UI component system. Reuse the project's components in `src/components/ui/` before adding new ones.
+- Follow the existing Tailwind CSS, Radix UI, and Lucide patterns for styling, primitives, and icons.
+- Keep spacing, typography, interactions, keyboard navigation, and visual states consistent with the application.
+- Avoid introducing another UI library for a small feature.
+- Use the existing dialogs and notifications for normal interactions rather than calling browser-native `alert`, `prompt`, or `confirm` directly.
+- Use `t` from `@/utils/lang` for user-facing text. Add matching translation keys to both `src/locales/en.json` and `src/locales/id.json`.
+- Use translation interpolation for dynamic values instead of concatenating translated sentences.
 
-Do not introduce another state or persistence mechanism without a clear architectural reason.
+### Error Handling
 
-### Project and Document Logic
+- Handle failures intentionally. Do not silently swallow errors or leave unexplained empty `catch` blocks.
+- Preserve the original error context when wrapping an error, and avoid showing internal details to users unnecessarily.
+- Reuse the existing error contracts and handling flow. Renderer errors derive from `ApplicationError`; Electron-side errors use their own contracts in `electron/exception/`.
+- Use localized messages for errors shown to users.
 
-HighTex Desktop contains multiple document types and project-specific settings.
+The renderer's existing contracts include:
 
-When modifying document behavior:
+| Contract                            | Purpose                                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `ShouldNotified`                    | Display a toast notification.                                                         |
+| `ShouldReport`                      | Display an unexpected-error notification with a report action.                        |
+| `ShouldNavigated`                   | Navigate to a recovery route.                                                         |
+| `ShouldNotifiedWithNativeComponent` | Use the existing native notification fallback when the normal UI cannot be relied on. |
 
-- Reuse existing document/project types.
-- Keep document-type-specific behavior explicit.
-- Avoid duplicating logic for Thesis, Proposal, and Intern documents.
-- Prefer shared abstractions when the behavior is genuinely common.
-- Keep document-specific fields and behavior within their appropriate modules.
+Check the constructors and existing call sites before using these classes. Creating an error object alone does not send it through the application's error handler.
 
-### UI Consistency
+### Imports, Comments, and Formatting
 
-Follow the existing HighTex Desktop UI patterns.
+- Remove unused imports, prefer existing aliases, and avoid circular dependencies.
+- Write comments that explain intent or constraints that the code does not make clear.
+- Follow the repository's Prettier configuration and format only the files you change.
+- Keep generated build output, local configuration, credentials, and private document data out of your PR.
 
-- Reuse existing components whenever possible.
-- Use the project's existing UI primitives and icons.
-- Keep spacing, typography, interactions, and states consistent with the rest of the application.
-- Do not introduce a new UI library for a small feature.
-- Avoid browser-native `alert`, `prompt`, and `confirm` for application interactions.
+## Verify Your Change
 
-New UI should feel like part of HighTex Desktop rather than an isolated feature.
+For code changes, run the type check and tests used by the [Test workflow](./.github/workflows/test.yml):
 
-## Imports
-
-Keep imports clean and consistent.
-
-- Remove unused imports.
-- Prefer the project's existing import aliases.
-- Avoid unnecessarily long relative import paths when an established alias exists.
-- Do not introduce circular dependencies.
-
-## Error Handling
-
-Handle errors intentionally.
-
-- Do not silently swallow errors.
-- Do not use empty `catch` blocks unless there is a documented reason.
-- Provide meaningful error handling at the appropriate layer.
-- Do not expose internal implementation details to users unnecessarily.
-
-```ts
-try {
-  await saveProject(project);
-} catch (error) {
-  throw new ShouldNotified("Failed to save project");
-  //would be better using locale message
-  //        throw new ShouldNotified(t("failed.save_project"))
-
-  // Handle the error appropriately.
-}
+```bash
+bunx tsc --noEmit
+bun test
 ```
 
-### Error Contracts
+Also run lint for code changes:
 
-all errors that extend `ApplicationError` will be cathed. this is base error class for all contracts
-
-```ts
-new ShouldNotified(); // throwing this or extend of this, will spawn a sooner with the error message
-
-new ShouldReport(); // for very unexpected errors, it also extend should notified and will suggest user to report it into an issue
-
-new ShouldNavigated(); // using this for avoid forbids page or any others that should navigate after errors occured
-
-new ShouldNotifiedWithNativeComponent(); // similliar with should notified buat using os alert: used when the error will broke css
+```bash
+bun run lint
 ```
 
-## Comments
+Check formatting for the files you edited, replacing the example paths:
 
-Write comments to explain **why**, not what the code obviously does.
-
-```ts
-// Good
-// Keep the previous value because the updater may restart the application
-// before the new state is persisted.
-const previousVersion = currentVersion;
+```bash
+bunx prettier --check path/to/changed-file.ts path/to/changed-file.tsx
 ```
 
-Avoid comments that simply restate the code.
+- Add or update tests when they help verify changed behavior or prevent a bug from returning. Test observable behavior, including relevant failure cases.
+- Manually verify editor, PDF, persistence, or platform-specific behavior affected by your change. Use sample documents instead of private thesis data.
+- For UI changes, check the affected screens and include screenshots or a recording in the PR.
+- Documentation-only changes need formatting and content checks; application tests are only necessary if the documented behavior also changes.
+- Report the checks you ran and their results accurately. If a check fails or cannot run, explain the failure or limitation and whether it also occurs on the base branch when known.
 
-```ts
-// Avoid
-// Set current version
-const currentVersion = version;
-```
+## Open a Pull Request
 
-If code requires extensive comments to explain what it does, consider whether the implementation can be simplified.
+Target the `main` branch and use a title that describes the change. Mark unfinished work as a draft.
 
-> Thanks,
-> jefyokta
+Your PR description should include:
+
+1. **Problem:** what needs to change and why. Link a related issue if one exists; for a bug, include reproduction steps.
+2. **Solution:** the resulting behavior and any implementation choices that matter to review.
+3. **Verification:** the exact checks or manual scenarios you ran, their results, and any limitations.
+4. **Supporting details, when relevant:** screenshots, sample input/output, platform differences, data compatibility, or migration requirements.
+
+Before requesting review:
+
+- [ ] I understand and have reviewed every change in this PR, including any AI-generated content.
+- [ ] The PR addresses a specific problem and contains no unrelated changes.
+- [ ] I have followed the relevant architecture, type, UI, and localization conventions.
+- [ ] I have verified the change and documented the checks and results.
+- [ ] I have included supporting examples or screenshots where they help review.
+
+Respond to review feedback with updates or an explanation of your reasoning. If the scope changes during review, update the PR title, description, and verification details to match the final implementation.
+
+Thank you for helping improve HighTex Desktop.
