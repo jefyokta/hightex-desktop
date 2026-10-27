@@ -6,14 +6,27 @@ import {
   type ScanContext,
 } from "@hightex/scanner";
 
+const INLINE_ATOMS = new Set([
+  "refComponent",
+  "cite",
+  "variable",
+  "mathInline",
+  "dots",
+]);
+
 function scannerNodes(nodes: JSONContent[]): DocumentNode[] {
   return nodes.map((node) => {
     if (!node.type) throw new Error("Scanner content requires a node type");
     const { content, ...rest } = node;
+    // The scanner masks non-text content, but empty atoms otherwise disappear.
+    // Keep their identity and reference attributes; add text only to this snapshot.
+    const scanContent = INLINE_ATOMS.has(node.type)
+      ? [{ type: "text", text: `<node:${node.type}>` }]
+      : content;
     return {
       ...rest,
       type: node.type,
-      ...(content ? { content: scannerNodes(content) } : {}),
+      ...(scanContent ? { content: scannerNodes(scanContent) } : {}),
     };
   });
 }
