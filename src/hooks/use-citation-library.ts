@@ -25,8 +25,19 @@ export function useCitationLibrary() {
 
   const loadCitations = useCallback(async () => {
     const rows = await db.cite.toArray();
-    return rows.map((citation) =>
-      new CiteUtils(citation.bib).setId(citation.key),
+    const mapped = await Promise.all(
+      rows.map(async (citation) => {
+        try {
+          return new CiteUtils(citation.bib).setId(citation.key);
+        } catch {
+          await db.cite.delete(citation.key);
+          return undefined;
+        }
+      }),
+    );
+
+    return mapped.filter(
+      (citation): citation is CiteUtils => citation !== undefined,
     );
   }, [db]);
 
