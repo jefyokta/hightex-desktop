@@ -39,3 +39,6 @@ plan.md
 # Independent libraries
 /packages/
 test.sh
+
+docs/contributors/editor-content-loss.md
+docs/contributors/pdf-generation-flow.md

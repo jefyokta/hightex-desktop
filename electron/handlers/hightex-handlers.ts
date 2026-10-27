@@ -9,6 +9,7 @@ import { PDFService } from "../service/pdf-service";
 import { CategoryService } from "../service/category-service";
 import { IPCMain } from "@main/utilities/ipc-main";
 import { ShouldSilent } from "@main/exception/should-silent";
+import { ExportTimeout } from "@main/exception/export-timeout";
 import { ConfigService } from "@main/service/config-service";
 import {
   documentService,
@@ -118,29 +119,42 @@ export class HighTexHandler {
       writeFileSync(filePath, file);
       return filePath;
     });
-    IPCMain.handle("hightex:pdf", async (event, id: string, wm = false) => {
-      if (!id) {
-        throw new Error("Document id is required for PDF export.");
-      }
+    IPCMain.handle(
+      "hightex:pdf",
+      async (event, id: string, wm = false, requestId?: string) => {
+        if (!id) {
+          throw new Error("Document id is required for PDF export.");
+        }
 
-      const progress = (status: string, value?: number) => {
-        event.sender.send("hightex:pdf:progress", { status, progress: value });
-      };
+        const progress = (status: string, value?: number) => {
+          event.sender.send("hightex:pdf:progress", {
+            status,
+            progress: value,
+            requestId,
+          });
+        };
 
-      try {
-        progress("Opening print view...", 5);
-        const pdf = new PDFService(wm);
-        const result = await pdf.exportPDF(id, progress);
-        progress("Export complete", 100);
-        return result;
-      } catch (error) {
-        LoggerService.write(error, "hightex:pdf");
-        progress("PDF export failed", 0);
-        throw error instanceof Error
-          ? new Error(error.message)
-          : new Error("Unable to export PDF.");
-      }
-    });
+        try {
+          progress("Opening print view...", 5);
+          const pdf = new PDFService(wm);
+          const result = await pdf.exportPDF(id, progress);
+          progress(
+            result === null ? "Export canceled" : "Export complete",
+            result === null ? 0 : 100,
+          );
+          return result;
+        } catch (error) {
+          LoggerService.write(error, "hightex:pdf");
+          progress("PDF export failed", 0);
+          if (error instanceof ExportTimeout) {
+            throw new Error(`${error.message}\nRender log: ${error.logFile}`);
+          }
+          throw error instanceof Error
+            ? new Error(error.message)
+            : new Error("Unable to export PDF.");
+        }
+      },
+    );
 
     IPCMain.handle("hightex:prefetch", async (event) => {
       const send = (status: string, progress: number) => {

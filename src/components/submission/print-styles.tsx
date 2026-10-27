@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import css from "@/css/document.css?url";
 import tocCss from "@/css/toc.css?url";
 import fontCss from "@/assets/fonts/style.css?url";
+import katexCss from "katex/dist/katex.min.css?url";
+import codeCss from "highlight.js/styles/github-dark.css?url";
 import { createElementFromUrl } from "@/utils/create-element-from-url";
 
 export const PrintStyles = ({
@@ -15,12 +17,14 @@ export const PrintStyles = ({
   const [error, setError] = useState(false);
   useEffect(() => {
     let active = true;
+    setReady(false);
+    setError(false);
     const elements: HTMLElement[] = [];
     document
       .querySelectorAll('style, link[rel="stylesheet"]')
       .forEach((element) => element.remove());
     void (async () => {
-      for (const url of [fontCss, css, tocCss]) {
+      for (const url of [fontCss, katexCss, css, tocCss, codeCss]) {
         // Fetch raw CSS in development, using the existing print utility.
         const element = await createElementFromUrl(
           `${url}${url.includes("?") ? "&" : "?"}direct`,

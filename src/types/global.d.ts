@@ -162,7 +162,11 @@ declare global {
       prefetch(): Promise<void>;
       onPrefetchProgress(cb: (data: any) => void): void;
       onPdfProgress(
-        cb: (data: { status: string; progress?: number }) => void,
+        cb: (data: {
+          status: string;
+          progress?: number;
+          requestId?: string;
+        }) => void,
       ): () => void;
       categories(): Promise<Category[]>;
       profile(): Promise<DocumentProfile>;
@@ -282,6 +286,10 @@ declare global {
   }
 
   interface EditorAPI {
+    onFlush(
+      callback: (request: string, documentId: string) => void,
+    ): () => void;
+    completeFlush(request: string, error?: string): void;
     open(documentId: string, file?: string): Promise<void>;
     has(documentId: string): Promise<boolean>;
     save(buffer: Uint8Array, fileName: string): Promise<string | undefined>;

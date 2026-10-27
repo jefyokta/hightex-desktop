@@ -1,31 +1,27 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-
+import { randomUUID } from "node:crypto";
 import { BrowserWindow, ipcMain, dialog, app } from "electron";
 import { PDFDocument } from "pdf-lib";
-
 import { Application } from "../main/application";
 import { LoggerService } from "./logger-service";
-import { ShouldSilent } from "@main/exception/should-silent";
 import { ConfigService } from "./config-service";
 import { ExportTimeout } from "@main/exception/export-timeout";
+import { EditorWindow } from "../windows/editor-window";
+
+type Progress = (message: string, value?: number) => void;
 
 export class PDFService {
-  private window: BrowserWindow | null = null;
-
   static DEFAULT_EXPORT_TIME_OUT = 120000;
-
   private static readonly loggerDir = path.join(
     app.getPath("userData"),
     "render-logs",
   );
 
-  private logFile = "";
-
   constructor(private waterMark = false) {}
 
   private createWindow() {
-    this.window = new BrowserWindow({
+    return new BrowserWindow({
       show: false,
       width: 1280,
       height: 2000,
@@ -36,433 +32,219 @@ export class PDFService {
         backgroundThrottling: false,
       },
     });
-
-    return this.window;
   }
 
-  private destroyWindow(win: BrowserWindow) {
-    if (!win.isDestroyed()) {
-      win.destroy();
-    }
-
-    this.window = null;
-  }
-
-  private channel(docId: string) {
-    return `page:payload:${docId}`;
-  }
-
-  private async createLoggerFile(docId: string) {
-    await fs.mkdir(PDFService.loggerDir, {
-      recursive: true,
-    });
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-
-    const loggerFile = path.join(
-      PDFService.loggerDir,
-      `${docId}_${timestamp}.log`,
-    );
-
-    this.logFile = loggerFile;
-
+  private async prepareLogger(
+    win: BrowserWindow,
+    docId: string,
+    request: string,
+  ) {
+    await fs.mkdir(PDFService.loggerDir, { recursive: true });
+    const name = `${docId.replace(/[^a-zA-Z0-9_-]/g, "_")}_${request}.log`;
+    const loggerFile = path.join(PDFService.loggerDir, name);
     await fs.writeFile(loggerFile, "", "utf8");
-
-    return loggerFile;
+    const listener = (
+      event: Electron.Event<Electron.WebContentsConsoleMessageEventParams>,
+    ) => {
+      void LoggerService.writeAsync(
+        loggerFile,
+        `[${event.level}] ${event.message}\n  at ${event.sourceId}:${event.lineNumber}\n\n`,
+      );
+    };
+    win.webContents.on("console-message", listener);
+    return {
+      loggerFile,
+      detachLogger: () =>
+        win.webContents.removeListener("console-message", listener),
+    };
   }
 
   private get timeout(): number {
-    const usrTimeOut = Number(ConfigService.get().export.exportTimeout);
-
-    return isNaN(usrTimeOut) || usrTimeOut === 0 || usrTimeOut === Infinity
-      ? PDFService.DEFAULT_EXPORT_TIME_OUT
-      : usrTimeOut;
+    const value = Number(ConfigService.get().export.exportTimeout);
+    return Number.isFinite(value) && value > 0
+      ? value
+      : PDFService.DEFAULT_EXPORT_TIME_OUT;
   }
 
-  private attachConsoleLogger(win: BrowserWindow, loggerFile: string) {
-    const listener = (
-      _event: Electron.Event,
-      level: number,
-      message: string,
-      line: number,
-      sourceId: string,
-    ) => {
-      const levelName =
-        level === 0
-          ? "log"
-          : level === 1
-            ? "warn"
-            : level === 2
-              ? "error"
-              : level === 3
-                ? "debug"
-                : "info";
-
-      void LoggerService.writeAsync(
-        loggerFile,
-        `[${levelName}] ${message}\n` + `  at ${sourceId}:${line}\n\n`,
-      );
-    };
-
-    win.webContents.on("console-message", listener);
-
-    return () => {
-      win.webContents.removeListener("console-message", listener);
-    };
-  }
-
-  private async prepareLogger(win: BrowserWindow, docId: string) {
-    const loggerFile = await this.createLoggerFile(docId);
-
-    const detachLogger = this.attachConsoleLogger(win, loggerFile);
-
-    return {
-      loggerFile,
-      detachLogger,
-    };
-  }
-
-  private async loadPrintView(win: BrowserWindow, docId: string) {
-    const url = Application.instance.resolveRendererUrl(
-      `document/${docId}/print${this.waterMark ? "/true" : ""}`,
-    );
-
-    await new Promise<void>((resolve, reject) => {
-      win.webContents.once("did-finish-load", () => resolve());
-
-      win.webContents.once("did-fail-load", (_event, code, desc, failedUrl) => {
-        reject(new Error(`Print failed: ${desc} (${code}) ${failedUrl}`));
-      });
-
-      win.loadURL(url).catch(reject);
+  private waitForExport(docId: string, win: BrowserWindow, request: string) {
+    const payloadChannel = `page:payload:${docId}:${request}`;
+    const errorChannel = `page:error:${docId}:${request}`;
+    const belongs = (event: Electron.IpcMainEvent) =>
+      event.sender === win.webContents &&
+      event.senderFrame?.processId === win.webContents.mainFrame.processId &&
+      event.senderFrame?.routingId === win.webContents.mainFrame.routingId;
+    let dispose = () => {};
+    const promise = new Promise<ExportPayload>((resolve, reject) => {
+      const onPayload = (
+        event: Electron.IpcMainEvent,
+        payload: ExportPayload,
+      ) => {
+        if (!belongs(event)) return;
+        dispose();
+        resolve(payload);
+      };
+      const onError = (event: Electron.IpcMainEvent, message: string) => {
+        if (!belongs(event)) return;
+        dispose();
+        reject(new Error(String(message)));
+      };
+      dispose = () => {
+        ipcMain.removeListener(payloadChannel, onPayload);
+        ipcMain.removeListener(errorChannel, onError);
+      };
+      ipcMain.on(payloadChannel, onPayload);
+      ipcMain.on(errorChannel, onError);
     });
+    // An error can arrive before loadURL resolves; keep it handled until awaited.
+    void promise.catch(() => {});
+    return { promise, dispose: () => dispose() };
+  }
+
+  private async withPrintView<T>(
+    docId: string,
+    progress: Progress | undefined,
+    render: (win: BrowserWindow, payload: ExportPayload) => Promise<T>,
+  ): Promise<T> {
+    const timeout = this.timeout;
+    await EditorWindow.flush(docId, timeout);
+    const request = randomUUID();
+    const win = this.createWindow();
+    let detachLogger: () => void = () => {};
+    let dispose: () => void = () => {};
+    let cleanupGuard: () => void = () => {};
+    try {
+      const logger = await this.prepareLogger(win, docId, request);
+      detachLogger = logger.detachLogger;
+      const waiting = this.waitForExport(docId, win, request);
+      dispose = waiting.dispose;
+      const guard = new Promise<never>((_resolve, reject) => {
+        const onGone = (
+          _event: Electron.Event,
+          details: Electron.RenderProcessGoneDetails,
+        ) => reject(new Error(`Renderer process crashed: ${details.reason}`));
+        const onClosed = () =>
+          reject(new Error("Print window closed before export completed"));
+        const timer = setTimeout(
+          () =>
+            reject(
+              new ExportTimeout({
+                docId,
+                timeout,
+                logFile: logger.loggerFile,
+              }),
+            ),
+          timeout,
+        );
+        win.webContents.once("render-process-gone", onGone);
+        win.once("closed", onClosed);
+        cleanupGuard = () => {
+          clearTimeout(timer);
+          win.webContents.removeListener("render-process-gone", onGone);
+          win.removeListener("closed", onClosed);
+        };
+      });
+      const work = async () => {
+        progress?.("Loading print view...", 20);
+        const route = `document/${encodeURIComponent(docId)}/print${this.waterMark ? "/true" : ""}?printRequest=${request}`;
+        const [payload] = await Promise.all([
+          waiting.promise,
+          win
+            .loadURL(Application.instance.resolveRendererUrl(route))
+            .then(() => {
+              progress?.("Rendering document...", 40);
+            }),
+        ]);
+        return render(win, payload);
+      };
+      return await Promise.race([work(), guard]);
+    } finally {
+      cleanupGuard();
+      dispose();
+      detachLogger();
+      if (!win.isDestroyed()) win.destroy();
+    }
   }
 
   private applyMetadata(
     pdfDoc: PDFDocument,
-    exportPayload: ExportPayload,
+    payload: ExportPayload,
     docId: string,
   ) {
-    const safeTitle =
-      exportPayload.title?.replace(/<[^>]*>/g, "") ?? "Untitled";
-
-    pdfDoc.setTitle(safeTitle);
-
-    pdfDoc.setAuthor(exportPayload.author ?? "HighTeX");
-
+    pdfDoc.setTitle(payload.title?.replace(/<[^>]*>/g, "") ?? "Untitled");
+    pdfDoc.setAuthor(payload.author ?? "HighTeX");
     pdfDoc.setSubject(
       JSON.stringify({
         producer: "HighTex",
         docId,
-        chapters: exportPayload.chapters ?? [],
-        hasWm: exportPayload.hasWm ?? false,
-        detail: exportPayload.detail,
+        chapters: payload.chapters ?? [],
+        hasWm: payload.hasWm ?? false,
+        detail: payload.detail,
       }),
     );
-
     pdfDoc.setCreator("HighTex");
     pdfDoc.setProducer("HighTex");
-
-    pdfDoc.setKeywords(exportPayload.keywords || []);
-
+    pdfDoc.setKeywords(payload.keywords || []);
     pdfDoc.setCreationDate(new Date());
   }
 
   private async createPdf(
     win: BrowserWindow,
-    exportPayload: ExportPayload,
+    payload: ExportPayload,
     docId: string,
-    progress?: (message: string, value?: number) => void,
+    progress?: Progress,
   ) {
     progress?.("Generating PDF...", 70);
-
-    const pdfBuffer = await win.webContents.printToPDF({
+    const bytes = await win.webContents.printToPDF({
       printBackground: true,
       preferCSSPageSize: false,
       pageSize: "A4",
       displayHeaderFooter: false,
-      margins: {
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-      },
+      margins: { top: 0, bottom: 0, left: 0, right: 0 },
     });
-
     progress?.("Applying metadata...", 85);
-
-    const pdfDoc = await PDFDocument.load(pdfBuffer, {
-      ignoreEncryption: true,
-    });
-
-    this.applyMetadata(pdfDoc, exportPayload, docId);
-
+    const pdf = await PDFDocument.load(bytes, { ignoreEncryption: true });
+    this.applyMetadata(pdf, payload, docId);
     progress?.("Finalizing...", 95);
-
-    const finalPdf = await pdfDoc.save();
-
-    progress?.("Finalizing...", 100);
-
-    return finalPdf;
+    return pdf.save();
   }
 
-  private waitForExport(
-    docId: string,
-    win: BrowserWindow,
-  ): Promise<ExportPayload> {
-    const channel = this.channel(docId);
-
-    const renderedChannel = `page:rendered:${docId}`;
-
-    const errorChannel = `page:error:${docId}`;
-
-    return new Promise((resolve, reject) => {
-      const cleanup = () => {
-        clearTimeout(timeout);
-
-        ipcMain.removeAllListeners(channel);
-
-        ipcMain.removeAllListeners(renderedChannel);
-
-        ipcMain.removeAllListeners(errorChannel);
-      };
-
-      const timeout = setTimeout(() => {
-        cleanup();
-
-        reject(
-          new ExportTimeout({
-            docId,
-            timeout: this.timeout,
-            logFile: this.logFile,
-          }),
-        );
-      }, this.timeout);
-
-      ipcMain.once(channel, (_event, payload) => {
-        cleanup();
-        resolve(payload);
-      });
-
-      ipcMain.once(renderedChannel, async () => {
-        try {
-          const payload = await win.webContents.executeJavaScript(
-            `window.__hightexExportPayload || null`,
-            true,
-          );
-
-          cleanup();
-
-          if (payload) {
-            resolve(payload as ExportPayload);
-          } else {
-            reject(new Error(`No export payload for docId: ${docId}`));
-          }
-        } catch (err) {
-          cleanup();
-          reject(err);
-        }
-      });
-
-      ipcMain.once(errorChannel, (_event, message: string) => {
-        cleanup();
-        reject(new Error(message));
-      });
-
-      win.webContents.once("render-process-gone", (_event, details) => {
-        cleanup();
-
-        reject(new Error(`Renderer process crashed: ${details.reason}`));
-      });
-    });
-  }
-
-  async generateHtml(docId: string): Promise<{
-    html: string;
-    css: string;
-  }> {
-    const win = this.createWindow();
-
-    const { detachLogger } = await this.prepareLogger(win, docId);
-
-    try {
-      const exportPayloadPromise = this.waitForExport(docId, win);
-
-      await this.loadPrintView(win, docId);
-
-      await exportPayloadPromise;
-
-      const snapshot = await win.webContents.executeJavaScript(
+  async generateHtml(docId: string): Promise<{ html: string; css: string }> {
+    return this.withPrintView(docId, undefined, (win) =>
+      win.webContents.executeJavaScript(
         `
-          (() => {
-            const html =
-              document.querySelector(".pagedjs_pages")
-                ?.outerHTML ?? "";
-
-            const css =
-              Array.from(
-                document.querySelectorAll("style")
-              )
-                .map((s) => s.innerHTML)
-                .join("\\n");
-
-            return { html, css };
-          })()
-          `,
+      (() => ({
+        html: document.querySelector(".pagedjs_pages")?.outerHTML ?? "",
+        css: Array.from(document.querySelectorAll("style")).map(s => s.innerHTML).join("\\n"),
+      }))()
+    `,
         true,
-      );
-
-      return snapshot as {
-        html: string;
-        css: string;
-      };
-    } catch (error) {
-      LoggerService.write(error, "generate:html");
-
-      throw error;
-    } finally {
-      detachLogger();
-      this.destroyWindow(win);
-    }
+      ),
+    );
   }
 
   async generateSilently(docId: string) {
-    const win = this.createWindow();
-
-    const { detachLogger } = await this.prepareLogger(win, docId);
-
-    try {
-      const url = Application.instance.resolveRendererUrl(
-        `document/${docId}/print${this.waterMark ? "/true" : ""}`,
-      );
-
-      const exportPayloadPromise = this.waitForExport(docId, win);
-
-      await new Promise<void>(async (resolve, reject) => {
-        win.webContents.once("did-finish-load", () => resolve());
-
-        win.webContents.once(
-          "did-fail-load",
-          (_event, code, desc, failedUrl) => {
-            reject(new Error(`Print failed: ${desc} (${code}) ${failedUrl}`));
-          },
-        );
-
-        win.loadURL(url).catch(reject);
-
-        await win.webContents.executeJavaScript(`
-            window.sharingMode = true;
-          `);
-      });
-
-      const exportPayload = await exportPayloadPromise;
-
-      return await this.createPdf(win, exportPayload, docId);
-    } catch (error) {
-      if (error instanceof ExportTimeout) {
-        return this.window?.webContents.send("error", {
-          error,
-          name: "export-timeout",
-        });
-      }
-
-      throw new ShouldSilent(String(error));
-    } finally {
-      detachLogger();
-      this.destroyWindow(win);
-    }
+    return this.generate(docId);
   }
 
-  async generate(
-    docId: string,
-    progress?: (message: string, value?: number) => void,
-  ) {
-    const win = this.createWindow();
-
-    const { detachLogger } = await this.prepareLogger(win, docId);
-
-    try {
-      const url = Application.instance.resolveRendererUrl(
-        `document/${docId}/print${this.waterMark ? "/true" : ""}`,
-      );
-
-      progress?.("Loading print view...", 20);
-
-      const exportPayloadPromise = this.waitForExport(docId, win);
-
-      await new Promise<void>(async (resolve, reject) => {
-        win.webContents.once("did-finish-load", () => resolve());
-
-        win.webContents.once(
-          "did-fail-load",
-          (_event, code, desc, failedUrl) => {
-            reject(new Error(`Print failed: ${desc} (${code}) ${failedUrl}`));
-          },
-        );
-
-        win.loadURL(url).catch(reject);
-
-        await win.webContents.executeJavaScript(`
-            window.sharingMode = true;
-          `);
-      });
-
-      progress?.("Rendering document...", 40);
-
-      const exportPayload = await exportPayloadPromise;
-
-      return await this.createPdf(win, exportPayload, docId, progress);
-    } finally {
-      detachLogger();
-      this.destroyWindow(win);
-    }
+  async generate(docId: string, progress?: Progress) {
+    return this.withPrintView(docId, progress, (win, payload) =>
+      this.createPdf(win, payload, docId, progress),
+    );
   }
 
-  async exportPDF(
-    docId: string,
-    progress?: (message: string, value?: number) => void,
-  ) {
+  async exportPDF(docId: string, progress?: Progress) {
     const result = await dialog.showSaveDialog({
       title: "Export PDF",
       defaultPath: path.join(
         ConfigService.get().export.saveFolder,
         `document-${docId}.pdf`,
       ),
-      filters: [
-        {
-          name: "PDF",
-          extensions: ["pdf"],
-        },
-      ],
+      filters: [{ name: "PDF", extensions: ["pdf"] }],
     });
-
-    if (result.canceled || !result.filePath) {
-      return null;
-    }
-
-    try {
-      const buffer = await this.generate(docId, progress);
-
-      await fs.writeFile(result.filePath, buffer);
-
-      progress?.("Saving PDF file...", 100);
-
-      return {
-        path: result.filePath,
-        filename: path.basename(result.filePath),
-      };
-    } catch (error) {
-      if (error instanceof ExportTimeout) {
-        return Application.instance?.window?.webContents.send("error", {
-          error: {
-            desc: String(error),
-            logFile: error.logFile,
-          },
-          name: "export-timeout",
-        });
-      }
-
-      throw new Error(String(error));
-    }
+    if (result.canceled || !result.filePath) return null;
+    const buffer = await this.generate(docId, progress);
+    await fs.writeFile(result.filePath, buffer);
+    progress?.("Saving PDF file...", 100);
+    return { path: result.filePath, filename: path.basename(result.filePath) };
   }
 }

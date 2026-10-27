@@ -12,6 +12,8 @@ import ChapterListener from "../handlers/chapter-listener";
 import { ImageQueue } from "../queues/image-queue";
 import { CompilerError } from "@/exception/compiler-error";
 import { LayoutError } from "@/exception/layout-error";
+import { waitForPrintImages } from "../print-resources";
+import { printChannel } from "@/utils/print-request";
 
 type EngineMode = "single" | "full";
 
@@ -49,19 +51,16 @@ export class Engine {
 
   private pipeline: EnginePipeline;
   public error: Error | null = null;
-  private document: Window["document"];
+  private destroyed = false;
 
-  private cleanup:()=>void
+  private cleanup: () => void;
 
   constructor() {
-    this.cleanup = this.interceptError()
+    this.cleanup = this.interceptError();
     this.pipeline = new EnginePipeline(this);
-
-    this.document = this.isInFrame() ? window.parent.document : document;
   }
 
   static getInstance() {
-    
     return new Engine();
   }
 
@@ -119,14 +118,19 @@ export class Engine {
     }
 
     this.error = null;
-    await this.pipeline.run();
+    try {
+      await this.pipeline.run();
+    } catch (error) {
+      this.cleanup();
+      throw error;
+    }
 
     return this;
   }
 
   private interceptError() {
     const originalError = console.error;
-    console.error = (...args) => {
+    const interceptedError: typeof console.error = (...args) => {
       const [msg, node] = args;
 
       if (typeof msg === "string" && msg.includes("Layout repeated")) {
@@ -143,9 +147,10 @@ export class Engine {
 
       originalError(...args);
     };
+    console.error = interceptedError;
 
     return () => {
-      console.error = originalError;
+      if (console.error === interceptedError) console.error = originalError;
     };
   }
 
@@ -198,6 +203,7 @@ export class Engine {
     this.error = null;
     let shadowHost: HTMLElement | null = null;
     try {
+      this.assertActive();
       if (!this.root) throw new Error("Engine root not mounted");
 
       const content = this.config.paged?.content;
@@ -214,11 +220,14 @@ export class Engine {
       const fragment = document.createDocumentFragment();
       fragment.append(wrapper);
 
-      await this.document.fonts.ready;
+      await waitForPrintImages(content);
+      await document.fonts.ready;
+      this.assertActive();
 
       const chunker = await new Paged.Previewer({ auto: false })
         .preview(fragment, undefined, renderTo)
         .then(async (c) => {
+          this.assertActive();
           new PageNumberResolver().resolve();
           this.root.remove();
           if (this.parser.mode == "full") {
@@ -240,6 +249,12 @@ export class Engine {
       }
 
       await this.finishCallback(this);
+      await waitForPrintImages(renderTo);
+      await document.fonts.ready;
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      this.assertActive();
 
       document.dispatchEvent(
         new CustomEvent("page:rendered", { detail: { engine: this } }),
@@ -249,7 +264,7 @@ export class Engine {
 
       this.dispathToMainProcess();
 
-      for (const obj of ImageQueue.objectUrls) {
+      for (const obj of ImageQueue.objectUrls.splice(0)) {
         URL.revokeObjectURL(obj);
       }
 
@@ -261,7 +276,12 @@ export class Engine {
   }
 
   destroy() {
+    this.destroyed = true;
+    this.cleanup();
     this.finishCallback = () => {};
+  }
+  assertActive() {
+    if (this.destroyed) throw new Error("Print rendering canceled");
   }
   isInFrame() {
     return window.parent && window.parent !== window;
@@ -288,7 +308,7 @@ export class Engine {
 
     try {
       window.ipcRenderer.send(
-        `page:payload:${this.parser.document.id}`,
+        printChannel("payload", this.parser.document.id),
         payload,
       );
     } catch (error) {

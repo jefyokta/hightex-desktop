@@ -7,6 +7,7 @@ import { GraphContextProvider } from "@/hooks/use-graph";
 import { ParamsContextProvider } from "@/hooks/use-params";
 import { AliasSlave } from "@/slaves/alias-slave";
 import { EditorNavigatorSlave } from "@/slaves/editor-navigator";
+import { EditorFlushSlave } from "@/slaves/editor-flush";
 import { FrameSlave } from "@/slaves/frame";
 
 import { Outlet } from "react-router-dom";
@@ -26,6 +27,7 @@ export const EditorLayout: React.FC = () => {
               </div>
             </ExpandableSideBarContextProvider>
             <EditorNavigatorSlave />
+            <EditorFlushSlave />
             <Scanner />
           </EditorProvider>
         </GraphContextProvider>

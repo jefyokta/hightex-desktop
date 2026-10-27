@@ -4,6 +4,9 @@ import { getStrictContext } from "@/lib/get-strict-context";
 import { Document } from "@/editor/document";
 import { resolveDocumentProfile } from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
+import { createDocumentPrintStore } from "@/compiler/print-store";
+import { HighTexDB } from "@/editor/storage/hightex-db";
+import { reportPrintError } from "@/utils/print-request";
 
 type PrintablePageMode = "single" | "full" | null;
 
@@ -74,9 +77,14 @@ export const PrintableProvider = ({
 
   const pageMode: PrintablePageMode = id ? "full" : chapterId ? "single" : null;
   const inFrame = typeof window !== "undefined" && window.parent !== window;
+  const freezeSource =
+    refreshAcademic &&
+    !inFrame &&
+    new URLSearchParams(window.location.search).has("printRequest");
 
   useEffect(() => {
     let mounted = true;
+    let printStore: HighTexDB | undefined;
     setDocument(null);
     setProfile(null);
     setReady(false);
@@ -91,19 +99,32 @@ export const PrintableProvider = ({
         if (refreshAcademic) await refreshCloudAcademic(id, api);
         if (!mounted) return;
 
+        if (freezeSource) {
+          const store = await createDocumentPrintStore(id);
+          if (!mounted) {
+            await store.delete();
+            return;
+          }
+          printStore = store;
+          // This print window must never fall back to the mutable draft store.
+          HighTexDB.getInstance = () => store;
+        }
+
         const nextDocument = new Document(id);
-        await nextDocument.warm();
+        await nextDocument.warm({ activate: false });
 
         if (!mounted) {
           return;
         }
 
-        Document.instance = nextDocument;
+        nextDocument.activate();
         setDocument(nextDocument);
         setProfile(resolveDocumentProfile(nextDocument.getDocument()));
         setReady(true);
       } catch (error) {
+        if (!mounted) return;
         console.error("PrintableProvider failed to warm document:", error);
+        reportPrintError(id, error);
       }
     };
 
@@ -111,8 +132,9 @@ export const PrintableProvider = ({
 
     return () => {
       mounted = false;
+      if (printStore) void printStore.delete();
     };
-  }, [id, refreshAcademic]);
+  }, [id, refreshAcademic, freezeSource]);
 
   const value = useMemo(
     () => ({ document, profile, ready, pageMode, inFrame }),

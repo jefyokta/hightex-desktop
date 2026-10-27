@@ -82,9 +82,16 @@ contextBridge.exposeInMainWorld("hightex", {
     progressCallback = cb;
   },
   onPdfProgress: (
-    cb: (data: { status: string; progress?: number }) => void,
+    cb: (data: {
+      status: string;
+      progress?: number;
+      requestId?: string;
+    }) => void,
   ) => {
-    const handler = (_: any, data: { status: string; progress?: number }) => {
+    const handler = (
+      _: any,
+      data: { status: string; progress?: number; requestId?: string },
+    ) => {
       cb(data);
     };
 
@@ -338,6 +345,18 @@ contextBridge.exposeInMainWorld("file", {
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld("editor", {
+  onFlush(callback: (request: string, documentId: string) => void) {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      request: string,
+      documentId: string,
+    ) => callback(request, documentId);
+    ipcRenderer.on("editor:flush", listener);
+    return () => ipcRenderer.removeListener("editor:flush", listener);
+  },
+  completeFlush(request: string, error?: string) {
+    ipcRenderer.send(`editor:flush:result:${request}`, error);
+  },
   open(documentId: string, file?: string) {
     return ipcRenderer.invoke("editor:open", documentId, file);
   },

@@ -39,7 +39,9 @@ export class EnginePipeline {
   async run() {
     await HighTexDB.getInstance().warm();
     for (const step of this.steps) {
+      this.engine.assertActive();
       await step.resolve(this.engine);
+      this.engine.assertActive();
     }
   }
 }

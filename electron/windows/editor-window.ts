@@ -1,4 +1,5 @@
-import { app, BrowserWindow, dialog } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { randomUUID } from "node:crypto";
 import { Application } from "./../main/application";
 import fs from "fs";
 import path from "path";
@@ -73,6 +74,42 @@ export class EditorWindow {
     return Array.from(this.windows).find(
       ([_, state]) => state.window === window,
     )?.[1];
+  }
+
+  static async flush(documentId: string, timeout = 30000): Promise<void> {
+    const window = this.get(documentId);
+    if (!window) return;
+    const request = randomUUID();
+    const channel = `editor:flush:result:${request}`;
+    await new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer);
+        ipcMain.removeListener(channel, onResult);
+        window.removeListener("closed", onClosed);
+      };
+      const onResult = (event: Electron.IpcMainEvent, error?: string) => {
+        if (event.sender !== window.webContents) return;
+        cleanup();
+        if (error) reject(new Error(error));
+        else resolve();
+      };
+      const onClosed = () => {
+        cleanup();
+        reject(new Error("Editor closed before pending changes were saved"));
+      };
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("Timed out waiting for editor changes to be saved"));
+      }, timeout);
+      ipcMain.on(channel, onResult);
+      window.once("closed", onClosed);
+      try {
+        window.webContents.send("editor:flush", request, documentId);
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
+    });
   }
 
   static async save(

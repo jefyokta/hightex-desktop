@@ -43,6 +43,14 @@ export class Storage {
     await this.chapterWrites.get(chapterId);
   }
 
+  async waitForDocument(documentId: string): Promise<void> {
+    await Promise.all(
+      Array.from(this.chapterWrites)
+        .filter(([id]) => id.startsWith(`${documentId}.`))
+        .map(([, write]) => write),
+    );
+  }
+
   async getChapter(id: string) {
     return this.db.chapters.get(id);
   }

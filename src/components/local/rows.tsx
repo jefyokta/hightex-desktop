@@ -130,6 +130,7 @@ export const Row = ({
     : null;
 
   const generatePdf = async (waterMark: boolean = false) => {
+    const requestId = crypto.randomUUID();
     const renderProgressToast = (status: string, progress: number) => (
       <div className="flex flex-col gap-1.5 w-full min-w-60">
         <div className="flex justify-between items-center text-xs font-semibold">
@@ -150,6 +151,7 @@ export const Row = ({
     );
 
     const unsubscribe = window.hightex.onPdfProgress((update) => {
+      if (update.requestId !== requestId) return;
       const prog = update.progress ?? 0;
       toast.loading(renderProgressToast(update.status, prog), {
         id: toastId,
@@ -161,9 +163,10 @@ export const Row = ({
         "hightex:pdf",
         doc.id,
         waterMark,
+        requestId,
       );
 
-      if (!result) {
+      if (result === null) {
         toast.dismiss(toastId);
         toast.info("Ekspor PDF dibatalkan", { duration: 3000 });
         return;

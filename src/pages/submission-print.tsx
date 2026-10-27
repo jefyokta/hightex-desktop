@@ -93,15 +93,6 @@ export const SubmissionPrint = () => {
                 ),
               );
               if (!active) return;
-              // The existing CV builder appends a fixed-height sheet outside Paged.js.
-              // Let that final sheet flow in native print; its padding otherwise
-              // adds an empty trailing PDF page. Keep compiler and preview unchanged.
-              const cv =
-                document.querySelector(".pagedjs_pages")?.nextElementSibling;
-              if (cv instanceof HTMLElement) {
-                cv.style.height = "auto";
-                cv.style.breakBefore = "page";
-              }
               const profile = resolveDocumentProfile(snapshot.document);
               window.snapshotPrint.result(request, {
                 documentId: snapshot.document.id,

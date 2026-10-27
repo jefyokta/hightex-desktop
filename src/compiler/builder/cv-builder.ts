@@ -11,7 +11,8 @@ export class CVPageBuilder {
     const page = document.createElement("div");
 
     Object.assign(page.style, {
-      height: "297mm",
+      height: engine.isInFrame() ? "297mm" : "auto",
+      breakBefore: "page",
       maxWidth: "210mm",
       padding: "3cm 3cm 4cm 3cm",
       fontFamily: "'Times New Roman', serif",

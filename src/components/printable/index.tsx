@@ -1,7 +1,7 @@
 import { Engine } from "@/compiler/engine";
 import { useEffect, useRef } from "react";
 import { usePrintable } from "@/hooks/use-printable";
-import { ApplicationError } from "@/exception/interfaces/application-error";
+import { reportPrintError } from "@/utils/print-request";
 import { useParams } from "react-router-dom";
 import { StaticPages } from "@/compiler/static-pages";
 import { CVPageBuilder } from "@/compiler/builder/cv-builder";
@@ -26,7 +26,8 @@ export const FullDocument = () => {
     ) {
       return;
     }
-    Engine.getInstance()
+    let active = true;
+    const engine = Engine.getInstance()
       .mount(parserRef.current)
       .withConfig({
         parser: {
@@ -48,19 +49,19 @@ export const FullDocument = () => {
             throw e.error;
           }
         });
-      })
+      });
+    engine
       .run()
-      .then(async (engine) => {
-        await engine.createPaged();
+      .then(async () => {
+        if (active) await engine.createPaged();
       })
       .catch((e) => {
-        if ("ipcRenderer" in window) {
-          window.ipcRenderer.send(
-            `page:error:${document.id}`,
-            ApplicationError.normilize(e),
-          );
-        }
+        if (active) reportPrintError(document.id, e);
       });
+    return () => {
+      active = false;
+      engine.destroy();
+    };
   }, [document, profile, ready]);
 
   if (!document) {

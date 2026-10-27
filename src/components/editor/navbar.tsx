@@ -33,9 +33,8 @@ import React, {
 } from "react";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
-import { Document } from "@/editor/document";
 import { t } from "@/utils/lang";
-import { Chapter } from "@/editor/chapter";
+import { getEditorChapter } from "@/editor/event";
 import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -297,9 +296,9 @@ export const NavBar: React.FC = () => {
                     setExportingPdf(true);
                     setPdfProgress(5);
                     setPdfStatus(t("common.preparing_pdf"));
+                    const requestId = crypto.randomUUID();
 
-                    const docId =
-                      Document.instance?.id ?? Chapter.instance?.document.id;
+                    const docId = getEditorChapter(editor)?.getDocumentId();
                     if (!docId) {
                       toast.error(t("error.document.not_found"));
                       setExportingPdf(false);
@@ -332,6 +331,7 @@ export const NavBar: React.FC = () => {
 
                     const unsubscribe = window.hightex.onPdfProgress(
                       (update) => {
+                        if (update.requestId !== requestId) return;
                         const prog = update.progress ?? 0;
                         setPdfProgress(prog);
                         setPdfStatus(update.status);
@@ -349,9 +349,11 @@ export const NavBar: React.FC = () => {
                       const result = await window.ipcRenderer.invoke(
                         "hightex:pdf",
                         docId,
+                        false,
+                        requestId,
                       );
 
-                      if (!result) {
+                      if (result === null) {
                         toast.dismiss(toastId);
                         toast.info("Ekspor PDF dibatalkan", { duration: 3000 });
                         return;
