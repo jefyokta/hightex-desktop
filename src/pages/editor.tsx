@@ -51,6 +51,9 @@ import { refreshCloudAcademic } from "@/cloud/academic-data";
 import {
   SCANNER_PARAGRAPH_PREFIX,
   scrollToPunctuationParagraph,
+  decodeScannerDiagnostic,
+  focusScannerDiagnostic,
+  SCANNER_DIAGNOSTIC_PREFIX,
 } from "@/scanner/navigation";
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
@@ -212,6 +215,8 @@ export const Editor: React.FC = () => {
 const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const { setEditor } = useCurrentEditor();
   const { params } = param();
+  const navigationTargets = useRef(params);
+  navigationTargets.current = params;
   const { config } = useConfig();
   const [ready, setReady] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -263,11 +268,19 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
 
       setReady(true);
       setEditor(editor);
-      const target = params.pop();
+      const target = navigationTargets.current.pop();
       navigationFrame.current = requestAnimationFrame(() => {
         if (!alive.current || editor.isDestroyed) return;
         if (target) {
-          if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
+          if (target.startsWith(SCANNER_DIAGNOSTIC_PREFIX)) {
+            const diagnostic = decodeScannerDiagnostic(target);
+            if (
+              diagnostic?.chapterId === chapter.getId() &&
+              !focusScannerDiagnostic(editor, diagnostic)
+            ) {
+              toast.info("Temuan tidak lagi ditemukan. Jalankan scan ulang.");
+            }
+          } else if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
             scrollToPunctuationParagraph(
               editor,
               Number(target.slice(SCANNER_PARAGRAPH_PREFIX.length)),

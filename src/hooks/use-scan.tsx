@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Document } from "@/editor/document";
 import { createSnapshot } from "@/scanner/snapshot";
+import { Storage } from "@/editor/storage";
 import type {
   DefaultScanEvent as ScanEvent,
   ScanResults,
+  ScanDiagnostic,
 } from "@hightex/scanner";
 
-export type ScanStatus = "idle" | "scanning" | "done" | "cancelled";
+export type ScanStatus = "idle" | "scanning" | "done" | "cancelled" | "failed";
 export type ScanError = { id: string; message: string };
 
 export function useScan() {
@@ -15,6 +17,8 @@ export function useScan() {
   const [completed, setCompleted] = useState(0);
   const [results, setResults] = useState<Partial<ScanResults>>({});
   const [errors, setErrors] = useState<ScanError[]>([]);
+  const [diagnostics, setDiagnostics] = useState<ScanDiagnostic[]>([]);
+  const failed = useRef(false);
 
   const worker = useRef<Worker | null>(null);
   const runId = useRef(0);
@@ -32,9 +36,11 @@ export function useScan() {
         break;
       case "result":
         setResults((prev) => ({ ...prev, [event.id]: event.data }));
+        setDiagnostics((previous) => [...previous, ...event.diagnostics]);
         setCompleted((n) => n + 1);
         break;
       case "error":
+        failed.current = true;
         setErrors((prev) => [
           ...prev,
           { id: event.id, message: event.message },
@@ -47,7 +53,7 @@ export function useScan() {
         break;
       case "done":
         setCurrent(null);
-        setStatus("done");
+        setStatus(failed.current ? "failed" : "done");
         break;
     }
   }, []);
@@ -58,19 +64,23 @@ export function useScan() {
 
     setResults({});
     setErrors([]);
+    setDiagnostics([]);
+    failed.current = false;
     setCompleted(0);
     setCurrent(null);
 
     const doc = Document.instance;
     if (!doc) {
       setErrors([{ id: "*", message: "Dokumen belum siap" }]);
-      setStatus("done");
+      setStatus("failed");
       return;
     }
 
     setStatus("scanning");
 
     try {
+      await Storage.instance.waitForDocument(doc.id);
+      if (id !== runId.current) return;
       const snapshot = await createSnapshot(doc);
       if (id !== runId.current) return;
 
@@ -99,6 +109,7 @@ export function useScan() {
         });
         handle({ type: "done" });
         w.terminate();
+        worker.current = null;
       };
 
       w.postMessage(snapshot);
@@ -116,5 +127,14 @@ export function useScan() {
   }, [stop]);
 
   useEffect(() => stop, [stop]);
-  return { run, cancel, status, current, completed, results, errors };
+  return {
+    run,
+    cancel,
+    status,
+    current,
+    completed,
+    results,
+    errors,
+    diagnostics,
+  };
 }

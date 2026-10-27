@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Ban,
   ChevronRight,
@@ -8,17 +8,15 @@ import {
   X,
 } from "lucide-react";
 import { textOf } from "@/utils/text-of";
-import { plugins, type ScanResults } from "@hightex/scanner";
-import { useScan } from "@/hooks/use-scan";
-import { Manager } from "@/editor/manager";
-import { Chapter } from "@/editor/chapter";
-import { useParams } from "@/hooks/use-params";
-import { useNavigate } from "react-router-dom";
-import { useCurrentEditor } from "@/hooks/use-editor";
 import {
-  SCANNER_PARAGRAPH_PREFIX,
-  scrollToPunctuationParagraph,
-} from "@/scanner/navigation";
+  plugins,
+  type ScanResults,
+  type ScanDiagnostic,
+} from "@hightex/scanner";
+import { useScan } from "@/hooks/use-scan";
+import { useScannerNavigation } from "@/hooks/use-scanner-navigation";
+import { diagnosticLocationKey } from "@/scanner/navigation";
+import { Counter } from "tjsn-parser";
 
 type PunctuationIssue = ScanResults["punctuation"][number];
 const visible = (s: string) => s.replace(/ /g, "·").replace(/\n/g, "↵");
@@ -66,9 +64,11 @@ const Section = ({
 const ChapterGroup = ({
   chapter,
   issues,
+  diagnostics,
 }: {
   chapter: PunctuationIssue["chapter"];
   issues: PunctuationIssue[];
+  diagnostics: Map<string, ScanDiagnostic>;
 }) => (
   <details className="group rounded-lg border">
     <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-xs [&::-webkit-details-marker]:hidden">
@@ -81,36 +81,38 @@ const ChapterGroup = ({
     </summary>
     <ul className="divide-y border-t">
       {issues.map((issue, i) => (
-        <PunctuationRow key={i} issue={issue} />
+        <PunctuationRow
+          key={i}
+          issue={issue}
+          diagnostic={diagnostics.get(
+            diagnosticLocationKey({
+              pluginId: "punctuation",
+              chapterId: issue.chapter.id,
+              path: issue.path,
+              range: issue.range,
+            }),
+          )}
+        />
       ))}
     </ul>
   </details>
 );
 
-const PunctuationRow = ({ issue }: { issue: PunctuationIssue }) => {
-  const { editor } = useCurrentEditor();
-  const { setParams } = useParams();
-  const go = useNavigate();
-
-  const navigate = () => {
-    const current = Chapter.instance;
-    if (!current) return;
-    if (current.getId() === issue.chapter.id) {
-      if (editor) scrollToPunctuationParagraph(editor, issue.paragraph);
-      return;
-    }
-
-    const [documentId, chapter, version] = issue.chapter.id.split(".");
-    if (documentId !== current.document.id || !chapter) return;
-    setParams([`${SCANNER_PARAGRAPH_PREFIX}${issue.paragraph}`]);
-    go(`/document/${documentId}/${chapter}${version ? `/${version}` : ""}`);
-  };
+const PunctuationRow = ({
+  issue,
+  diagnostic,
+}: {
+  issue: PunctuationIssue;
+  diagnostic?: ScanDiagnostic;
+}) => {
+  const navigate = useScannerNavigation();
 
   return (
     <li>
       <button
         type="button"
-        onClick={navigate}
+        onClick={() => diagnostic && navigate(diagnostic)}
+        disabled={!diagnostic}
         className="block w-full cursor-pointer space-y-1.5 px-3 py-2 text-left text-xs hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <span className="flex items-baseline justify-between gap-2">
@@ -135,33 +137,27 @@ const FigureRow = ({
   kind,
   label,
   text,
-  graph,
+  diagnostic,
 }: {
   kind: string;
   label: string;
   text: ReactNode;
-  graph: Graph;
+  diagnostic?: ScanDiagnostic;
 }) => {
-  const { setParams } = useParams();
-  const go = useNavigate();
+  const navigate = useScannerNavigation();
   return (
-    <li
-      className="flex gap-2 px-3 py-2 text-xs hover:bg-muted/50"
-      onClick={() => {
-        if (Chapter.instance?.getId() !== graph.chapterId) {
-          setParams([graph.id]);
-          go(
-            `/document/${Chapter.instance?.document.id}/${graph.chapterId.split(".")[1]}`,
-          );
-          return;
-        }
-        Manager.scrollTo(graph.id);
-      }}
-    >
-      <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-        {kind} {label}
-      </span>
-      <span className="line-clamp-2 min-w-0">{text}</span>
+    <li>
+      <button
+        type="button"
+        disabled={!diagnostic}
+        className="flex w-full cursor-pointer gap-2 px-3 py-2 text-left text-xs hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        onClick={() => diagnostic && navigate(diagnostic)}
+      >
+        <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+          {kind} {label}
+        </span>
+        <span className="line-clamp-2 min-w-0">{text}</span>
+      </button>
     </li>
   );
 };
@@ -193,16 +189,56 @@ const ProgressBar = ({
 
 export const Scanner = () => {
   const [expand, setExpand] = useState(false);
-  const { run, cancel, status, current, completed, results, errors } =
-    useScan();
+  const {
+    run,
+    cancel,
+    status,
+    current,
+    completed,
+    results,
+    errors,
+    diagnostics,
+  } = useScan();
+  const diagnosticIndex = useMemo(
+    () =>
+      new Map(diagnostics.map((item) => [diagnosticLocationKey(item), item])),
+    [diagnostics],
+  );
 
   const figures = results["unreferenced-figures"];
   const punctuation = results.punctuation ?? [];
   const chapters = groupByChapter(punctuation);
 
-  const figureCount = figures
-    ? figures.images.length + figures.tables.length + figures.equations.length
-    : 0;
+  const figureRows = useMemo(() => {
+    if (!figures) return [];
+    return [
+      ...figures.images.map((graph) => ({
+        graph,
+        kind: "Gambar",
+        label: graph.numbering,
+        text: textOf(graph.text) || "(tanpa caption)",
+      })),
+      ...figures.tables.map((graph) => ({
+        graph,
+        kind: "Tabel",
+        label: graph.numbering,
+        text: textOf(graph.text) || "(tanpa caption)",
+      })),
+      ...figures.equations.map((graph) => ({
+        graph,
+        kind: "Persamaan",
+        label: graph.numbering,
+        text: <code>{graph.latex}</code>,
+      })),
+      ...figures.headings.map((graph) => ({
+        graph,
+        kind: "Lampiran",
+        label: Counter.getAlpha(Number(graph.numbering)),
+        text: textOf(graph.text) || "(tanpa judul)",
+      })),
+    ];
+  }, [figures]);
+  const figureCount = figureRows.length;
   const total = punctuation.length + figureCount;
   const scanning = status === "scanning";
 
@@ -238,6 +274,8 @@ export const Scanner = () => {
             {status === "done" &&
               (total ? `${total} temuan` : "Tidak ada masalah")}
             {status === "cancelled" && `Dibatalkan · ${total} temuan sementara`}
+            {status === "failed" &&
+              `Pemeriksaan gagal · ${total} temuan sementara`}
           </p>
         </div>
         <button
@@ -291,34 +329,22 @@ export const Scanner = () => {
           </p>
         ))}
 
-        {figures && figureCount > 0 && (
+        {figureCount > 0 && (
           <Section title="Tidak dirujuk di teks" count={figureCount}>
             <ul className="divide-y rounded-lg border">
-              {figures.images.map((g) => (
+              {figureRows.map(({ graph, kind, label, text }) => (
                 <FigureRow
-                  key={g.id}
-                  graph={g}
-                  kind="Gambar"
-                  label={g.numbering}
-                  text={textOf(g.text) || "(tanpa caption)"}
-                />
-              ))}
-              {figures.tables.map((g) => (
-                <FigureRow
-                  key={g.id}
-                  graph={g}
-                  kind="Tabel"
-                  label={g.numbering}
-                  text={textOf(g.text) || "(tanpa caption)"}
-                />
-              ))}
-              {figures.equations.map((g) => (
-                <FigureRow
-                  key={g.id}
-                  graph={g}
-                  kind="Persamaan"
-                  label={g.numbering}
-                  text={<code>{g.latex}</code>}
+                  key={graph.chapterId + ":" + graph.path.join(".")}
+                  diagnostic={diagnosticIndex.get(
+                    diagnosticLocationKey({
+                      pluginId: "unreferenced-figures",
+                      chapterId: graph.chapterId,
+                      path: graph.path,
+                    }),
+                  )}
+                  kind={kind}
+                  label={label}
+                  text={text}
                 />
               ))}
             </ul>
@@ -333,6 +359,7 @@ export const Scanner = () => {
                   key={chapter.id}
                   chapter={chapter}
                   issues={issues}
+                  diagnostics={diagnosticIndex}
                 />
               ))}
             </div>
