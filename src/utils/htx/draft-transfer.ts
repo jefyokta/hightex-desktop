@@ -1,3 +1,4 @@
+import { CloudError } from "@/exception/cloud-error";
 import type { ImportedHighTexV2 } from "@hightex/importer";
 import type { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "@/editor/storage/hightex-db";
@@ -98,7 +99,7 @@ export const prepareDraftImport = async (
   const category = categories.find(
     (category) => String(category.id) === model.document.category,
   );
-  if (!category) throw new Error("cloud_error:unknown_category");
+  if (!category) throw new CloudError("unknown_category");
   const images: ImageRecord[] = [];
   const imageKeys = new Map<string, string>();
   const blobs = new Map<Blob, string>();
@@ -133,7 +134,7 @@ export const prepareDraftImport = async (
           /^data:(image\/(?:webp|png|jpeg));base64,([a-zA-Z0-9+/=\s]+)$/.exec(
             source,
           );
-        if (!match) throw new Error("cloud_error:invalid_archive");
+        if (!match) throw new CloudError("invalid_archive");
         await addImage(
           source,
           new Blob(
@@ -157,7 +158,7 @@ export const prepareDraftImport = async (
     const attrs = node.attrs ? { ...node.attrs } : undefined;
     if (node.type === "image" && attrs && typeof attrs.src === "string") {
       if (/^https?:/i.test(attrs.src) && !imageKeys.has(attrs.src))
-        throw new Error("cloud_error:external_asset");
+        throw new CloudError("external_asset");
       attrs.src = imageKeys.get(attrs.src) ?? `${prefix}missing_image`;
     }
     if (node.type === "cite" && attrs && typeof attrs.cite === "string")
@@ -220,7 +221,7 @@ export const prepareDraftImport = async (
     new Set(state.chapters.map((chapter) => chapter.id)).size !==
     state.chapters.length
   )
-    throw new Error("cloud_error:invalid_archive");
+    throw new CloudError("invalid_archive");
   return {
     state,
     references: [...referenceKeys].map(([key, mapped]) => ({
@@ -268,7 +269,7 @@ export const installDraft = async (
       (await Dexie.waitFor(draftRevision(await captureDraft(db, id)))) !==
       expected
     )
-      throw new Error("cloud_error:local_changed");
+      throw new CloudError("local_changed");
     await replace(db, id, prepared.state);
     await db.cite.bulkPut(prepared.references);
   });
@@ -287,7 +288,7 @@ export const rollbackDraft = async (
       (await Dexie.waitFor(draftRevision(await captureDraft(db, id)))) !==
       expected
     )
-      throw new Error("cloud_error:local_changed");
+      throw new CloudError("local_changed");
     await replace(db, id, before);
   });
 };

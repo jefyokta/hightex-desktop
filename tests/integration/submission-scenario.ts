@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { contentFingerprint } from "../../src/utils/htx/content-fingerprint";
 import { strict as assert } from "node:assert";
 import {
   CloudSyncClient,
@@ -49,6 +51,8 @@ export const submissionScenario = async (
   });
   assert.equal(file.status, "downloaded");
   if (file.status !== "downloaded") throw Error("Missing fixture");
+  const fileChecksum = createHash("sha256").update(file.file).digest("hex");
+  const fileContentHash = await contentFingerprint(file.file);
   const model = await readSnapshot(file.file, {
     kind: "local",
     filename: "demo.hightex",
@@ -114,10 +118,10 @@ export const submissionScenario = async (
       expectedCloudSha256: current.sha256 ?? null,
       replace: false,
     });
-    assert.equal(prepared.sha256, file.sha256);
+    assert.equal(prepared.sha256, fileContentHash);
     const result = await workflow.submit(session.sessionId);
     assert.equal(result.state, "submitted");
-    assert.equal(result.snapshotSha256, file.sha256);
+    assert.equal(result.snapshotSha256, fileChecksum);
     assert.ok(result.submissionId);
     submissionId = result.submissionId;
     created = true;
@@ -130,7 +134,7 @@ export const submissionScenario = async (
   });
   assert.ok(snapshot.ok);
   if (!snapshot.ok) throw Error("Snapshot unavailable");
-  assert.equal(snapshot.data.sha256, file.sha256);
+  assert.equal(snapshot.data.sha256, fileChecksum);
   assert.deepEqual(snapshot.data.file, file.file);
   const read = await readSnapshot(snapshot.data.file, {
     kind: "submission",

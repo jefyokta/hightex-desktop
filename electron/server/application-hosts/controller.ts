@@ -1,11 +1,13 @@
 import { AuthRouter } from "./auth";
 import { AppHost } from "./app";
 import { Router } from "./contract";
+import { DocumentRouter } from "./document";
 
 export class Controller {
   private static hosts: Record<string, Router> = {
     app: new AppHost(),
     auth: new AuthRouter(),
+    document: new DocumentRouter(),
   };
 
   static handle(url: URL) {

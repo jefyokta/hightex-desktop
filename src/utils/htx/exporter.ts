@@ -7,6 +7,7 @@ import { t } from "@/utils/lang";
 import { writeProfileEntries } from "./profile";
 import { contentAssets } from "../content-assets";
 import { applyCloudAcademic } from "../cloud-academic";
+import { contentFingerprint } from "./content-fingerprint";
 
 /**
  * export to ht | htx | hightex file
@@ -51,16 +52,10 @@ export class Exporter {
     document: HighTexDocument;
   }> {
     const { buffer, document } = await this.buildExport(academic);
-    const digest = await crypto.subtle.digest(
-      "SHA-256",
-      new Uint8Array(buffer),
-    );
     return {
       file: buffer,
       document,
-      hash: Array.from(new Uint8Array(digest), (byte) =>
-        byte.toString(16).padStart(2, "0"),
-      ).join(""),
+      hash: await contentFingerprint(buffer),
     };
   }
 

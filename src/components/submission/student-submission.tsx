@@ -1,3 +1,4 @@
+import { getCloudErrorCode } from "../../../sharable-types/cloud-error";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, LoaderCircle, RefreshCw, Send } from "lucide-react";
@@ -529,11 +530,12 @@ export const StudentSubmission = ({
 
 const submissionError = (cause: unknown) => {
   const code =
-    cause instanceof Error
+    getCloudErrorCode(cause) ??
+    (cause instanceof Error
       ? /(?:submission_error|cloud_error):([a-zA-Z0-9_]+)/.exec(
           cause.message,
         )?.[1]
-      : undefined;
+      : undefined);
   const known = [
     "active_submission",
     "invalid_document",

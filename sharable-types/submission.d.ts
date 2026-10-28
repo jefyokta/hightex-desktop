@@ -153,6 +153,8 @@ declare global {
     documentId: string;
     title: string;
     sha256: string;
+    /** Written-content fingerprint; absent only in legacy receipts. */
+    contentSha256?: string;
     baseline: string[];
     state: "uploaded" | "uncertain" | "unverified" | "submitted" | "mismatch";
     submissionId?: string;

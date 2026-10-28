@@ -217,6 +217,11 @@
     "community": "Kontributor komunitas",
     "made_together": "Lebih baik, berkat kalian.",
     "contributor_note": "Setiap ide, pengujian, dan kontribusi membantu HighTex berkembang.",
+    "donate": {
+      "label": "Donasi",
+      "description": "Buka halaman dukungan HighTex di browser",
+      "open_failed": "Halaman dukungan HighTex belum bisa dibuka. Silakan coba lagi."
+    },
     "github": {
       "description": "Suka HighTex? Beri star di GitHub untuk mendukung pengembangannya.",
       "star": "Beri star di GitHub",
@@ -880,5 +885,33 @@
     },
     "identity": "Nomor identitas",
     "web_settings": "Atur nama dan gelar di web"
+  },
+  "cloud": {
+    "error_title": "Transfer cloud gagal",
+    "errors": {
+      "not_authenticated": "Sesi login sudah tidak tersedia. Silakan login kembali.",
+      "session_changed": "Akun, server, atau sesi berubah. Muat ulang sebelum melanjutkan.",
+      "invalid_request": "Data pengiriman tidak valid. Catatan maksimal 255 karakter dan ukuran paket maksimal 64 MiB.",
+      "invalid_response": "Respons cloud tidak lengkap atau tidak sesuai kontrak. Draft dan versi dasarnya tetap dipertahankan.",
+      "invalid_download": "Unduhan sudah kedaluwarsa. Unduh kembali sebelum menerapkan ke draft.",
+      "integrity_failed": "Isi dokumen cloud tidak cocok dengan hash yang dilaporkan server. Paket belum diterapkan ke draft.",
+      "cloud_changed": "Dokumen cloud berubah saat operasi berjalan. Muat ulang untuk memeriksa hasil server sebelum mencoba lagi.",
+      "replacement_required": "Dokumen belum tertaut atau slot cloud berubah. Muat ulang dan tinjau penggantian dokumen cloud.",
+      "editor_open": "Tutup jendela editor dokumen ini terlebih dahulu agar tidak ada penulisan bersamaan saat transfer cloud.",
+      "local_changed": "Dokumen lokal berubah selama proses. Operasi dihentikan; tinjau perubahan lalu coba lagi.",
+      "kp_unsupported": "Sinkronisasi KP belum didukung server. Dokumen KP tetap dapat dipakai secara lokal.",
+      "unknown_category": "Kategori dokumen tidak dikenali. Perbarui kategori atau periksa paket sebelum melanjutkan.",
+      "external_asset": "Paket mengandalkan gambar eksternal. Lengkapi aset dalam paket sebelum mengimpor.",
+      "invalid_archive": "Isi paket cloud tidak valid. Draft belum diganti.",
+      "unsupported_content": "Paket memuat format konten yang belum didukung editor. Buka melalui viewer hanya baca untuk memeriksanya.",
+      "busy": "Transfer cloud lain masih berjalan. Tunggu sampai selesai.",
+      "academic_changed": "Data akademik server berubah atau belum diterapkan ke paket. Muat ulang data, lalu coba simpan kembali.",
+      "academic_invalid": "Data akademik dari server tidak sesuai kontrak. Periksa pembimbing, data sidang, serta data universitas.",
+      "academic_scope": "Dokumen terikat ke akun, server, atau dokumen cloud lain. Gunakan salinan lokal terpisah untuk akun ini.",
+      "http_401": "Sesi server sudah tidak berlaku. Silakan login kembali.",
+      "http_403": "Akun ini tidak memiliki akses untuk operasi tersebut.",
+      "http_422": "Server menolak paket atau metadata dokumen. Periksa kategori dan catatan pengiriman.",
+      "request_failed": "Transfer cloud gagal. Periksa koneksi dan status server, lalu muat ulang."
+    }
   }
 }

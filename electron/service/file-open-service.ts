@@ -6,6 +6,7 @@ type CliOpenCallback = (args: string[]) => void | Promise<void>;
 export class FileOpenManager {
   private pendingFiles: string[] = [];
   private pendingLinks: string[] = [];
+  private ready = false;
 
   private extensions: string[];
 
@@ -36,7 +37,7 @@ export class FileOpenManager {
 
       if (!this.isSupported(filePath)) return;
 
-      if (!app.isReady()) {
+      if (!this.ready) {
         this.pendingFiles.push(filePath);
         return;
       }
@@ -47,7 +48,7 @@ export class FileOpenManager {
     app.on("second-instance", (_event, argv) => {
       const deeplink = DeepLinkService.isDeepLink(argv);
       if (deeplink) {
-        if (!app.isReady()) {
+        if (!this.ready) {
           this.pendingLinks.push(deeplink.toString());
           return;
         }
@@ -65,6 +66,7 @@ export class FileOpenManager {
   }
 
   flush() {
+    this.ready = true;
     for (const url of this.pendingLinks.splice(0))
       void new DeepLinkService(url).handle().catch(() => {});
     for (const file of this.pendingFiles) {
@@ -95,7 +97,9 @@ export class FileOpenManager {
   }
 
   private extractFromArgs(args: string[]) {
-    return args.find((arg) => this.isSupported(arg));
+    return args.find(
+      (arg) => !arg.startsWith("hightex://") && this.isSupported(arg),
+    );
   }
 
   private isSupported(filePath: string) {

@@ -1,6 +1,7 @@
+import { contentFingerprint } from "../src/utils/htx/content-fingerprint";
 import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { strToU8, zipSync } from "fflate";
+import { strToU8, zipSync, unzipSync } from "fflate";
 import { CloudSyncClient } from "../electron/service/cloud-sync-client";
 import { SubmissionClient } from "../electron/service/submission-client";
 import { SubmissionWorkflow } from "../electron/service/submission-workflow";
@@ -100,24 +101,34 @@ const fixture = () => {
       if (path === "/v2/documents/commits")
         return response({
           commits: [
-            { type: "current", document_id: "server-a", sha256: hash(current) },
+            {
+              type: "current",
+              document_id: "server-a",
+              sha256: await contentFingerprint(current),
+            },
           ],
         });
       if (path === "/v2/documents/push") {
         onUpload?.();
         if (uploadConflict)
-          return response({ error: "conflict", sha256: hash(current) }, 409);
+          return response(
+            { error: "conflict", sha256: await contentFingerprint(current) },
+            409,
+          );
         current = new Uint8Array(
           await ((options.body as FormData).get("file") as Blob).arrayBuffer(),
         );
-        return response({ sha256: hash(current), changed: true });
+        return response({
+          sha256: await contentFingerprint(current),
+          changed: true,
+        });
       }
       if (path === "/v2/documents/pull")
         return response(
           current,
           200,
           new Headers({
-            "X-HighTex-SHA256": hash(current),
+            "X-HighTex-SHA256": await contentFingerprint(current),
             "X-Document-ID": "server-a",
           }),
         );
@@ -247,13 +258,13 @@ test("freezes, pushes, creates targeted submission and verifies server snapshot 
   const done = await f.workflow.submit(f.sessionId);
   expect(done).toMatchObject({
     state: "submitted",
-    sha256: hash(artifact()),
+    sha256: await contentFingerprint(artifact()),
     snapshotSha256: hash(artifact()),
     submissionId: "1",
   });
   expect(posts(f)).toHaveLength(1);
   f.setCurrent(artifact("Later draft", "Version B"));
-  expect(hash(f.snapshots.get("1")!)).toBe(done.sha256);
+  expect(hash(f.snapshots.get("1")!)).toBe(done.snapshotSha256!);
   expect(JSON.stringify(done)).not.toContain("secret");
 });
 
@@ -538,4 +549,36 @@ test("older prepared receipts never guess a recipient when retried", async () =>
   expect(posts(f)).toHaveLength(0);
   await f.workflow.discard(f.sessionId);
   expect(f.workflow.pending(f.sessionId)).toBeNull();
+});
+
+test("repacked snapshot and updated profile still match the prepared written content", async () => {
+  const f = fixture();
+  await f.workflow.prepare(f.input());
+  f.setPost(async (options) => {
+    const result = f.create(JSON.parse(String(options.body)).recipient_id);
+    const saved = f.snapshots.get("1")!;
+    const entries = unzipSync(saved);
+    entries["files/profile.json"] = strToU8(
+      JSON.stringify({ name: "Updated profile", nim: "B002" }),
+    );
+    entries["files/assets/profile.webp"] = strToU8("new photo");
+    f.snapshots.set(
+      "1",
+      zipSync(Object.fromEntries(Object.entries(entries).reverse()), {
+        level: 0,
+        mtime: new Date(2025, 0, 1),
+      }),
+    );
+    return result;
+  });
+  const result = await f.workflow.submit(f.sessionId);
+  expect(result.state).toBe("submitted");
+  expect(result.snapshotSha256).not.toBe(result.sha256);
+});
+
+test("profile changes on cloud do not invalidate a prepared submission", async () => {
+  const f = fixture();
+  await f.workflow.prepare(f.input());
+  f.setCurrent(artifact("Updated profile"));
+  expect((await f.workflow.submit(f.sessionId)).state).toBe("submitted");
 });

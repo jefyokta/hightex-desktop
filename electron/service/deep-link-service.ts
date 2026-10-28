@@ -1,4 +1,4 @@
-import { BrowserWindow } from "electron";
+import { BrowserWindow, dialog } from "electron";
 import { Controller } from "@main/server/application-hosts/controller";
 import { HightexProtocol } from "@main/server/hightex-protocol";
 
@@ -28,6 +28,9 @@ export class DeepLinkService {
   }
   async handle() {
     const response = await Controller.handle(this.url);
+    if (this.url.hostname === "document" && !response.ok) {
+      dialog.showErrorBox("HighTex", await response.text());
+    }
     if (this.url.hostname === "auth") {
       const windows = BrowserWindow.getAllWindows().filter(
         (win) => !win.isDestroyed(),

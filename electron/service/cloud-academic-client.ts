@@ -1,3 +1,5 @@
+import { CloudError } from "../exception/cloud-error";
+import type { CloudErrorCode } from "../../sharable-types/cloud-error";
 import { strFromU8, unzipSync } from "fflate";
 
 interface AcademicTransport {
@@ -6,8 +8,8 @@ interface AcademicTransport {
     endpoint: string,
   ): Promise<{ ok: boolean; status: number; data: unknown }>;
 }
-const fail = (code: string): never => {
-  throw new Error(`cloud_error:${code}`);
+const fail = (code: CloudErrorCode): never => {
+  throw new CloudError(code);
 };
 const record = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -131,7 +133,7 @@ export class CloudAcademicClient {
       const entries = unzipSync(input.file, {
         filter: (entry) => {
           size += entry.originalSize;
-          if (size > 128 * 1024 * 1024) throw new Error("Archive too large");
+          if (size > 128 * 1024 * 1024) throw new CloudError("invalid_archive");
           return ["files/profile.json", "files/config.json"].includes(
             entry.name,
           );

@@ -1,3 +1,4 @@
+import { CloudError } from "@/exception/cloud-error";
 import { defaulBib } from "@/data/default-bib";
 import Dexie, { Table } from "dexie";
 import { Manager } from "../manager";
@@ -119,7 +120,7 @@ export class HighTexDB extends Dexie {
     return updated;
   }
   async cacheCloudAcademic(documentId: string, data: CloudAcademicData) {
-    if (!data.serverDocumentId) throw new Error("cloud_error:cloud_changed");
+    if (!data.serverDocumentId) throw new CloudError("cloud_changed");
     const updated = await this.transaction("rw", this.documents, async () => {
       const document = await this.documents.get(documentId);
       if (!document) throw new Error("Document not found");
@@ -130,7 +131,7 @@ export class HighTexDB extends Dexie {
           source.serverUrl !== data.session.serverUrl ||
           source.serverDocumentId !== data.serverDocumentId)
       )
-        throw new Error("cloud_error:academic_scope");
+        throw new CloudError("academic_scope");
       const next = withCloudAcademicSource(document, data);
       await this.documents.put(next);
       return next;

@@ -1,3 +1,4 @@
+import { contentFingerprint } from "../src/utils/htx/content-fingerprint";
 import "fake-indexeddb/auto";
 import {
   afterAll,
@@ -165,7 +166,7 @@ describe("document authors and variables", () => {
 });
 
 describe("portable author profile", () => {
-  test("cloud artifact is deterministic and its SHA includes image and profile photo bytes", async () => {
+  test("content fingerprint includes document illustrations and excludes profile photos", async () => {
     await db.documents.put(makeDocument("a", "Student A"));
     await db.chapters.put({ id: "a.1", content: [{ type: "paragraph" }] });
     await db.images.put({
@@ -179,15 +180,7 @@ describe("portable author profile", () => {
     await Bun.sleep(5);
     const second = await exporter.exportForPush();
     expect(second.file).toEqual(first.file);
-    const digest = await crypto.subtle.digest(
-      "SHA-256",
-      new Uint8Array(first.file),
-    );
-    expect(first.hash).toBe(
-      Array.from(new Uint8Array(digest), (byte) =>
-        byte.toString(16).padStart(2, "0"),
-      ).join(""),
-    );
+    expect(first.hash).toBe(await contentFingerprint(first.file));
     const manifest = JSON.parse(
       strFromU8(unzipSync(first.file)["manifest.json"]),
     );
@@ -201,7 +194,7 @@ describe("portable author profile", () => {
     await db.updateProfile("a", {
       picture: new Blob(["photo"], { type: "image/webp" }),
     });
-    expect((await exporter.exportForPush()).hash).not.toBe(changedImage.hash);
+    expect((await exporter.exportForPush()).hash).toBe(changedImage.hash);
     await db.images.delete("image");
     await db.chapters.delete("a.1");
     const entries = unzipSync((await exporter.exportForPush()).file);

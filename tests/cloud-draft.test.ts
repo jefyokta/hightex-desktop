@@ -97,14 +97,14 @@ test("stage validation does not write; unknown category and malformed aliases fa
   const before = await captureDraft(db, local.id);
   await prepareCloudDraft(await archive(), "draft", categories);
   expect(await captureDraft(db, "draft")).toEqual(before);
-  await expect(prepareCloudDraft(await archive(), "draft", [])).rejects.toThrow(
-    "unknown_category",
-  );
+  await expect(
+    prepareCloudDraft(await archive(), "draft", []),
+  ).rejects.toMatchObject({ code: "unknown_category" });
   const entries = unzipSync(await archive());
   entries["files/assets/aliases.json"] = strToU8('[{"key":5}]');
   await expect(
     prepareCloudDraft(zipSync(entries), "draft", categories),
-  ).rejects.toThrow("invalid_archive");
+  ).rejects.toMatchObject({ code: "invalid_archive" });
   expect(await captureDraft(db, "draft")).toEqual(before);
 });
 
@@ -185,9 +185,9 @@ test("concurrent local edits abort replacement without removing any old content"
     id: "draft.new",
     content: [{ type: "text", text: "new edit" }],
   });
-  await expect(installCloudDraft(db, prepared, before)).rejects.toThrow(
-    "local_changed",
-  );
+  await expect(installCloudDraft(db, prepared, before)).rejects.toMatchObject({
+    code: "local_changed",
+  });
   expect((await db.documents.get("draft"))?.title).toBe(local.title);
   expect(await db.chapters.get("draft.new")).toBeDefined();
 });
@@ -209,9 +209,9 @@ test("same-size image edits are detected before replacing a draft", async () => 
   await db.images.update("old", {
     blob: new Blob(["B"], { type: "image/webp" }),
   });
-  await expect(installCloudDraft(db, prepared, before)).rejects.toThrow(
-    "local_changed",
-  );
+  await expect(installCloudDraft(db, prepared, before)).rejects.toMatchObject({
+    code: "local_changed",
+  });
   expect(await (await db.images.get("old"))?.blob.text()).toBe("B");
 });
 
@@ -318,9 +318,9 @@ test("rollback preserves newer edits and legacy packages do not retain a stale a
   await installCloudDraft(db, prepared, before);
   expect((await db.documents.get("draft"))?.profile).toBeUndefined();
   await db.documents.update("draft", { title: "New edit" });
-  await expect(rollbackCloudDraft(db, prepared, before)).rejects.toThrow(
-    "local_changed",
-  );
+  await expect(rollbackCloudDraft(db, prepared, before)).rejects.toMatchObject({
+    code: "local_changed",
+  });
   expect((await db.documents.get("draft"))?.title).toBe("New edit");
 });
 
@@ -346,8 +346,8 @@ test("web v1 import is rejected before changing any draft state", async () => {
     "data/1.json": strToU8(JSON.stringify(desktop)),
   });
   const before = await captureDraft(db, "copy");
-  await expect(prepareCloudDraft(web, "copy", categories)).rejects.toThrow(
-    "unsupported_content",
-  );
+  await expect(
+    prepareCloudDraft(web, "copy", categories),
+  ).rejects.toMatchObject({ code: "unsupported_content" });
   expect(await captureDraft(db, "copy")).toEqual(before);
 });

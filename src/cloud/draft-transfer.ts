@@ -1,7 +1,8 @@
+import { CloudError } from "@/exception/cloud-error";
 import { parseHighTexV2, HighTexImportError } from "@hightex/importer";
 import { prepareDraftImport } from "@/utils/htx/draft-transfer";
 import { supportedNodes, supportedMarks } from "@/utils/htx/content-policy";
-import { archiveSha256 } from "@/utils/htx/import-model";
+import { contentFingerprint } from "@/utils/htx/content-fingerprint";
 export {
   captureDraft,
   draftRevision,
@@ -29,12 +30,12 @@ export async function prepareCloudDraft(
         error.code === "unsupported_format"
           ? "unsupported_content"
           : "invalid_archive";
-      throw new Error(`cloud_error:${code}`, { cause: error });
+      throw new CloudError(code, { cause: error });
     }
     throw error;
   }
-  if (!model.chapters.length) throw new Error("cloud_error:invalid_archive");
-  const hash = await archiveSha256(file);
+  if (!model.chapters.length) throw new CloudError("invalid_archive");
+  const hash = await contentFingerprint(model);
   return prepareDraftImport(
     model,
     id,

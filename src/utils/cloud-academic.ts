@@ -1,3 +1,4 @@
+import { CloudError } from "@/exception/cloud-error";
 import { emptyAuthorProfile } from "./document-profile";
 
 /** Apply only server-owned fields; local CV/photos, dates and content stay editable. */
@@ -32,7 +33,7 @@ export const withCloudAcademicSource = (
   document: HighTexDocument,
   data: CloudAcademicData,
 ): HighTexDocument => {
-  if (!data.serverDocumentId) throw new Error("cloud_error:cloud_changed");
+  if (!data.serverDocumentId) throw new CloudError("cloud_changed");
   return {
     ...applyCloudAcademic(document, data),
     cloudAcademic: {

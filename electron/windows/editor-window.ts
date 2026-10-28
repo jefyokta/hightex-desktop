@@ -13,6 +13,8 @@ export class EditorWindow {
     const existing = this.get(documentId);
 
     if (existing) {
+      if (existing.isMinimized()) existing.restore();
+      existing.show();
       existing.focus();
       return existing;
     }

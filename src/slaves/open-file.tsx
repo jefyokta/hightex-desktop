@@ -1,24 +1,20 @@
 import { HighTexImporter } from "@/utils/import-v2";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router";
 import { t } from "@/utils/lang";
+import { confirm } from "@/utils/confirm";
 
 export const OpenFileSlave = () => {
-  const navigate = useNavigate();
-
   useEffect(() => {
     const off = window.hightex.onOpenFile(async (path) => {
       try {
-        // console.log("open file", path);
-
         const buffer = await window.hightex.readFile(path);
 
         const uint8 = new Uint8Array(buffer);
 
         const file = new File(
           [uint8],
-          path.split("/").pop() || "file.hightex",
+          path.split(/[\\/]/).pop() || "file.hightex",
           {
             type: "application/octet-stream",
           },
@@ -27,14 +23,14 @@ export const OpenFileSlave = () => {
         const importer = await HighTexImporter.create(file, path);
 
         if (importer.exists) {
-          const confirmed = confirm(t("open_file.confirm_overwrite"));
+          const confirmed = await confirm(t("open_file.confirm_overwrite"));
 
           if (!confirmed) {
             return;
           }
         }
         const id = toast.loading(t("open_file.importing"));
-        importer
+        await importer
           .import()
           .then((doc) => {
             return window.editor.open(doc.id, doc.file);
@@ -53,7 +49,7 @@ export const OpenFileSlave = () => {
     });
 
     return () => off?.();
-  }, [navigate]);
+  }, []);
 
   return null;
 };

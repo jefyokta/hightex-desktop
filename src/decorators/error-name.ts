@@ -17,12 +17,15 @@ export function reconstructMainError(
   err: unknown,
   fallback: (message: string, err?: unknown) => ApplicationError,
 ): ApplicationError {
-  const tag = ApplicationError.getMainErrorName(err);
   const rawMessage = ApplicationError.normilize(err);
-  const Found = registry.get(tag || "");
-  if (!Found) return fallback(rawMessage, err);
+  for (const [tag, Found] of registry) {
+    const marker = `${tag}:`;
+    const index = rawMessage.indexOf(marker);
+    if (index === -1) continue;
 
-  const message = rawMessage.split(":").slice(3).join(":");
-  const e = new Found(message);
-  return e instanceof ThrowByMain ? e.onMainThrowing(message) : e;
+    const message = rawMessage.slice(index + marker.length).trim();
+    const error = new Found(message);
+    return error instanceof ThrowByMain ? error.onMainThrowing(message) : error;
+  }
+  return fallback(rawMessage, err);
 }

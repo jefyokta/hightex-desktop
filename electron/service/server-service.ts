@@ -187,7 +187,7 @@ export class ServerService {
           context,
         );
       }
-
+      console.log(data)
       return {
         ok: response.ok,
         status: response.status,

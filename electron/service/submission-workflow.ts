@@ -1,5 +1,7 @@
-import { createHash, randomUUID } from "node:crypto";
-import { strFromU8, unzipSync } from "fflate";
+import { getCloudErrorCode } from "../../sharable-types/cloud-error";
+import { contentFingerprint } from "../../src/utils/htx/content-fingerprint";
+import { randomUUID } from "node:crypto";
+import { parseHighTexV2 } from "@hightex/importer";
 import type { CloudSyncClient } from "./cloud-sync-client";
 import type { SubmissionClient } from "./submission-client";
 
@@ -21,20 +23,7 @@ const validateArtifact = (input: CloudPushInput) => {
   )
     return fail("invalid_document");
   try {
-    let total = 0;
-    const entries = unzipSync(input.file, {
-      filter: (entry) => {
-        total += entry.originalSize;
-        if (total > 128 * 1024 * 1024) throw new Error("Archive too large");
-        return (
-          entry.name === "manifest.json" ||
-          entry.name === "files/profile.json" ||
-          /^files\/chapters\/.+\.json$/.test(entry.name)
-        );
-      },
-    });
-    const manifest = JSON.parse(strFromU8(entries["manifest.json"]));
-    const profile = JSON.parse(strFromU8(entries["files/profile.json"]));
+    const model = parseHighTexV2(input.file);
     const hasContent = (value: unknown): boolean => {
       if (Array.isArray(value)) return value.some(hasContent);
       if (!value || typeof value !== "object") return false;
@@ -46,23 +35,18 @@ const validateArtifact = (input: CloudPushInput) => {
       );
     };
     if (
-      manifest.version !== 2 ||
-      manifest.format !== "json" ||
-      manifest.document?.id !== input.document.id ||
-      String(manifest.document.category) !== input.document.category ||
-      manifest.document.title?.id !== input.document.title ||
+      model.document.id !== input.document.id ||
+      String(model.document.category) !== input.document.category ||
+      model.document.title !== input.document.title ||
       !input.document.title.trim() ||
-      typeof profile.name !== "string" ||
-      !profile.name.trim() ||
-      typeof profile.nim !== "string" ||
-      !profile.nim.trim() ||
-      !Object.entries(entries).some(
-        ([path, data]) =>
-          path.startsWith("files/chapters/") &&
-          hasContent(JSON.parse(strFromU8(data))),
-      )
+      typeof model.profile?.name !== "string" ||
+      !model.profile?.name.trim() ||
+      typeof model.profile?.nim !== "string" ||
+      !model.profile?.nim.trim() ||
+      !model.chapters.some((chapter) => hasContent(chapter.content))
     )
       throw new Error("Incomplete artifact");
+    return model;
   } catch {
     return fail("invalid_document");
   }
@@ -178,7 +162,7 @@ export class SubmissionWorkflow {
         binding.serverDocumentId !== input.expectedServerDocumentId
       )
         return fail("not_linked");
-      validateArtifact(input);
+      const model = validateArtifact(input);
       const recipient = await this.recipient(
         input.sessionId,
         input.recipientId,
@@ -198,10 +182,7 @@ export class SubmissionWorkflow {
       const pushed = await this.cloud.push(input);
       this.context(input.sessionId);
       if (pushed.status !== "saved") return fail("cloud_conflict");
-      if (
-        pushed.sha256 !== createHash("sha256").update(input.file).digest("hex")
-      )
-        return fail("cloud_changed");
+      const contentSha256 = await contentFingerprint(model);
       return this.save(input.sessionId, {
         id: randomUUID(),
         recipientId: recipient.id,
@@ -213,6 +194,7 @@ export class SubmissionWorkflow {
         documentId: pushed.serverDocumentId,
         title: input.document.title,
         sha256: pushed.sha256,
+        contentSha256,
         baseline: baseline.map((item) => item.id),
         state: "uploaded",
       });
@@ -231,7 +213,7 @@ export class SubmissionWorkflow {
       );
       if (
         current?.document_id !== attempt.documentId ||
-        current.sha256 !== attempt.sha256
+        (!attempt.contentSha256 && current.sha256 !== attempt.sha256)
       )
         return fail("cloud_changed");
       const downloaded = await this.cloud.pull({
@@ -241,7 +223,10 @@ export class SubmissionWorkflow {
       this.context(sessionId);
       if (
         downloaded.status !== "downloaded" ||
-        downloaded.sha256 !== attempt.sha256
+        (attempt.contentSha256
+          ? (await contentFingerprint(downloaded.file)) !==
+            attempt.contentSha256
+          : downloaded.sha256 !== attempt.sha256)
       )
         return fail("cloud_changed");
       await this.validateStored?.({
@@ -339,9 +324,15 @@ export class SubmissionWorkflow {
           return this.save(sessionId, { ...attempt, error: result.error.code });
         snapshots.push(result.data);
       }
-      const matches = snapshots.filter(
-        (item) => item.sha256 === attempt.sha256,
-      );
+      const matches: SubmissionSnapshot[] = [];
+      for (const item of snapshots) {
+        if (
+          attempt.contentSha256
+            ? (await contentFingerprint(item.file)) === attempt.contentSha256
+            : item.sha256 === attempt.sha256
+        )
+          matches.push(item);
+      }
       if (matches.length === 1)
         return this.save(sessionId, {
           ...attempt,
@@ -365,9 +356,10 @@ export class SubmissionWorkflow {
       return this.save(sessionId, {
         ...attempt,
         error:
-          error instanceof Error
+          getCloudErrorCode(error) ??
+          (error instanceof Error
             ? error.message.replace(/^submission_error:/, "")
-            : "request_failed",
+            : "request_failed"),
       });
     }
   }

@@ -217,6 +217,11 @@
     "community": "Community contributors",
     "made_together": "Made better, together.",
     "contributor_note": "Every idea, test, and contribution helps HighTex grow.",
+    "donate": {
+      "label": "Donate",
+      "description": "Open the HighTex support page in your browser",
+      "open_failed": "Unable to open the HighTex support page. Please try again."
+    },
     "github": {
       "description": "Enjoy HighTex? Give us a star on GitHub to support the project.",
       "star": "Star on GitHub",
@@ -880,5 +885,33 @@
     },
     "identity": "Identity number",
     "web_settings": "Edit name and degrees on the web"
+  },
+  "cloud": {
+    "error_title": "Cloud transfer failed",
+    "errors": {
+      "not_authenticated": "Your session is unavailable. Sign in again.",
+      "session_changed": "The account, server, or session changed. Reload before continuing.",
+      "invalid_request": "The upload is invalid. Notes must be at most 255 characters and packages at most 64 MiB.",
+      "invalid_response": "The cloud response is incomplete or invalid. Your draft and sync base are preserved.",
+      "invalid_download": "The download expired. Download it again before applying it to your draft.",
+      "integrity_failed": "The cloud document content does not match the hash reported by the server. The package was not applied to your draft.",
+      "cloud_changed": "The cloud document changed during this operation. Reload to check the server before trying again.",
+      "replacement_required": "The document is not linked or the cloud slot changed. Reload and review the replacement.",
+      "editor_open": "Close this document editor before transferring cloud content.",
+      "local_changed": "The local document changed during this operation. Review it and try again.",
+      "kp_unsupported": "The server does not support internship document sync yet. These documents can still be used locally.",
+      "unknown_category": "The document category is unknown. Update categories or inspect the package before continuing.",
+      "external_asset": "The package uses external images. Include its assets before importing it.",
+      "invalid_archive": "The cloud package is invalid. Your draft was not replaced.",
+      "unsupported_content": "The package contains unsupported content. Open it in the read-only viewer to inspect it.",
+      "busy": "Another cloud transfer is running. Wait for it to finish.",
+      "academic_changed": "Server academic data changed or has not been applied to this package. Reload it and try saving again.",
+      "academic_invalid": "Server academic data is invalid. Check advisor, defense, and university assignments.",
+      "academic_scope": "This document belongs to another account, server, or cloud document. Use a separate local copy for this account.",
+      "http_401": "Your server session expired. Sign in again.",
+      "http_403": "This account cannot perform that operation.",
+      "http_422": "The server rejected the document or metadata. Check its category and upload note.",
+      "request_failed": "Cloud transfer failed. Check your connection and server status, then reload."
+    }
   }
 }

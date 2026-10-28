@@ -47,6 +47,7 @@ export class Application {
 
   private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
+  private documentWindowLoading?: Promise<void>;
   private pendingLinks: string[] = [];
   private linksReady = false;
   private updaterReady = false;
@@ -139,8 +140,9 @@ export class Application {
     this.createProtocol();
     this.fileOpen = new FileOpenManager(
       (filePath) => {
-        this.win?.webContents.send("file:open", filePath);
-        this.win?.focus();
+        void this.openDocumentFile(filePath).catch((error) => {
+          LoggerService.write(error, "file:open");
+        });
       },
       async (args) => {
         await this.handleCliArgs(args);
@@ -235,6 +237,23 @@ export class Application {
 
     this.server.start();
     await this.win.loadURL(this.server.url);
+  }
+
+  public async openDocumentFile(filePath: string) {
+    if (!this.win || this.win.isDestroyed()) {
+      this.documentWindowLoading = this.createWindow().finally(() => {
+        this.documentWindowLoading = undefined;
+      });
+    }
+    await this.documentWindowLoading;
+    const window = this.win;
+    if (!window || window.isDestroyed()) {
+      throw new Error("The document import window was closed.");
+    }
+    if (window.isMinimized()) window.restore();
+    window.show();
+    window.focus();
+    window.webContents.send("file:open", filePath);
   }
 
   private async onReady() {

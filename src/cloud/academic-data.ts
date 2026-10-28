@@ -1,3 +1,4 @@
+import { CloudError } from "@/exception/cloud-error";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Exporter } from "@/utils/htx/exporter";
 
@@ -23,13 +24,13 @@ export const exportCloudArtifact = async (
       document.cloudAcademic &&
       document.cloudAcademic.serverDocumentId !== serverDocumentId)
   )
-    throw new Error("cloud_error:academic_scope");
+    throw new CloudError("academic_scope");
   const academic = await window.hightex.cloud.academic.load({
     sessionId: session.sessionId,
     serverDocumentId,
   });
   if ((await window.hightex.cloud.context()).sessionId !== session.sessionId)
-    throw new Error("cloud_error:session_changed");
+    throw new CloudError("session_changed");
   return { ...(await new Exporter(id).exportForPush(academic)), academic };
 };
 
@@ -60,7 +61,7 @@ export const refreshCloudAcademic = async (
       serverDocumentId: binding.serverDocumentId,
     });
     if ((await api.cloud.context()).sessionId !== session.sessionId)
-      throw new Error("cloud_error:session_changed");
+      throw new CloudError("session_changed");
     await db.cacheCloudAcademic(id, data);
     return { locked: true };
   } catch {

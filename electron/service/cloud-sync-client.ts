@@ -1,4 +1,13 @@
-import { createHash, randomUUID } from "node:crypto";
+import { CloudError } from "../exception/cloud-error";
+import type { CloudErrorCode } from "../../sharable-types/cloud-error";
+import { randomUUID } from "node:crypto";
+import { contentFingerprint } from "../../src/utils/htx/content-fingerprint";
+
+interface CloudPullInput {
+  sessionId: string;
+  serverDocumentId: string;
+  sha256?: string;
+}
 
 interface Credentials {
   serverUrl: string;
@@ -24,14 +33,12 @@ export interface CloudTransport {
   ): Promise<void>;
 }
 
-const hash = (file: Uint8Array) =>
-  createHash("sha256").update(file).digest("hex");
 const validHash = (value: unknown): value is string =>
   typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
 const validId = (value: unknown): value is string =>
   typeof value === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(value);
-const fail = (code: string): never => {
-  throw new Error(`cloud_error:${code}`);
+const fail = (code: CloudErrorCode): never => {
+  throw new CloudError(code);
 };
 const object = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -39,7 +46,6 @@ const object = (value: unknown): Record<string, unknown> => {
   return value as Record<string, unknown>;
 };
 
-/** Account slot observations never change the base of a local document. */
 export class CloudSyncClient {
   private credentials?: Credentials;
   private current?: CloudSession;
@@ -145,11 +151,9 @@ export class CloudSyncClient {
     return { commits: commits as CommitListResponse["commits"] };
   }
 
-  async pull(input: {
-    sessionId: string;
-    serverDocumentId: string;
-    sha256?: string;
-  }): Promise<CloudDownload | { status: "empty" | "not_found" }> {
+  private async download(
+    input: CloudPullInput,
+  ): Promise<CloudDownload | { status: "empty" | "not_found" }> {
     const session = this.require(input.sessionId);
     if (
       !validId(input.serverDocumentId) ||
@@ -174,10 +178,7 @@ export class CloudSyncClient {
       serverDocumentId !== input.serverDocumentId
     )
       return fail("invalid_response");
-    if (
-      hash(response.data) !== sha256 ||
-      (input.sha256 && input.sha256 !== sha256)
-    )
+    if (input.sha256 && input.sha256 !== sha256)
       return fail("integrity_failed");
     const download: CloudDownload = {
       status: "downloaded",
@@ -188,6 +189,22 @@ export class CloudSyncClient {
       archive: Boolean(input.sha256),
       file: new Uint8Array(response.data),
     };
+    return download;
+  }
+
+  async pull(
+    input: CloudPullInput,
+  ): Promise<CloudDownload | { status: "empty" | "not_found" }> {
+    const download = await this.download(input);
+    if (download.status !== "downloaded") return download;
+    let fingerprint: string;
+    try {
+      fingerprint = await contentFingerprint(download.file);
+    } catch {
+      return fail("invalid_archive");
+    }
+    if (fingerprint !== download.sha256) return fail("integrity_failed");
+    this.require(input.sessionId);
     for (const [key, item] of this.pending)
       if (item.expires < Date.now()) this.pending.delete(key);
     while (this.pending.size >= 3)
@@ -286,7 +303,7 @@ export class CloudSyncClient {
           input.expectedCloudSha256 !== current.sha256
         )
           return fail("replacement_required");
-        const previous = await this.pull({
+        const previous = await this.download({
           sessionId: input.sessionId,
           serverDocumentId: current.document_id,
         });
@@ -296,10 +313,18 @@ export class CloudSyncClient {
         )
           return fail("cloud_changed");
         await this.backup(input.sessionId, previous.file);
+        const observed = (await this.list(input.sessionId)).commits.find(
+          (item) => item.type === "current",
+        );
+        if (
+          observed?.document_id !== current.document_id ||
+          observed.sha256 !== current.sha256
+        )
+          return fail("cloud_changed");
         if (!linked) base = current.sha256!;
       }
       const file = new Uint8Array(input.file);
-      const sha256 = hash(file);
+      const sha256 = await contentFingerprint(file);
       const doc = input.document;
       const form = new FormData();
       form.append(
@@ -320,7 +345,6 @@ export class CloudSyncClient {
         ),
         "X-HighTex-Commit-Message": encodeURIComponent(input.message),
       };
-      // An occupied slot must conflict even if it appeared after our preflight.
       headers["X-HighTex-Base-SHA256"] = base ?? "0".repeat(64);
       if (input.force) headers["X-HighTex-Force"] = "true";
       this.require(input.sessionId);

@@ -220,13 +220,13 @@ test("loader binds /me and owned server document to the current session", async 
   expect(paths.sort()).toEqual(["/document", "/me", "/university-data"]);
   await expect(
     client.load({ sessionId: "old-session", serverDocumentId: "server-doc" }),
-  ).rejects.toThrow("session_changed");
+  ).rejects.toMatchObject({ code: "session_changed" });
   await expect(
     client.load({
       sessionId: context.sessionId,
       serverDocumentId: "another-doc",
     }),
-  ).rejects.toThrow("cloud_changed");
+  ).rejects.toMatchObject({ code: "cloud_changed" });
   // A web document can exist before its first desktop cloud commit.
   expect(
     (
@@ -262,7 +262,7 @@ test("late account switch or foreign document cannot supply another author's dat
       sessionId: context.sessionId,
       serverDocumentId: "server-doc",
     }),
-  ).rejects.toThrow("session_changed");
+  ).rejects.toMatchObject({ code: "session_changed" });
   const foreign = new CloudAcademicClient({
     context: () => context,
     request: async (path) => ({
@@ -281,7 +281,7 @@ test("late account switch or foreign document cannot supply another author's dat
       sessionId: context.sessionId,
       serverDocumentId: "server-doc",
     }),
-  ).rejects.toThrow("cloud_changed");
+  ).rejects.toMatchObject({ code: "cloud_changed" });
 });
 
 test("cloud fields survive stale settings/profile writes while title, CV/photo and dates remain editable", async () => {
@@ -330,7 +330,7 @@ test("local documents stay editable and cloud cache rejects a different owner or
   ])
     await expect(
       db.cacheCloudAcademic("local-doc", { ...academic(), session }),
-    ).rejects.toThrow("academic_scope");
+    ).rejects.toMatchObject({ code: "academic_scope" });
   expect((await db.documents.get("local-doc"))?.profile?.name).toBe(
     academic().author.name,
   );
@@ -386,12 +386,12 @@ test("push validation rejects manual changes and assignment changes, but permits
   const manual = await new Exporter("local-doc").exportForPush();
   await expect(
     client.verify({ ...input, file: manual.file }, "server-doc"),
-  ).rejects.toThrow("academic_changed");
+  ).rejects.toMatchObject({ code: "academic_changed" });
   server = me();
   server.message.thesis_data.session_chair.name = "New chair";
-  await expect(client.verify(input, "server-doc")).rejects.toThrow(
-    "academic_changed",
-  );
+  await expect(client.verify(input, "server-doc")).rejects.toMatchObject({
+    code: "academic_changed",
+  });
 });
 
 test("automatic refresh affects bound working documents only and retains cached fields on network failure", async () => {
@@ -433,7 +433,7 @@ test("an old-account working document stays locked without adopting the newly lo
       await window.hightex.cloud.context(),
       "other-doc",
     ),
-  ).rejects.toThrow("academic_scope");
+  ).rejects.toMatchObject({ code: "academic_scope" });
   expect((await db.documents.get("local-doc"))?.profile?.name).toBe(
     academic().author.name,
   );

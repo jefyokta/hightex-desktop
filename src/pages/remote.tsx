@@ -1,3 +1,4 @@
+import { CloudError } from "@/exception/cloud-error";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
@@ -141,7 +142,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       !alive.current ||
       (await window.hightex.cloud.context()).sessionId !== context.sessionId
     )
-      throw new Error("cloud_error:session_changed");
+      throw new CloudError("session_changed");
   };
 
   const load = useCallback(async () => {
@@ -236,8 +237,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
           : crypto.randomUUID();
       prepared = await prepareCloudDraft(result.file, id, categories);
       before = await captureDraft(db, id);
-      if (await window.editor.has(id))
-        throw new Error("cloud_error:editor_open");
+      if (await window.editor.has(id)) throw new CloudError("editor_open");
       if (before.document) {
         if (
           !(await confirm({
@@ -254,7 +254,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
           (await draftRevision(await captureDraft(db, id))) !==
           (await draftRevision(before))
         )
-          throw new Error("cloud_error:local_changed");
+          throw new CloudError("local_changed");
         await window.hightex.cloud.backup(session.sessionId, backup.file);
       }
       if (sha256 && !restore)
@@ -272,15 +272,14 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
             source.serverUrl !== session.serverUrl ||
             source.serverDocumentId !== current.document_id)
         )
-          throw new Error("cloud_error:academic_scope");
+          throw new CloudError("academic_scope");
         prepared.state.document = withCloudAcademicSource(
           prepared.state.document,
           academic,
         );
       }
       await assertCurrent(session);
-      if (await window.editor.has(id))
-        throw new Error("cloud_error:editor_open");
+      if (await window.editor.has(id)) throw new CloudError("editor_open");
       await installCloudDraft(db, prepared, before);
       installed = true;
       await assertCurrent(session);
@@ -323,9 +322,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
     setTask({ kind: "push", force });
     setNotice(null);
     try {
-      if (kp) throw new Error("cloud_error:kp_unsupported");
+      if (kp) throw new CloudError("kp_unsupported");
       if (await window.editor.has(selectedDoc.id))
-        throw new Error("cloud_error:editor_open");
+        throw new CloudError("editor_open");
       const replace = Boolean(current && !isLinked);
       if (force && !current) return;
       if (
@@ -1037,52 +1036,5 @@ function timeAgo(value?: string | null) {
 }
 
 function errorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  const code = /cloud_error:(\w+)/.exec(message)?.[1];
-  const messages: Record<string, string> = {
-    not_authenticated:
-      "Sesi login sudah tidak tersedia. Silakan login kembali.",
-    session_changed:
-      "Akun, server, atau sesi berubah. Muat ulang sebelum melanjutkan.",
-    invalid_request:
-      "Data pengiriman tidak valid. Catatan maksimal 255 karakter dan ukuran paket maksimal 64 MiB.",
-    invalid_response:
-      "Respons cloud tidak lengkap atau tidak sesuai kontrak. Draft dan versi dasarnya tetap dipertahankan.",
-    invalid_download:
-      "Unduhan sudah kedaluwarsa. Unduh kembali sebelum menerapkan ke draft.",
-    integrity_failed:
-      "Hash paket cloud tidak cocok dengan byte file. Paket belum diterapkan. File dari client lama mungkin memakai kontrak hash lama; periksa atau pulihkan paket melalui web terlebih dahulu.",
-    cloud_changed:
-      "Dokumen cloud berubah saat operasi berjalan. Muat ulang untuk memeriksa hasil server sebelum mencoba lagi.",
-    replacement_required:
-      "Dokumen belum tertaut atau slot cloud berubah. Muat ulang dan tinjau penggantian dokumen cloud.",
-    editor_open:
-      "Tutup jendela editor dokumen ini terlebih dahulu agar tidak ada penulisan bersamaan saat transfer cloud.",
-    local_changed:
-      "Dokumen lokal berubah selama proses. Operasi dihentikan; tinjau perubahan lalu coba lagi.",
-    kp_unsupported:
-      "Sinkronisasi KP belum didukung server. Dokumen KP tetap dapat dipakai secara lokal.",
-    unknown_category:
-      "Kategori dokumen tidak dikenali. Perbarui kategori atau periksa paket sebelum melanjutkan.",
-    external_asset:
-      "Paket mengandalkan gambar eksternal. Lengkapi aset dalam paket sebelum mengimpor.",
-    invalid_archive: "Isi paket cloud tidak valid. Draft belum diganti.",
-    unsupported_content:
-      "Paket memuat format konten yang belum didukung editor. Buka melalui viewer hanya baca untuk memeriksanya.",
-    busy: "Transfer cloud lain masih berjalan. Tunggu sampai selesai.",
-    academic_changed:
-      "Data akademik server berubah atau belum diterapkan ke paket. Muat ulang data, lalu coba simpan kembali.",
-    academic_invalid:
-      "Data akademik dari server tidak sesuai kontrak. Periksa pembimbing, data sidang, serta data universitas.",
-    academic_scope:
-      "Dokumen terikat ke akun, server, atau dokumen cloud lain. Gunakan salinan lokal terpisah untuk akun ini.",
-    http_401: "Sesi server sudah tidak berlaku. Silakan login kembali.",
-    http_403: "Akun ini tidak memiliki akses untuk operasi tersebut.",
-    http_422:
-      "Server menolak paket atau metadata dokumen. Periksa kategori dan catatan pengiriman.",
-  };
-  return code
-    ? (messages[code] ??
-        "Transfer cloud gagal. Periksa koneksi dan status server, lalu muat ulang.")
-    : message;
+  return CloudError.from(error).description;
 }

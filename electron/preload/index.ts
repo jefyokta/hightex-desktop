@@ -29,6 +29,14 @@ let progressCallback: ((data: any) => void) | null = null;
 let cachedConfigPromise: Promise<any> | null = null;
 let cachedConfig: any = null;
 
+// A cold-start deep link may arrive before React mounts OpenFileSlave.
+const pendingOpenFiles: string[] = [];
+const openFileListeners = new Set<(path: string) => void>();
+ipcRenderer.on("file:open", (_event, path: string) => {
+  if (!openFileListeners.size) pendingOpenFiles.push(path);
+  else openFileListeners.forEach((listener) => listener(path));
+});
+
 const loadConfig = async () => {
   if (!cachedConfigPromise) {
     cachedConfigPromise = ipcRenderer.invoke("config:get").then((cfg) => {
@@ -115,11 +123,14 @@ contextBridge.exposeInMainWorld("hightex", {
     return await ipcRenderer.invoke("hightex:profile");
   },
   onOpenFile(cb) {
-    const listenr = (_: any, path: string) => {
-      cb(path);
+    openFileListeners.add(cb);
+    queueMicrotask(() => {
+      if (!openFileListeners.has(cb)) return;
+      for (const path of pendingOpenFiles.splice(0)) cb(path);
+    });
+    return () => {
+      openFileListeners.delete(cb);
     };
-    ipcRenderer.on("file:open", listenr);
-    return () => ipcRenderer.removeListener("file:open", listenr);
   },
   readFile: (filePath: string) =>
     ipcRenderer.invoke("hightex:readFile", filePath),

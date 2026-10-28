@@ -4,8 +4,8 @@ import { BrowserWindow } from "electron";
 
 export class EditorHandler {
   static register() {
-    IPCMain.handle("editor:open", (_, docId: string, file?: string) => {
-      EditorWindow.open(docId, file);
+    IPCMain.handle("editor:open", async (_, docId: string, file?: string) => {
+      await EditorWindow.open(docId, file);
     });
     IPCMain.handle("editor:has", (_, docId: string) => {
       return Boolean(EditorWindow.get(docId));
