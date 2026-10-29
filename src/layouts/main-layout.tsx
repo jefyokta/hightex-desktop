@@ -88,7 +88,7 @@ const UpdaterStatusListener = () => {
               },
             });
 
-            if (event.manual) {
+            if (event.manual && !!!localStorage.getItem(`canceled-${event.info.version}`)) {
               const shouldDownload = await confirm({
                 title: `HighTex ${event.info.version} Available`,
                 desc: "A new version is ready to download. Download now?",
@@ -103,6 +103,7 @@ const UpdaterStatusListener = () => {
                 });
                 await downloadAndInstall();
               } else {
+                localStorage.setItem(`canceled-${event.info.version}`, '1');
                 toast.dismiss(UPDATER_TOAST_ID);
               }
             }
