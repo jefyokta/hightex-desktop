@@ -1,6 +1,5 @@
 import {
   ChevronDown,
-  Cloud,
   File,
   FilePlus2,
   Plus,
@@ -10,9 +9,14 @@ import {
   X,
   FileStack,
 } from "lucide-react";
-import { Dropdown, DropdownItem } from "../dropdown";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { Row } from "./rows";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import { t } from "@/utils/lang";
 import { useMultiSelect } from "@/hooks/use-multi-select";
 import { Button } from "../ui/button";
@@ -36,6 +40,7 @@ export const DocumentList = ({
   onExport,
 }: Props) => {
   const [selectMode, setSelectMode] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const { selected, clear, addSelected } = useMultiSelect<string>("documents");
 
@@ -97,65 +102,37 @@ export const DocumentList = ({
 
               <div className="w-px h-4 bg-white/15" />
 
-              <Dropdown
-                align="right"
-                width={"max-content"}
-                trigger={
-                  <button className="flex items-center justify-center px-2 py-1.5 rounded-r-lg hover:bg-white/10 transition-colors">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("common.new")}
+                    className="flex items-center justify-center px-2 py-1.5 rounded-r-lg hover:bg-white/10 transition-colors"
+                  >
                     <ChevronDown size={14} />
                   </button>
-                }
-              >
-                <div className="p-1 text-xs bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-lg">
-                  <DropdownItem onClick={onCreate}>
-                    <div className="flex items-center gap-2 px-1.5 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-                      <Plus
-                        size={14}
-                        className="text-neutral-600 dark:text-neutral-400"
-                      />
-                      <span className="font-light text-neutral-700 dark:text-neutral-200">
-                        {t("dashboard.create_empty")}
-                      </span>
-                    </div>
-                  </DropdownItem>
-
-                  <DropdownItem>
-                    <label
-                      htmlFor="hightex:file"
-                      className="flex items-center gap-2 px-1.5 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-                    >
-                      <File
-                        size={14}
-                        className="text-neutral-600 dark:text-neutral-400"
-                      />
-                      <span className="font-light text-neutral-700 dark:text-neutral-200">
-                        {t("dashboard.import_from_file")}
-                      </span>
-                    </label>
-                    <input
-                      onChange={onImport}
-                      type="file"
-                      id="hightex:file"
-                      className="hidden"
-                      accept=".hightex,.htx,.htv2"
-                    />
-                  </DropdownItem>
-
-                  <div className="my-1 h-px bg-neutral-200 dark:bg-neutral-800" />
-
-                  <DropdownItem>
-                    <div className="flex items-center gap-2 px-1.5 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-                      <Cloud
-                        size={14}
-                        className="text-neutral-600 dark:text-neutral-400"
-                      />
-                      <span className="font-light text-neutral-700 dark:text-neutral-200">
-                        {t("dashboard.import_from_cloud")}
-                      </span>
-                    </div>
-                  </DropdownItem>
-                </div>
-              </Dropdown>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-max min-w-44"
+                >
+                  <DropdownMenuItem
+                    onSelect={() => void onCreate()}
+                    className="cursor-pointer gap-2 px-3 py-2 text-xs"
+                  >
+                    <Plus className="size-3.5 text-muted-foreground" />
+                    {t("dashboard.create_empty")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => importInputRef.current?.click()}
+                    className="cursor-pointer gap-2 px-3 py-2 text-xs"
+                  >
+                    <File className="size-3.5 text-muted-foreground" />
+                    {t("dashboard.import_from_file")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -200,6 +177,14 @@ export const DocumentList = ({
           </div>
         </div>
       </div>
+
+      <input
+        ref={importInputRef}
+        onChange={onImport}
+        type="file"
+        className="hidden"
+        accept=".hightex"
+      />
 
       <div className="flex-1 bg-neutral-50 p-2 dark:bg-neutral-900/50 overflow-y-auto  rounded-2xl min-h-0 border border-transparent dark:border-neutral-800">
         {documents.length === 0 ? (
