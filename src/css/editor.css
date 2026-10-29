@@ -88,7 +88,18 @@ figure[data-type="figureTable"] table:not([data-type="grid"]) {
 .page ol:has(+h2){
   margin-bottom: 4pt;
 }
-
+.page ol:has(+h3){
+  margin-bottom: 4pt;
+}
+.page ol:has(+p){
+  margin-bottom: 0.5em;
+}
+.page ol:has(+h4){
+  margin-bottom: 0.5em;
+}
+.page h4 {
+  text-align: justify;
+}
 .page h1::before {
   content: "BAB " counter(h1-counter) "\A";
   font-weight: bold;

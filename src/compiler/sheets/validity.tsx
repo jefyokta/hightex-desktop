@@ -130,7 +130,7 @@ export const Validity = () => {
                   <div style={{ fontWeight: "bold", marginTop: "15pt" }}>
                     Dekan
                   </div>
-                  <div className="spacer" style={{ height: "70pt" }}></div>
+                  <div className="space" style={{ height: "70pt" }}></div>
                   <div>
                     {" "}
                     <span
@@ -166,7 +166,7 @@ export const Validity = () => {
                   <div style={{ fontWeight: "bold", marginTop: "10pt" }}>
                     Ketua Program Studi
                   </div>
-                  <div className="spacer" style={{ height: "70pt" }}></div>
+                  <div className="space" style={{ height: "70pt" }}></div>
 
                   <div style={{ fontWeight: "bold" }}>
                     {" "}

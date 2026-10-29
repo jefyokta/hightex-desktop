@@ -314,8 +314,20 @@ figure[data-type="figureTable"] > table {
 .content ol:has(+h2){
   margin-bottom: 4pt;
 }
+.content ol:has(+h3){
+  margin-bottom: 4pt;
+}
+.content ol:has(+p){
+  margin-bottom: 0.5em;
+}
+.content ol:has(+h4){
+  margin-bottom: 0.5em;
+}
 .content td > div {
   width: 100%;
+}
+.content h4 {
+  text-align: justify;
 }
 
 .content td:not(.table-header-like):not(thead td),
@@ -450,7 +462,7 @@ figure thead td {
 }
 
 .content ol ol {
-  list-style-type: lower-alpha;
+  list-style-type: lower-alpha !important;
 }
 
 .content ol ol ol {
