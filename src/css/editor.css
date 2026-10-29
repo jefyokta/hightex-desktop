@@ -85,6 +85,10 @@ figure[data-type="figureTable"] table:not([data-type="grid"]) {
   margin-top: 10pt;
 }
 
+.page ol:has(+h2){
+  margin-bottom: 4pt;
+}
+
 .page h1::before {
   content: "BAB " counter(h1-counter) "\A";
   font-weight: bold;

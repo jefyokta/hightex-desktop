@@ -311,7 +311,9 @@ figure[data-type="figureTable"] > table {
   text-align: left;
   /* min-width: 100%; */
 }
-
+.content ol:has(+h2){
+  margin-bottom: 4pt;
+}
 .content td > div {
   width: 100%;
 }
