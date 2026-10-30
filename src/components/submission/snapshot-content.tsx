@@ -6,6 +6,7 @@ import { applyCase } from "@/utils/apply-var-case";
 import type { VariableCase } from "@/editor/extensions/variable";
 import { formatInTextCitation, formatManual } from "@/utils/citation";
 import { t } from "@/utils/lang";
+import "@/css/snapshot-review.css";
 
 interface Props {
   snapshot: SnapshotReadModel;

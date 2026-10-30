@@ -56,7 +56,9 @@ const archive = zipSync({
   ),
 });
 
-function routerFixture(request = async (_url: URL) => new Response(archive)) {
+function routerFixture(
+  request: (url: URL) => Promise<Response> = async () => new Response(archive),
+) {
   const files = new Map<string, Uint8Array>();
   const opened: string[] = [];
   const requested: string[] = [];
@@ -223,7 +225,7 @@ test("preload buffers a cold-start file until the renderer subscribes, including
   const ipc = Object.assign(new EventEmitter(), {
     invoke: async () => undefined,
   });
-  const apis: Record<string, any> = {};
+  const apis: Record<string, unknown> = {};
   loadSource("../electron/preload/index.ts", {
     electron: {
       ipcRenderer: ipc,
@@ -234,13 +236,14 @@ test("preload buffers a cold-start file until the renderer subscribes, including
       },
     },
   });
+  const hightex = apis.hightex as Window["hightex"];
   ipc.emit("file:open", {}, "/downloads/startup.hightex");
   const received: string[] = [];
-  const off = apis.hightex.onOpenFile((file: string) => {
+  const off = hightex.onOpenFile((file: string) => {
     received.push(`obsolete:${file}`);
   });
   off();
-  const stop = apis.hightex.onOpenFile((file: string) => {
+  const stop = hightex.onOpenFile((file: string) => {
     received.push(file);
   });
   await Promise.resolve();
@@ -249,7 +252,7 @@ test("preload buffers a cold-start file until the renderer subscribes, including
   expect(received).toHaveLength(2);
   stop();
   ipc.emit("file:open", {}, "/downloads/remount.hightex");
-  apis.hightex.onOpenFile((file: string) => {
+  hightex.onOpenFile((file: string) => {
     received.push(file);
   });
   await Promise.resolve();
@@ -303,12 +306,12 @@ test("second-instance deep links wait for core services, even after Electron is 
   expect(handled).toHaveLength(2);
 });
 
-test.each([true, false])(
-  "renderer awaits overwrite choice (%s) before importing and opening",
-  async (accepted) => {
+test.each(["overwrite", "copy", null] as const)(
+  "renderer awaits import choice (%s) before importing and opening",
+  async (mode) => {
     let receive!: (path: string) => Promise<void>;
-    let decide!: (accepted: boolean) => void;
-    const confirmation = new Promise<boolean>((resolve) => {
+    let decide!: (mode: "overwrite" | "copy" | null) => void;
+    const confirmation = new Promise<"overwrite" | "copy" | null>((resolve) => {
       decide = resolve;
     });
     const imported: string[] = [];
@@ -323,14 +326,16 @@ test.each([true, false])(
           HighTexImporter: {
             create: async () => ({
               exists: true,
-              import: async () => {
-                imported.push("doc");
-                return { id: "doc", file: "/doc.hightex" };
+              import: async (selectedMode: string) => {
+                imported.push(selectedMode);
+                return selectedMode === "copy"
+                  ? { id: "copy", file: undefined }
+                  : { id: "doc", file: "/doc.hightex" };
               },
             }),
           },
         },
-        "@/utils/confirm": { confirm: () => confirmation },
+        "@/utils/import-conflict": { resolveImportMode: () => confirmation },
         "@/utils/lang": { t: (key: string) => key },
         sonner: {
           toast: { loading: () => "toast", error: () => {}, dismiss: () => {} },
@@ -357,10 +362,10 @@ test.each([true, false])(
     const pending = receive("/doc.hightex");
     await Promise.resolve();
     expect(imported).toEqual([]);
-    decide(accepted);
+    decide(mode);
     await pending;
-    expect(imported).toEqual(accepted ? ["doc"] : []);
-    expect(opened).toEqual(accepted ? ["doc"] : []);
+    expect(imported).toEqual(mode ? [mode] : []);
+    expect(opened).toEqual(mode ? [mode === "copy" ? "copy" : "doc"] : []);
   },
 );
 

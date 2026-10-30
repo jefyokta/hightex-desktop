@@ -45,8 +45,10 @@ import { cleanUnusedProgress } from "@/utils/clean-unused-data";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 import { executeInteractively } from "@/utils/execute-interactively";
+import { useCitationCleanup } from "@/hooks/use-citation-cleanup";
 
 export const Settings = () => {
+  const { cleaning, deleteUnusedCitations } = useCitationCleanup();
   const [config, setConfig] = useState<ConfigShape | null>(null);
 
   const [theme, setTheme] = useState<ThemeMode>("system");
@@ -502,6 +504,19 @@ export const Settings = () => {
 
           <Separator />
           <DangerAction
+            label={t("settings.data.unused_citations.label")}
+            description={t("settings.data.unused_citations.description")}
+            action={t(
+              cleaning
+                ? "settings.data.unused_citations.checking"
+                : "settings.data.unused_citations.action",
+            )}
+            busy={cleaning}
+            onClick={() => void deleteUnusedCitations()}
+          />
+
+          <Separator />
+          <DangerAction
             label={t("settings.data.config.label")}
             description={t("settings.data.config.description")}
             action="Reset"
@@ -610,11 +625,13 @@ const DangerAction = ({
   description,
   action,
   onClick,
+  busy = false,
 }: {
   label: string;
   description?: string;
   action: string;
   onClick?: () => void;
+  busy?: boolean;
 }) => {
   return (
     <div className="flex items-center justify-between">
@@ -625,7 +642,14 @@ const DangerAction = ({
         )}
       </div>
 
-      <Button variant="destructive" size="sm" onClick={onClick}>
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={onClick}
+        disabled={busy}
+        aria-busy={busy}
+      >
+        {busy && <Loader2 className="animate-spin" />}
         {action}
       </Button>
     </div>

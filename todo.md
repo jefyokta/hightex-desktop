@@ -1,18 +1,1 @@
-## Pinned
-
-- [x] Table bugs // note : update tjsn-parser to fix header rowspan issue
-- [x] Add button for latex creation
-- [x] always show button in document list (currently should be hovered)
-- [x] add ref to attachement headers
-- [x] equation ref
-- [x] line between names
-- [x] multiple advisor support
-- [x] intern sheets didnt updated
-- [x] table icon error
-- [x] add .ht option in download button at editor page
-- [x] add toast on saved
-- [x] keyword creation in editor
-- [x] daftar singkatan
-- [ ] bibliography
-
-// note: alias hint feature deleting all contents when it get hard refresh
+- [x] Delete unused citations from Settings > Data, with confirmation count, usage recheck, and feedback.

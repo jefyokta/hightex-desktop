@@ -8,7 +8,7 @@ import { Exporter } from "@/utils/htx/exporter";
 import { DocumentList } from "@/components/local/document-list";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { t } from "@/utils/lang";
-import { confirm } from "@/utils/confirm";
+import { resolveImportMode } from "@/utils/import-conflict";
 import { normalizeAuthorProfile } from "@/utils/document-profile";
 
 export const Dashboard = () => {
@@ -91,13 +91,9 @@ export const Dashboard = () => {
         file,
         await window.file.getPath(file),
       );
-      if (importer.exists) {
-        const confirmed = await confirm(
-          `Document '${truncate(importer.model.document.title, 10)}' is already exists wanna override it`,
-        );
-        if (!confirmed) return;
-      }
-      const importedDocument = await importer.import();
+      const mode = await resolveImportMode(importer);
+      if (!mode) return;
+      const importedDocument = await importer.import(mode);
 
       setDocuments((prev) => [
         importedDocument,

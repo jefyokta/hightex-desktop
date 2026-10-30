@@ -466,7 +466,7 @@ figure thead td {
 }
 
 .content ol ol ol {
-  list-style-type: decimal;
+  list-style-type: decimal !important;
 }
 
 .content ol ol ol li::marker {
@@ -474,7 +474,7 @@ figure thead td {
 }
 
 .content ol ol ol ol {
-  list-style-type: lower-alpha;
+  list-style-type: lower-alpha !important;
 }
 
 .content ol ol ol ol li::marker {

@@ -41,6 +41,18 @@
       "config": {
         "label": "Konfigurasi",
         "description": "Mereset konfigurasi aplikasi anda"
+      },
+      "unused_citations": {
+        "action": "Hapus sitasi tak terpakai",
+        "checking": "Memeriksa sitasi...",
+        "confirm_title": "Hapus {count} sitasi tak terpakai?",
+        "confirm_description": "Sitasi ini tidak digunakan di bab tersimpan pada seluruh dokumen lokal. Penghapusan tidak dapat dibatalkan.",
+        "confirm_delete": "Hapus {count} sitasi",
+        "none": "Tidak ada sitasi tak terpakai untuk dihapus.",
+        "deleted": "Berhasil menghapus {count} sitasi tak terpakai.",
+        "failed": "Sitasi tak terpakai gagal dihapus. Silakan coba lagi.",
+        "label": "Sitasi tak terpakai",
+        "description": "Hapus sitasi yang tidak digunakan di bab tersimpan pada seluruh dokumen lokal."
       }
     },
     "main": {
@@ -640,6 +652,11 @@
     "delete_snapshot": "Hapus snapshot"
   },
   "open_file": {
+    "conflict_title": "Dokumen sudah ada",
+    "conflict_description": "Dokumen dengan ID yang sama seperti \"{title}\" sudah ada. Timpa dokumen tersebut atau buat salinan terpisah?",
+    "overwrite": "Timpa",
+    "create_copy": "Buat sebagai salinan",
+    "copy_title": "{title} (Salinan)",
     "confirm_overwrite": "Dokumen sudah diimpor, mau ditimpa?",
     "importing": "Mengimpor dokumen...",
     "import_success": "Impor Berhasil!",

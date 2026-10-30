@@ -135,7 +135,39 @@ const stateOfDB = () =>
   execute(
     `new Promise((resolve,reject)=>{const req=indexedDB.open('HighTexDB');req.onerror=()=>reject(req.error);req.onsuccess=async()=>{const db=req.result;const result={};for(const name of db.objectStoreNames){result[name]=await new Promise((yes,no)=>{const request=db.transaction(name).objectStore(name).getAll();request.onsuccess=()=>yes(request.result);request.onerror=()=>no(request.error)});}db.close();resolve(JSON.stringify(result));}})`,
   );
+const listStyles = () =>
+  execute(`(()=>{
+  const doc=document.querySelector('iframe').contentDocument;
+  const style=element=>doc.defaultView.getComputedStyle(element);
+  const content=doc.querySelector('.pagedjs_pages .content');
+  return {
+    spacing:Object.fromEntries(['h2','h3','p','h4'].map(tag=>[tag,Array.from(content.querySelectorAll('ol:has(+'+tag+')')).map(list=>style(list).marginBottom)])),
+    nested:Array.from(content.querySelectorAll('ol ol')).map(list=>style(list).listStyleType),
+    heading:style(content.querySelector('h4')).textAlign,
+  };
+})()`);
 const fixture = (category, author, image) => {
+  const paragraph = (text) => ({
+    type: "paragraph",
+    content: [{ type: "text", text }],
+  });
+  const list = (depth = 1) => ({
+    type: "orderedList",
+    content: [
+      {
+        type: "listItem",
+        content: [
+          paragraph(`List level ${depth}`),
+          ...(depth < 4 ? [list(depth + 1)] : []),
+        ],
+      },
+    ],
+  });
+  const heading = (level) => ({
+    type: "heading",
+    attrs: { level },
+    content: [{ type: "text", text: `Heading ${level}` }],
+  });
   const doc = {
     id: "same-local-id",
     title: "Identical preview document",
@@ -182,6 +214,14 @@ const fixture = (category, author, image) => {
           ],
         },
         { type: "image", attrs: { src: "fixture", width: 120 } },
+        list(),
+        heading(2),
+        list(),
+        heading(3),
+        list(),
+        paragraph("Paragraph following a list"),
+        list(),
+        heading(4),
       ],
     },
   ];
@@ -351,6 +391,7 @@ app
       await execute(`window.openFrame('/document/same-local-id/print',null)`);
       await waitForRender();
       const draft = await metrics();
+      const draftLists = await listStyles();
       const draftImage = await win.webContents.capturePage();
       const before = await stateOfDB();
       await execute(
@@ -358,6 +399,35 @@ app
       );
       await waitForRender();
       const snapshot = await metrics();
+      const snapshotLists = await listStyles();
+      assert.deepEqual(
+        snapshotLists,
+        draftLists,
+        `${variant} review list styles differ`,
+      );
+      for (const [tag, expected] of Object.entries({
+        h2: 16 / 3,
+        h3: 16 / 3,
+        p: 8,
+        h4: 8,
+      })) {
+        assert.ok(
+          snapshotLists.spacing[tag].length > 0,
+          `${variant} missing list before ${tag}`,
+        );
+        for (const margin of snapshotLists.spacing[tag])
+          assert.ok(
+            Math.abs(parseFloat(margin) - expected) < 0.01,
+            `${variant} list spacing before ${tag}: ${margin}`,
+          );
+      }
+      assert.equal(snapshotLists.heading, "justify");
+      assert.ok(
+        snapshotLists.nested.every(
+          (type, index) =>
+            type === ["lower-alpha", "decimal", "lower-alpha"][index % 3],
+        ),
+      );
       const snapshotImage = await win.webContents.capturePage();
       assert.deepEqual(snapshot, draft, `${variant} page text/layout differ`);
       assert.equal(
@@ -399,6 +469,7 @@ app
           pixelIdentical,
           draftStorageUnchanged: true,
           secondAuthorIsolated: true,
+          listSpacingAndNumberingMatch: true,
         }),
       );
     }

@@ -1,35 +1,83 @@
 @import "katex/dist/katex.min.css";
 
 .snapshot-content {
+  font-family: "Times New Roman", serif;
+  font-size: 12pt;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .snapshot-content p {
-  margin-bottom: 12pt;
+  margin: 0 0 0.5em;
+  text-align: justify;
+}
+.snapshot-content > p {
+  text-indent: 1.27cm;
 }
 .snapshot-content h1 {
-  margin: 0 0 16pt;
+  margin: 10pt 0;
   text-align: center;
   font-size: 14pt;
   font-weight: bold;
 }
-.snapshot-content h2,
-.snapshot-content h3,
-.snapshot-content h4 {
-  margin: 12pt 0 6pt;
+.snapshot-content h2 {
+  margin: 0 0 4pt;
   font-size: 12pt;
-  font-weight: bold;
+  font-weight: 600;
+}
+.snapshot-content h3 {
+  margin: 0 0 3pt;
+  font-size: 12pt;
+  font-weight: 600;
+}
+.snapshot-content h4 {
+  margin: 0;
+  font-size: 12pt;
+  text-align: justify;
+}
+.snapshot-content h4,
+.snapshot-content h4 * {
+  font-weight: normal;
+  text-indent: 0;
 }
 .snapshot-content ul {
-  list-style: disc;
-  margin-left: 20pt;
+  list-style: disc outside;
+  margin: 0 0 0 0.9em;
+  padding: 0;
 }
 .snapshot-content ol {
-  list-style: decimal;
-  margin-left: 20pt;
+  list-style: decimal outside;
+  margin: 0 0 0 0.5em;
+  padding: 0;
+}
+.snapshot-content ol ol {
+  list-style-type: lower-alpha;
+}
+.snapshot-content ol ol ol {
+  list-style-type: decimal;
+}
+.snapshot-content ol ol ol > li::marker {
+  content: counter(list-item) ") ";
+}
+.snapshot-content ol ol ol ol {
+  list-style-type: lower-alpha;
+}
+.snapshot-content ol ol ol ol > li::marker {
+  content: counter(list-item, lower-alpha) ") ";
+}
+.snapshot-content ol:has(+ h2),
+.snapshot-content ol:has(+ h3) {
+  margin-bottom: 4pt;
+}
+.snapshot-content ol:has(+ p),
+.snapshot-content ol:has(+ h4) {
+  margin-bottom: 0.5em;
+}
+.snapshot-content li {
+  margin-left: 6pt;
 }
 .snapshot-content li > p {
-  margin-bottom: 4pt;
+  margin: 0;
+  text-indent: 0;
 }
 .snapshot-content figure {
   margin: 12pt 0;

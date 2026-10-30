@@ -357,6 +357,91 @@ test("local package overwrite clears stale rows and namespaces aliases", async (
   ]);
 });
 
+test("import as copy remaps document data and assets without changing the existing draft", async () => {
+  await db.documents.put({
+    ...makeDocument("original", "Student A"),
+    file: "/original.hightex",
+  });
+  await db.chapters.put({
+    id: "original.1",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Imported content" },
+          { type: "cite", attrs: { cite: "first|second" } },
+          { type: "image", attrs: { src: "photo" } },
+        ],
+      },
+    ],
+  });
+  await db.images.put({
+    id: "photo",
+    documentId: "original",
+    blob: new Blob(["photo"], { type: "image/webp" }),
+    createdAt: 0,
+  });
+  await db.cite.bulkPut([
+    {
+      key: "first",
+      bib: "@book{first,title={First},author={Author A},year={2025}}",
+      documentId: "original",
+    },
+    {
+      key: "second",
+      bib: "@book{second,title={Second},author={Author B},year={2026}}",
+      documentId: "original",
+    },
+  ]);
+  await db.aliases.put({
+    key: "original.caption",
+    value: "Caption",
+    documentId: "original",
+  });
+  await db.setVar("location", "Company A", "original");
+  const { buffer } = await new Exporter("original").buildExport();
+  await db.documents.update("original", { title: "Local changes" });
+  const before = await captureDraft(db, "original");
+  const originalReferences = await db.cite
+    .where("documentId")
+    .equals("original")
+    .toArray();
+  const importer = await HighTexImporter.create(
+    new File([new Uint8Array(buffer)], "original.hightex"),
+    "/original.hightex",
+  );
+  expect(importer.exists).toBe(true);
+  const copy = await importer.import("copy");
+  expect(copy.id).not.toBe("original");
+  expect(copy.title).toBe("Document original (Copy)");
+  expect(copy.file).toBeUndefined();
+  expect(copy.profile?.name).toBe("Student A");
+  expect(await captureDraft(db, "original")).toEqual(before);
+  expect(
+    await db.cite.where("documentId").equals("original").toArray(),
+  ).toEqual(originalReferences);
+  const chapter = await db.chapters.get(`${copy.id}.1`);
+  expect(chapter?.content[0].content?.[0].text).toBe("Imported content");
+  const references = chapter?.content[0].content?.[1].attrs?.cite.split(
+    "|",
+  ) as string[];
+  expect(references).toHaveLength(2);
+  for (const key of references)
+    expect((await db.cite.get(key))?.documentId).toBe(copy.id);
+  const image = await db.images.get(
+    chapter?.content[0].content?.[2].attrs?.src,
+  );
+  expect(image?.documentId).toBe(copy.id);
+  expect(await image?.blob.text()).toBe("photo");
+  expect(await db.getAliases(copy.id)).toEqual([
+    { key: "caption", value: "Caption" },
+  ]);
+  expect(await db.getVar("location", copy.id)).toBe("Company A");
+  const secondCopy = await importer.import("copy");
+  expect(secondCopy.id).not.toBe(copy.id);
+  expect(await db.documents.count()).toBe(3);
+});
+
 test("v1 migration preserves old records as backup without assigning the global profile to old documents", async () => {
   const name = `profile-migration-${crypto.randomUUID()}`;
   const old = new Dexie(name);

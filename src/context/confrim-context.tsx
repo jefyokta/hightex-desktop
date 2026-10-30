@@ -11,20 +11,24 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { registerConfirm, type ConfirmOptions } from "@/utils/confirm";
+import {
+  registerConfirm,
+  type ConfirmDialogOptions,
+  type ConfirmResult,
+} from "@/utils/confirm";
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
-  const [options, setOptions] = useState<ConfirmOptions | null>(null);
+  const [options, setOptions] = useState<ConfirmDialogOptions | null>(null);
 
-  const [resolver, setResolver] = useState<((value: boolean) => void) | null>(
-    null,
-  );
+  const [resolver, setResolver] = useState<
+    ((value: ConfirmResult) => void) | null
+  >(null);
 
   useEffect(() => {
     registerConfirm((options) => {
-      return new Promise<boolean>((resolve) => {
+      return new Promise<ConfirmResult>((resolve) => {
         setOptions(options);
         setResolver(() => resolve);
         setOpen(true);
@@ -32,7 +36,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const close = (result: boolean) => {
+  const close = (result: ConfirmResult) => {
     resolver?.(result);
 
     setOpen(false);
@@ -61,10 +65,16 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             )}
           </DialogHeader>
 
-          <DialogFooter>
+          <DialogFooter className="sm:flex-wrap">
             <Button variant="secondary" onClick={() => close(false)}>
               {options?.cancelText ?? "Cancel"}
             </Button>
+
+            {options?.alternativeText && (
+              <Button variant="outline" onClick={() => close("alternative")}>
+                {options.alternativeText}
+              </Button>
+            )}
 
             <Button onClick={() => close(true)}>
               {options?.confirmText ?? "Confirm"}

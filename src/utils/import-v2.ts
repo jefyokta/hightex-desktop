@@ -10,6 +10,9 @@ import {
   type DraftState,
 } from "./htx/draft-transfer";
 import { archiveSha256, readImportModel } from "./htx/import-model";
+import { t } from "./lang";
+
+export type ImportMode = "overwrite" | "copy";
 
 /** Desktop persistence adapter; archive parsing belongs to @hightex/importer. */
 export class HighTexImporter {
@@ -42,20 +45,31 @@ export class HighTexImporter {
     return this.model.document.id;
   }
 
-  async import(): Promise<HighTexDocument> {
+  async import(mode: ImportMode = "overwrite"): Promise<HighTexDocument> {
     try {
       const db = HighTexDB.getInstance();
+      const documentId =
+        mode === "copy" ? crypto.randomUUID() : this.actualDocumentId;
+      const before =
+        mode === "copy" ? await captureDraft(db, documentId) : this.before;
       const categories = await window.hightex.categories();
       const prepared = await prepareDraftImport(
         this.model,
-        this.actualDocumentId,
+        documentId,
         categories,
-        `local_${this.actualDocumentId}_${this.hash.slice(0, 16)}_`,
+        `local_${documentId}_${this.hash.slice(0, 16)}_`,
       );
-      prepared.state.document.file = this.filePath;
-      await installDraft(db, prepared, this.before);
+      if (mode === "copy") {
+        prepared.state.document.title = t("open_file.copy_title", {
+          title: prepared.state.document.title,
+        });
+        delete prepared.state.document.file;
+      } else {
+        prepared.state.document.file = this.filePath;
+      }
+      await installDraft(db, prepared, before);
       // Editor setup follows the database commit and runs outside its transaction.
-      const doc = new Document(this.actualDocumentId);
+      const doc = new Document(documentId);
       try {
         await doc.warm();
       } finally {

@@ -2,7 +2,7 @@ import { HighTexImporter } from "@/utils/import-v2";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
-import { confirm } from "@/utils/confirm";
+import { resolveImportMode } from "@/utils/import-conflict";
 
 export const OpenFileSlave = () => {
   useEffect(() => {
@@ -22,16 +22,11 @@ export const OpenFileSlave = () => {
 
         const importer = await HighTexImporter.create(file, path);
 
-        if (importer.exists) {
-          const confirmed = await confirm(t("open_file.confirm_overwrite"));
-
-          if (!confirmed) {
-            return;
-          }
-        }
+        const mode = await resolveImportMode(importer);
+        if (!mode) return;
         const id = toast.loading(t("open_file.importing"));
         await importer
-          .import()
+          .import(mode)
           .then((doc) => {
             return window.editor.open(doc.id, doc.file);
           })

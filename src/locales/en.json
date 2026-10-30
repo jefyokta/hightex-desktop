@@ -41,6 +41,18 @@
       "config": {
         "label": "Config",
         "description": "Reseting all of your application config"
+      },
+      "unused_citations": {
+        "action": "Delete unused",
+        "checking": "Checking citations...",
+        "confirm_title": "Delete {count} unused citation(s)?",
+        "confirm_description": "These citations are not used in any saved chapter across your local documents. Deletion cannot be undone.",
+        "confirm_delete": "Delete {count} citation(s)",
+        "none": "No unused citations to delete.",
+        "deleted": "Deleted {count} unused citation(s).",
+        "failed": "Unable to delete unused citations. Please try again.",
+        "label": "Unused citations",
+        "description": "Remove citations that are not used in any saved chapter across your local documents."
       }
     },
     "main": {
@@ -640,6 +652,11 @@
     "delete_snapshot": "Delete snapshot"
   },
   "open_file": {
+    "conflict_title": "Document already exists",
+    "conflict_description": "A document with the same ID as \"{title}\" already exists. Overwrite it or create a separate copy?",
+    "overwrite": "Overwrite",
+    "create_copy": "Create a copy",
+    "copy_title": "{title} (Copy)",
     "confirm_overwrite": "Document already imported, wanna overwrite it?",
     "importing": "Importing document...",
     "import_success": "Import Success!",
