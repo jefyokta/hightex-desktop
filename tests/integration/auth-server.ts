@@ -2,8 +2,9 @@
 import assert from "node:assert/strict";
 import { AuthClient } from "../../electron/service/auth-client";
 import { accountRequest } from "../../electron/service/account-transport";
-const base = "http://127.0.0.1:8000/api/",
-  origin = "http://127.0.0.1:8000";
+import { ServerUrl } from "../../electron/url/server-url";
+const server = ServerUrl.instance;
+const base = server.api.href;
 let pending: PendingBrowserLogin | undefined;
 let session: { user?: User; token?: string } = {};
 let loginURL = "";
@@ -45,10 +46,10 @@ const web = async (url: string, options: RequestInit = {}) => {
 };
 try {
   assert.equal((await client.start()).ok, true);
-  const page = await web(`${origin}/login`);
+  const page = await web(server.resolve("/login").href);
   const html = await page.text();
   const csrf = /name="csrf-token"\s+content="([^"]+)"/.exec(html)?.[1];
-  const login = await web(`${origin}/login`, {
+  const login = await web(server.resolve("/login").href, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -95,7 +96,7 @@ try {
 } finally {
   if (session.token) await client.logout();
   if (jar.size)
-    await web(`${origin}/logout`, {
+    await web(server.resolve("/logout").href, {
       method: "POST",
       headers: {
         "X-XSRF-TOKEN": decodeURIComponent(jar.get("XSRF-TOKEN") ?? ""),

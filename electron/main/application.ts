@@ -19,7 +19,6 @@ import { SharingHandler } from "../handlers/sharing-handler";
 import { DatabaseBootstraper } from "@main/database/core/bootstrapper";
 import { NetworkService } from "@main/service/network-service";
 import { SnapshotHandler } from "@main/handlers/snapshot-handler";
-import { ServerService } from "@main/service/server-service";
 import { LoggerService } from "@main/service/logger-service";
 import { CLIService } from "@main/service/cli-service";
 import { getCliArgs, isCliInvocation } from "./cli-args";
@@ -32,6 +31,7 @@ import { EditorHandler } from "@main/handlers/editor-handler";
 import { appEvent } from "@main/event";
 import { WindowHandler } from "@main/handlers/window-handler";
 import { DeepLinkService } from "@main/service/deep-link-service";
+import { ApplicationRuntime } from "./application-runtime";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -83,8 +83,12 @@ export class Application {
     return path.join(this.appRoot, "public");
   }
 
-  private get isDevelopment() {
-    return !app.isPackaged && process.env.APP_ENV !== "production";
+  public static get isDev(): boolean {
+    return ApplicationRuntime.isDev;
+  }
+
+  public get isDev(): boolean {
+    return Application.isDev;
   }
 
   private resolveAppRoot(): string {
@@ -175,9 +179,10 @@ export class Application {
 
   private async createWindow(options: { show?: boolean } = {}) {
     this.windowOptions = { ...options, ...this.windowOptions };
-    const publicPath = process.env.VITE_DEV_SERVER_URL
-      ? this.publicRoot
-      : this.rendererDist;
+    const publicPath =
+      this.isDev && process.env.VITE_DEV_SERVER_URL
+        ? this.publicRoot
+        : this.rendererDist;
 
     this.win = new BrowserWindow({
       show: false,
@@ -197,16 +202,16 @@ export class Application {
       webPreferences: {
         preload: this.preloadEntry,
         contextIsolation: true,
-        devTools: this.isDevelopment,
+        devTools: this.isDev,
       },
     });
 
-    if (this.isDevelopment && options.show !== false) {
+    if (this.isDev && options.show !== false) {
       this.win.webContents.openDevTools();
     }
 
     this.win.webContents.on("before-input-event", (event, input) => {
-      if (!this.isDevelopment && this.isDevToolsShortcut(input)) {
+      if (!this.isDev && this.isDevToolsShortcut(input)) {
         event.preventDefault();
       }
     });
@@ -230,7 +235,7 @@ export class Application {
       this.win?.webContents.send("win:maximize", false);
     });
 
-    if (process.env.VITE_DEV_SERVER_URL) {
+    if (this.isDev && process.env.VITE_DEV_SERVER_URL) {
       await this.win.loadURL(process.env.VITE_DEV_SERVER_URL);
       return;
     }
@@ -290,8 +295,6 @@ export class Application {
   }
 
   private async prepareCoreServices() {
-    await ServerService.checkForHost().catch(() => {});
-
     new DatabaseBootstraper().tap();
     NetworkService.tap();
   }
@@ -325,7 +328,7 @@ export class Application {
 
   private registerContextMenu() {
     this.win?.webContents.on("context-menu", (_event, params) => {
-      if (app.isPackaged) return;
+      if (!this.isDev) return;
       const menu = new Menu();
 
       menu.append(
@@ -447,7 +450,7 @@ export class Application {
   }
 
   private async checkForUpdates(manual = false): Promise<UpdaterStatus> {
-    if (this.isDevelopment || !app.isPackaged) {
+    if (this.isDev) {
       const status = {
         status: "disabled",
         reason: "Auto updater is only available in packaged builds.",
@@ -517,7 +520,7 @@ export class Application {
   }
 
   public resolveRendererUrl(route = "/") {
-    if (process.env.VITE_DEV_SERVER_URL) {
+    if (this.isDev && process.env.VITE_DEV_SERVER_URL) {
       return `${process.env.VITE_DEV_SERVER_URL}${route}`;
     }
 

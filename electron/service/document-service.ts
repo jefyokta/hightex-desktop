@@ -7,6 +7,7 @@ import { CloudSyncClient } from "./cloud-sync-client";
 import { ServerService } from "./server-service";
 import { SessionService } from "./session-service";
 import { CategoryService } from "./category-service";
+import { ServerUrl } from "../url/server-url";
 import { CloudAcademicClient } from "./cloud-academic-client";
 
 // Legacy global hashes/aliases are retained in their original store as backups.
@@ -20,7 +21,7 @@ export const documentService: CloudSyncClient = new CloudSyncClient({
     const token = SessionService.getToken();
     return user && token
       ? {
-          serverUrl: ServerService.getServerUrl(),
+          serverUrl: ServerUrl.instance.api.href,
           accountId: String(user.id),
           token,
         }

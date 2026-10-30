@@ -1,51 +1,12 @@
-import Store from "electron-store";
 import { LoggerService } from "./logger-service";
 import { SessionService } from "./session-service";
 import path from "path";
 import { app } from "electron";
-import "dotenv/config";
+import { ServerUrl } from "../url/server-url";
 import { HttpException } from "@main/exception/http/http-exception";
 import { HttpExceptionFactory } from "@main/exception/http/factory";
-interface ServerInfo {
-  serverHost?: string;
-  serverUrl?: string;
-  apiUrl?: string;
-}
-
-const configStore = new Store();
-const SERVER_INFO_URL =
-  "https://raw.githubusercontent.com/jefyokta/hightex-project/main/info.json";
 export class ServerService {
-  static setServerUrl(url: string) {
-    const normalized = url.endsWith("/") ? url : url + "/";
-    configStore.set("server.url", normalized);
-  }
-
-  static getServerUrl(): string {
-    if (!app.isPackaged && process.env.DEV_MODE) {
-      return "http://127.0.0.1:8000/api/";
-    }
-
-    const url = configStore.get("server.url") as string | undefined;
-    return url || "https://hightex.okta/api/";
-  }
-  static async checkForHost() {
-    const response = await fetch(SERVER_INFO_URL, {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-    }
-    const info = (await response.json()) as ServerInfo;
-
-    const host = info.apiUrl || info.serverUrl || info.serverHost;
-
-    if (!host) {
-      throw new Error("serverHost is missing from info.json");
-    }
-    configStore.set("server.url", host);
-  }
-  static async request<T = any>(
+  static async request<T = unknown>(
     endpoint: string,
     options: RequestInit = {},
     context?: string,
@@ -66,7 +27,7 @@ export class ServerService {
       headers["content-type"] = "application/x-hightex";
     }
 
-    const url = this.buildUrl(endpoint);
+    const url = ServerUrl.instance.endpoint(endpoint);
 
     try {
       const response = await fetch(url, {
@@ -98,13 +59,7 @@ export class ServerService {
     }
   }
 
-  private static buildUrl(endpoint: string): string {
-    const base = this.getServerUrl();
-    const target = `${base.endsWith("/") ? base : base + "/"}${endpoint.replace(/^\/+/, "")}`;
-    return target;
-  }
-
-  private static log(error: any, context: string) {
+  private static log(error: unknown, context: string) {
     LoggerService.write(error, context, this.getLogFile());
   }
 
@@ -112,16 +67,6 @@ export class ServerService {
     return path.join(app.getPath("userData"), "hightex-server.log");
   }
 
-  static checkForUpdates() {
-    try {
-    } catch (error) {
-      LoggerService.write(
-        error,
-        "checking for server data updates",
-        this.getLogFile(),
-      );
-    }
-  }
   static async documentSyncRequest<T = unknown>(
     endpoint: string,
     options: RequestInit = {},
@@ -148,7 +93,7 @@ export class ServerService {
     }
 
     try {
-      const response = await fetch(this.buildUrl(endpoint), {
+      const response = await fetch(ServerUrl.instance.endpoint(endpoint), {
         ...options,
         headers,
       });
@@ -187,7 +132,7 @@ export class ServerService {
           context,
         );
       }
-      console.log(data)
+      console.log(data);
       return {
         ok: response.ok,
         status: response.status,

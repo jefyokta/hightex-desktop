@@ -2,10 +2,10 @@ import { shell } from "electron";
 import { AuthClient } from "./auth-client";
 import { accountRequest } from "./account-transport";
 import { SessionService } from "./session-service";
-import { ServerService } from "./server-service";
+import { ServerUrl } from "../url/server-url";
 import { SessionHandler } from "../handlers/session-handlers";
 export const desktopAuth = new AuthClient({
-  serverUrl: () => ServerService.getServerUrl(),
+  serverUrl: () => ServerUrl.instance.api.href,
   request: accountRequest,
   session: () => ({
     token: SessionService.getToken(),

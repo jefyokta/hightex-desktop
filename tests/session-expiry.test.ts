@@ -47,13 +47,22 @@ const fixture = () => {
       },
     },
     "node:path": { default: { join: (...parts: string[]) => parts.join("/") } },
-    "./server-service": { ServerService: { getServerUrl: () => server } },
+    "../url/server-url": {
+      ServerUrl: {
+        instance: {
+          get api() {
+            return new URL(server);
+          },
+        },
+      },
+    },
   };
   const sandbox = {
     exports: {} as {
       SessionService: typeof import("../electron/service/session-service").SessionService;
     },
     require: (name: string) => modules[name],
+    URL,
     process: { platform: "darwin" },
     Date: class extends Date {
       static now() {

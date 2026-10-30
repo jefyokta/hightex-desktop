@@ -1,3 +1,5 @@
+import { ServerUrl } from "../url/server-url";
+
 interface AuthTransport {
   serverUrl(): string;
   request(
@@ -88,9 +90,9 @@ export class AuthClient {
       if (!response.ok) return this.failure("request_failed");
       const url = new URL((response.data as { login_url: string }).login_url);
       const state = url.searchParams.get("state");
-      const base = new URL(server);
+      const base = new ServerUrl(server);
       if (
-        url.origin !== base.origin ||
+        !base.compare(url) ||
         !["https:", "http:"].includes(url.protocol) ||
         url.username ||
         url.password ||

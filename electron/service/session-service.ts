@@ -2,7 +2,7 @@ import Store from "electron-store";
 import { app, safeStorage } from "electron";
 import fs from "node:fs";
 import path from "node:path";
-import { ServerService } from "./server-service";
+import { ServerUrl } from "../url/server-url";
 
 export class SessionService {
   private static cachedToken: string | null = null;
@@ -40,7 +40,7 @@ export class SessionService {
     const server = this.store.get("session.serverUrl") as string | undefined;
     if (
       (expiry && Date.parse(expiry) <= Date.now()) ||
-      (server && server !== ServerService.getServerUrl())
+      (server && server !== ServerUrl.instance.api.href)
     ) {
       this.clear();
       this.onExpired?.();
@@ -77,7 +77,7 @@ export class SessionService {
   static setExpiry(expiresAt: string) {
     this.store.set("session.expiresAt", expiresAt);
     this.armExpiry(expiresAt);
-    this.store.set("session.serverUrl", ServerService.getServerUrl());
+    this.store.set("session.serverUrl", ServerUrl.instance.api.href);
   }
   static pendingBrowser() {
     return this.store.get("session.browser");

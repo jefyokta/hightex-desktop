@@ -35,7 +35,7 @@ export class EditorWindow {
       webPreferences: {
         preload: Application.instance.preloadEntry,
         contextIsolation: true,
-        devTools: !app.isPackaged,
+        devTools: Application.isDev,
       },
     });
 
@@ -57,7 +57,7 @@ export class EditorWindow {
     await window.loadURL(
       Application.instance.resolveRendererUrl(`document/${documentId}`),
     );
-    if (!app.isPackaged) window.webContents.openDevTools();
+    if (Application.isDev) window.webContents.openDevTools();
 
     return window;
   }
@@ -74,7 +74,7 @@ export class EditorWindow {
   }
   static getFromWindow(window: BrowserWindow) {
     return Array.from(this.windows).find(
-      ([_, state]) => state.window === window,
+      ([, state]) => state.window === window,
     )?.[1];
   }
 

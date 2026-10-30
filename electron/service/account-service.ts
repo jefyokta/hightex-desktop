@@ -3,13 +3,13 @@ import { AccountClient } from "./account-client";
 import { accountRequest } from "./account-transport";
 import { submissionService } from "./submission-service";
 import { SessionService } from "./session-service";
-import { ServerService } from "./server-service";
+import { ServerUrl } from "../url/server-url";
 import { SessionHandler } from "../handlers/session-handlers";
 export const accountService = new AccountClient({
   open: (url) => shell.openExternal(url),
   context: () => submissionService.context(),
   request: (endpoint, options = {}) =>
-    accountRequest(ServerService.getServerUrl(), endpoint, {
+    accountRequest(ServerUrl.instance.api.href, endpoint, {
       ...options,
       headers: {
         ...Object.fromEntries(new Headers(options.headers)),

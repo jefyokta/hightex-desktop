@@ -1,34 +1,16 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-
-const SERVER_INFO_URL =
-  "https://raw.githubusercontent.com/jefyokta/hightex-project/main/info.json";
+import { ServerUrl } from "../electron/url/server-url";
 
 (async () => {
-  const response = await fetch(SERVER_INFO_URL, {
+  const response = await fetch(ServerUrl.instance.endpoint("/categories"), {
     cache: "no-store",
+    headers: { Accept: "application/json" },
   });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${await response.text()}`);
   }
-  // console.log(await response.text())
-  const info = (await response.json()) as any;
-  console.log(info);
-  const host: string | undefined = info.serverHost;
-
-  if (!host) {
-    throw new Error("serverHost is missing from info.json");
-  }
-  const paths = host + (host.endsWith("/") ? "" : "/") + "categories";
-  // console.log(paths)
-  const json = await fetch(paths, {
-    headers: {
-      "content-type": "application/json",
-    },
-  }).then((r) => {
-    console.log(r);
-    return r.json();
-  });
+  const json: unknown = await response.json();
 
   const folder = path.resolve(process.cwd(), "resources");
   const output = path.join(folder, "category-backup.json");
@@ -36,6 +18,4 @@ const SERVER_INFO_URL =
   await mkdir(folder, { recursive: true });
 
   await Bun.write(output, JSON.stringify(json, null, 2));
-
-  //save categories backup
 })();

@@ -174,6 +174,7 @@ declare global {
         }) => void,
       ): () => void;
       categories(): Promise<Category[]>;
+      serverUrl(path?: string): Promise<string>;
       profile(): Promise<DocumentProfile>;
       onOpenFile(cb: (file: string) => void): () => void;
       readFile(filePath: string): Promise<NonSharedBuffer>;

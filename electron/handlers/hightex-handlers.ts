@@ -19,11 +19,16 @@ import { submissionService } from "@main/service/submission-service";
 import { submissionWorkflow } from "@main/service/submission-workflow-service";
 import { advisorService } from "@main/service/advisor-service";
 import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
+import { ServerUrl } from "../url/server-url";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
+    IPCMain.handle(
+      "hightex:server-url",
+      (_, path = "/") => ServerUrl.instance.resolve(path).href,
+    );
     IPCMain.handle("hightex:snapshot:pdf", (_, input: SnapshotPDFInput) =>
       new SnapshotPDFService().export(input),
     );

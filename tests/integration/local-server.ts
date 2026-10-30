@@ -6,8 +6,10 @@ import { submissionScenario } from "./submission-scenario";
 import { academicScenario } from "./academic-scenario";
 import { accountScenario } from "./account-scenario";
 import { advisorScenario } from "./advisor-scenario";
+import { ServerUrl } from "../../electron/url/server-url";
 
-const base = "http://127.0.0.1:8000/api/";
+const server = ServerUrl.instance;
+const base = server.api.href;
 // Public local demo accounts; independent of the context file.
 const demoAccounts = [
   {
@@ -24,7 +26,7 @@ const demoAccounts = [
 
 const knownDocuments: { studentId: string; documentId: string }[] = [];
 for (const { role, email, password } of demoAccounts) {
-  const login = await fetch(`${base}login`, {
+  const login = await fetch(server.endpoint("/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ email, password }),
@@ -47,7 +49,7 @@ for (const { role, email, password } of demoAccounts) {
       const headers = new Headers(options.headers);
       headers.set("Authorization", `Bearer ${data.token}`);
       headers.set("Accept", "application/json");
-      const response = await fetch(`${base}${endpoint.replace(/^\//, "")}`, {
+      const response = await fetch(server.endpoint(endpoint), {
         ...options,
         headers,
       });
@@ -160,7 +162,7 @@ for (const { role, email, password } of demoAccounts) {
     if (loggedOut.ok || loggedOut.error.code !== "not_authenticated")
       throw new Error("Logout isolation failed");
   } finally {
-    const logout = await fetch(`${base}logout`, {
+    const logout = await fetch(server.endpoint("/logout"), {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${data.token}`,

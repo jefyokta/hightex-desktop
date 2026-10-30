@@ -1,4 +1,4 @@
-import { app } from "electron";
+import { ApplicationRuntime } from "./application-runtime";
 
 export const CLI_COMMANDS = new Set([
   "compile",
@@ -14,7 +14,7 @@ const IGNORED_ARGS = new Set(["--no-sandbox", "--no-sanbox"]);
 
 export function getCliArgs(argv = process.argv) {
   return argv
-    .slice(app.isPackaged ? 1 : 2)
+    .slice(ApplicationRuntime.isDev ? 2 : 1)
     .filter((arg) => !IGNORED_ARGS.has(arg));
 }
 

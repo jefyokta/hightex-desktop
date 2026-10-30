@@ -1,6 +1,7 @@
 import { SubmissionClient } from "./submission-client";
 import { ServerService } from "./server-service";
 import { SessionService } from "./session-service";
+import { ServerUrl } from "../url/server-url";
 
 export const submissionService = new SubmissionClient({
   session: () => {
@@ -10,7 +11,7 @@ export const submissionService = new SubmissionClient({
       ? {
           accountId: String(user.id),
           token,
-          serverUrl: ServerService.getServerUrl(),
+          serverUrl: ServerUrl.instance.api.href,
         }
       : null;
   },

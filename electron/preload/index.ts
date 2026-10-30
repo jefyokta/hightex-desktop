@@ -116,6 +116,7 @@ contextBridge.exposeInMainWorld("hightex", {
   categories: async () => {
     return await ipcRenderer.invoke("hightex:categories");
   },
+  serverUrl: (path?: string) => ipcRenderer.invoke("hightex:server-url", path),
   category: async (id: string) => {
     return ipcRenderer.invoke("hightex:category", id);
   },

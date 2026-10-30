@@ -8,6 +8,7 @@ import { contentFingerprint } from "../../src/utils/htx/content-fingerprint";
 import { Schema } from "../../src/utils/htx/schema";
 import { emptyAuthorProfile } from "../../src/utils/document-profile";
 import { writeProfileEntries } from "../../src/utils/htx/profile";
+import { ServerUrl } from "../../electron/url/server-url";
 
 // Opt-in HTTP integration. Refuses to replace an occupied cloud slot.
 // HIGHTEX_TEST_CREDENTIALS points to a private JSON file; credentials are never logged.
@@ -21,10 +22,11 @@ const fixture = JSON.parse(await readFile(fixturePath, "utf8")) as {
   email: string;
   password: string;
 };
-const base = fixture.serverUrl.replace(/\/?$/, "/");
+const server = new ServerUrl(fixture.serverUrl);
+const base = server.api.href;
 const events: { method: string; path: string; status: number }[] = [];
 const backups: string[] = [];
-const login = await fetch(base + "login", {
+const login = await fetch(server.endpoint("/login"), {
   method: "POST",
   headers: { Accept: "application/json", "Content-Type": "application/json" },
   body: JSON.stringify({ email: fixture.email, password: fixture.password }),
@@ -46,7 +48,7 @@ const transport = {
     const headers = new Headers(options.headers);
     headers.set("Authorization", "Bearer " + data.token);
     headers.set("Accept", "application/json");
-    const response = await fetch(base + endpoint.replace(/^\//, ""), {
+    const response = await fetch(server.endpoint(endpoint), {
       ...options,
       headers,
     });
@@ -401,7 +403,7 @@ try {
     ),
   );
 } finally {
-  const logout = await fetch(base + "logout", {
+  const logout = await fetch(server.endpoint("/logout"), {
     method: "DELETE",
     headers: {
       Authorization: "Bearer " + data.token,

@@ -26,7 +26,9 @@ export class CategoryService extends HasStorage<string> {
       const categories = this.normilize(res);
 
       if (categories.length > 0) {
-        this.instance().getStorage().set(res);
+        this.instance()
+          .getStorage()
+          .set(JSON.stringify({ data: categories }));
 
         return categories;
       }

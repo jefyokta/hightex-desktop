@@ -1,4 +1,5 @@
 import { parseAccountUser } from "./auth-client";
+import { ServerUrl } from "../url/server-url";
 interface AccountTransport {
   context(): SubmissionResult<ReviewSession>;
   request(
@@ -114,7 +115,7 @@ export class AccountClient {
     return this.result(async () => {
       const session = this.context(sessionId);
       await this.transport.open(
-        new URL("../profile/update", session.serverUrl).toString(),
+        new ServerUrl(session.serverUrl).resolve("/profile/update").href,
       );
       return null;
     });
@@ -193,12 +194,9 @@ export class AccountClient {
       const cached = this.cache.get(sessionId);
       if (!cached) throw new AccountError("invalid_response");
       if (!cached.picturePath) return null;
-      const url = new URL(
-        `../storage/${cached.picturePath}`,
-        session.serverUrl,
+      const url = new ServerUrl(session.serverUrl).resolve(
+        `/storage/${cached.picturePath}`,
       );
-      if (url.origin !== new URL(session.serverUrl).origin)
-        throw new AccountError("invalid_response");
       const response = await this.transport.image(url.toString());
       this.context(sessionId);
       if (
