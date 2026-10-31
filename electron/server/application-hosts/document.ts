@@ -15,13 +15,14 @@ export class DocumentRouter extends Router {
 
     let source: URL;
     try {
-      const value = url.searchParams.get("url")?.trim();
-      if (!value) throw new Error("Missing URL");
+      const v = url.searchParams.get("url")?.trim();
+      if (!v) throw new Error("Missing URL");
+      const value = decodeURIComponent(v);
       source = new URL(
         /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`,
       );
       if (
-        !["https:", "http:"].includes(source.protocol) ||
+        !["https", "http"].includes(source.protocol) ||
         source.username ||
         source.password
       ) {
@@ -42,11 +43,12 @@ export class DocumentRouter extends Router {
         const token = SessionService.getToken();
         headers.set("Authorization", `Bearer ${token}`);
       }
+      if (source.protocol !== "https" || source.username || source.password) {
+      }
 
       const response = await fetch(source, {
         signal: AbortSignal.timeout(60000),
-        headers
-
+        headers,
       });
       if (!response.ok || !response.body) {
         throw new Error(`Download failed (HTTP ${response.status}).`);
@@ -79,7 +81,7 @@ export class DocumentRouter extends Router {
     } catch (error) {
       LoggerService.write(error, "document:download");
       return new Response("Could not download the HighTex document.", {
-        status: 502,
+        status: 500,
       });
     }
 

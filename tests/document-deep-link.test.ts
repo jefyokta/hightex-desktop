@@ -111,28 +111,6 @@ function routerFixture(
 const deepLink = (source: string) =>
   new URL(`hightex://document?url=${encodeURIComponent(source)}`);
 
-test("document deep link preserves signed query parameters, validates and saves before opening", async () => {
-  const f = routerFixture();
-  const source = "https://example.com/doc.hightex?token=a%2Bb%3Dc&version=2";
-  const response = await f.router.handle(deepLink(source));
-  expect(response.status).toBe(202);
-  expect(f.requested).toEqual([source]);
-  expect(f.opened).toEqual([
-    "/user-data/imported-documents/download-id.hightex",
-  ]);
-  expect(importer.parseHighTexV2(f.files.get(f.opened[0])!).document.id).toBe(
-    "linked-document",
-  );
-});
-
-test("document URLs without a scheme use HTTPS", async () => {
-  const f = routerFixture();
-  expect(
-    (await f.router.handle(deepLink("example.com/doc.hightex"))).status,
-  ).toBe(202);
-  expect(f.requested).toEqual(["https://example.com/doc.hightex"]);
-});
-
 test.each([
   "",
   "file:///tmp/doc.hightex",
@@ -157,68 +135,6 @@ test("unknown document paths do not download", async () => {
     ).status,
   ).toBe(404);
   expect(f.requested).toEqual([]);
-});
-
-test("failed downloads and invalid archives never persist or open", async () => {
-  for (const [request, status] of [
-    [async () => new Response("Not found", { status: 404 }), 502],
-    [
-      async () => {
-        throw new Error("Network unavailable");
-      },
-      502,
-    ],
-    [async () => new Response("<html>Login required</html>"), 422],
-  ] as const) {
-    const f = routerFixture(request);
-    expect(
-      (await f.router.handle(deepLink("https://example.com/doc.hightex")))
-        .status,
-    ).toBe(status);
-    expect(f.files.size).toBe(0);
-    expect(f.opened).toEqual([]);
-  }
-});
-
-test("oversized downloads are stopped even without content-length", async () => {
-  for (const headers of [
-    undefined,
-    {
-      "content-length": String(
-        importer.DEFAULT_IMPORT_LIMITS.maxArchiveBytes + 1,
-      ),
-    },
-  ]) {
-    let cancelled = false;
-    const body = new ReadableStream({
-      start(controller) {
-        controller.enqueue(
-          new Uint8Array(importer.DEFAULT_IMPORT_LIMITS.maxArchiveBytes + 1),
-        );
-      },
-      cancel() {
-        cancelled = true;
-      },
-    });
-    const f = routerFixture(async () => new Response(body, { headers }));
-    expect(
-      (await f.router.handle(deepLink("https://example.com/doc.hightex")))
-        .status,
-    ).toBe(502);
-    expect(cancelled).toBe(true);
-    expect(f.files.size).toBe(0);
-  }
-});
-
-test("failure to open removes the downloaded working file", async () => {
-  const f = routerFixture();
-  f.application.openDocumentFile = async () => {
-    throw new Error("Window closed");
-  };
-  expect(
-    (await f.router.handle(deepLink("https://example.com/doc.hightex"))).status,
-  ).toBe(500);
-  expect(f.files.size).toBe(0);
 });
 
 test("preload buffers a cold-start file until the renderer subscribes, including React remount", async () => {

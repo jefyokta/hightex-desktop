@@ -311,16 +311,16 @@ figure[data-type="figureTable"] > table {
   text-align: left;
   /* min-width: 100%; */
 }
-.content ol:has(+h2){
+.content ol:has(+ h2) {
   margin-bottom: 4pt;
 }
-.content ol:has(+h3){
+.content ol:has(+ h3) {
   margin-bottom: 4pt;
 }
-.content ol:has(+p){
+.content ol:has(+ p) {
   margin-bottom: 0.5em;
 }
-.content ol:has(+h4){
+.content ol:has(+ h4) {
   margin-bottom: 0.5em;
 }
 .content td > div {
