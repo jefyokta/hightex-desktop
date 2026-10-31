@@ -6,6 +6,8 @@ import { DEFAULT_IMPORT_LIMITS, parseHighTexV2 } from "@hightex/importer";
 import { Application } from "@main/main/application";
 import { LoggerService } from "@main/service/logger-service";
 import { Router } from "./contract";
+import { ServerUrl } from "@main/url/server-url";
+import { SessionService } from "@main/service/session-service";
 
 export class DocumentRouter extends Router {
   async handle(url: URL): Promise<Response> {
@@ -13,7 +15,6 @@ export class DocumentRouter extends Router {
 
     let source: URL;
     try {
-      // URLSearchParams decodes encodeURIComponent(source) exactly once.
       const value = url.searchParams.get("url")?.trim();
       if (!value) throw new Error("Missing URL");
       source = new URL(
@@ -34,8 +35,18 @@ export class DocumentRouter extends Router {
 
     let bytes: Uint8Array;
     try {
+      const headers = new Headers();
+      const server = ServerUrl.instance;
+
+      if (server.compare(source)) {
+        const token = SessionService.getToken();
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+
       const response = await fetch(source, {
         signal: AbortSignal.timeout(60000),
+        headers
+
       });
       if (!response.ok || !response.body) {
         throw new Error(`Download failed (HTTP ${response.status}).`);
@@ -83,8 +94,6 @@ export class DocumentRouter extends Router {
         },
       );
     }
-
-    // Keep the archive: the imported document uses it for subsequent saves.
     const directory = path.join(app.getPath("userData"), "imported-documents");
     const filePath = path.join(directory, `${randomUUID()}.hightex`);
     try {
