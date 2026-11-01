@@ -44,6 +44,7 @@ import { createMathBlock } from "@/editor/utils/create-math-block";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { SettingModal } from "./settings-modal";
 import { useSaveDocument } from "@/hooks/use-save-document";
+import { ChapterNavigation } from "./chapter-navigation";
 // import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 // import { cn } from "@/lib/utils";
 // import { CommentStorage } from "@/editor/storage/comment";
@@ -100,7 +101,13 @@ export const NavBar: React.FC = () => {
   //   })
   // }, [snap])
 
-  if (!editor || chapter?.frozen) return null;
+  if (!editor || chapter?.frozen) {
+    return (
+      <div className="sticky top-0 z-50 mx-auto w-fit rounded-xl bg-white/80 p-1 backdrop-blur dark:bg-neutral-900/70">
+        <ChapterNavigation />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -127,6 +134,7 @@ export const NavBar: React.FC = () => {
                   window.navigation.back();
                 }}
               />
+              <ChapterNavigation />
             </ButtonGroup>
 
             <div className="flex items-center gap-1">

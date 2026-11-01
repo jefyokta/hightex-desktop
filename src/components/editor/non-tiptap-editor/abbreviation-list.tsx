@@ -3,17 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Document } from "@/editor/document";
 import { Manager } from "@/editor/manager";
 import { HighTexDB } from "@/editor/storage/hightex-db";
+import { sortAliases } from "@/utils/sort-aliases";
 import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 type Abbrevation = Omit<Alias, "documentId">;
 
-export const AbbrevationList = () => {
+export const AbbrevationList = ({
+  onReady,
+}: {
+  onReady?: (ready: boolean) => void;
+}) => {
   const [abbrevations, setAbbrevations] = useState<Abbrevation[]>([]);
   const [key, setKey] = useState("");
   const [value, setValue] = useState("");
 
   useEffect(() => {
+    let alive = true;
     const loadAbbrevations = async () => {
       if (!Document.instance) {
         return;
@@ -22,6 +28,7 @@ export const AbbrevationList = () => {
       const documentId = Document.instance.id;
 
       const aliases = await HighTexDB.getInstance().getAliases(documentId);
+      if (!alive) return;
 
       setAbbrevations(
         aliases.map(({ key, value }) => ({
@@ -29,10 +36,14 @@ export const AbbrevationList = () => {
           value,
         })),
       );
+      onReady?.(true);
     };
 
     void loadAbbrevations();
-  }, []);
+    return () => {
+      alive = false;
+    };
+  }, [onReady]);
 
   const addAbbrevation = async () => {
     const normalizedKey = key.trim();
@@ -50,13 +61,15 @@ export const AbbrevationList = () => {
       value: normalizedValue,
     });
 
-    setAbbrevations((current) => [
-      ...current,
-      {
-        key: normalizedKey,
-        value: normalizedValue,
-      },
-    ]);
+    setAbbrevations((current) =>
+      sortAliases([
+        ...current,
+        {
+          key: normalizedKey,
+          value: normalizedValue,
+        },
+      ]),
+    );
 
     setKey("");
     setValue("");

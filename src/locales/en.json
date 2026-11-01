@@ -391,6 +391,12 @@
       "delete_math": "Delete math",
       "remove_quote": "Remove quote"
     },
+    "chapter_navigation": {
+      "label": "Chapter navigation",
+      "previous": "Previous chapter",
+      "next": "Next chapter",
+      "position": "{current} of {total}"
+    },
     "findReplace": {
       "find": "Find...",
       "replace": "Replace...",
@@ -929,6 +935,27 @@
       "http_403": "This account cannot perform that operation.",
       "http_422": "The server rejected the document or metadata. Check its category and upload note.",
       "request_failed": "Cloud transfer failed. Check your connection and server status, then reload."
+    }
+  },
+  "node": {
+    "reference": {
+      "loading": "Loading...",
+      "not_found": "{node} could not be found!",
+      "load_failed": "Unable to load the referenced {node}.",
+      "missing_description": "{node} `{reference}` could not be found.",
+      "locate": "Locate reference",
+      "label": "{node} {number}",
+      "invalid": "Reference ?",
+      "appendix": "Lampiran",
+      "figure": "Gambar",
+      "table": "Tabel",
+      "equation": "Persamaan",
+      "error_names": {
+        "appendix": "Appendix",
+        "figure": "Figure",
+        "table": "Table",
+        "equation": "Equation"
+      }
     }
   }
 }

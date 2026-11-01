@@ -1,79 +1,35 @@
-import { Document } from "@/editor/document";
 import { Manager } from "@/editor/manager";
+import { useChapterNavigation } from "@/hooks/use-chapter-navigation";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 export const EditorNavigatorSlave = () => {
-  const go = useNavigate();
-
-  const navigate = (chapter: number) => {
-    const doc = Document.instance;
-    if (!doc) return;
-
-    if (chapter == 0) {
-      go(`/document/${doc.id}/attachment`);
-      return;
-    }
-
-    const validChapter = doc.category?.chapters?.find(
-      (c) => Number(c.chapter) === chapter,
-    );
-
-    if (!validChapter) return;
-
-    go(`/document/${doc.id}/${chapter}`);
-  };
-
-  const next = () => {
-    const doc = Document.instance
-    if (!doc) return;
-    const chapters = doc.chapters ?? []
-    const currentChapter = Document.current
-
-    if (!currentChapter || chapters.length === 0) return
-
-    const currentIndex = chapters.findIndex(
-      (chapter) => chapter.getId() === currentChapter.getId(),
-    )
-
-    if (currentIndex === -1) return
-    const n = (currentIndex + 1) % chapters.length;
-    const nextChapter = chapters[n];
-    if (!nextChapter) return;
-    go(`/document/${doc.id}/${nextChapter.getChapter()}`);
-
-
-  }
+  const { chapters, cycleNext, goTo } = useChapterNavigation();
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey)) return;
-      if (e.key == 'n') {
-        console.log(e)
-        next();
+      if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
+      if (e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        cycleNext();
         return;
       }
 
-      const chapter = Number(e.key);
-
-      if (Number.isNaN(chapter) || chapter < 0 || chapter > 9) {
-        return;
-      }
+      if (!/^[0-9]$/.test(e.key)) return;
+      const target = e.key === "0" ? "attachment" : e.key;
+      const chapter = chapters.find((item) => item.getChapter() === target);
+      if (!chapter) return;
 
       e.preventDefault();
-      navigate(chapter);
+      goTo(chapter);
     };
 
     document.addEventListener("keydown", listener);
-
     return () => document.removeEventListener("keydown", listener);
-  }, []);
+  }, [chapters, cycleNext, goTo]);
 
   useEffect(() => {
-    return Manager.app.on("navigate:next", () => {
-      next()
-    })
-  }, [])
+    return Manager.app.on("navigate:next", cycleNext);
+  }, [cycleNext]);
 
   return null;
 };

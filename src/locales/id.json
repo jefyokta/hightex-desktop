@@ -391,6 +391,12 @@
       "delete_math": "Hapus rumus matematika",
       "remove_quote": "Hapus kutipan"
     },
+    "chapter_navigation": {
+      "label": "Navigasi bab",
+      "previous": "Bab sebelumnya",
+      "next": "Bab berikutnya",
+      "position": "{current} dari {total}"
+    },
     "findReplace": {
       "find": "Cari...",
       "replace": "Ganti...",
@@ -929,6 +935,27 @@
       "http_403": "Akun ini tidak memiliki akses untuk operasi tersebut.",
       "http_422": "Server menolak paket atau metadata dokumen. Periksa kategori dan catatan pengiriman.",
       "request_failed": "Transfer cloud gagal. Periksa koneksi dan status server, lalu muat ulang."
+    }
+  },
+  "node": {
+    "reference": {
+      "loading": "Memuat...",
+      "not_found": "{node} tidak dapat ditemukan!",
+      "load_failed": "Tidak dapat memuat {node} yang dirujuk.",
+      "missing_description": "{node} `{reference}` tidak dapat ditemukan.",
+      "locate": "Temukan rujukan",
+      "label": "{node} {number}",
+      "invalid": "Rujukan ?",
+      "appendix": "Lampiran",
+      "figure": "Gambar",
+      "table": "Tabel",
+      "equation": "Persamaan",
+      "error_names": {
+        "appendix": "Lampiran",
+        "figure": "Gambar",
+        "table": "Tabel",
+        "equation": "Persamaan"
+      }
     }
   }
 }

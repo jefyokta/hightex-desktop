@@ -17,7 +17,7 @@ import { sanitizeCvHtml } from "@/utils/sanitize-cv-html";
 import { t } from "@/utils/lang";
 import { confirm } from "@/utils/confirm";
 
-export const Cv = () => {
+export const Cv = ({ onReady }: { onReady?: (ready: boolean) => void }) => {
   const { id } = useParams();
   const [showNotice, setShowNotice] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -49,6 +49,10 @@ export const Cv = () => {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    onReady?.(loaded);
+  }, [loaded, onReady]);
 
   useEffect(() => {
     if (!picture) {

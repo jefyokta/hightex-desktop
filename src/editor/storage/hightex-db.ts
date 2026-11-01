@@ -6,6 +6,7 @@ import { CiteUtils } from "bibtex.js";
 import { Symbols } from "@/utils/symbol";
 import { ActionCanceled } from "@/exception/action-canceled";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
+import { sortAliases } from "@/utils/sort-aliases";
 import {
   emptyAuthorProfile,
   getAuthorDetails,
@@ -276,15 +277,17 @@ export class HighTexDB extends Dexie {
   }
 
   async getAliases(documentId: string) {
-    return (
-      await this.aliases.where("documentId").equals(documentId).toArray()
-    ).map((e) => {
-      const prefix = `${e.documentId}.`;
-      return {
-        key: e.key.slice(prefix.length),
-        value: e.value,
-      };
-    });
+    return sortAliases(
+      (await this.aliases.where("documentId").equals(documentId).toArray()).map(
+        (e) => {
+          const prefix = `${e.documentId}.`;
+          return {
+            key: e.key.slice(prefix.length),
+            value: e.value,
+          };
+        },
+      ),
+    );
   }
 
   async setAlias(key: string, value: string, documentId: string) {

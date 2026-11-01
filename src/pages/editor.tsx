@@ -21,6 +21,7 @@ import { Manager } from "../editor/manager";
 import { useZoom } from "../hooks/use-zoom";
 import { Chapter } from "../editor/chapter/chapter";
 import { useCurrentEditor } from "../hooks/use-editor";
+import { useChapterScroll } from "@/hooks/use-chapter-scroll";
 import { EditorContentError } from "../exception/editor-content-error";
 import { Document } from "@/editor/document";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
@@ -194,7 +195,7 @@ export const Editor: React.FC = () => {
           >
             {currentChapter ? (
               currentChapter.frozen ? (
-                <FrozenChapter key={`${id}.${chapter}`} />
+                <FrozenChapter key={chapterId} />
               ) : (
                 <EditorComponent
                   key={`${chapterId}:${editorKey}`}
@@ -219,6 +220,14 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const { config } = useConfig();
   const [ready, setReady] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [hasNavigationTarget, setHasNavigationTarget] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
+  useChapterScroll(
+    chapter.getId(),
+    ready && !loadFailed,
+    pageRef,
+    !hasNavigationTarget,
+  );
   const alive = useRef(true);
   const contentError = useRef(false);
   const commitTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -265,9 +274,10 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
       }
       if (!initialized || !alive.current || editor.isDestroyed) return;
 
+      const target = navigationTargets.current.pop();
+      setHasNavigationTarget(!!target);
       setReady(true);
       setEditor(editor);
-      const target = navigationTargets.current.pop();
       navigationFrame.current = requestAnimationFrame(() => {
         if (!alive.current || editor.isDestroyed) return;
         if (target) {
@@ -288,7 +298,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
             Manager.scrollTo(target);
           }
         } else {
-          editor.commands.focus();
+          editor.commands.focus(undefined, { scrollIntoView: false });
         }
       });
       const onInput = () => {
@@ -412,6 +422,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         ))}
       <div
         id="page"
+        ref={pageRef}
         hidden={!ready}
         aria-busy={!ready}
         data-table-resize-guides={config?.editor?.tableResizeGuides ?? true}
