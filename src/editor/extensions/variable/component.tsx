@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Manager } from "@/editor/manager";
+import { ParsedItalic } from "@/utils/parse-italic";
 
 function applyCase(value: string, mode: string) {
   switch (mode) {
@@ -70,7 +71,7 @@ export function VariableComponent({ node }: NodeViewProps) {
       <TooltipProvider delayDuration={150}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span>{applyCase(value, node.attrs.case)}</span>
+            <span className={`var-${node.attrs.case}`}>{<ParsedItalic text={applyCase(value, node.attrs.case)} />}</span>
           </TooltipTrigger>
 
           <TooltipContent>
@@ -78,7 +79,7 @@ export function VariableComponent({ node }: NodeViewProps) {
               <div className="font-medium italic">@var {node.attrs.name}</div>
 
               {node.attrs.case !== "preserve" && (
-                <div className="text-muted-foreground text-xs">
+                <div className="text-muted-foreground text-xs ">
                   {node.attrs.case}
                 </div>
               )}

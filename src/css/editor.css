@@ -1,4 +1,5 @@
 @import "./../assets/fonts/style.css";
+@import "./variable.css";
 .tiptap p:first-of-type::before {
   color: #adb5bd;
   content: attr(data-placeholder);
