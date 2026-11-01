@@ -7,7 +7,7 @@ import {
 } from "@tiptap/extension-table";
 
 import { CommandProps } from "@tiptap/react";
-import { CellSelection } from "@tiptap/pm/tables";
+import { CellSelection, columnResizing, tableEditing } from "@tiptap/pm/tables";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -122,7 +122,7 @@ const CustomTable = Table.extend({
       if (typeof getPos === "function") {
         const pos = getPos();
 
-        if (pos) {
+        if (pos !== undefined) {
           const $pos = editor.state.doc.resolve(pos);
           const parent = $pos.node($pos.depth);
           if (parent.type.name !== "figureTable") {
@@ -137,6 +137,23 @@ const CustomTable = Table.extend({
 
       return view;
     };
+  },
+    addProseMirrorPlugins() {
+    return [
+      ...(this.options.resizable
+        ? [
+            columnResizing({
+              handleWidth: this.options.handleWidth,
+              cellMinWidth: this.options.cellMinWidth,
+              defaultCellMinWidth: this.options.cellMinWidth,
+              lastColumnResizable: this.options.lastColumnResizable,
+            }),
+          ]
+        : []),
+      tableEditing({
+        allowTableNodeSelection: this.options.allowTableNodeSelection,
+      }),
+    ];
   },
 }).configure({
   resizable: true,

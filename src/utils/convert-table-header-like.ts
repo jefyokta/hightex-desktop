@@ -14,7 +14,6 @@ export const convertTableHeaderLikeCells = (editor: Editor): void => {
   const tableHeader = state.schema.nodes.tableHeader;
 
   decorations.find().forEach((decoration) => {
-    console.log(decoration);
     if ((decoration as any).type.attrs.tableHeaderLike !== "1") {
       return;
     }

@@ -473,6 +473,13 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
     background-color 0.2s ease,
     opacity 0.2s ease;
 }
+td[tableheaderlike="1"]{
+  border-bottom: 1px var(--border);
+}
+th{
+  border-bottom: 1px solid white;
+}
+
 .column-resize-handle:hover::before,
 .column-resize-handle.is-resizing::before,
 .page table td:hover + .column-resize-handle::before,

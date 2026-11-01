@@ -4,7 +4,6 @@ import { EditorState } from "@tiptap/pm/state";
 import type { Chapter } from "../chapter/chapter";
 import { Storage } from "../storage";
 import { ContentFixer } from "@/utils/content-fixer";
-import { convertTableHeaderLikeCells } from "@/utils/convert-table-header-like";
 import { migrateGridToTable } from "@/utils/migrate-grid-to-table";
 
 const editorSessions = new WeakMap<
@@ -31,6 +30,8 @@ export const events = {
     editorSessions.delete(editor);
     if (editor.isDestroyed || !isCurrent()) return false;
     const session = { chapter, ready: false };
+  // editor.state.plugins.map((p)=>console.log(p.key))
+
     editorSessions.set(editor, session);
     const active = () =>
       !editor.isDestroyed &&
@@ -49,10 +50,8 @@ export const events = {
     editor.commands.setContent(fixed, { emitUpdate: false });
     if ("fixTables" in editor.commands) editor.commands.fixTables();
     ensureUniqueId(editor);
-    convertTableHeaderLikeCells(editor);
+    // convertTableHeaderLikeCells(editor);
     if (!active()) return false;
-
-    // Initial normalization must not become an undo step or an autosave.
     editor.view.updateState(
       EditorState.create({
         doc: editor.state.doc,
@@ -71,7 +70,7 @@ export const events = {
 
     normalizing.add(editor);
     try {
-      convertTableHeaderLikeCells(editor);
+      // convertTableHeaderLikeCells(editor);
     } finally {
       normalizing.delete(editor);
     }

@@ -44,6 +44,8 @@ declare global {
     key: string;
   }
 
+  interface WantsNavigateToNext {}
+
   interface ChapterReload {}
   interface AppEvents {
     "chapter:update": ChapterUpdateEvent;
@@ -59,6 +61,7 @@ declare global {
     "documents:deleted": DocumentsDeleted;
     "document:deleted": DocumentDeleted;
     "chapter:reload": ChapterReload;
+    "navigate:next":WantsNavigateToNext
   }
 }
 

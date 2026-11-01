@@ -1,4 +1,5 @@
 import { Document } from "@/editor/document";
+import { Manager } from "@/editor/manager";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,9 +24,35 @@ export const EditorNavigatorSlave = () => {
     go(`/document/${doc.id}/${chapter}`);
   };
 
+  const next = () => {
+    const doc = Document.instance
+    if (!doc) return;
+    const chapters = doc.chapters ?? []
+    const currentChapter = Document.current
+
+    if (!currentChapter || chapters.length === 0) return
+
+    const currentIndex = chapters.findIndex(
+      (chapter) => chapter.getId() === currentChapter.getId(),
+    )
+
+    if (currentIndex === -1) return
+    const n = (currentIndex + 1) % chapters.length;
+    const nextChapter = chapters[n];
+    if (!nextChapter) return;
+    go(`/document/${doc.id}/${nextChapter.getChapter()}`);
+
+
+  }
+
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key == 'n') {
+        console.log(e)
+        next();
+        return;
+      }
 
       const chapter = Number(e.key);
 
@@ -41,6 +68,12 @@ export const EditorNavigatorSlave = () => {
 
     return () => document.removeEventListener("keydown", listener);
   }, []);
+
+  useEffect(() => {
+    return Manager.app.on("navigate:next", () => {
+      next()
+    })
+  }, [])
 
   return null;
 };

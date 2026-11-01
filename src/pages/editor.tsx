@@ -138,7 +138,6 @@ export const Editor: React.FC = () => {
       const mod = e.ctrlKey || e.metaKey;
 
       if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "s") {
-        // Suppress the browser's Save Page action even while the editor is loading.
         e.preventDefault();
         return;
       }

@@ -1,2 +1,2 @@
 - [x] Delete unused citations from Settings > Data, with confirmation count, usage recheck, and feedback.
-- [ ] variable that has italic format doesnt render correctly with case
+- [ ] table cannot be resized

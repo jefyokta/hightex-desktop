@@ -20,7 +20,6 @@ import {
 import { FigureTable } from "../extensions/figure-table";
 import { MathBlock, MathInline } from "../extensions/math";
 import { NodeShortcut } from "../extensions/node-shortcut";
-import { TableKit } from "@tiptap/extension-table";
 import { SearchReplace } from "../extensions/search-replace";
 import { CustomCodeBlock } from "../extensions/code-block";
 import { Dots } from "../extensions/dots";
@@ -83,16 +82,18 @@ export class ChapterExtensions {
       CustomTableRow,
       TableCell,
       TableHeader,
-      TableKit.configure({
-        tableCell: false,
-        tableHeader: false,
-        tableRow: false,
-        table: false,
-      }),
+      // TableKit.configure({
+      //   tableCell: false,
+      //   tableHeader: false,
+      //   tableRow: false,
+      //   table: false,
+        
+      // }),
       Table.extend({
-        isolating: true,
-      }),
-      // .configure({resizable:true})
+        // isolating: true,
+      
+      })
+      .configure({resizable:true}),
 
       MathInline,
       MathBlock,
