@@ -51,7 +51,7 @@ export const ChapterNavigation = () => {
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>{previousTitle}</TooltipContent>
+        <TooltipContent side="bottom">{previousTitle}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>

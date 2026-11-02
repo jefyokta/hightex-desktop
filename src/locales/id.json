@@ -1100,7 +1100,7 @@
       },
       "chapters": {
         "title": "Pindah bab tanpa kehilangan posisi",
-        "description": "Gunakan panah di toolbar untuk bab sebelumnya atau berikutnya. Mod berarti Command di Mac atau Ctrl di sistem lain. Mod+nomor langsung membuka bab yang nomornya tersedia pada schema dokumen, misalnya Mod+1 untuk bab 1. Mod+N selalu membuka Lampiran, bukan berpindah ke bab berikutnya. Setiap bab mengingat scroll terakhir selama sesi editor."
+        "description": "Gunakan panah di toolbar untuk bab sebelumnya atau berikutnya. Mod berarti Command di Mac atau Ctrl di sistem lain. Mod+nomor langsung membuka bab yang nomornya tersedia pada schema dokumen, misalnya Mod+1 untuk bab 1. Mod+0 selalu membuka Lampiran, Mod+n untuk berpindah ke bab berikutnya. Setiap bab mengingat scroll terakhir selama sesi editor."
       },
       "exports": {
         "title": "Detail dan ekspor ada di menu tindakan",

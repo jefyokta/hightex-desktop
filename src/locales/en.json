@@ -1100,7 +1100,7 @@
       },
       "chapters": {
         "title": "Move between chapters without losing your place",
-        "description": "Use the toolbar arrows for the previous or next chapter. Mod means Command on Mac or Ctrl on other systems. Mod+number opens the chapter with that number when it exists in the document schema, for example Mod+1 for chapter 1. Mod+N always opens the appendix, rather than the next chapter. Each chapter remembers its last scroll position during the editor session."
+        "description": "Use the toolbar arrows for the previous or next chapter. Mod means Command on Mac or Ctrl on other systems. Mod+number opens the chapter with that number when it exists in the document schema, for example Mod+1 for chapter 1. Mod+0 always opens the appendix, Mod+n for  the next chapter. Each chapter remembers its last scroll position during the editor session."
       },
       "exports": {
         "title": "Details and exports are in the action menu",
