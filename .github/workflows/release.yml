@@ -98,6 +98,8 @@ jobs:
       - name: Install deps
         run: bun install
       - name: Creating category backup
+        env:
+          LOCAL_SERVER: ${{ env.LOCAL_SERVER }}
         run: bun scripts/create-category-backup.ts
 
       - name: Rebuild native dependencies
