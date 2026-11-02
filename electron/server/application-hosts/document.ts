@@ -18,17 +18,20 @@ export class DocumentRouter extends Router {
       const v = url.searchParams.get("url")?.trim();
       if (!v) throw new Error("Missing URL");
       const value = decodeURIComponent(v);
+      console.log(value)
       source = new URL(
         /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`,
       );
+      // console.log(source.protocol)
       if (
-        !["https", "http"].includes(source.protocol) ||
+        !["https:", "http:"].includes(source.protocol) ||
         source.username ||
         source.password
       ) {
         throw new Error("Invalid URL");
       }
-    } catch {
+    } catch(e) {
+      console.log(e)
       return new Response("Provide a valid HTTP or HTTPS document URL.", {
         status: 400,
       });
