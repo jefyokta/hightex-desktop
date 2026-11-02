@@ -25,7 +25,7 @@ import '/src/App.css';
 window.language='id';
 window.config={get:()=>({language:window.language,theme:'system'}),ready:async()=>{},onChange:()=>()=>{}};
 window.profile={get:async()=>({})};
-window.hightex={version:async()=>'1.1.2',categories:async()=>[{id:1,name:'Skripsi',variant:'thesis',chapters:[{chapter:'1',title:'Pendahuluan'}]}]};
+window.hightex={version:async()=>'1.2.0',categories:async()=>[{id:1,name:'Skripsi',variant:'thesis',chapters:[{chapter:'1',title:'Pendahuluan'}]}]};
 window.file={getPath:async()=>'/fixture.hightex'};
 const db=HighTexDB.getInstance();await db.open();window.db=db;
 const root=createRoot(document.getElementById('root'));let revision=0;

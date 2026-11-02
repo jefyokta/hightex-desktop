@@ -1,3 +1,7 @@
+import {
+  firstInstalled,
+  acknowledgeGuides,
+} from "@main/utilities/first-installed";
 import fs, { writeFileSync } from "fs";
 import path from "path";
 import { app, dialog } from "electron";
@@ -199,6 +203,11 @@ export class HighTexHandler {
     IPCMain.handle("hightex:categories", async () => {
       return await CategoryService.getAll();
     });
+
+    IPCMain.handle("hightex:onboarding:status", () => firstInstalled());
+    IPCMain.handle("hightex:onboarding:acknowledge", (_event, guides) =>
+      acknowledgeGuides(guides),
+    );
 
     IPCMain.handle("hightex:version", () => {
       return app.getVersion();

@@ -20,7 +20,7 @@ export function useChapterNavigation() {
 
   const goTo = useCallback(
     (target: Chapter | undefined) => {
-      if (!chapter || !target) return;
+      if (!chapter || !target || target.getId() === chapter.getId()) return;
       const version = target.getVersion();
       navigate(
         `/document/${target.getDocumentId()}/${target.getChapter()}${version ? `/${version}` : ""}`,
@@ -31,7 +31,7 @@ export function useChapterNavigation() {
 
   const back = useCallback(() => goTo(previous), [goTo, previous]);
   const next = useCallback(() => goTo(following), [goTo, following]);
-  // Shortcuts keep cycling through chapters; toolbar buttons stop at the ends.
+  // App navigation requests can cycle; toolbar buttons stop at the ends.
   const cycleNext = useCallback(() => {
     if (index < 0) return;
     goTo(following ?? first);

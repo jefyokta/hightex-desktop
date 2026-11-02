@@ -2,9 +2,15 @@ import { memo, useMemo } from "react";
 import type { CiteUtils } from "bibtex.js";
 import { Copy, Quote, Trash } from "lucide-react";
 import { t, useAppLanguage } from "@/utils/lang";
+import { toast } from "sonner";
 
 const copyCitation = async (text: string) => {
-  await navigator.clipboard.writeText(text);
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(t("citation.copied"));
+  } catch {
+    toast.error(t("citation.copy_failed"));
+  }
 };
 
 type CitationRowProps = {
@@ -51,7 +57,7 @@ const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
             {cite.getTitle()}
           </div>
 
-          <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+          <div className="mt-3 border-l border-neutral-200 pl-3 dark:border-neutral-800">
             <pre className="break-all whitespace-pre-wrap text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
               {citation}
             </pre>
@@ -59,7 +65,7 @@ const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+      <div className="flex items-center gap-1 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
         <button
           type="button"
           onClick={() => onCopy(citation)}

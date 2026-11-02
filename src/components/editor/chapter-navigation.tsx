@@ -32,6 +32,7 @@ export const ChapterNavigation = () => {
 
   return (
     <nav
+      data-tour="chapter-navigation"
       aria-label={t("editor.chapter_navigation.label")}
       className="flex shrink-0 items-center"
     >
@@ -67,7 +68,7 @@ export const ChapterNavigation = () => {
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>{nextTitle}</TooltipContent>
+        <TooltipContent side="bottom">{nextTitle}</TooltipContent>
       </Tooltip>
     </nav>
   );

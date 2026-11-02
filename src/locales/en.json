@@ -186,17 +186,88 @@
     "thesis": "Thesis",
     "proposal": "Proposal",
     "intern": "Intern",
-    "preparing_pdf": "Preparing PDF export..."
+    "preparing_pdf": "Preparing PDF export...",
+    "close": "Close"
   },
   "dashboard": {
     "loading": "Loading HighTex...",
-    "your_documents": "Your Documents",
-    "documents_subtitle": "Local workspace stored in your device",
+    "your_documents": "Your documents",
+    "documents_subtitle": "Pick up where you left off, or make room for a new idea.",
     "new": "New",
     "create_empty": "Create Empty",
     "import_from_file": "Import from file",
     "import_from_cloud": "Import from Cloud",
-    "no_documents": "No documents yet. Create your first document to start writing."
+    "no_documents": "Create your first document or bring an existing .hightex file into your workspace.",
+    "new_document": "New document",
+    "edit_document": "Edit document details",
+    "edit_description": "Update the document title, category and keywords in one place.",
+    "create_description": "Give your document a title and choose its writing template.",
+    "document_title": "Document title",
+    "title_placeholder": "What are you writing about?",
+    "category": "Document category",
+    "choose_category": "Choose a category",
+    "unavailable_category": "Category unavailable",
+    "no_categories": "No categories are available. Close this dialog and reload to try again.",
+    "alt_title": "English title",
+    "keywords_id": "Indonesian keywords",
+    "keywords_en": "English keywords",
+    "remove_keyword": "Remove keyword {keyword}",
+    "keyword_placeholder": "Type a keyword, then press Enter",
+    "add_keyword": "Add keyword",
+    "save_changes": "Save changes",
+    "saving": "Saving…",
+    "create_document": "Create & start writing",
+    "save_failed": "Unable to save. Your changes are still here; please try again.",
+    "select_document": "Select {title}",
+    "updated": "Updated {date}",
+    "open_document": "Open {title}",
+    "open": "Open document",
+    "document_actions": "Actions for {title}",
+    "export_hightex": "Export .hightex",
+    "export_pdf": "Export PDF",
+    "export_watermark": "Export PDF with watermark",
+    "delete": "Delete",
+    "action_failed": "The action could not be completed. Please try again.",
+    "pdf_saved": "PDF saved",
+    "open_file": "Open file",
+    "open_folder": "Show in folder",
+    "filters": "Search and organize documents",
+    "search": "Search titles or keywords…",
+    "sort": "Sort documents",
+    "all_categories": "All categories",
+    "sort_updated": "Recently updated",
+    "sort_title": "Title A–Z",
+    "sort_oldest": "Oldest update",
+    "selected_count": "{count} selected",
+    "select_visible": "Select visible",
+    "deselect_visible": "Deselect visible",
+    "result_count": "{count} of {total} documents",
+    "select": "Select documents",
+    "empty_title": "A new idea starts here",
+    "no_results": "No matching documents",
+    "try_filters": "Try another title or keyword, or clear your filters.",
+    "clear_filters": "Clear filters",
+    "created": "Document created",
+    "imported": "{title} imported",
+    "saved": "Document details saved",
+    "deleted": "Document deleted",
+    "exporting": "Preparing your .hightex file…",
+    "open_failed": "Your document is saved, but the editor could not open. Try opening it from the list.",
+    "load_failed": "Your documents could not be loaded",
+    "load_failed_description": "Your documents have not been changed. Reload to try again.",
+    "retry": "Try again",
+    "categories_failed": "Categories could not be loaded. You can still open your documents.",
+    "delete_title": "Delete this document?",
+    "delete_description": "“{title}” and its local content will be permanently deleted.",
+    "delete_many_title": "Delete {count} documents?",
+    "delete_many_description": "The selected documents and their local content will be permanently deleted.",
+    "discard_question": "Discard your unsaved changes?",
+    "keep_editing": "Keep editing",
+    "discard": "Discard changes",
+    "deleting": "Deleting documents…",
+    "deleting_progress": "Deleting {current} of {total}…",
+    "delete_done": "{count} document(s) deleted",
+    "delete_failed": "Unable to delete documents"
   },
   "splash": {
     "preparing": "Preparing HighTex…",
@@ -248,11 +319,11 @@
   },
   "present": {
     "title": "Presentation Planner",
-    "subtitle": "Let them judge your document!",
+    "subtitle": "Share your document for a presentation or discussion.",
     "session_active": "Sharing session is active.",
     "join": "Join",
     "join_session": "Join a sharing Session",
-    "join_description": "Drop that weirdly text from your host.",
+    "join_description": "Enter the invitation code shared by the host.",
     "invitation_code": "invitation code",
     "loading": "Loading",
     "no_documents": "No documents available.",
@@ -404,6 +475,12 @@
       "caseSensitive": "Case Sensitive",
       "matchCount": "{current} of {total}",
       "noResults": "No results"
+    },
+    "bubble": {
+      "alias": "Define alias",
+      "note": "Add a note",
+      "bold": "Bold",
+      "italic": "Italic"
     }
   },
   "remote": {
@@ -636,7 +713,13 @@
       "no_matching_references": "No matching Zotero references.",
       "no_valid_imported": "No valid references imported.",
       "imported": "Imported {count} reference(s)."
-    }
+    },
+    "load_failed": "References could not be loaded. Please try again.",
+    "delete_title": "Delete this reference?",
+    "delete_description": "Reference “{key}” will be removed from your library. Documents citing it may need updating.",
+    "delete_failed": "The reference could not be deleted. Please try again.",
+    "copied": "Citation copied",
+    "copy_failed": "Unable to copy. Please try again."
   },
   "snapshots": {
     "title": "Snapshots",
@@ -955,6 +1038,281 @@
         "figure": "Figure",
         "table": "Table",
         "equation": "Equation"
+      }
+    }
+  },
+  "workspace": {
+    "title": "Workspace",
+    "tagline": "A place for your ideas",
+    "navigation": "Workspace navigation",
+    "navigation_description": "Navigate documents, references and writing tools.",
+    "primary": "Main navigation",
+    "home": "Back to the welcome screen",
+    "documents": "Local documents",
+    "citations": "References",
+    "cloud": "Cloud",
+    "cloud_documents": "Cloud documents",
+    "submissions": "Submissions",
+    "snapshots": "Snapshots",
+    "tools": "Writing tools",
+    "splitter": "Split documents",
+    "present": "Presentation",
+    "forms": "Forms",
+    "recent": "Recently updated",
+    "no_recent": "Documents you update will appear here.",
+    "no_activity": "No recent activity",
+    "account": "Account & profile",
+    "local_workspace": "Local workspace",
+    "login_hint": "Sign in when you need cloud storage and review.",
+    "offline_login": "Connect to the internet to sign in.",
+    "offline_ready": "Your local documents are available offline.",
+    "skip_content": "Skip to content",
+    "open_navigation": "Open navigation",
+    "library": "Reference library",
+    "soon_description": "Forms generation is being prepared. You can keep writing and exporting your documents.",
+    "back_documents": "Back to documents",
+    "cloud_title": "Your documents, wherever you need them",
+    "cloud_hint": "Sign in to keep a cloud copy and share your work for review. Your local documents are always available.",
+    "account_login_hint": "Sign in to manage your account profile and academic identity."
+  },
+  "guide": {
+    "replay": "Usage guide",
+    "welcome_eyebrow": "HighTex · {version}",
+    "welcome_title": "Make yourself at home",
+    "position": "{current} of {total}",
+    "skip": "Skip guide",
+    "previous": "Previous step",
+    "next": "Next",
+    "load_failed": "The guide could not be loaded. Please try again.",
+    "save_failed": "Your guide preference could not be saved. It may appear again next time.",
+    "steps": {
+      "documents": {
+        "title": "Start with your own document",
+        "description": "Create a document with a title and category, or import an existing .hightex file. Click a document title to open it. You can write locally without signing in."
+      },
+      "organize": {
+        "title": "Find the right document quickly",
+        "description": "Search by title or keywords, filter by category and choose an order. Use Select documents for bulk actions; Select visible applies only to the current results."
+      },
+      "references": {
+        "title": "Keep references in one place",
+        "description": "Add BibTeX or import from a local Zotero library in References. Your library stays available when you write; local writing does not require a cloud account."
+      },
+      "chapters": {
+        "title": "Move between chapters without losing your place",
+        "description": "Use the toolbar arrows for the previous or next chapter. Mod means Command on Mac or Ctrl on other systems. Mod+number opens the chapter with that number when it exists in the document schema, for example Mod+1 for chapter 1. Mod+N always opens the appendix, rather than the next chapter. Each chapter remembers its last scroll position during the editor session."
+      },
+      "exports": {
+        "title": "Details and exports are in the action menu",
+        "description": "Open the three-dot menu beside a document to edit its details or export to PDF or .hightex. In Indonesian titles and keywords, wrap a foreign term in underscores to display it in italics."
+      },
+      "formatting": {
+        "title": "Format your text here",
+        "description": "Select text to apply formatting, add headings, tables, figures or equations. The Save button stores your .hightex file."
+      },
+      "chapterTree": {
+        "title": "Open your chapter sidebar",
+        "description": "Use this toggle to open the chapter list, document preview, references and document settings. You can open and close it now."
+      }
+    },
+    "waiting": "Waiting for the control to appear…",
+    "focus_control": "Focus this control",
+    "done": "Done",
+    "empty_organize": "Create or import a document first. Its search, category and sorting controls will appear here. You can try this button now or continue the tour.",
+    "empty_exports": "Create or import a document first. Its three-dot menu will let you edit details or export PDF and .hightex.",
+    "frozen_chapter": "This section has its own form instead of a formatting toolbar. Use the chapter arrows to return to a normal chapter for text formatting.",
+    "version_label": "Version {version}",
+    "whats_new_title": "What's new in HighTex",
+    "announcement_description": "Explore these features with a short tour. Skipping marks every new guide in this list as seen.",
+    "library_title": "Feature guides",
+    "library_description": "Choose a feature to learn about. You can replay its guide at any time.",
+    "feature": "Feature guide",
+    "continue_tour": "Continue tour",
+    "start_feature": "Start guide",
+    "features": {
+      "documents": {
+        "name": "Create and open documents",
+        "summary": "Start a local document or import an existing .hightex file."
+      },
+      "organize": {
+        "name": "Find and select documents",
+        "summary": "Search titles, filter categories, sort documents and select several at once."
+      },
+      "references": {
+        "name": "Manage references",
+        "summary": "Keep BibTeX and import your Zotero library for use while writing."
+      },
+      "exports": {
+        "name": "Document details and exports",
+        "summary": "Edit document details and export PDF or .hightex from the action menu."
+      },
+      "chapters": {
+        "name": "Navigate chapters",
+        "summary": "Use chapter arrows, Mod+number from the schema, or Mod+N for the appendix."
+      },
+      "formatting": {
+        "name": "Format your writing",
+        "summary": "Explore the toolbar for headings, text formatting, tables, figures and equations."
+      },
+      "chapterTree": {
+        "name": "Chapter and reference sidebar",
+        "summary": "Open chapters, preview, references and document settings from the sidebar."
+      }
+    },
+    "editorGuides": {
+      "writing": {
+        "name": "Start writing and structure chapters",
+        "summary": "Learn paragraphs, H2/H3 for hierarchy and H4 for paragraphs without indentation.",
+        "steps": {
+          "paragraphs": {
+            "title": "Start with body paragraphs",
+            "description": "Click a paragraph below the chapter title to write. Enter starts a new paragraph; Shift+Enter adds a line within the same paragraph. Avoid repeated spaces for alignment; the document format controls the page layout."
+          },
+          "headings": {
+            "title": "Structure the outline with H2 and H3",
+            "description": "HighTex prepares the chapter title (H1). Choose H2 for sections and H3 for subsections; enter their titles without numbers because numbering is automatic. H4 is a paragraph style without indentation, outside the hierarchy; it does not appear in the outline or table of contents.",
+            "example": "H2: Research Methods\nH3: Data Collection\nH4: A paragraph without indentation, outside the hierarchy"
+          }
+        }
+      },
+      "formatting": {
+        "name": "Text formatting and lists",
+        "summary": "Use italics, bold and lists without manually managing numbering.",
+        "steps": {
+          "emphasis": {
+            "title": "Format selected words or sentences",
+            "description": "Select text, then use I for italics or B for bold. Use italics for foreign terms in the body. Command/Ctrl+I and Command/Ctrl+B are also available. The underscore convention for titles and keywords is explained in the document details guide."
+          },
+          "lists": {
+            "title": "Use the toolbar for lists",
+            "description": "Choose a bulleted or numbered list for details. Enter adds an item; Enter on an empty item ends the list. Use numbered lists for ordered steps so numbering follows content changes."
+          }
+        }
+      },
+      "details": {
+        "name": "Titles, author details and keywords",
+        "summary": "Set document details and abstract keywords in both languages.",
+        "steps": {
+          "metadata": {
+            "title": "Complete the document details",
+            "description": "Document settings contain Indonesian and English titles, category and author details. Wrap foreign terms in an Indonesian title with underscores to display italics. Use the panel Save button after editing. Academic details supplied by the cloud may be locked to the server data.",
+            "example": "Analisis _machine learning_ untuk klasifikasi dokumen"
+          },
+          "keywords": {
+            "title": "Add keywords to the abstract",
+            "description": "At the end of the Indonesian abstract, enter a keyword then press Enter or comma. Each language supports up to five keywords; use × to remove one. Wrap foreign terms in Indonesian keywords with underscores. Enter English keywords in the Abstract section; they display as written.",
+            "example": "_machine learning_"
+          }
+        }
+      },
+      "figures": {
+        "name": "Figures and tables",
+        "summary": "Insert figures, numbered tables and layout grids for the right purpose.",
+        "steps": {
+          "figures": {
+            "title": "Insert a figure and its caption",
+            "description": "Place the cursor where the figure belongs, then use the image button to insert a Figure Image. Choose an image file and enter its caption; figure numbering is automatic. You can also type this shortcut and choose its suggestion.",
+            "example": "!fig.System_Diagram"
+          },
+          "tables": {
+            "title": "Use a captioned table for data",
+            "description": "This table button inserts a Figure Table with a header, caption and automatic number. Fill in column names and data, then update the caption. The shortcut takes columns, rows and caption in that order; underscores in its caption become spaces.",
+            "example": "!tab.3.4.Respondent_Data"
+          },
+          "grid": {
+            "title": "Distinguish data tables from layout grids",
+            "description": "The grid button inserts a table for arranging content. A layout grid has no caption or table number like a Figure Table. Use Figure Table for data you intend to reference as a numbered table in your writing."
+          }
+        }
+      },
+      "equations": {
+        "name": "Formulas and equations",
+        "summary": "Write LaTeX as a displayed equation or a formula within a sentence.",
+        "steps": {
+          "block_math": {
+            "title": "Create an equation with LaTeX",
+            "description": "Use Σ to insert an equation and enter its LaTeX. You can also type the example below as its own paragraph. Reference an equation with /eq so its number in the text follows the equation.",
+            "example": "$$E=mc^2$$"
+          },
+          "inline_math": {
+            "title": "Short formulas within a sentence",
+            "description": "For a formula within a sentence, wrap its LaTeX in a single dollar sign on each side. Use a displayed equation when it needs a number and a reference.",
+            "example": "Energy is expressed as $E=mc^2$."
+          }
+        }
+      },
+      "citations": {
+        "name": "Citations and bibliography",
+        "summary": "Add sources, insert citations and understand the automatic bibliography.",
+        "steps": {
+          "citation_library": {
+            "title": "Prepare sources in your reference library",
+            "description": "Add BibTeX or import Zotero sources in this panel. Search for a source; Copy copies a citation you can paste into the text. A source stored only in the library does not yet belong to the document bibliography."
+          },
+          "cite_in_text": {
+            "title": "Insert HighTex citations in your text",
+            "description": "Place the cursor after a sourced statement, type @ or #, and choose its reference. You can also paste a citation copied from the library. Author names and years entered as ordinary text are not recognized as HighTex citations.",
+            "example": "@\n#"
+          },
+          "bibliography": {
+            "title": "The bibliography follows citations you use",
+            "description": "HighTex builds the bibliography from citations actually used in the document. If it is empty, check that your citations point to valid sources. Open the preview to inspect the result; you do not need to type a bibliography manually into a chapter."
+          }
+        }
+      },
+      "referencesAliases": {
+        "name": "Object references and aliases",
+        "summary": "Reference figure, table and equation numbers, and define abbreviations.",
+        "steps": {
+          "object_references": {
+            "title": "Reference objects instead of typing their numbers",
+            "description": "Type /img, /table or /eq and choose the object you want to mention. Alternatively, open the object settings, choose Copy Ref and paste it into a sentence. References follow object numbering when the order changes; plain text such as Gambar 1.2 does not.",
+            "example": "/img\n/table\n/eq"
+          },
+          "aliases": {
+            "title": "Define an abbreviation with an alias",
+            "description": "Select a single abbreviation, such as API. In the selection menu, choose alias creation, enter its expansion and save it. Aliases belong to this document and sort automatically. Ordinary text without an alias has no associated definition.",
+            "example": "API → Application Programming Interface"
+          }
+        }
+      },
+      "variables": {
+        "name": "Variables and symbols",
+        "summary": "Store reusable values and insert variables or symbols through suggestions.",
+        "steps": {
+          "manage_variables": {
+            "title": "Store values you use repeatedly",
+            "description": "Add a variable as name=value. Use a short name without spaces. Built-in variables such as title, altTitle and chapter1 follow document data and cannot be replaced with custom variables.",
+            "example": "year=2026"
+          },
+          "insert_variables": {
+            "title": "Choose a variable from suggestions",
+            "description": "In the body, type a backslash followed by a variable name and choose its suggestion. Variables keep repeated values consistent. Symbols such as alpha are also available through backslash suggestions.",
+            "example": "\\title\n\\alpha"
+          }
+        }
+      },
+      "reviewSave": {
+        "name": "Find, save and export",
+        "summary": "Review your text, save an editable file and produce a final PDF.",
+        "steps": {
+          "find": {
+            "title": "Find text before replacing it",
+            "description": "Use Search or Command/Ctrl+F to find text in the active chapter. Review matches before replacing one or all occurrences, especially when a term appears in different contexts."
+          },
+          "save": {
+            "title": "Save a .hightex file for future editing",
+            "description": "Your writing is stored locally as you type. Save or Command/Ctrl+S writes a .hightex file to your chosen location; watch the button status. Keep this file to continue editing or move your work."
+          },
+          "preview": {
+            "title": "Check the page layout in the preview",
+            "description": "Open the preview tab to inspect layout, heading numbers, figures, tables, references and bibliography. The final pages follow the document category format."
+          },
+          "pdf": {
+            "title": "Export PDF after reviewing the result",
+            "description": "Use Export PDF to create a file ready to read or share. Wait for the process to finish and choose a save location if prompted. Keep the .hightex file so the document remains editable."
+          }
+        }
       }
     }
   }

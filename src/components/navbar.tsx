@@ -4,13 +4,11 @@ import Hightex from "./../assets/hightex.svg";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Manager } from "@/editor/manager";
+import { ParsedItalic } from "@/utils/parse-italic";
 
 export const Navbar = () => {
-  if (!isMac) {
-    return null;
-  }
-
   const go = useNavigate();
+  if (!isMac) return null;
 
   return (
     <div className="relative w-full h-14 bg-neutral-50 dark:bg-neutral-900 px-4 flex items-center border-b border-neutral-100 dark:border-neutral-800 transition-colors">
@@ -37,18 +35,12 @@ export const Navbar = () => {
 };
 
 export const MacosEditorHead: React.FC = () => {
-  if (!isMac) {
-    return null;
-  }
-
   const [doc, setDoc] = useState<HighTexDocument | undefined>();
   useEffect(() => {
     const updateListener = Manager.app.on(
       "document:updated",
       ({ document }) => {
-        if (document.id == doc?.id) {
-          setDoc(document);
-        }
+        setDoc((current) => (document.id === current?.id ? document : current));
       },
     );
     const warmListener = Manager.app.on("document:warmed", ({ document }) => {
@@ -62,9 +54,15 @@ export const MacosEditorHead: React.FC = () => {
     };
   }, []);
 
+  if (!isMac) return null;
   return (
-    <div className="h-14 dragable top-0 border flex justify-center items-center ">
-      <div className="truncate max-w-md">{doc?.title}</div>
+    <div
+      data-editor-titlebar
+      className="relative z-[2200] flex h-14 shrink-0 select-none items-center justify-center border-b bg-background px-24"
+    >
+      <div data-editor-window-title className="max-w-md truncate">
+        <ParsedItalic text={doc?.title ?? ""} />
+      </div>
     </div>
   );
 };

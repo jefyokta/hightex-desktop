@@ -115,7 +115,7 @@ const AbstractKeyword = ({
     useKeywords(language);
 
   return (
-    <div>
+    <div data-tour="editor-keywords">
       <b>{label}: </b>
 
       {keywords.map((keyword, i) => (

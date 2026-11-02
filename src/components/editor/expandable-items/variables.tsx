@@ -102,7 +102,7 @@ export const VariableTab = () => {
 
   return (
     <TooltipProvider>
-      <div className="w-full h-full overflow-auto">
+      <div data-tour="editor-variables" className="w-full h-full overflow-auto">
         <TabHeader title="Variables" desc="Document variables" />
 
         <div className="px-2 py-2">

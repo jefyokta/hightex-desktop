@@ -1,3 +1,4 @@
+import { t } from "@/utils/lang";
 import { BubbleMenu as TiptapBubbleMenu } from "@tiptap/react/menus";
 import { useEffect, useState } from "react";
 import {
@@ -17,10 +18,12 @@ type BubbleButtonProps = {
   onClick: () => void;
   disabled?: boolean;
   active?: boolean;
+  label: string;
 };
 
 const BubbleButton = ({
   icon: Icon,
+  label,
   onClick,
   disabled = false,
   active = false,
@@ -32,6 +35,8 @@ const BubbleButton = ({
       variant={active ? "secondary" : "ghost"}
       disabled={disabled}
       onClick={onClick}
+      aria-label={label}
+      title={label}
     >
       <Icon />
     </Button>
@@ -132,9 +137,13 @@ export const BubbleMenu: React.FC<BubbleProps> = ({ editor }) => {
       }}
     >
       {selection && (
-        <div className="relative rounded-lg bg-background shadow font-sans">
+        <div
+          data-guide-popup="selection"
+          className="relative rounded-lg bg-background shadow font-sans"
+        >
           <div className="flex items-center gap-1 p-2">
             <BubbleButton
+              label={t("editor.bubble.alias")}
               icon={BookType}
               active={tab === "alias"}
               disabled={!tabs.alias.show()}
@@ -144,6 +153,7 @@ export const BubbleMenu: React.FC<BubbleProps> = ({ editor }) => {
             />
 
             <BubbleButton
+              label={t("editor.bubble.note")}
               icon={NotebookTextIcon}
               active={tab === "note"}
               disabled={!tabs.note.show()}
@@ -153,12 +163,14 @@ export const BubbleMenu: React.FC<BubbleProps> = ({ editor }) => {
             />
 
             <BubbleButton
+              label={t("editor.bubble.bold")}
               icon={Bold}
               active={editor.isActive("bold")}
               onClick={() => editor.chain().focus().toggleBold().run()}
             />
 
             <BubbleButton
+              label={t("editor.bubble.italic")}
               icon={Italic}
               active={editor.isActive("italic")}
               onClick={() => editor.chain().focus().toggleItalic().run()}

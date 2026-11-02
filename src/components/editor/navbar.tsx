@@ -1,5 +1,6 @@
 import {
   ArrowLeftIcon,
+  CircleHelp,
   Bold,
   DownloadCloudIcon,
   Heading2,
@@ -53,6 +54,11 @@ import { ChapterNavigation } from "./chapter-navigation";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
+  const navigation = (
+    window as Window & {
+      navigation?: { canGoBack: boolean; back: () => void };
+    }
+  ).navigation;
   const { chapter } = useChapterStore();
   const { save, status: saveStatus } = useSaveDocument(editor, chapter);
   const { setOpen, setContent } = useExpandableSidebar();
@@ -103,8 +109,15 @@ export const NavBar: React.FC = () => {
 
   if (!editor || chapter?.frozen) {
     return (
-      <div className="sticky top-0 z-50 mx-auto w-fit rounded-xl bg-white/80 p-1 backdrop-blur dark:bg-neutral-900/70">
+      <div className="sticky top-0 z-50 mx-auto flex w-fit items-center rounded-xl bg-white/80 p-1 backdrop-blur dark:bg-neutral-900/70">
         <ChapterNavigation />
+        <Button
+          title={t("guide.replay")}
+          icon={CircleHelp}
+          onClick={() =>
+            window.dispatchEvent(new Event("hightex:editor-guide"))
+          }
+        />
       </div>
     );
   }
@@ -126,18 +139,19 @@ export const NavBar: React.FC = () => {
               <Button
                 icon={ArrowLeftIcon}
                 title="Back"
-                //@ts-ignore
-                disabled={!window.navigation.canGoBack}
+                disabled={!navigation?.canGoBack}
                 spinnable={false}
                 onClick={() => {
-                  //@ts-ignore
-                  window.navigation.back();
+                  navigation?.back();
                 }}
               />
               <ChapterNavigation />
             </ButtonGroup>
 
-            <div className="flex items-center gap-1">
+            <div
+              data-tour="editor-formatting"
+              className="flex items-center gap-1"
+            >
               <ButtonGroup>
                 <Button
                   title="undo"
@@ -153,6 +167,7 @@ export const NavBar: React.FC = () => {
 
               <ButtonGroup>
                 <Button
+                  tour="editor-headings"
                   title="h2"
                   icon={Heading2}
                   active={state?.isH2}
@@ -181,12 +196,14 @@ export const NavBar: React.FC = () => {
               <ButtonGroup>
                 <Button
                   icon={Bold}
+                  tour="editor-bold"
                   title="bold"
                   active={state?.isBold}
                   onClick={() => editor.chain().focus().toggleBold().run()}
                 />
                 <Button
                   icon={Italic}
+                  tour="editor-italic"
                   title="italic"
                   active={state?.isItalic}
                   onClick={() => editor.chain().focus().toggleItalic().run()}
@@ -208,6 +225,7 @@ export const NavBar: React.FC = () => {
               <ButtonGroup>
                 <Button
                   icon={List}
+                  tour="editor-lists"
                   title="bullet list"
                   active={state?.isBulletList}
                   onClick={() =>
@@ -226,6 +244,7 @@ export const NavBar: React.FC = () => {
 
               <ButtonGroup>
                 <Button
+                  tour="editor-math"
                   title="math"
                   icon={Sigma}
                   active={state?.isGrid}
@@ -238,6 +257,7 @@ export const NavBar: React.FC = () => {
                   }
                 />
                 <Button
+                  tour="editor-grid"
                   title="grid"
                   icon={Table}
                   active={state?.isGrid}
@@ -250,6 +270,7 @@ export const NavBar: React.FC = () => {
                   }
                 />
                 <Button
+                  tour="editor-table"
                   title="table"
                   icon={Table}
                   active={state?.isTable}
@@ -262,6 +283,7 @@ export const NavBar: React.FC = () => {
                   }
                 />
                 <Button
+                  tour="editor-image"
                   title="image"
                   icon={Image}
                   active={state?.isImage}
@@ -271,6 +293,7 @@ export const NavBar: React.FC = () => {
 
               <ButtonGroup>
                 <Button
+                  tour="editor-citation"
                   title="citation"
                   icon={Quote}
                   onClick={() => {
@@ -280,6 +303,7 @@ export const NavBar: React.FC = () => {
                 />
                 <Button
                   icon={Search}
+                  tour="editor-search"
                   title="search & replace"
                   onClick={() => {
                     window.dispatchEvent(
@@ -292,6 +316,7 @@ export const NavBar: React.FC = () => {
                   }}
                 />
                 <Button
+                  tour="editor-pdf"
                   title={
                     exportingPdf
                       ? `${pdfStatus || "Mengekspor PDF"} (${pdfProgress}%)`
@@ -411,6 +436,14 @@ export const NavBar: React.FC = () => {
               </ButtonGroup>
               <ButtonGroup>
                 <Button
+                  title={t("guide.replay")}
+                  icon={CircleHelp}
+                  onClick={() =>
+                    window.dispatchEvent(new Event("hightex:editor-guide"))
+                  }
+                />
+                <Button
+                  tour="editor-save"
                   title={t(`editor.save.${saveStatus}`)}
                   icon={
                     saveStatus === "saving"
@@ -467,6 +500,7 @@ type ButtonProps = {
   onClick?: () => void;
   icon: React.FC<{ className?: string }>;
   title?: string;
+  tour?: string;
   disabled?: boolean;
   handleHover?: boolean;
   active?: boolean;
@@ -479,6 +513,7 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   onClick,
   icon: Icon,
   title,
+  tour,
   disabled,
   children,
   handleHover = true,
@@ -488,10 +523,11 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   shortcut,
 }) => {
   return (
-    <Tooltip>
+    <Tooltip >
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
+          data-tour={tour}
           title={title}
           aria-label={title}
           aria-busy={busy}
@@ -502,7 +538,7 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         w-8 h-8 p-1 rounded-md
         transition
         disabled:opacity-40 disabled:cursor-not-allowed
-
+        
         text-neutral-700 dark:text-neutral-200
         ${
           active
@@ -518,7 +554,7 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
           {children}
         </button>
       </TooltipTrigger>
-      <TooltipContent>{title}</TooltipContent>
+      <TooltipContent side="bottom">{title}</TooltipContent>
     </Tooltip>
   );
 };

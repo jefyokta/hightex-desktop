@@ -1,9 +1,9 @@
+import { t } from "@/utils/lang";
 import { MainProcessError } from "@/exception/interfaces/main-process-error";
 import { ApplicationError } from "../../exception/interfaces/application-error";
 import { events } from "../event";
 import { HighTexDB } from "../storage/hightex-db";
 import { Confirm } from "@/decorators/confirm";
-import { truncate } from "@/utils/truncate";
 
 import { ExportTimeout } from "@/exception/export-time-out";
 import { progressiveToast } from "@/utils/progressive-toast";
@@ -123,26 +123,29 @@ export class Manager {
   }
 
   @Confirm(async (docId, _) => ({
-    title: "Are you sure?",
-    desc: `Document \`${truncate(
-      await HighTexDB.getInstance()
+    title: t("dashboard.delete_title"),
+    desc: t("dashboard.delete_description", {
+      title: await HighTexDB.getInstance()
         .documents.get(docId)
-        .then((d) => d?.title || "unknown doc"),
-      20,
-    )}\` will be deleted`,
+        .then((doc) => doc?.title || t("common.untitled_document")),
+    }),
+    confirmText: t("dashboard.delete"),
+    cancelText: t("common.cancel"),
   }))
   static async deleteDocument(documentId: string, _version?: string) {
     const db = HighTexDB.getInstance();
     return await db.deleteDocument(documentId);
   }
   @Confirm(async (...docs) => ({
-    title: "Are you sure?",
-    desc: `${docs.length} documents will be deleted`,
+    title: t("dashboard.delete_many_title", { count: docs.length }),
+    desc: t("dashboard.delete_many_description"),
+    confirmText: t("dashboard.delete"),
+    cancelText: t("common.cancel"),
   }))
   static async deleteDocuments(...documentIds: string[]) {
     const total = documentIds.length;
     const pt = progressiveToast({
-      initialStatus: "Deleting documents...",
+      initialStatus: t("dashboard.deleting"),
       initialProgress: 0,
     });
     const deleted: string[] = [];
@@ -154,17 +157,17 @@ export class Manager {
         await HighTexDB.getInstance().deleteDocument(id);
 
         pt.update(
-          `Deleting ${i + 1} of ${total}...`,
+          t("dashboard.deleting_progress", { current: i + 1, total }),
           Math.round(((i + 1) / total) * 100),
         );
         deleted.push(id);
       }
 
       pt.success({
-        title: `${total} document${total > 1 ? "s" : ""} deleted`,
+        title: t("dashboard.delete_done", { count: total }),
       });
     } catch (e) {
-      pt.error({ title: "Failed to delete documents", error: e });
+      pt.error({ title: t("dashboard.delete_failed"), error: e });
     } finally {
       this.app.dispatch("documents:deleted", { documentIds: deleted });
     }

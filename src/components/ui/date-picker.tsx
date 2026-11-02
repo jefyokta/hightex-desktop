@@ -24,7 +24,7 @@ export function DatePickerInput({ date, setDate, label }: Props) {
         {label}
       </FieldLabel>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger>
+        <PopoverTrigger asChild>
           <Button
             variant="outline"
             id={id}

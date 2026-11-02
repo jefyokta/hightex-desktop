@@ -1,2 +1,1 @@
-- [x] Delete unused citations from Settings > Data, with confirmation count, usage recheck, and feedback.
-- [ ] table cannot be resized
+

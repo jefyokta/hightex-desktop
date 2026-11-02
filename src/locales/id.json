@@ -186,17 +186,88 @@
     "thesis": "Tugas Akhir",
     "proposal": "Proposal",
     "intern": "Kerja Praktek",
-    "preparing_pdf": "Menyiapkan ekspor PDF..."
+    "preparing_pdf": "Menyiapkan ekspor PDF...",
+    "close": "Tutup"
   },
   "dashboard": {
     "loading": "Memuat HighTex...",
-    "your_documents": "Dokumen Kamu",
-    "documents_subtitle": "Ruang kerja lokal yang tersimpan di perangkat kamu",
+    "your_documents": "Dokumenmu",
+    "documents_subtitle": "Lanjutkan tulisanmu, atau mulai ruang untuk gagasan baru.",
     "new": "Baru",
     "create_empty": "Buat Kosong",
     "import_from_file": "Impor dari file",
     "import_from_cloud": "Impor dari Cloud",
-    "no_documents": "Belum ada dokumen. Buat dokumen pertamamu buat mulai nulis."
+    "no_documents": "Buat dokumen pertamamu atau masukkan file .hightex yang sudah ada ke ruang kerjamu.",
+    "new_document": "Dokumen baru",
+    "edit_document": "Ubah detail dokumen",
+    "edit_description": "Atur judul, kategori, dan kata kunci dokumen dalam satu tempat.",
+    "create_description": "Beri judul dokumen dan pilih template penulisannya.",
+    "document_title": "Judul dokumen",
+    "title_placeholder": "Apa yang ingin kamu tulis?",
+    "category": "Kategori dokumen",
+    "choose_category": "Pilih kategori",
+    "unavailable_category": "Kategori tidak tersedia",
+    "no_categories": "Kategori belum tersedia. Tutup dialog ini dan muat ulang untuk mencoba lagi.",
+    "alt_title": "Judul bahasa Inggris",
+    "keywords_id": "Kata kunci bahasa Indonesia",
+    "keywords_en": "Kata kunci bahasa Inggris",
+    "remove_keyword": "Hapus kata kunci {keyword}",
+    "keyword_placeholder": "Ketik kata kunci, lalu tekan Enter",
+    "add_keyword": "Tambah kata kunci",
+    "save_changes": "Simpan perubahan",
+    "saving": "Menyimpan…",
+    "create_document": "Buat & mulai menulis",
+    "save_failed": "Belum berhasil disimpan. Perubahanmu tetap ada; silakan coba lagi.",
+    "select_document": "Pilih {title}",
+    "updated": "Diperbarui {date}",
+    "open_document": "Buka {title}",
+    "open": "Buka dokumen",
+    "document_actions": "Tindakan untuk {title}",
+    "export_hightex": "Ekspor .hightex",
+    "export_pdf": "Ekspor PDF",
+    "export_watermark": "Ekspor PDF dengan watermark",
+    "delete": "Hapus",
+    "action_failed": "Tindakan belum berhasil. Silakan coba lagi.",
+    "pdf_saved": "PDF tersimpan",
+    "open_file": "Buka file",
+    "open_folder": "Buka folder",
+    "filters": "Cari dan atur dokumen",
+    "search": "Cari judul atau kata kunci…",
+    "sort": "Urutkan dokumen",
+    "all_categories": "Semua kategori",
+    "sort_updated": "Terakhir diperbarui",
+    "sort_title": "Judul A–Z",
+    "sort_oldest": "Pembaruan terlama",
+    "selected_count": "{count} dipilih",
+    "select_visible": "Pilih yang tampil",
+    "deselect_visible": "Batal pilih yang tampil",
+    "result_count": "{count} dari {total} dokumen",
+    "select": "Pilih dokumen",
+    "empty_title": "Gagasan baru dimulai di sini",
+    "no_results": "Dokumen tidak ditemukan",
+    "try_filters": "Coba judul atau kata kunci lain, atau hapus filter pencarianmu.",
+    "clear_filters": "Hapus filter",
+    "created": "Dokumen dibuat",
+    "imported": "{title} diimpor",
+    "saved": "Detail dokumen tersimpan",
+    "deleted": "Dokumen dihapus",
+    "exporting": "Menyiapkan file .hightex…",
+    "open_failed": "Dokumen sudah tersimpan, tetapi editor belum bisa dibuka. Coba buka dari daftar dokumen.",
+    "load_failed": "Dokumen belum berhasil dimuat",
+    "load_failed_description": "Dokumenmu tidak berubah. Muat ulang untuk mencoba lagi.",
+    "retry": "Coba lagi",
+    "categories_failed": "Kategori belum berhasil dimuat. Dokumenmu tetap bisa dibuka.",
+    "delete_title": "Hapus dokumen ini?",
+    "delete_description": "“{title}” dan isi lokalnya akan dihapus permanen.",
+    "delete_many_title": "Hapus {count} dokumen?",
+    "delete_many_description": "Dokumen yang dipilih beserta isi lokalnya akan dihapus permanen.",
+    "discard_question": "Buang perubahan yang belum disimpan?",
+    "keep_editing": "Lanjut mengedit",
+    "discard": "Buang perubahan",
+    "deleting": "Menghapus dokumen…",
+    "deleting_progress": "Menghapus {current} dari {total}…",
+    "delete_done": "{count} dokumen dihapus",
+    "delete_failed": "Dokumen belum berhasil dihapus"
   },
   "splash": {
     "preparing": "Menyiapkan HighTex…",
@@ -248,11 +319,11 @@
   },
   "present": {
     "title": "Perencana Presentasi",
-    "subtitle": "Biar mereka nilai dokumen kamu!",
+    "subtitle": "Bagikan dokumen untuk presentasi atau diskusi bersama.",
     "session_active": "Sesi berbagi lagi aktif.",
     "join": "Gabung",
     "join_session": "Gabung ke Sesi Berbagi",
-    "join_description": "Masukin kode aneh dari host kamu.",
+    "join_description": "Masukkan kode undangan yang dibagikan oleh host.",
     "invitation_code": "kode undangan",
     "loading": "Memuat",
     "no_documents": "Tidak ada dokumen yang tersedia.",
@@ -404,6 +475,12 @@
       "caseSensitive": "Cocokkan Huruf Besar/Kecil",
       "matchCount": "{current} dari {total}",
       "noResults": "Tidak ada hasil"
+    },
+    "bubble": {
+      "alias": "Definisikan alias",
+      "note": "Tambahkan catatan",
+      "bold": "Tebal",
+      "italic": "Miring"
     }
   },
   "remote": {
@@ -636,7 +713,13 @@
       "no_matching_references": "Tidak ada referensi Zotero yang cocok.",
       "no_valid_imported": "Tidak ada referensi valid yang diimpor.",
       "imported": "Berhasil mengimpor {count} referensi."
-    }
+    },
+    "load_failed": "Referensi belum berhasil dimuat. Silakan coba lagi.",
+    "delete_title": "Hapus referensi ini?",
+    "delete_description": "Referensi “{key}” akan dihapus dari pustaka. Dokumen yang mengutipnya mungkin perlu diperbarui.",
+    "delete_failed": "Referensi belum berhasil dihapus. Silakan coba lagi.",
+    "copied": "Sitasi disalin",
+    "copy_failed": "Belum berhasil menyalin. Silakan coba lagi."
   },
   "snapshots": {
     "title": "Snapshot",
@@ -955,6 +1038,281 @@
         "figure": "Gambar",
         "table": "Tabel",
         "equation": "Persamaan"
+      }
+    }
+  },
+  "workspace": {
+    "title": "Ruang kerja",
+    "tagline": "Ruang untuk gagasanmu",
+    "navigation": "Navigasi ruang kerja",
+    "navigation_description": "Buka dokumen, referensi, dan alat bantu menulis.",
+    "primary": "Navigasi utama",
+    "home": "Kembali ke halaman sambutan",
+    "documents": "Dokumen lokal",
+    "citations": "Referensi",
+    "cloud": "Cloud",
+    "cloud_documents": "Dokumen cloud",
+    "submissions": "Pengajuan review",
+    "snapshots": "Snapshot",
+    "tools": "Alat bantu menulis",
+    "splitter": "Pisahkan dokumen",
+    "present": "Presentasi",
+    "forms": "Formulir",
+    "recent": "Terakhir diperbarui",
+    "no_recent": "Dokumen yang kamu perbarui akan muncul di sini.",
+    "no_activity": "Belum ada aktivitas",
+    "account": "Akun & profil",
+    "local_workspace": "Ruang kerja lokal",
+    "login_hint": "Masuk saat kamu membutuhkan penyimpanan cloud dan review.",
+    "offline_login": "Sambungkan ke internet untuk masuk.",
+    "offline_ready": "Dokumen lokal tetap bisa digunakan offline.",
+    "skip_content": "Langsung ke konten",
+    "open_navigation": "Buka navigasi",
+    "library": "Pustaka referensi",
+    "soon_description": "Pembuatan formulir sedang disiapkan. Kamu tetap bisa menulis dan mengekspor dokumen.",
+    "back_documents": "Kembali ke dokumen",
+    "cloud_title": "Dokumenmu, kapan saja",
+    "cloud_hint": "Masuk untuk menyimpan salinan cloud dan mengirim tulisan untuk review. Dokumen lokalmu tetap bisa digunakan.",
+    "account_login_hint": "Masuk untuk mengelola profil akun dan identitas akademikmu."
+  },
+  "guide": {
+    "replay": "Panduan penggunaan",
+    "welcome_eyebrow": "HighTex · {version}",
+    "welcome_title": "Kenali ruang menulismu",
+    "position": "{current} dari {total}",
+    "skip": "Lewati panduan",
+    "previous": "Langkah sebelumnya",
+    "next": "Berikutnya",
+    "load_failed": "Panduan belum berhasil dimuat. Silakan coba lagi.",
+    "save_failed": "Pilihan panduan belum tersimpan. Panduan mungkin muncul lagi saat aplikasi dibuka.",
+    "steps": {
+      "documents": {
+        "title": "Mulai dari dokumenmu sendiri",
+        "description": "Buat dokumen dengan judul dan kategori, atau impor file .hightex yang sudah ada. Klik judul dokumen untuk membukanya. Kamu bisa menulis secara lokal tanpa masuk akun."
+      },
+      "organize": {
+        "title": "Temukan dokumen dengan cepat",
+        "description": "Cari berdasarkan judul atau kata kunci, saring kategori, dan pilih urutannya. Gunakan Pilih dokumen untuk tindakan sekaligus; Pilih yang tampil hanya memilih hasil yang sedang terlihat."
+      },
+      "references": {
+        "title": "Simpan referensi dalam satu tempat",
+        "description": "Tambahkan BibTeX atau impor dari Zotero lokal di halaman Referensi. Pustakamu tetap tersedia saat menulis; menulis secara lokal tidak membutuhkan akun cloud."
+      },
+      "chapters": {
+        "title": "Pindah bab tanpa kehilangan posisi",
+        "description": "Gunakan panah di toolbar untuk bab sebelumnya atau berikutnya. Mod berarti Command di Mac atau Ctrl di sistem lain. Mod+nomor langsung membuka bab yang nomornya tersedia pada schema dokumen, misalnya Mod+1 untuk bab 1. Mod+N selalu membuka Lampiran, bukan berpindah ke bab berikutnya. Setiap bab mengingat scroll terakhir selama sesi editor."
+      },
+      "exports": {
+        "title": "Detail dan ekspor ada di menu tindakan",
+        "description": "Buka menu tiga titik di samping dokumen untuk mengubah detail atau mengekspor PDF dan .hightex. Pada judul dan kata kunci Indonesia, apit istilah asing dengan garis bawah agar tampil miring."
+      },
+      "formatting": {
+        "title": "Atur tulisanmu di sini",
+        "description": "Pilih teks untuk memformatnya, atau tambahkan heading, tabel, gambar, dan persamaan. Tombol Simpan menyimpan file .hightex milikmu."
+      },
+      "chapterTree": {
+        "title": "Buka panel bab dan referensi",
+        "description": "Gunakan tombol ini untuk membuka daftar bab, preview dokumen, referensi, dan pengaturan dokumen. Kamu bisa mencoba membuka dan menutupnya sekarang."
+      }
+    },
+    "waiting": "Menunggu kontrol tampil…",
+    "focus_control": "Fokus ke kontrol",
+    "done": "Selesai",
+    "empty_organize": "Buat atau impor dokumen terlebih dahulu. Pencarian, kategori, dan pengurutan akan muncul di sini. Kamu bisa mencoba tombol ini atau melanjutkan tur.",
+    "empty_exports": "Buat atau impor dokumen terlebih dahulu. Menu tiga titiknya akan memuat pengaturan detail serta ekspor PDF dan .hightex.",
+    "frozen_chapter": "Bagian ini memakai formulir sendiri, tanpa toolbar pemformatan. Gunakan panah bab untuk kembali ke bab biasa jika ingin memformat teks.",
+    "version_label": "Versi {version}",
+    "whats_new_title": "Yang baru di HighTex",
+    "announcement_description": "Kenali fitur-fitur berikut lewat tur singkat. Jika dilewati, semua panduan baru di daftar ini ditandai sudah dilihat.",
+    "library_title": "Panduan fitur",
+    "library_description": "Pilih fitur yang ingin kamu pelajari. Panduan bisa diputar ulang kapan saja.",
+    "feature": "Panduan fitur",
+    "continue_tour": "Lanjut tur",
+    "start_feature": "Mulai panduan",
+    "features": {
+      "documents": {
+        "name": "Membuat dan membuka dokumen",
+        "summary": "Mulai dokumen lokal atau impor file .hightex milikmu."
+      },
+      "organize": {
+        "name": "Mencari dan memilih dokumen",
+        "summary": "Cari judul, filter kategori, urutkan dokumen, dan pilih beberapa sekaligus."
+      },
+      "references": {
+        "name": "Mengelola referensi",
+        "summary": "Simpan BibTeX dan impor pustaka Zotero untuk dipakai saat menulis."
+      },
+      "exports": {
+        "name": "Detail dan ekspor dokumen",
+        "summary": "Ubah detail dokumen serta ekspor ke PDF atau .hightex dari menu tindakan."
+      },
+      "chapters": {
+        "name": "Navigasi antar bab",
+        "summary": "Gunakan panah antar bab, Mod+nomor sesuai schema, atau Mod+N untuk Lampiran."
+      },
+      "formatting": {
+        "name": "Memformat tulisan",
+        "summary": "Kenali toolbar untuk heading, format teks, tabel, gambar, dan persamaan."
+      },
+      "chapterTree": {
+        "name": "Panel bab dan referensi",
+        "summary": "Buka daftar bab, preview, referensi, dan pengaturan dokumen dari panel samping."
+      }
+    },
+    "editorGuides": {
+      "writing": {
+        "name": "Mulai menulis dan struktur bab",
+        "summary": "Pelajari paragraf, H2/H3 untuk hierarki, dan H4 sebagai paragraf tanpa indent.",
+        "steps": {
+          "paragraphs": {
+            "title": "Mulai dari paragraf isi",
+            "description": "Klik paragraf di bawah judul bab untuk mulai menulis. Enter membuat paragraf baru; Shift+Enter membuat baris baru dalam paragraf yang sama. Hindari merapikan posisi dengan spasi berulang; hasil halaman mengikuti format dokumen."
+          },
+          "headings": {
+            "title": "Susun hierarki dengan H2 dan H3",
+            "description": "Judul bab (H1) disiapkan HighTex. Untuk subbab dan anak subbab, pilih H2 atau H3; tulis judulnya tanpa nomor karena penomoran otomatis. H4 bukan tingkat hierarki, melainkan paragraf tanpa indent; H4 tidak masuk outline atau daftar isi.",
+            "example": "H2: Metode Penelitian\nH3: Pengumpulan Data\nH4: Paragraf tanpa indent, di luar hierarki"
+          }
+        }
+      },
+      "formatting": {
+        "name": "Format teks dan daftar",
+        "summary": "Gunakan huruf miring, tebal, serta daftar tanpa mengatur penomoran manual.",
+        "steps": {
+          "emphasis": {
+            "title": "Format kata atau kalimat yang dipilih",
+            "description": "Blok teks, lalu gunakan I untuk huruf miring atau B untuk tebal. Untuk istilah asing di isi tulisan, gunakan huruf miring. Pintasan Command/Ctrl+I dan Command/Ctrl+B juga tersedia. Aturan underscore untuk judul dan kata kunci dijelaskan di panduan data dokumen."
+          },
+          "lists": {
+            "title": "Gunakan daftar dari toolbar",
+            "description": "Pilih tombol daftar berpoin atau bernomor untuk membuat rincian. Enter menambah item; Enter pada item kosong mengakhiri daftar. Gunakan daftar bernomor untuk urutan langkah agar nomornya mengikuti perubahan isi."
+          }
+        }
+      },
+      "details": {
+        "name": "Judul, identitas, dan kata kunci",
+        "summary": "Atur data dokumen serta kata kunci abstrak dalam dua bahasa.",
+        "steps": {
+          "metadata": {
+            "title": "Lengkapi data dokumen",
+            "description": "Panel pengaturan memuat judul Indonesia, judul Inggris, kategori, dan identitas penulis. Istilah asing dalam judul Indonesia dapat diapit underscore agar tampil miring. Gunakan tombol Simpan di panel setelah mengubah data. Identitas akademik dari cloud dapat terkunci sesuai data server.",
+            "example": "Analisis _machine learning_ untuk klasifikasi dokumen"
+          },
+          "keywords": {
+            "title": "Tambahkan kata kunci pada abstrak",
+            "description": "Di akhir abstrak Indonesia, ketik kata kunci lalu Enter atau koma. Maksimal lima kata kunci per bahasa; gunakan × untuk menghapusnya. Istilah asing pada kata kunci Indonesia memakai underscore. Isi kata kunci Inggris pada bagian Abstract; nilainya ditampilkan sebagaimana ditulis.",
+            "example": "_machine learning_"
+          }
+        }
+      },
+      "figures": {
+        "name": "Gambar dan tabel",
+        "summary": "Tambahkan gambar, tabel bernomor, dan tabel tata letak sesuai kebutuhan.",
+        "steps": {
+          "figures": {
+            "title": "Tambahkan gambar beserta keterangannya",
+            "description": "Letakkan kursor pada posisi gambar, lalu pilih tombol gambar untuk menambah Figure Image. Pilih berkas gambar dan isi keterangannya; penomoran gambar dikelola otomatis. Shortcut berikut juga tersedia: ketik lalu pilih saran yang muncul.",
+            "example": "!fig.Diagram_Sistem"
+          },
+          "tables": {
+            "title": "Tabel data memakai caption",
+            "description": "Tombol tabel ini membuat Figure Table dengan header, caption, dan nomor otomatis. Isi nama kolom serta datanya, lalu ubah caption sesuai isi tabel. Shortcut memakai urutan jumlah kolom, jumlah baris, lalu caption; underscore di caption shortcut menjadi spasi.",
+            "example": "!tab.3.4.Data_Responden"
+          },
+          "grid": {
+            "title": "Bedakan tabel data dan tabel tata letak",
+            "description": "Tombol grid membuat tabel untuk mengatur tata letak isi. Grid tidak memakai caption atau nomor tabel seperti Figure Table. Pilih Figure Table untuk data yang perlu disebut sebagai Tabel di dalam tulisan."
+          }
+        }
+      },
+      "equations": {
+        "name": "Rumus dan persamaan",
+        "summary": "Tulis LaTeX sebagai persamaan terpisah atau rumus di dalam kalimat.",
+        "steps": {
+          "block_math": {
+            "title": "Buat persamaan dari LaTeX",
+            "description": "Gunakan tombol Σ untuk menyisipkan persamaan lalu isi sintaks LaTeX. Kamu juga bisa mengetik contoh di bawah sebagai paragraf tersendiri. Persamaan dapat dirujuk lewat /eq; gunakan rujukan agar nomor yang disebut mengikuti persamaannya.",
+            "example": "$$E=mc^2$$"
+          },
+          "inline_math": {
+            "title": "Rumus singkat di dalam kalimat",
+            "description": "Untuk rumus yang menyatu dengan kalimat, apit LaTeX dengan satu tanda dolar di setiap sisi. Gunakan persamaan terpisah jika rumus membutuhkan nomor dan rujukan.",
+            "example": "Energi dinyatakan sebagai $E=mc^2$."
+          }
+        }
+      },
+      "citations": {
+        "name": "Sitasi dan daftar pustaka",
+        "summary": "Tambahkan pustaka, sisipkan sitasi, dan pahami daftar pustaka otomatis.",
+        "steps": {
+          "citation_library": {
+            "title": "Siapkan referensi di pustaka",
+            "description": "Tambahkan BibTeX atau impor dari Zotero melalui panel ini. Cari sumber yang dibutuhkan; tombol Copy menyalin sitasi yang dapat ditempel ke tulisan. Sumber yang hanya tersimpan di pustaka belum masuk daftar pustaka dokumen."
+          },
+          "cite_in_text": {
+            "title": "Gunakan sitasi HighTex di dalam tulisan",
+            "description": "Letakkan kursor setelah pernyataan yang memakai sumber, lalu ketik @ atau # dan pilih referensinya. Kamu juga bisa menempel sitasi yang disalin dari pustaka. Nama penulis dan tahun yang diketik biasa tidak dikenali sebagai sitasi HighTex.",
+            "example": "@\n#"
+          },
+          "bibliography": {
+            "title": "Daftar pustaka mengikuti sitasi yang dipakai",
+            "description": "HighTex menyusun daftar pustaka dari sitasi yang benar-benar dipakai dalam dokumen. Jika kosong, periksa apakah sitasi merujuk ke sumber yang valid. Buka preview untuk memeriksa hasilnya; daftar pustaka tidak perlu diketik manual di isi bab."
+          }
+        }
+      },
+      "referencesAliases": {
+        "name": "Rujukan objek dan alias",
+        "summary": "Rujuk nomor gambar, tabel, serta persamaan, dan beri arti pada singkatan.",
+        "steps": {
+          "object_references": {
+            "title": "Rujuk objek, jangan ketik nomornya sendiri",
+            "description": "Ketik /img, /table, atau /eq lalu pilih objek yang ingin disebut. Cara lain: buka pengaturan objek, pilih Copy Ref, lalu tempel di kalimat. Rujukan mengikuti nomor objek saat susunannya berubah; teks seperti Gambar 1.2 yang diketik biasa tidak ikut berubah.",
+            "example": "/img\n/table\n/eq"
+          },
+          "aliases": {
+            "title": "Beri arti pada singkatan dengan alias",
+            "description": "Blok satu kata singkatan, misalnya API. Di menu seleksi, pilih pembuatan alias lalu isi kepanjangannya dan simpan. Alias disimpan untuk dokumen ini dan diurutkan otomatis. Teks biasa yang belum diberi alias tidak memiliki definisi tersebut.",
+            "example": "API → Application Programming Interface"
+          }
+        }
+      },
+      "variables": {
+        "name": "Variabel dan simbol",
+        "summary": "Simpan nilai berulang dan sisipkan variabel atau simbol lewat saran.",
+        "steps": {
+          "manage_variables": {
+            "title": "Simpan nilai yang digunakan berulang",
+            "description": "Tambahkan variabel dalam format nama=nilai. Gunakan nama singkat tanpa spasi. Variabel bawaan seperti title, altTitle, dan chapter1 mengikuti data dokumen dan tidak dapat diganti dengan variabel buatan.",
+            "example": "tahun=2026"
+          },
+          "insert_variables": {
+            "title": "Pilih variabel dari saran",
+            "description": "Di isi tulisan, ketik backslash lalu nama variabel dan pilih saran yang sesuai. Gunakan variabel agar nilai yang berulang tetap konsisten. Simbol seperti alpha juga tersedia melalui saran backslash.",
+            "example": "\\title\n\\alpha"
+          }
+        }
+      },
+      "reviewSave": {
+        "name": "Cari, simpan, dan ekspor",
+        "summary": "Periksa isi, simpan berkas yang bisa diedit, dan buat PDF hasil akhir.",
+        "steps": {
+          "find": {
+            "title": "Cari kata sebelum menggantinya",
+            "description": "Gunakan tombol pencarian atau Command/Ctrl+F untuk mencari teks pada bab aktif. Tinjau kecocokannya sebelum memakai ganti atau ganti semua, terutama untuk istilah yang juga muncul di konteks lain."
+          },
+          "save": {
+            "title": "Simpan berkas .hightex untuk diedit lagi",
+            "description": "Isi tulisan tersimpan secara lokal saat kamu menulis. Tombol Simpan atau Command/Ctrl+S menulis berkas .hightex ke lokasi penyimpanan; perhatikan status simpan pada tombol. Simpan salinan berkas ini untuk melanjutkan pekerjaan atau memindahkannya."
+          },
+          "preview": {
+            "title": "Periksa susunan halaman di preview",
+            "description": "Buka tab preview untuk memeriksa tata letak, nomor heading, gambar, tabel, rujukan, dan daftar pustaka. Tampilan halaman akhir mengikuti format kategori dokumen."
+          },
+          "pdf": {
+            "title": "Ekspor PDF setelah diperiksa",
+            "description": "Gunakan tombol ekspor PDF untuk menghasilkan berkas yang siap dibaca atau dibagikan. Tunggu proses selesai dan pilih lokasi simpan jika diminta. Tetap simpan berkas .hightex agar dokumennya bisa diedit kembali."
+          }
+        }
       }
     }
   }

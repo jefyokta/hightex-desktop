@@ -165,6 +165,7 @@ export const createRenderer = <T extends RendererItem>(
       selectedIndex = 0;
 
       container = document.createElement("div");
+      container.dataset.guidePopup = "suggestion";
 
       container.className = [
         "absolute z-[9999]",

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { isCitationValid, parseBibtexInput } from "@/utils/citation";
 import { t } from "@/utils/lang";
+import { confirm } from "@/utils/confirm";
 
 const feedbackToastId = "citation-feed-back";
 
@@ -22,6 +23,9 @@ export function useCitationLibrary() {
   const [citations, setCitations] = useState<CiteUtils[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const retry = useCallback(() => setRevision((value) => value + 1), []);
 
   const loadCitations = useCallback(async () => {
     const rows = await db.cite.toArray();
@@ -43,15 +47,23 @@ export function useCitationLibrary() {
 
   useEffect(() => {
     let alive = true;
-    void loadCitations().then((mapped) => {
-      if (!alive) return;
-      setCitations(mapped);
-      setLoading(false);
-    });
+    setLoading(true);
+    setError(false);
+    void loadCitations()
+      .then((mapped) => {
+        if (!alive) return;
+        setCitations(mapped);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setError(true);
+        setLoading(false);
+      });
     return () => {
       alive = false;
     };
-  }, [loadCitations]);
+  }, [loadCitations, revision]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return citations;
@@ -66,10 +78,23 @@ export function useCitationLibrary() {
 
   const deleteCitation = useCallback(
     async (id: string) => {
-      setCitations((previous) =>
-        previous.filter((citation) => citation.getId() !== id),
-      );
-      await db.cite.delete(id);
+      if (
+        !(await confirm({
+          title: t("citation.delete_title"),
+          desc: t("citation.delete_description", { key: id }),
+          confirmText: t("citation.delete"),
+          cancelText: t("common.cancel"),
+        }))
+      )
+        return;
+      try {
+        await db.cite.delete(id);
+        setCitations((previous) =>
+          previous.filter((citation) => citation.getId() !== id),
+        );
+      } catch {
+        toast.error(t("citation.delete_failed"));
+      }
     },
     [db],
   );
@@ -127,6 +152,8 @@ export function useCitationLibrary() {
   return {
     citations,
     loading,
+    error,
+    retry,
     query,
     setQuery,
     filtered,

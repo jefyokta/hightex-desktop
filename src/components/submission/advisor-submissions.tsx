@@ -1,3 +1,4 @@
+import { ParsedItalic } from "@/utils/parse-italic";
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, Users } from "lucide-react";
 import { t } from "@/utils/lang";
@@ -176,7 +177,7 @@ export const AdvisorSubmissions = ({ revision = 0 }: { revision?: number }) => {
                   disabled={opening}
                   onClick={() => void openHistory(doc.id)}
                 >
-                  {doc.title || doc.id}
+                  <ParsedItalic text={doc.title || doc.id} />
                 </Button>
               ))}
             </div>

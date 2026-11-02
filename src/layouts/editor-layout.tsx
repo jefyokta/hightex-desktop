@@ -1,6 +1,7 @@
+import { EditorGuide } from "@/components/editor/editor-guide";
 import { ExpandableSideBar } from "@/components/editor/expandable-sidebar";
 import { Scanner } from "@/components/editor/scanner";
-import { MacosEditorHead } from "@/components/navbar";
+import { EditorChrome } from "@/components/editor/editor-chrome";
 import { EditorProvider } from "@/hooks/use-editor";
 import { ExpandableSideBarContextProvider } from "@/hooks/use-expandable-sidebar";
 import { GraphContextProvider } from "@/hooks/use-graph";
@@ -15,8 +16,7 @@ import { Outlet } from "react-router-dom";
 export const EditorLayout: React.FC = () => {
   return (
     <ParamsContextProvider>
-      <div className="h-screen overflow-hidden relative">
-        <MacosEditorHead />
+      <EditorChrome>
         <GraphContextProvider>
           <EditorProvider>
             <ExpandableSideBarContextProvider>
@@ -25,13 +25,14 @@ export const EditorLayout: React.FC = () => {
                 <AliasSlave />
                 <Outlet />
               </div>
+              <EditorGuide />
             </ExpandableSideBarContextProvider>
             <EditorNavigatorSlave />
             <EditorFlushSlave />
             <Scanner />
           </EditorProvider>
         </GraphContextProvider>
-      </div>
+      </EditorChrome>
       <FrameSlave />
     </ParamsContextProvider>
   );

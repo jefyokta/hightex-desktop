@@ -10,7 +10,7 @@ export const EditorNavigatorSlave = () => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
       if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        cycleNext();
+        goTo(chapters.find((item) => item.query.isAttachmentChapter()));
         return;
       }
 
@@ -25,7 +25,7 @@ export const EditorNavigatorSlave = () => {
 
     document.addEventListener("keydown", listener);
     return () => document.removeEventListener("keydown", listener);
-  }, [chapters, cycleNext, goTo]);
+  }, [chapters, goTo]);
 
   useEffect(() => {
     return Manager.app.on("navigate:next", cycleNext);

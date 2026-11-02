@@ -223,7 +223,10 @@ export const Citation = () => {
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div
+      data-tour="editor-citation-library"
+      className="flex h-full flex-col bg-background"
+    >
       <TabHeader
         title={t("editor.expandable.citation.title")}
         desc={t("editor.expandable.citation.description")}

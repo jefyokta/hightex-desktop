@@ -180,6 +180,10 @@ declare global {
       readFile(filePath: string): Promise<NonSharedBuffer>;
       category(id: string): Promise<Category>;
       version(): Promise<string>;
+      onboarding: {
+        status(): Promise<OnboardingStatus>;
+        acknowledge(guides: GuideAcknowledgment[]): Promise<OnboardingStatus>;
+      };
       reportError(payload: {
         title: string;
         description: string;

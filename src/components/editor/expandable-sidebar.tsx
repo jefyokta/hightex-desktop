@@ -1,3 +1,4 @@
+import { t } from "@/utils/lang";
 import { AnimatePresence, motion } from "motion/react";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -27,6 +28,8 @@ export const ExpandableSideBar = () => {
   return (
     <div className="relative h-full border-r">
       <button
+        data-tour="editor-sidebar"
+        aria-label={t("guide.steps.chapterTree.title")}
         className="absolute top-4 -right-8 z-2000 flex h-8 w-8 items-center justify-center rounded-r-md border border-l-0 bg-background hover:bg-muted"
         onClick={() => setOpen((p) => !p)}
       >
@@ -66,6 +69,7 @@ export const ExpandableSideBar = () => {
                 return (
                   <button
                     key={key}
+                    data-tour={`editor-tab-${key}`}
                     ref={(el) => (tabRefs.current[key] = el)}
                     onClick={() => setContent(key)}
                     className={`relative z-10 px-3 py-2 text-xs capitalize transition-colors ${

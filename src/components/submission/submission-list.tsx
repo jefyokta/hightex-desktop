@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/dashboard/page-header";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { FolderOpen, LoaderCircle, RefreshCw } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
@@ -8,7 +9,7 @@ import {
   type SnapshotReadModel,
 } from "@/review/snapshot-reader";
 import { snapshotCache } from "@/review/snapshot-cache";
-import { t } from "@/utils/lang";
+import { t, useAppLanguage } from "@/utils/lang";
 import { LoginGate } from "../login-gate";
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
@@ -17,6 +18,7 @@ import { AdvisorSubmissions } from "./advisor-submissions";
 import { StudentSubmission } from "./student-submission";
 
 export const SubmissionListView = () => {
+  useAppLanguage();
   const { user } = useUser();
   const online = useOnline();
   const [result, setResult] = useState<SubmissionList>();
@@ -104,51 +106,47 @@ export const SubmissionListView = () => {
 
   return (
     <main className="mx-auto max-w-3xl space-y-5 pb-10">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {t("submission_review.title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("submission_review.description")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".hightex"
-            className="hidden"
-            onChange={openFile}
-          />
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={opening}
-            onClick={() => fileRef.current?.click()}
-          >
-            {opening ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <FolderOpen className="size-4" />
-            )}
-            {t("submission_review.open_file")}
-          </Button>
-          {user && (
+      <PageHeader
+        title={t("submission_review.title")}
+        description={t("submission_review.description")}
+        actions={
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".hightex"
+              className="hidden"
+              onChange={openFile}
+            />
             <Button
               size="sm"
               variant="outline"
-              disabled={!online || loading}
-              onClick={() => setRevision((value) => value + 1)}
+              disabled={opening}
+              onClick={() => fileRef.current?.click()}
             >
-              <RefreshCw
-                className={`size-4 ${loading ? "animate-spin" : ""}`}
-              />
-              {t("submission_review.refresh")}
+              {opening ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <FolderOpen className="size-4" />
+              )}
+              {t("submission_review.open_file")}
             </Button>
-          )}
-        </div>
-      </header>
+            {user && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!online || loading}
+                onClick={() => setRevision((value) => value + 1)}
+              >
+                <RefreshCw
+                  className={`size-4 ${loading ? "animate-spin" : ""}`}
+                />
+                {t("submission_review.refresh")}
+              </Button>
+            )}
+          </div>
+        }
+      />
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

@@ -168,3 +168,7 @@ button {
     @apply font-sans;
   }
 }
+
+[data-editor-titlebar] {
+  -webkit-app-region: drag;
+}

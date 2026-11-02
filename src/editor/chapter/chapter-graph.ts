@@ -1,6 +1,6 @@
 import { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../storage/hightex-db";
-import { Chapter } from "./chapter";
+import type { Chapter } from "./chapter";
 import { Counter } from "tjsn-parser";
 
 export class ChapterGraph {
@@ -54,7 +54,12 @@ export class ChapterGraph {
     );
 
     if (stored?.data) {
-      this.data = stored.data;
+      this.data = {
+        ...stored.data,
+        headings: (stored.data.headings ?? []).filter(
+          ({ level }) => level >= 1 && level <= 3,
+        ),
+      };
       return this.data;
     }
 
@@ -116,6 +121,8 @@ export class ChapterGraph {
     const chapterName = ctx.chapter.getChapter();
 
     if (node.type === "heading") {
+      // H4 is a paragraph style without indentation, not an outline level.
+      if (Number(node.attrs?.level) > 3) return;
       if (!ctx.chapter.query.isAttachmentChapter() && node.attrs?.level == 1) {
         return;
       }

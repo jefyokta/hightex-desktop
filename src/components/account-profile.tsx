@@ -41,7 +41,7 @@ export const AccountProfile = () => {
       </CardHeader>
       <CardContent>
         {!user ? (
-          <LoginGate />
+          <LoginGate compact />
         ) : !online ? (
           <p className="text-sm text-muted-foreground">
             {t("submission_review.offline")}

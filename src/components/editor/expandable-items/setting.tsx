@@ -123,7 +123,10 @@ export const Setting = () => {
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div
+      data-tour="editor-document-settings"
+      className="flex h-full flex-col bg-background"
+    >
       <TabHeader
         title={t("editor.expandable.setting.title")}
         desc={<ParsedItalic text={doc.title} />}
@@ -216,7 +219,7 @@ export const Setting = () => {
                       key={category.id}
                       value={category.id.toString()}
                     >
-                      {category.name}
+                      {category.name} · {t(`common.${category.variant}`)}
                     </SelectItem>
                   ))}
                 </SelectGroup>

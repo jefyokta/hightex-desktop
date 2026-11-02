@@ -51,6 +51,11 @@ const loadConfig = async () => {
 loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
+  onboarding: {
+    status: () => ipcRenderer.invoke("hightex:onboarding:status"),
+    acknowledge: (guides: GuideAcknowledgment[]) =>
+      ipcRenderer.invoke("hightex:onboarding:acknowledge", guides),
+  },
   submission: {
     pdf: (input: SnapshotPDFInput) =>
       ipcRenderer.invoke("hightex:snapshot:pdf", input),
