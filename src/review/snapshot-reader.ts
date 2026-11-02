@@ -9,6 +9,7 @@ import {
 } from "@/utils/document-profile";
 import { readProfileEntries } from "@/utils/htx/profile";
 import { Symbols } from "@/utils/symbol";
+import { migrateDocumentCommittee } from "@/utils/document-committee";
 
 export type SnapshotSource =
   | { kind: "local"; filename: string }
@@ -279,7 +280,7 @@ export const readSnapshot = async (
   }
   const configPath = desktop ? "files/config.json" : "data/config.json";
   const category = metadata.category;
-  const document: HighTexDocument = {
+  const document: HighTexDocument = migrateDocumentCommittee({
     id: string(
       metadata.id,
       source.kind === "submission" ? source.documentId : sha256,
@@ -296,7 +297,7 @@ export const readSnapshot = async (
     },
     config: entries[configPath] ? dictionary(json(configPath)) : {},
     profile,
-  };
+  });
   if (!document.id) throw new SnapshotReadError("invalid_content");
   const profileVariables = getProfileVariables(profile);
   const symbols = new Map<string, string>(

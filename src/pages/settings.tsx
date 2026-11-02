@@ -47,6 +47,7 @@ import { HighTexDB } from "@/editor/storage/hightex-db";
 import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 import { executeInteractively } from "@/utils/execute-interactively";
 import { useCitationCleanup } from "@/hooks/use-citation-cleanup";
+import { CommitteeFields } from "@/components/committee-fields";
 
 export const Settings = () => {
   const { cleaning, deleteUnusedCitations } = useCitationCleanup();
@@ -660,6 +661,7 @@ const ProfileSection = () => {
     advisorName: "",
     advisorNip: "",
     secondAdvisor: undefined,
+    committee: {},
   });
 
   const [loading, setLoading] = useState(false);
@@ -682,6 +684,7 @@ const ProfileSection = () => {
           advisorName: prof?.advisorName ?? "",
           advisorNip: prof?.advisorNip ?? "",
           secondAdvisor: prof.secondAdvisor,
+          committee: prof.committee ?? {},
         });
       } finally {
         if (mounted) setLoading(false);
@@ -872,6 +875,12 @@ const ProfileSection = () => {
                 </div>
               </>
             )}
+            <CommitteeFields
+              value={profile.committee}
+              onChange={(committee) =>
+                setProfile((previous) => ({ ...previous, committee }))
+              }
+            />
             <div className="flex justify-end pt-4">
               <Button
                 onClick={() =>

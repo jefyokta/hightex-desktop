@@ -83,7 +83,12 @@ export const Dashboard = () => {
       profile: {
         ...normalizeAuthorProfile(profile)!,
         ...(category.variant === "intern"
-          ? { advisorName: "", advisorNip: "", secondAdvisor: undefined }
+          ? {
+              advisorName: "",
+              advisorNip: "",
+              secondAdvisor: undefined,
+              committee: {},
+            }
           : {}),
         picture: picture
           ? new Blob([new Uint8Array(picture)], { type: "image/webp" })
@@ -93,9 +98,6 @@ export const Dashboard = () => {
         consentDate: new Date(),
         validityDate: new Date(),
         statementDate: new Date(),
-        leader: "Angraini, S.Kom., M.Eng., Ph.D",
-        member_1: "Zarnelly, S.Kom., M.Sc",
-        member_2: "Anofrizen, S.Kom., M.Kom",
       },
     };
     await db.documents.put(doc);

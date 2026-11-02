@@ -10,6 +10,7 @@ declare global {
       advisorName: string;
       advisorNip: string;
       secondAdvisor?: { name: string; nip: string };
+      committee?: AcademicCommittee;
     };
     committee: {
       leader: string;

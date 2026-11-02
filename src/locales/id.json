@@ -816,6 +816,7 @@
   },
   "open": "Buka",
   "document_profile": {
+    "faculty_officials": "Pimpinan Fakultas dan Program Studi",
     "title": "Penulis dokumen",
     "description": "Penulis dan pembimbing tersimpan bersama dokumen ini. Perubahan hanya berlaku pada dokumen ini.",
     "missing": "Data penulis belum tersimpan pada dokumen ini. Isi data penulis atau tinjau profil default sebelum menyimpan.",

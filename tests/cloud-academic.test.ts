@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { afterAll, beforeAll, beforeEach, expect, test } from "bun:test";
 import Dexie from "dexie";
 import { indexedDB, IDBKeyRange } from "fake-indexeddb";
-import { strFromU8, unzipSync } from "fflate";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import {
   CloudAcademicClient,
   parseCloudAcademic,
@@ -159,6 +159,54 @@ test("active mentorship roles and thesis assignments map by role, with server-fo
   });
 });
 
+test("cloud committee retains directory IDs and NIPs in profiles and validates them on push", async () => {
+  const server = me();
+  Object.assign(server.message.thesis_data.session_chair, {
+    id: 17,
+    identity_number: "000017",
+  });
+  Object.assign(server.message.thesis_data.first_examiner, {
+    id: "23",
+    nip: "000023",
+  });
+  const parsed = parseCloudAcademic(server, university);
+  expect(parsed.author.committee).toMatchObject({
+    chair: { id: "17", name: "Chair", nip: "000017" },
+    examiner1: { id: "23", name: "Examiner One", nip: "000023" },
+  });
+  const data = {
+    ...academic(),
+    author: parsed.author,
+    committee: parsed.committee,
+  };
+  const client = new CloudAcademicClient({
+    context: () => context,
+    request: async (path) => ({
+      ok: true,
+      status: 200,
+      data:
+        path === "/me"
+          ? server
+          : path === "/university-data"
+            ? university
+            : { document: { id: "server-doc", author: 12 } },
+    }),
+  });
+  const valid = await new Exporter("local-doc").exportForPush(data);
+  const input = { ...valid, sessionId: context.sessionId };
+  await client.verify(input, "server-doc");
+  const entries = unzipSync(valid.file);
+  const profile = JSON.parse(strFromU8(entries["files/profile.json"]));
+  profile.committee.chair.nip = "TAMPERED";
+  entries["files/profile.json"] = strToU8(JSON.stringify(profile));
+  await expect(
+    client.verify({ ...input, file: zipSync(entries) }, "server-doc"),
+  ).rejects.toMatchObject({ code: "academic_changed" });
+  delete profile.committee;
+  entries["files/profile.json"] = strToU8(JSON.stringify(profile));
+  await client.verify({ ...input, file: zipSync(entries) }, "server-doc");
+});
+
 test("missing assignments clear old manual values instead of guessing advisors/examiners", async () => {
   const raw = me();
   raw.message.advisors = [];
@@ -176,7 +224,12 @@ test("missing assignments clear old manual values instead of guessing advisors/e
     advisorNip: "",
   });
   expect(doc?.profile?.secondAdvisor).toBeUndefined();
-  expect(doc?.config).toMatchObject({ leader: "", member_1: "", member_2: "" });
+  expect(doc?.profile?.committee).toEqual({
+    chair: { name: "", nip: "" },
+    examiner1: { name: "", nip: "" },
+    examiner2: { name: "", nip: "" },
+  });
+  expect(doc?.config.leader).toBeUndefined();
 });
 
 test("ambiguous roles, mismatched thesis student and malformed university data fail", () => {
@@ -299,7 +352,8 @@ test("cloud fields survive stale settings/profile writes while title, CV/photo a
   expect(result.title).toBe("Edited title");
   expect(result.config.validityDate).toEqual(editedDate);
   expect(result.profile?.name).toBe(academic().author.name);
-  expect(result.config.leader).toBe("Chair");
+  expect(result.profile?.committee?.chair?.name).toBe("Chair");
+  expect(result.config.leader).toBeUndefined();
   const picture = new Blob([new Uint8Array([3, 4])], { type: "image/webp" });
   const profile = await db.updateProfile("local-doc", {
     name: "Attempted edit",
@@ -347,7 +401,7 @@ test("cloud export normalizes frozen bytes without changing an unbound local dra
   });
   expect(snapshot.document.profile?.name).toBe(academic().author.name);
   expect(snapshot.document.profile?.cv).toBe("<p>Local CV</p>");
-  expect(snapshot.document.config.leader).toBe("Chair");
+  expect(snapshot.document.profile?.committee?.chair?.name).toBe("Chair");
   await db.cacheCloudAcademic("local-doc", academic());
   const archive = await new Exporter("local-doc").exportForPush();
   const entries = unzipSync(archive.file);

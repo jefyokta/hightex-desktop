@@ -1,6 +1,7 @@
 import { CloudError } from "../exception/cloud-error";
 import type { CloudErrorCode } from "../../sharable-types/cloud-error";
 import { strFromU8, unzipSync } from "fflate";
+import { readAuthorProfile } from "@hightex/importer";
 
 interface AcademicTransport {
   context(): CloudSession;
@@ -25,6 +26,17 @@ const person = (value: unknown, identity = "identity_number") => {
   if (value === null || value === undefined) return { name: "", nip: "" };
   const data = record(value);
   return { name: text(data.name), nip: text(data[identity]) };
+};
+const committeePerson = (value: unknown): AcademicPerson => {
+  const data = value == null ? {} : record(value);
+  const id = data.id;
+  if (id != null && typeof id !== "string" && typeof id !== "number")
+    return fail("academic_invalid");
+  return {
+    name: text(data.name),
+    nip: text(data.identity_number ?? data.nip),
+    ...(id != null ? { id: String(id) } : {}),
+  };
 };
 
 export const parseCloudAcademic = (me: unknown, university: unknown) => {
@@ -66,6 +78,11 @@ export const parseCloudAcademic = (me: unknown, university: unknown) => {
       advisorName: first.name,
       advisorNip: first.nip,
       secondAdvisor: secondary.length ? person(secondary[0]) : undefined,
+      committee: {
+        chair: committeePerson(thesis.session_chair),
+        examiner1: committeePerson(thesis.first_examiner),
+        examiner2: committeePerson(thesis.second_examiner),
+      },
     },
     committee: {
       leader: person(thesis.session_chair).name,
@@ -159,6 +176,20 @@ export class CloudAcademicClient {
       for (const key of ["leader", "member_1", "member_2"] as const)
         if (config[key] !== data.committee[key])
           return fail("academic_changed");
+      const committee = readAuthorProfile(profile, "profile")?.committee;
+      // Older v2 archives only contain the compatibility names in config.
+      if (committee !== undefined) {
+        for (const role of ["chair", "examiner1", "examiner2"] as const) {
+          const actual = committee[role];
+          const expected = data.author.committee?.[role];
+          if (
+            actual?.name !== expected?.name ||
+            actual?.nip !== expected?.nip ||
+            actual?.id !== expected?.id
+          )
+            return fail("academic_changed");
+        }
+      }
       for (const key of ["kaprodi", "dekan"] as const) {
         const actual = person(config[key], "nip");
         if (

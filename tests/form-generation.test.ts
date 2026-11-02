@@ -46,6 +46,31 @@ const fixture = (
   selection: defaultSelection(stage),
 });
 describe("local form generation", () => {
+  test("committee names and NIPs come from profile and explicitly cleared roles ignore legacy config", () => {
+    const selected = {
+      ...document,
+      profile: {
+        ...profile,
+        committee: {
+          chair: { id: "chair", name: "Profile Chair", nip: "0001" },
+          examiner1: { name: "Profile Examiner", nip: "0002" },
+        },
+      },
+    };
+    const data = documentFormData(selected);
+    expect(data.people.chair).toEqual({ name: "Profile Chair", nip: "0001" });
+    expect(data.people.examiner1).toEqual({
+      name: "Profile Examiner",
+      nip: "0002",
+    });
+    expect(data.people.examiner2).toEqual({ name: "", nip: "" });
+    expect(
+      documentFormData({
+        ...selected,
+        profile: { ...selected.profile, committee: {} },
+      }).people.chair.name,
+    ).toBe("");
+  });
   test("uses authoritative document profile/config and local fallback only for legacy documents", () => {
     const fallback = {
       ...profile,

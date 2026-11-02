@@ -23,7 +23,7 @@ const fixture = `<!doctype html><html><body style="margin:0"><main id="root"></m
 import React from 'react';import {createRoot} from 'react-dom/client';import {MemoryRouter,Routes,Route} from 'react-router-dom';import {AppLayout} from '/src/layouts/app-layout.tsx';import {UserContext} from '/src/context/user-context.tsx';import {AuthModalProvider} from '/src/context/auth-modal-context.tsx';import {TooltipProvider} from '/src/components/ui/tooltip.tsx';import {Forms} from '/src/pages/forms.tsx';import {HighTexDB} from '/src/editor/storage/hightex-db.ts';import {documentFormData,defaultSelection} from '/src/forms/model.ts';import '/src/App.css';import '/src/css/workspace.css';
 window.config={get:()=>({language:'id'})};window.hightex={};window.profile={get:async()=>({name:'Local Student',nim:'LOCAL123',advisorName:'Local Advisor',advisorNip:'LOCALNIP',cv:''})};
 const db=HighTexDB.getInstance();await db.open();
-const doc={id:'doc-a',title:'Implementasi _machine learning_ untuk klasifikasi',altTitle:'',category:'1',keywords:{indonesian:[],english:[]},profile:{name:'Student A',nim:'123456',advisorName:'Advisor One',advisorNip:'NIP-A',secondAdvisor:{name:'Advisor Two',nip:'NIP-B'},cv:''},config:{leader:'Chair Person',member_1:'Examiner One',member_2:'Examiner Two',kaprodi:{name:'Head Person',nip:'NIP-H'},consentDate:new Date(2026,10,2),validityDate:new Date(2026,10,3)}};
+const doc={id:'doc-a',title:'Implementasi _machine learning_ untuk klasifikasi',altTitle:'',category:'1',keywords:{indonesian:[],english:[]},profile:{name:'Student A',nim:'123456',advisorName:'Advisor One',advisorNip:'NIP-A',secondAdvisor:{name:'Advisor Two',nip:'NIP-B'},cv:'',committee:{chair:{id:'chair',name:'Chair Person',nip:'NIP-C'},examiner1:{id:'examiner-1',name:'Examiner One',nip:'NIP-E1'},examiner2:{id:'examiner-2',name:'Examiner Two',nip:'NIP-E2'}}},config:{kaprodi:{name:'Head Person',nip:'NIP-H'},consentDate:new Date(2026,10,2),validityDate:new Date(2026,10,3)}};
 const legacy={...doc,id:'legacy',title:'Legacy document',profile:undefined,config:{member_1:'Legacy Examiner'}};
 const kp={...doc,id:'kp',title:'Laporan _internship_ KP',profile:{...doc.profile,advisorName:'KP Advisor'},config:{intern:{validity:new Date(2026,10,2)}}};
 await db.documents.bulkPut([doc,legacy,kp]);window.db=db;window.original=JSON.stringify(await db.documents.toArray());
@@ -37,8 +37,25 @@ writeFileSync(
   preload,
   `const{contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('formPrint',{export:input=>ipcRenderer.invoke('forms:archive:export',input),init:r=>ipcRenderer.invoke('forms:init:'+r),ready:(r,i)=>ipcRenderer.send('forms:ready',r,i),error:(r,m)=>ipcRenderer.send('forms:error',r,m),onNext:(r,cb)=>{const ch='forms:next:'+r;const fn=(_,i)=>cb(i);ipcRenderer.on(ch,fn);return()=>ipcRenderer.removeListener(ch,fn)}});`,
 );
-const execute = (code) =>
-  win.webContents.executeJavaScript(`(async()=>{${code}})()`);
+const execute = async (code) => {
+  let timer;
+  try {
+    return await Promise.race([
+      win.webContents.executeJavaScript(`(async()=>{${code}})()`),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              Error("Renderer evaluation timed out: " + code.slice(0, 240)),
+            ),
+          30000,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
 async function until(code, timeout = 60000) {
   const end = Date.now() + timeout;
   while (!(await execute(`return Boolean(${code})`))) {
@@ -114,7 +131,12 @@ app
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
     console.log("SERVER", origin);
-    const model = load(path.resolve(__dirname, "../../src/forms/model.ts"), {});
+    const model = load(path.resolve(__dirname, "../../src/forms/model.ts"), {
+      "../utils/document-committee": load(
+        path.resolve(__dirname, "../../src/utils/document-committee.ts"),
+        {},
+      ),
+    });
     const { FormArchiveService } = load(
       path.resolve(__dirname, "../../electron/service/form-archive-service.ts"),
       {
@@ -177,6 +199,7 @@ app
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Advisor One.')",
     );
+    console.log("PREVIEW loaded");
     assert.equal(
       await execute(
         `const doc=document.querySelector('iframe').contentDocument;return doc.querySelectorAll('img').length===1 && doc.querySelector('img').src.includes('logo-uin')`,
@@ -196,6 +219,13 @@ app
         `return document.querySelector('iframe').contentDocument.querySelector('.form-title-value em').textContent`,
       ),
       "machine learning",
+    );
+    assert.equal(
+      await execute(
+        `const text=document.querySelector('iframe').contentDocument.body.innerText;return ['NIP-C','NIP-E1','NIP-E2'].every(nip=>text.includes(nip))`,
+      ),
+      true,
+      "Committee NIPs must come directly from the document profile",
     );
     assert.equal(
       await execute(
@@ -223,6 +253,7 @@ app
       false,
     );
     await until("!document.querySelector('[data-form-preview] [role=status]')");
+    console.log("PROFILE NIPs verified");
     await execute(`
       window.longMinutes=window.fixtureInput('proposal');
       window.longMinutes.selection=[{code:'TA07'}];
@@ -234,13 +265,13 @@ app
       window.beforeLongMinutes=await window.db.documents.get('doc-a');
       const people=window.longMinutes.data.people;
       await window.db.documents.update('doc-a',{
-        profile:{...window.beforeLongMinutes.profile,advisorName:people.advisor1.name,advisorNip:people.advisor1.nip,secondAdvisor:{...people.advisor2}},
-        config:{...window.beforeLongMinutes.config,leader:people.chair.name,member_1:people.examiner1.name,member_2:people.examiner2.name}
+        profile:{...window.beforeLongMinutes.profile,advisorName:people.advisor1.name,advisorNip:people.advisor1.nip,secondAdvisor:{...people.advisor2},committee:{chair:{...people.chair},examiner1:{...people.examiner1},examiner2:{...people.examiner2}}}
       });
     `);
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Wijayakusuma')",
     );
+    console.log("LONG NAMES rendered");
     assert.equal(
       await execute(`
       const doc=document.querySelector('iframe').contentDocument;await doc.fonts.ready;
@@ -368,7 +399,7 @@ app
       "Form UI must not mutate documents",
     );
     await execute(
-      "await window.db.documents.update('doc-a',{profile:{...(await window.db.documents.get('doc-a')).profile,advisorName:'Advisor Updated'},config:{...(await window.db.documents.get('doc-a')).config,member_1:'Examiner Updated'}})",
+      "await window.db.documents.update('doc-a',{profile:{...(await window.db.documents.get('doc-a')).profile,advisorName:'Advisor Updated',committee:{...(await window.db.documents.get('doc-a')).profile.committee,examiner1:{name:'Examiner Updated',nip:'NIP-E1-UPDATED'}}}})",
     );
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Advisor Updated.') && document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Examiner Updated.')",
@@ -421,7 +452,7 @@ app
     assert(!defenseFiles["TA-09.pdf"]);
     writeFileSync(path.join(profile, "defense.zip"), defense);
     console.log(
-      "PASS: minimal optional administration, blank faculty fields, local legacy profile, live config/profile updates, name utility, native HTML printing, original paper size, separate PDFs in ZIP, source preservation, responsive UI, aligned long TA07 names, bounded workspace and preview scrolling, proposal-only B0/B1.",
+      "PASS: minimal optional administration, blank faculty fields, local legacy profile, live profile committee/NIP updates, name utility, native HTML printing, original paper size, separate PDFs in ZIP, source preservation, responsive UI, aligned long TA07 names, bounded workspace and preview scrolling, proposal-only B0/B1.",
     );
     console.log("Artifacts:", profile);
   })
@@ -437,6 +468,7 @@ app
   })
   .finally(async () => {
     win?.destroy();
+    server?.closeAllConnections();
     await vite?.close();
     await new Promise((resolve) =>
       server ? server.close(resolve) : resolve(),

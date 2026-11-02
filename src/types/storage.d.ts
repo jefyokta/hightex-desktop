@@ -73,8 +73,11 @@ declare global {
     consentDate?: Date;
     validityDate?: Date;
     statementDate?: Date;
+    /** @deprecated Legacy archive field. Runtime assignments live in profile.committee. */
     leader?: string;
+    /** @deprecated Use profile.committee.examiner1. */
     member_1?: string;
+    /** @deprecated Use profile.committee.examiner2. */
     member_2?: string;
     // intern only
     intern?: {

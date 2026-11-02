@@ -6,6 +6,7 @@ import { isProfileVariable } from "@/utils/document-profile";
 import { contentAssets } from "@/utils/content-assets";
 import { toWebPBlob } from "@/utils/images-to-webp";
 import Dexie from "dexie";
+import { migrateDocumentCommittee } from "@/utils/document-committee";
 
 export interface DraftState {
   document?: HighTexDocument;
@@ -194,14 +195,14 @@ export const prepareDraftImport = async (
       }
     : undefined;
   const state: PreparedDraft["state"] = {
-    document: {
+    document: migrateDocumentCommittee({
       ...structuredClone(model.document),
       profile,
       id,
       category: String(category.id),
       config,
       updatedAt: new Date(),
-    },
+    }),
     chapters: model.chapters.map((chapter) => ({
       id: `${id}.${chapterName(chapter.id)}`,
       content: chapter.content.map(rewrite),

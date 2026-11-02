@@ -1,3 +1,5 @@
+import { documentCommittee } from "../utils/document-committee";
+
 export type FormStage = "proposal" | "defense";
 export type FormCode =
   | "B0"
@@ -20,7 +22,7 @@ export type PersonKey =
   | "chair"
   | "head"
   | "internAdvisor";
-export type FormPerson = Required<NonNullable<HighTexConfig["kaprodi"]>>;
+export type FormPerson = AcademicPerson;
 // Only supplemental administrative data. Assessment, comments, revisions and
 // signatures belong to faculty and are deliberately absent from this model.
 export interface FormAdditionalData {
@@ -215,9 +217,13 @@ export function documentFormData(
     name: profile?.secondAdvisor?.name ?? "",
     nip: profile?.secondAdvisor?.nip ?? "",
   };
-  data.people.examiner1.name = config.member_1 ?? "";
-  data.people.examiner2.name = config.member_2 ?? "";
-  data.people.chair.name = config.leader ?? "";
+  const committee = documentCommittee({ ...document, profile });
+  for (const role of ["examiner1", "examiner2", "chair"] as const) {
+    data.people[role] = {
+      name: committee[role]?.name ?? "",
+      nip: committee[role]?.nip ?? "",
+    };
+  }
   data.people.head = {
     name: config.kaprodi?.name ?? "",
     nip: config.kaprodi?.nip ?? "",

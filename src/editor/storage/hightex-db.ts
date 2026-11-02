@@ -17,6 +17,7 @@ import {
   withCloudAcademicSource,
   preserveCloudAcademic,
 } from "@/utils/cloud-academic";
+import { migrateDocumentCommittee } from "@/utils/document-committee";
 
 export class HighTexDB extends Dexie {
   documents!: Table<HighTexDocument, string>;
@@ -52,6 +53,18 @@ export class HighTexDB extends Dexie {
         const variables = await transaction.table("variables").toArray();
         await transaction.table("documentVariables").bulkPut(variables);
       });
+    this.version(3)
+      .stores({})
+      .upgrade(async (transaction) => {
+        await transaction
+          .table<HighTexDocument>("documents")
+          .toCollection()
+          .modify((document) => {
+            const migrated = migrateDocumentCommittee(document);
+            document.config = migrated.config;
+            document.profile = migrated.profile;
+          });
+      });
     this.on("populate", (transaction) => {
       return transaction.table("cite").bulkPut(defaulBib);
     });
@@ -85,18 +98,20 @@ export class HighTexDB extends Dexie {
     const updated = await this.transaction("rw", this.documents, async () => {
       const current = await this.documents.get(document.id);
       const profile = current ? current.profile : document.profile;
-      const next = preserveCloudAcademic(current, {
-        ...document,
-        // Metadata changes must not overwrite a profile edited elsewhere.
-        profile: authorDetails
-          ? {
-              ...emptyAuthorProfile(),
-              ...profile,
-              ...getAuthorDetails(authorDetails),
-            }
-          : profile,
-        updatedAt: new Date(),
-      });
+      const next = migrateDocumentCommittee(
+        preserveCloudAcademic(current, {
+          ...document,
+          // Metadata changes must not overwrite a profile edited elsewhere.
+          profile: authorDetails
+            ? {
+                ...emptyAuthorProfile(),
+                ...profile,
+                ...getAuthorDetails(authorDetails),
+              }
+            : profile,
+          updatedAt: new Date(),
+        }),
+      );
       await this.documents.put(next);
       return next;
     });
@@ -109,11 +124,13 @@ export class HighTexDB extends Dexie {
       const document = await this.documents.get(documentId);
       if (!document) throw new Error("Document not found");
 
-      const next = preserveCloudAcademic(document, {
-        ...document,
-        profile: { ...emptyAuthorProfile(), ...document.profile, ...patch },
-        updatedAt: new Date(),
-      });
+      const next = migrateDocumentCommittee(
+        preserveCloudAcademic(document, {
+          ...document,
+          profile: { ...emptyAuthorProfile(), ...document.profile, ...patch },
+          updatedAt: new Date(),
+        }),
+      );
       await this.documents.put(next);
       return next;
     });

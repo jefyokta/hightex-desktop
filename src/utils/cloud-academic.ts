@@ -1,22 +1,30 @@
 import { CloudError } from "@/exception/cloud-error";
 import { emptyAuthorProfile } from "./document-profile";
+import {
+  documentCommittee,
+  migrateDocumentCommittee,
+} from "./document-committee";
 
 /** Apply only server-owned fields; local CV/photos, dates and content stay editable. */
 export const applyCloudAcademic = (
   document: HighTexDocument,
   data: Pick<CloudAcademicData, "author" | "committee">,
-): HighTexDocument => ({
-  ...document,
-  profile: {
-    ...emptyAuthorProfile(),
-    ...document.profile,
-    ...structuredClone(data.author),
-    secondAdvisor: data.author.secondAdvisor
-      ? structuredClone(data.author.secondAdvisor)
-      : undefined,
-  },
-  config: { ...document.config, ...structuredClone(data.committee) },
-});
+): HighTexDocument =>
+  migrateDocumentCommittee({
+    ...document,
+    profile: {
+      ...emptyAuthorProfile(),
+      ...document.profile,
+      ...structuredClone(data.author),
+      committee: structuredClone(
+        data.author.committee ?? documentCommittee({ config: data.committee }),
+      ),
+      secondAdvisor: data.author.secondAdvisor
+        ? structuredClone(data.author.secondAdvisor)
+        : undefined,
+    },
+    config: { ...document.config, ...structuredClone(data.committee) },
+  });
 
 export const preserveCloudAcademic = (
   current: HighTexDocument | undefined,

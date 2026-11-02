@@ -11,7 +11,7 @@ export const Validity = () => {
 
   const members: { role: string; name: string }[] = [
     {
-      name: doc.config.leader || "",
+      name: profile?.committee?.chair?.name || "",
       role: "Ketua",
     },
     {
@@ -27,11 +27,11 @@ export const Validity = () => {
         ]
       : []),
     {
-      name: doc.config.member_1 || "",
+      name: profile?.committee?.examiner1?.name || "",
       role: profile?.secondAdvisor ? "Anggota 2" : "Anggota 1",
     },
     {
-      name: doc.config.member_2 || "",
+      name: profile?.committee?.examiner2?.name || "",
       role: profile?.secondAdvisor ? "Anggota 3" : "Anggota 2",
     },
   ];

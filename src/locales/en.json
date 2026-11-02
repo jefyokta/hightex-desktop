@@ -816,6 +816,7 @@
   },
   "open": "Open",
   "document_profile": {
+    "faculty_officials": "Faculty and Program Officials",
     "title": "Document author",
     "description": "Author and advisors saved with this document. Changes apply only to this document.",
     "missing": "This document has no saved author profile. Enter the author details or review the defaults before saving.",

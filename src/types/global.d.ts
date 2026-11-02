@@ -2,6 +2,10 @@ import { Chapter } from "@/editor/chapter";
 import { SnapshotRelation } from "@main/database/models/snapshot";
 import { JSONContent } from "@tiptap/core";
 import { CiteUtils } from "bibtex.js";
+import type {
+  AcademicCommittee as ImportedAcademicCommittee,
+  AcademicPerson as ImportedAcademicPerson,
+} from "@hightex/importer";
 
 export {};
 
@@ -9,6 +13,8 @@ declare global {
   type Promisable<T = void> = T | Promise<T>;
   type ThemeMode = "light" | "dark" | "system";
   type SupportedLanguage = "en" | "id";
+  type AcademicPerson = ImportedAcademicPerson;
+  type AcademicCommittee = ImportedAcademicCommittee;
 
   interface LegacyProfile {
     name: string;
@@ -22,6 +28,7 @@ declare global {
   }
   interface Profile extends LegacyProfile {
     cv: string;
+    committee?: AcademicCommittee;
   }
 
   interface AuthorProfile extends Profile {

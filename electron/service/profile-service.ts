@@ -13,6 +13,7 @@ export class ProfileService {
       advisorName: "Advisor",
       advisorNip: "1111",
       cv: "",
+      committee: {},
     };
   }
   static profilePicturePath: string = path.join(

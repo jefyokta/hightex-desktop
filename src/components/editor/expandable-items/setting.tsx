@@ -27,6 +27,8 @@ import { TabHeader } from "./components/tab-header";
 import { DatePickerInput } from "@/components/ui/date-picker";
 import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
+import { documentCommittee } from "@/utils/document-committee";
+import { CommitteeFields } from "@/components/committee-fields";
 
 export const Setting = () => {
   const db = HighTexDB.getInstance();
@@ -113,12 +115,11 @@ export const Setting = () => {
   };
 
   const useDefaultProfile = async () => {
-    const { name, nim, advisorName, advisorNip, secondAdvisor } =
-      await window.profile.get();
+    const profile = await window.profile.get();
     updateProfile(
       isInternDoc
-        ? { name, nim }
-        : { name, nim, advisorName, advisorNip, secondAdvisor },
+        ? { name: profile.name, nim: profile.nim }
+        : getAuthorDetails({ ...profile, committee: profile.committee ?? {} }),
     );
   };
 
@@ -336,6 +337,12 @@ export const Setting = () => {
               )}
             </>
           )}
+          {!isInternDoc && (
+            <CommitteeFields
+              value={documentCommittee(doc)}
+              onChange={(committee) => updateProfile({ committee })}
+            />
+          )}
           <p className="text-xs text-muted-foreground">
             {t("document_profile.cv_hint")}
           </p>
@@ -375,50 +382,8 @@ export const Setting = () => {
 
         <Section
           disabled={academic.locked}
-          title={t("editor.expandable.setting.thesis_examination_committee")}
+          title={t("document_profile.faculty_officials")}
         >
-          <Field
-            label={t("editor.expandable.setting.leaded_by")}
-            value={doc.config.leader ?? ""}
-            onChange={(leader) =>
-              setDoc((prev) => ({
-                ...prev!,
-                config: {
-                  ...prev?.config,
-                  leader,
-                },
-              }))
-            }
-          />
-
-          <Field
-            label={t("editor.expandable.setting.primary_examiner_name")}
-            value={doc.config.member_1 ?? ""}
-            onChange={(member_1) =>
-              setDoc((prev) => ({
-                ...prev!,
-                config: {
-                  ...prev?.config,
-                  member_1,
-                },
-              }))
-            }
-          />
-
-          <Field
-            label={t("editor.expandable.setting.secondary_examiner_name")}
-            value={doc.config.member_2 ?? ""}
-            onChange={(member_2) =>
-              setDoc((prev) => ({
-                ...prev!,
-                config: {
-                  ...prev?.config,
-                  member_2,
-                },
-              }))
-            }
-          />
-
           <Field
             label={t("editor.expandable.setting.kaprodi_name")}
             value={doc.config.kaprodi?.name ?? ""}
