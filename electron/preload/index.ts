@@ -177,6 +177,13 @@ contextBridge.exposeInMainWorld("hightex", {
       ipcRenderer.invoke("hightex:document:backup", sessionId, file),
   },
 } satisfies Window["hightex"]);
+contextBridge.exposeInMainWorld("formPrint", {
+  export: (input) => ipcRenderer.invoke("forms:archive:export", input),
+  init: (request) => ipcRenderer.invoke(`forms:init:${request}`),
+  ready: (request, index) => ipcRenderer.send("forms:ready", request, index),
+  error: (request, message) =>
+    ipcRenderer.send("forms:error", request, message),
+} satisfies FormPrintAPI);
 contextBridge.exposeInMainWorld("snapshotPrint", {
   init: (request: string) => ipcRenderer.invoke(`snapshot:pdf:init:${request}`),
   result: (request: string, payload: SnapshotPDFPayload) =>

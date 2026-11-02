@@ -70,7 +70,7 @@ export const AppLayout = () => {
         <div className="hidden lg:block">
           <Sidebar recent={recent} onGuide={() => void guide.replay()} />
         </div>
-        <div className="flex min-w-0 flex-1 flex-col lg:pr-3 lg:pb-3">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:pr-3 lg:pb-3">
           <header className="flex h-14 shrink-0 items-center justify-between gap-3 px-5 lg:px-3">
             <div className="flex min-w-0 items-center gap-3">
               <button
@@ -106,7 +106,7 @@ export const AppLayout = () => {
           <main
             id="workspace-content"
             tabIndex={-1}
-            className="min-h-0 flex-1 overflow-auto bg-background outline-none "
+            className="relative min-h-0 flex-1 overflow-auto overscroll-none bg-background outline-none"
           >
             <div
               key={pathname}

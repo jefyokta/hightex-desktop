@@ -97,8 +97,42 @@ app
       if (event.level === "error") console.error(event.message);
     });
     await win.loadURL("http://127.0.0.1:" + server.address().port + "/");
+    const verifyToolbarTooltip = async () => {
+      // Toolbar hints must remain visible below the titlebar after it gained its
+      // own layer. Hover the actual toolbar button to open the Radix tooltip.
+      const point = await execute(
+        `(()=>{const box=document.querySelector('[data-tour="editor-bold"]').getBoundingClientRect();return {x:Math.round(box.left+box.width/2),y:Math.round(box.top+box.height/2)}})()`,
+      );
+      win.webContents.sendInputEvent({ type: "mouseMove", ...point });
+      await until(
+        `document.querySelector('[data-slot="tooltip-content"][data-state="instant-open"],[data-slot="tooltip-content"][data-state="delayed-open"]')`,
+      );
+      assert.ok(
+        await execute(
+          `(()=>{const tip=document.querySelector('[data-slot="tooltip-content"]');const header=document.querySelector('[data-editor-titlebar]');return parseInt(getComputedStyle(tip).zIndex)>parseInt(getComputedStyle(header).zIndex)&&tip.getBoundingClientRect().top>=header.getBoundingClientRect().bottom&&tip.dataset.side==='bottom'})()`,
+        ),
+        "toolbar tooltip must paint above titlebar and open below its trigger",
+      );
+      writeFileSync(
+        path.join(profile, "editor-toolbar-tooltip.png"),
+        (await win.webContents.capturePage()).toPNG(),
+      );
+      await execute("document.activeElement.blur()");
+    };
     await ready("/document/demo/1");
     await until(`document.querySelector('[data-guide-announcement]')`);
+    if (process.env.HIGHTEX_UI_ONLY === "tooltip") {
+      await execute(
+        `Array.from(document.querySelectorAll('[data-guide-announcement] button')).find(button=>button.textContent.trim()==='Lewati panduan').click()`,
+      );
+      await until(`!document.querySelector('[role=dialog]')`);
+      await verifyToolbarTooltip();
+      console.log(
+        "PASS: toolbar tooltip opens below the control and paints above the titlebar. Screenshots: " +
+          profile,
+      );
+      return;
+    }
     await until(
       `document.querySelector('[data-editor-window-title]')?.textContent==='Scroll fixture'`,
     );
@@ -374,6 +408,7 @@ app
     await until(`!document.querySelector('[data-tour-panel]')`);
     win.setSize(1440, 940);
     await ready("/document/demo/1");
+    await verifyToolbarTooltip();
     const shortcut = async (key, modifiers = { metaKey: true }) =>
       execute(
         `(()=>{const event=new KeyboardEvent('keydown',{key:${JSON.stringify(key)},...${JSON.stringify(modifiers)},bubbles:true,cancelable:true});document.dispatchEvent(event);return event.defaultPrevented})()`,

@@ -24,11 +24,16 @@ import { submissionWorkflow } from "@main/service/submission-workflow-service";
 import { advisorService } from "@main/service/advisor-service";
 import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 import { ServerUrl } from "../url/server-url";
+import { FormArchiveService } from "../service/form-archive-service";
+import type { FormPrintInput } from "../../src/forms/model";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
+    IPCMain.handle("forms:archive:export", (_, input: FormPrintInput) =>
+      new FormArchiveService().export(input),
+    );
     IPCMain.handle(
       "hightex:server-url",
       (_, path = "/") => ServerUrl.instance.resolve(path).href,

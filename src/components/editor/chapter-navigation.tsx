@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChapterNavigation } from "@/hooks/use-chapter-navigation";
+import { useChapterNavigation } from "@/hooks/use-editor-navigation";
 import { t, useAppLanguage } from "@/utils/lang";
 
 const chapterLabel = (chapter: Chapter) =>

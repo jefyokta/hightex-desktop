@@ -1,0 +1,572 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: auto !important;
+  width: 100%;
+  background: #e7e7e7;
+}
+* {
+  box-sizing: border-box;
+}
+.forms-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+}
+.forms-paper {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  color: #000;
+  padding: 16pt 40pt 30pt;
+  font:
+    11pt/1.18 "Times New Roman",
+    serif;
+  break-after: page;
+  box-shadow: 0 1px 8px #0002;
+}
+.forms-paper:last-child {
+  break-after: auto;
+}
+.form-letterhead {
+  display: grid;
+  grid-template-columns: 100pt minmax(0, 1fr);
+  align-items: center;
+  gap: 14pt;
+  min-height: 138pt;
+  border-bottom: 3.3pt solid #000;
+  padding-bottom: 6pt;
+}
+.form-letterhead > img {
+  display: block;
+  width: 100pt;
+  height: 124pt;
+  object-fit: contain;
+}
+.form-letterhead-text {
+  text-align: center;
+  line-height: 1.08;
+}
+.form-ministry,
+.form-university,
+.form-faculty {
+  color: #000099;
+  font-size: 13pt;
+}
+.form-ministry {
+  font-size: 14pt;
+}
+.form-university {
+  font-size: 12.5pt;
+  line-height: 1.16;
+  margin-top: 2pt;
+}
+.form-faculty {
+  font-weight: bold;
+  margin-top: 2pt;
+}
+.form-arabic {
+  font:
+    27pt/1.15 "Times New Roman",
+    serif;
+  color: #000;
+  margin: 2pt 0;
+}
+.form-faculty-en {
+  font-size: 10.5pt;
+  font-weight: bold;
+  color: #000099;
+  margin: 2pt 0 3pt;
+}
+.form-letterhead address {
+  font:
+    normal 6.5pt/1.16 "Times New Roman",
+    serif;
+  white-space: nowrap;
+}
+.form-letterhead address span {
+  color: #0000cc;
+  text-decoration: underline;
+}
+.form-code {
+  text-align: right;
+  margin-top: 10pt;
+  font-size: 9pt;
+  line-height: 15pt;
+}
+.form-code > span {
+  display: inline-block;
+  min-width: 76pt;
+  border: 0.5pt solid #000;
+  text-align: center;
+  padding: 0 5pt;
+}
+.form-heading {
+  font-size: 12pt;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: underline;
+  margin: 14pt 0 20pt;
+  line-height: 1.2;
+}
+.form-body {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+.form-body p,
+.form-body h3 {
+  margin: 0;
+}
+.form-body h3 {
+  font-size: inherit;
+  font-weight: normal;
+}
+.form-body table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  break-inside: avoid;
+}
+.form-details {
+  font-size: 11pt;
+}
+.form-details th,
+.form-details td {
+  vertical-align: top;
+  padding: 2pt 0;
+  font-weight: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.form-details th {
+  width: 112pt;
+}
+.form-details .form-colon {
+  width: 10pt;
+}
+.form-details-ruled .form-detail-value {
+  border-bottom: 0.5pt dotted #555;
+}
+.form-details-ruled tr:last-child .form-detail-value {
+  padding-bottom: 2pt;
+}
+.form-title-value {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.form-long-title {
+  min-height: 25pt;
+}
+.form-blank-line {
+  display: inline-block;
+  min-width: 28pt;
+  max-width: 100%;
+  height: 1em;
+  border-bottom: 0.5pt dotted #000;
+  vertical-align: baseline;
+}
+.form-detail-value > .form-blank-line {
+  width: 100%;
+  border: 0;
+}
+.form-stage-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 3pt;
+}
+.form-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 4pt;
+  white-space: nowrap;
+}
+.form-choice-box {
+  display: inline-flex;
+  width: 9pt;
+  height: 9pt;
+  border: 0.7pt solid #000;
+  align-items: center;
+  justify-content: center;
+  font-size: 12pt;
+  line-height: 1;
+  font-family: serif;
+}
+.form-grid th,
+.form-grid td {
+  border: 0.6pt solid #000;
+  padding: 3pt 4pt;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.form-grid th {
+  font-weight: bold;
+  text-align: center;
+}
+.form-grid small {
+  font-size: 9pt;
+  font-weight: normal;
+}
+.form-grid tr {
+  break-inside: avoid;
+}
+.form-center {
+  text-align: center;
+}
+.form-notes {
+  font-size: 9pt;
+  line-height: 1.2;
+}
+.form-notes p {
+  margin: 0;
+}
+.form-notes ol,
+.form-notes ul {
+  padding-left: 18pt;
+  margin: 1pt 0;
+}
+.form-signatures {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 65pt;
+  row-gap: 22pt;
+  margin-top: 14pt;
+  break-inside: avoid;
+}
+.form-signatures-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 25pt;
+}
+.form-signature {
+  font-size: 10.5pt;
+  line-height: 1.2;
+  break-inside: avoid;
+  overflow-wrap: anywhere;
+}
+.form-sign-date {
+  margin-bottom: 2pt;
+  white-space: nowrap;
+  font-size: 10pt;
+}
+.form-sign-space {
+  height: 37pt;
+}
+.form-sign-name {
+  text-decoration: underline;
+}
+.form-sign-name > .form-blank-line {
+  width: 100%;
+  text-decoration: none;
+}
+.form-sign-nip > .form-blank-line {
+  min-width: 48pt;
+}
+.form-right-signature {
+  width: 45%;
+  margin: 12pt 0 0 auto;
+}
+.form-faculty-box {
+  border: 0.6pt solid #000;
+  padding: 8pt;
+  break-inside: avoid;
+}
+.form-faculty-box h3 {
+  font-size: 10.5pt;
+  font-weight: normal;
+}
+.form-faculty-box > [data-faculty-blank] {
+  min-height: 100pt;
+}
+.form-revision-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.form-revision-boxes .form-faculty-box + .form-faculty-box {
+  border-top: 0;
+}
+.form-revision-boxes .form-faculty-box > [data-faculty-blank] {
+  min-height: 112pt;
+}
+.form-seminar-attendance {
+  font-size: 9pt;
+}
+.form-seminar-attendance thead th {
+  vertical-align: middle;
+  font-size: 8.5pt;
+  padding: 4pt 2pt;
+}
+.form-seminar-attendance tbody tr {
+  height: 72pt;
+}
+.form-seminar-attendance .form-attendee-name {
+  height: 22pt;
+}
+.form-internship-identity th {
+  width: 40%;
+  text-align: left;
+  vertical-align: middle;
+  font-weight: normal;
+}
+.form-internship-identity td,
+.form-internship-identity th {
+  padding: 7pt;
+}
+.form-internship-identity ol {
+  margin: 0;
+  padding-left: 17pt;
+  line-height: 1.5;
+}
+.form-circled-program {
+  display: inline-block;
+  border: 0.7pt solid #000;
+  border-radius: 50%;
+  padding: 0 5pt;
+  margin: 0 -5pt;
+}
+.form-internship-title {
+  padding-top: 1pt;
+}
+.form-internship-title > div {
+  min-height: 66pt;
+  line-height: 1.5;
+  border-bottom: 0.5pt dotted #000;
+  padding: 4pt 0;
+}
+.form-internship-statement {
+  font-size: 10.5pt;
+  line-height: 1.35;
+  text-align: justify;
+}
+.form-internship-date {
+  width: 62%;
+  margin-left: 45pt;
+}
+.form-internship-date .form-details th {
+  width: 65pt;
+}
+.form-internship-signatures {
+  margin-top: 12pt;
+  column-gap: 70pt;
+}
+.form-guidance {
+  font-size: 9pt;
+}
+.form-guidance thead th {
+  vertical-align: middle;
+  font-size: 8.3pt;
+  padding: 3pt 2pt;
+}
+.form-guidance tbody tr {
+  height: 50pt;
+}
+.form-guidance tbody td {
+  vertical-align: top;
+  text-align: center;
+}
+.form-guidance-approval {
+  margin-top: -10pt;
+  font-size: 9pt;
+}
+.form-guidance-approval td:last-child {
+  width: 105pt;
+}
+.form-guidance-approval td {
+  height: 22pt;
+  padding: 3pt;
+}
+.form-b2 .form-body {
+  gap: 8pt;
+}
+.form-b2 .form-heading {
+  margin-bottom: 14pt;
+}
+.form-b2 .form-notes {
+  font-size: 8.5pt;
+}
+.form-event-attendance {
+  font-size: 10.5pt;
+}
+.form-event-attendance tbody tr {
+  height: 21pt;
+}
+.form-event-attendance tbody td:first-child {
+  text-align: center;
+}
+.form-minutes-comments {
+  padding: 0;
+  border: 0;
+}
+.form-minutes-comments h3 {
+  font-size: 10.5pt;
+  margin-bottom: 6pt;
+}
+.form-minutes-comments > [data-faculty-blank] {
+  border: 0.7pt solid #000;
+  min-height: 185pt;
+}
+.form-minutes-signatures {
+  margin-top: 4pt;
+  font-size: 10pt;
+  line-height: 1.2;
+}
+.form-minutes-signatures td,
+.form-minutes-signatures th {
+  width: 33.333%;
+  border: 0;
+  padding: 0 6pt;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+.form-minutes-roles th {
+  font-weight: normal;
+  vertical-align: bottom;
+}
+.form-minutes-sign-spaces td {
+  height: 34pt;
+}
+.form-minutes-names td {
+  height: 26pt;
+  vertical-align: bottom;
+  text-decoration: none;
+}
+.form-minutes-identities td {
+  padding-top: 3pt;
+  vertical-align: top;
+  white-space: nowrap;
+  font-size: 9.5pt;
+}
+.form-minutes-row-gap td {
+  height: 22pt;
+}
+.form-ta07 .form-body {
+  gap: 7pt;
+}
+.form-ta07 .form-heading {
+  margin-top: 0;
+  margin-bottom: 12pt;
+}
+.form-score-recap td {
+  height: 23pt;
+}
+.form-score-recap td:first-child {
+  text-align: center;
+}
+.form-assessment {
+  font-size: 10pt;
+  line-height: 1.12;
+}
+.form-assessment td,
+.form-assessment th {
+  padding: 1.5pt 4pt;
+}
+.form-assessment thead th {
+  vertical-align: middle;
+  line-height: 1.12;
+  padding: 4pt;
+}
+.form-assessment-section th {
+  text-align: left;
+}
+.form-subtotal {
+  text-align: right;
+}
+.form-ta02 .form-body,
+.form-ta03 .form-body {
+  gap: 8pt;
+}
+.form-ta02 .form-heading,
+.form-ta03 .form-heading {
+  margin-bottom: 15pt;
+}
+.form-ta02 .form-right-signature,
+.form-ta03 .form-right-signature {
+  margin-top: 5pt;
+}
+.form-ta02 .form-sign-space,
+.form-ta03 .form-sign-space {
+  height: 30pt;
+}
+.form-assessor-choices {
+  display: grid;
+  grid-template-columns: 112pt 1fr;
+  gap: 10pt;
+}
+.form-assessor-choices > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4pt;
+}
+.form-assessment-identity th {
+  width: 24%;
+  font-weight: normal;
+  text-align: left;
+}
+.form-assessment-identity td,
+.form-assessment-identity th {
+  padding: 2pt 4pt;
+}
+.form-final-grade {
+  font-size: 10.5pt;
+}
+.form-final-grade td {
+  height: 20pt;
+}
+.form-final-grade th {
+  padding: 4pt;
+}
+.form-grade-decision {
+  font-size: 10pt;
+}
+.form-committee-heading {
+  text-align: center;
+  font-weight: bold !important;
+  margin: 9pt 0 0 !important;
+}
+.form-final-signatures {
+  margin-top: 3pt;
+  row-gap: 25pt;
+}
+.form-final-signatures .form-sign-space {
+  height: 35pt;
+}
+@media screen {
+  html,
+  body,
+  #root {
+    height: 100% !important;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  #forms-render {
+    height: 100%;
+    overflow: auto;
+    overscroll-behavior: none;
+    scrollbar-gutter: stable;
+  }
+}
+@media print {
+  html,
+  body,
+  #root {
+    background: white;
+  }
+  #forms-render {
+    zoom: 1 !important;
+  }
+  .forms-pages {
+    zoom: 1 !important;
+    display: block;
+    padding: 0;
+  }
+  .forms-paper {
+    margin: 0;
+    box-shadow: none;
+  }
+}

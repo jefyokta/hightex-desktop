@@ -1,5 +1,5 @@
 import { Manager } from "@/editor/manager";
-import { useChapterNavigation } from "@/hooks/use-chapter-navigation";
+import { useChapterNavigation } from "@/hooks/use-editor-navigation";
 import { useEffect } from "react";
 
 export const EditorNavigatorSlave = () => {

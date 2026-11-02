@@ -30,6 +30,7 @@ import { Snapshot } from "./pages/snapshot";
 import { SnapshotViewer } from "./pages/snapshot-viewer";
 import { Splitter } from "./pages/splitter";
 import { Forms } from "./pages/forms";
+import { FormsPrint } from "./pages/forms-print";
 import { Submission } from "./pages/submission";
 import { Review } from "./pages/review";
 import { SubmissionPrint } from "./pages/submission-print";
@@ -39,6 +40,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/forms/print" element={<FormsPrint />} />
         <Route path="/submission/print/:id" element={<SubmissionPrint />} />
         <Route element={<MainLayout />}>
           <Route path="/" element={<Splash />} />
