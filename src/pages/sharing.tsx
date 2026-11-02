@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/dashboard/page-header";
 import { useEffect, useState } from "react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -26,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { connectToHost } from "@/utils/sharing";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
-import { t } from "@/utils/lang";
+import { t, useAppLanguage } from "@/utils/lang";
 import { ParsedItalic } from "@/utils/parse-italic";
 
 const sharingType: { type: SharingType; name: string }[] = [
@@ -45,6 +46,7 @@ const sharingType: { type: SharingType; name: string }[] = [
 ];
 
 export const Present = () => {
+  useAppLanguage();
   const [docs, setDocs] = useState<HighTexDocument[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -107,13 +109,11 @@ export const Present = () => {
   if (activeSession) {
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl  p-6">
-          <h1 className="text-2xl font-semibold">{t("present.title")}</h1>
-
-          <p className="text-sm text-muted-foreground mt-2">
-            {t("present.session_active")}
-          </p>
-        </div>
+        <PageHeader
+          eyebrow={t("workspace.tools")}
+          title={t("present.title")}
+          description={t("present.session_active")}
+        />
 
         <SharingInfo
           session={activeSession}
@@ -128,15 +128,11 @@ export const Present = () => {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl  p-6 flex justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{t("present.title")}</h1>
-
-          <p className="text-sm text-muted-foreground mt-2">
-            {t("present.subtitle")}
-          </p>
-        </div>
-        <div>
+      <PageHeader
+        eyebrow={t("workspace.tools")}
+        title={t("present.title")}
+        description={t("present.subtitle")}
+        actions={
           <Dialog>
             <DialogTrigger className={cn(buttonVariants({ size: "sm" }))}>
               {t("present.join")}
@@ -175,8 +171,8 @@ export const Present = () => {
               </Button>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
+        }
+      />
 
       {docs.length === 0 ? (
         <div className="rounded-xl border p-6 text-sm text-muted-foreground">
@@ -302,7 +298,7 @@ const SharingInfo = ({
           <h3 className="font-semibold">Active Session</h3>
 
           <p className="text-sm text-muted-foreground">
-            {session.document.title}
+            <ParsedItalic text={session.document.title} />
           </p>
         </div>
         <div className="space-x-1">

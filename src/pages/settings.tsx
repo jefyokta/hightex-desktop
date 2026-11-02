@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/dashboard/page-header";
 import { AccountProfile } from "@/components/account-profile";
 import { useEffect, useState } from "react";
 
@@ -96,14 +97,10 @@ export const Settings = () => {
 
   return (
     <>
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">
-          {t("settings.title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("settings.subtitle")}
-        </p>
-      </div>
+      <PageHeader
+        title={t("settings.title")}
+        description={t("settings.subtitle")}
+      />
       <AppInfoSection />
       <AccountProfile />
       <ProfileSection />

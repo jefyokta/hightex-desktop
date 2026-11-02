@@ -160,7 +160,7 @@ export const Editor: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-h-full w-screen overflow-scroll bg-[#f1f3f5] dark:bg-black ">
+    <div className="min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f1f3f5] dark:bg-black">
       <div
         className={`w-full overflow-scroll h-full justify-between pt-4 ${config?.editor.scrollBar && "has-scrollbar"}`}
         id="main-scroll"
@@ -432,6 +432,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         className={`page ${chapter.getHtmlClass()} bg-white dark:bg-neutral-900! rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]`}
       >
         <EditorContent
+          data-tour="editor-content"
           spellCheck={config?.editor.spellCheck || false}
           lang={config?.language || "id-ID"}
           editor={editor}

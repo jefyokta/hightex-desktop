@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/dashboard/page-header";
+import { t, useAppLanguage } from "@/utils/lang";
 import { CloudError } from "@/exception/cloud-error";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -52,6 +54,7 @@ type Task =
 type Notice = { message: string; action?: { label: string; run: () => void } };
 
 export const RemoteDocuments = () => {
+  useAppLanguage();
   const { user } = useUser();
   const online = useOnline();
   if (!user) return <LoginGate />;
@@ -414,44 +417,41 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
   return (
     <main className="flex items-stretch gap-6 pb-10">
       <div className="mx-auto w-full min-w-0 max-w-3xl flex-1 space-y-5">
-        <header className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">Dokumen cloud</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Kelola salinan lokal, cadangkan ke cloud, lalu ajukan untuk
-              review.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="xl:hidden"
-              onClick={() => setHistoryOpen(true)}
-            >
-              <History className="size-4" />
-              Riwayat
-              {archives.length > 0 && (
-                <span className="rounded-full bg-muted px-1.5 text-[11px] leading-5">
-                  {archives.length}
-                </span>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void refresh()}
-              disabled={!online || busy}
-            >
-              {task?.kind === "refresh" ? (
-                <LoaderCircle className="size-4 animate-spin" />
-              ) : (
-                <RefreshCw className="size-4" />
-              )}
-              Muat ulang
-            </Button>
-          </div>
-        </header>
+        <PageHeader
+          title={t("remote.title")}
+          description={t("remote.subtitle")}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="xl:hidden"
+                onClick={() => setHistoryOpen(true)}
+              >
+                <History className="size-4" />
+                Riwayat
+                {archives.length > 0 && (
+                  <span className="rounded-full bg-muted px-1.5 text-[11px] leading-5">
+                    {archives.length}
+                  </span>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void refresh()}
+                disabled={!online || busy}
+              >
+                {task?.kind === "refresh" ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                Muat ulang
+              </Button>
+            </div>
+          }
+        />
 
         <div className="grid gap-3 sm:grid-cols-3">
           {[

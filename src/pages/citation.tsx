@@ -9,12 +9,16 @@ import { ZoteroImportDialog } from "@/components/citation/zotero-import-dialog";
 import { useCitationLibrary } from "@/hooks/use-citation-library";
 import { useBibtexImport } from "@/hooks/use-bibtex-import";
 import { useZoteroImport } from "@/hooks/use-zotero-import";
-import { t } from "@/utils/lang";
+import { t, useAppLanguage } from "@/utils/lang";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 export const Citation = () => {
+  useAppLanguage();
   const {
     citations,
     loading,
+    error,
+    retry,
     query,
     setQuery,
     filtered,
@@ -33,72 +37,84 @@ export const Citation = () => {
   );
   const zotero = useZoteroImport(handleImport);
 
-  if (loading) {
-    return (
-      <div className="flex-1 p-6">
-        <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">
-          {t("citation.loading")}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-full w-full max-w-3xl flex-1 flex-col p-6 mx-auto">
-      <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("citation.title")}
-          </h1>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("citation.subtitle")}
-          </p>
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-muted/20">
-          <div className="flex shrink-0 flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm font-medium">{t("citation.actions")}</div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => bibtex.setOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t("citation.add")}
-              </Button>
-
-              <Button variant="outline" onClick={zotero.openImport}>
-                <Zotero className="mr-2 h-2 w-2" />
-                {t("citation.import_zotero")}
-              </Button>
-            </div>
-          </div>
-
-          <div className="shrink-0 px-4 pb-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("citation.search", {
-                  count: citations.length,
-                })}
-                className="h-10 w-full rounded-xl border-0 bg-background/70 pl-10 pr-4 text-sm outline-none ring-1 ring-transparent transition focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-hidden px-2 pb-2">
-            {filtered.length === 0 ? (
-              <div className="flex h-full items-center justify-center rounded-xl text-sm text-muted-foreground">
-                {t("citation.empty")}
-              </div>
-            ) : (
-              <CitationList cites={filtered} onDelete={deleteCitation} />
-            )}
+    <div className="flex min-h-[65vh] flex-col gap-7">
+      <PageHeader
+        eyebrow={t("workspace.library")}
+        title={t("citation.title")}
+        description={t("citation.subtitle")}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={zotero.openImport}
+              disabled={loading}
+            >
+              <Zotero className="size-4" />
+              {t("citation.import_zotero")}
+            </Button>
+            <Button
+              className="workspace-primary"
+              data-tour="reference-add"
+              onClick={() => bibtex.setOpen(true)}
+              disabled={loading}
+            >
+              <Plus />
+              {t("citation.add")}
+            </Button>
+          </>
+        }
+      />
+      <section className="overflow-hidden border-t">
+        <div className="pb-4 pt-5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground" />
+            <Input
+              type="search"
+              aria-label={t("citation.search", { count: citations.length })}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("citation.search", { count: citations.length })}
+              className="h-10 bg-background pl-10"
+            />
           </div>
         </div>
-      </div>
+        <div className="min-h-64">
+          {loading ? (
+            <p
+              role="status"
+              className="p-8 text-center text-sm text-muted-foreground"
+            >
+              {t("citation.loading")}
+            </p>
+          ) : error ? (
+            <div
+              role="alert"
+              className="flex min-h-64 flex-col items-center justify-center gap-4 p-8 text-center"
+            >
+              <p className="text-sm text-muted-foreground">
+                {t("citation.load_failed")}
+              </p>
+              <Button variant="outline" onClick={retry}>
+                {t("dashboard.retry")}
+              </Button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-sm text-muted-foreground">
+              <p>
+                {query.trim() ? t("dashboard.no_results") : t("citation.empty")}
+              </p>
+              {query.trim() && (
+                <Button variant="outline" onClick={() => setQuery("")}>
+                  {t("dashboard.clear_filters")}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <CitationList cites={filtered} onDelete={deleteCitation} />
+          )}
+        </div>
+      </section>
 
       <BibtexImportDialog
         form={bibtex}

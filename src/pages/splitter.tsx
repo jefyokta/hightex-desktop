@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/dashboard/page-header";
 import { FileText, FileUp, Library } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -23,7 +24,7 @@ import { toast } from "sonner";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { truncate } from "@/utils/truncate";
 import { cn } from "@/lib/utils";
-import { t } from "@/utils/lang";
+import { t, useAppLanguage } from "@/utils/lang";
 
 type MainDocument =
   | {
@@ -82,6 +83,7 @@ const documents = [
 ] as const;
 
 export const Splitter = () => {
+  useAppLanguage();
   const [docs, setDocs] = useState<HighTexDocument[]>([]);
   const [started, setStarted] = useState(false);
 
@@ -386,15 +388,11 @@ export const Splitter = () => {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("split.title")}
-        </h1>
-
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t("split.subtitle")}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow={t("workspace.tools")}
+        title={t("split.title")}
+        description={t("split.subtitle")}
+      />
 
       <div className="space-y-6 rounded-2xl border bg-card p-6 shadow-sm">
         <div className="rounded-xl border p-5">
@@ -515,7 +513,9 @@ export const Splitter = () => {
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="font-medium">{document.title}</h3>
+                  <h3 className="font-medium">
+                    <ParsedItalic text={document.title} />
+                  </h3>
 
                   <p className="mt-1 text-sm text-muted-foreground">
                     {document.description}

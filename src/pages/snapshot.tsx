@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/dashboard/page-header";
+import { enUS, id as indonesian } from "date-fns/locale";
 import { formatDistanceToNow } from "date-fns";
 import { CalendarClock, FileArchive, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -6,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { confirm } from "@/utils/confirm";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
-import { t } from "@/utils/lang";
+import { t, getCurrentLanguage, useAppLanguage } from "@/utils/lang";
 
 const loadSnapshots = async () => {
   return (await window.ipcRenderer.invoke("snapshots")) as SnapshotEntity[];
@@ -18,7 +20,10 @@ const formatRelativeDate = (value: Date | string | null | undefined) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return t("snapshots.unknown_time");
 
-  return formatDistanceToNow(date, { addSuffix: true });
+  return formatDistanceToNow(date, {
+    addSuffix: true,
+    locale: getCurrentLanguage() === "id" ? indonesian : enUS,
+  });
 };
 
 const formatSnapshotType = (type: string) => {
@@ -40,6 +45,7 @@ const getSnapshotTitle = (snapshot: SnapshotEntity) => {
 };
 
 export const Snapshot = () => {
+  useAppLanguage();
   const navigate = useNavigate();
   const [snapshots, setSnapshots] = useState<SnapshotEntity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,26 +112,17 @@ export const Snapshot = () => {
   }, [refresh]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-4 pb-4">
-      <div className="flex shrink-0 items-start justify-between py-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("snapshots.title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("snapshots.description")}
-          </p>
-        </div>
-
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="flex items-center gap-2 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-800 dark:hover:bg-neutral-700"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          {t("snapshots.refresh")}
-        </button>
-      </div>
+    <div className="flex min-h-[60vh] flex-col gap-7">
+      <PageHeader
+        title={t("snapshots.title")}
+        description={t("snapshots.description")}
+        actions={
+          <Button variant="outline" onClick={refresh} disabled={loading}>
+            <RefreshCw className={loading ? "animate-spin" : ""} />
+            {t("snapshots.refresh")}
+          </Button>
+        }
+      />
 
       {error && (
         <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
@@ -133,7 +130,7 @@ export const Snapshot = () => {
         </div>
       )}
 
-      <section className="min-h-0 flex-1 rounded-2xl border border-transparent bg-neutral-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50">
+      <section className="min-h-0 flex-1 border-t pt-3">
         {loading ? (
           <EmptyState label={t("snapshots.loading")} />
         ) : snapshots.length === 0 ? (
@@ -182,7 +179,7 @@ export const Snapshot = () => {
                     size="icon-sm"
                     disabled={deletingId === snapshot.id}
                     onClick={() => deleteSnapshot(snapshot)}
-                    className="text-neutral-400 opacity-100 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                    className="text-neutral-400 opacity-100 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                     title={t("snapshots.delete_snapshot")}
                   >
                     {deletingId === snapshot.id ? (
