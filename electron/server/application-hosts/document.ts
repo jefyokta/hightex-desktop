@@ -46,8 +46,7 @@ export class DocumentRouter extends Router {
         const token = SessionService.getToken();
         headers.set("Authorization", `Bearer ${token}`);
       }
-      if (source.protocol !== "https" || source.username || source.password) {
-      }
+
 
       const response = await fetch(source, {
         signal: AbortSignal.timeout(60000),
