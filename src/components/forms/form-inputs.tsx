@@ -126,7 +126,13 @@ export function FormInputs({
     !source.name.trim() || !source.nim.trim() || !source.title.trim();
   const missingPeople = rolesFor(code, data).filter(
     (role) =>
-      !source.people[role].name.trim() || !source.people[role].nip.trim(),
+      ["head", "internAdvisor"].includes(role) &&
+      (!source.people[role].name.trim() || !source.people[role].nip.trim()),
+  );
+  const missingProfilePeople = rolesFor(code, data).some(
+    (role) =>
+      !["head", "internAdvisor"].includes(role) &&
+      (!source.people[role].name.trim() || !source.people[role].nip.trim()),
   );
   const schedule = ["TA01", "TA07", "TA08"].includes(code);
   const signing = !["B0", "B2"].includes(code);
@@ -228,6 +234,11 @@ export function FormInputs({
                 ))}
               </div>
             </details>
+          )}
+          {missingProfilePeople && (
+            <p className="text-xs text-muted-foreground">
+              {t("lecturers.complete_profile")}
+            </p>
           )}
           {["B0", "B1", "B3", "TA02", "TA03", "TA04", "TA09", "TA10"].includes(
             code,

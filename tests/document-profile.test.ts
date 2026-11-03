@@ -22,11 +22,9 @@ import {
 } from "../src/utils/document-profile";
 import { readProfileEntries } from "../src/utils/htx/profile";
 import { captureDraft } from "../src/utils/htx/draft-transfer";
-import {
-  documentCommittee,
-  migrateDocumentCommittee,
-} from "../src/utils/document-committee";
+import { migrateDocumentCommittee } from "../src/utils/document-committee";
 import { parseHighTexV2 } from "@hightex/importer";
+import { SchemaWritter } from "../src/utils/htx/schema/schema-writter";
 
 const category: Category = {
   id: 1,
@@ -173,6 +171,21 @@ describe("document authors and variables", () => {
 });
 
 describe("portable author profile", () => {
+  test("config serialization strips legacy committee fields even if a caller supplies them", () => {
+    const writer = new SchemaWritter();
+    const legacy = Object.assign({} as HighTexConfig, {
+      leader: "Old Chair",
+      member_1: "Old Examiner",
+      member_2: "",
+      consentDate: new Date("2026-11-03"),
+    });
+    writer.putConfig(legacy);
+    const config = JSON.parse(
+      strFromU8(writer.getEntries()["files/config.json"]),
+    );
+    expect(config).toEqual({ consentDate: legacy.consentDate!.toISOString() });
+    expect(legacy.leader).toBe("Old Chair");
+  });
   test("committee IDs, NIPs and explicit empty assignments survive profile normalization and export/import", async () => {
     const source = makeDocument("committee", "Student A");
     const committee: AcademicCommittee = {
@@ -188,19 +201,15 @@ describe("portable author profile", () => {
     expect(getAuthorDetails(source.profile!).committee).toEqual(committee);
     const { buffer, entries } = await new Exporter(source.id).buildExport();
     expect(parseHighTexV2(buffer).profile?.committee).toEqual(committee);
-    expect(JSON.parse(strFromU8(entries["files/config.json"]))).toMatchObject({
-      leader: committee.chair!.name,
-      member_1: committee.examiner1!.name,
-      member_2: committee.examiner2!.name,
-    });
+    expect(JSON.parse(strFromU8(entries["files/config.json"]))).toEqual({});
     const imported = await HighTexImporter.create(
       new File([buffer], "committee.hightex"),
       "/tmp/committee.hightex",
     );
     const saved = await imported.import("copy");
     expect(saved.profile?.committee).toEqual(committee);
-    expect(saved.config.leader).toBeUndefined();
-    expect(saved.config.member_1).toBeUndefined();
+    expect(saved.config).not.toHaveProperty("leader");
+    expect(saved.config).not.toHaveProperty("member_1");
     expect((await db.documents.get(source.id))?.config).toEqual({});
     await db.updateProfile(saved.id, { committee: {} });
     const cleared = await new Exporter(saved.id).buildExport();
@@ -251,8 +260,14 @@ describe("portable author profile", () => {
       consentDate: new Date("2026-11-03"),
       intern: { onsite_at: "Company" },
     });
-    expect(saved.config.leader).toBeUndefined();
+    expect(saved.config).not.toHaveProperty("leader");
     expect(importer.model.config.leader).toBe("Old Chair");
+    const reexported = parseHighTexV2(
+      (await new Exporter(saved.id).buildExport()).buffer,
+    );
+    expect(reexported.profile?.committee).toEqual(saved.profile?.committee);
+    for (const key of ["leader", "member_1", "member_2"])
+      expect(reexported.config).not.toHaveProperty(key);
   });
   test("content fingerprint includes document illustrations and excludes profile photos", async () => {
     await db.documents.put(makeDocument("a", "Student A"));
@@ -376,12 +391,15 @@ test("committee migration preserves authors, pictures and dates, is idempotent, 
   const picture = new Blob(["picture"], { type: "image/webp" });
   const date = new Date("2026-11-03");
   original.profile!.picture = picture;
-  original.config = {
-    leader: "Chair",
-    member_1: "Examiner",
-    validityDate: date,
-    kaprodi: { name: "Head", nip: "HEAD" },
-  };
+  original.config = Object.assign(
+    {},
+    {
+      leader: "Chair",
+      member_1: "Examiner",
+      validityDate: date,
+      kaprodi: { name: "Head", nip: "HEAD" },
+    },
+  );
   const migrated = migrateDocumentCommittee(original);
   expect(migrated.profile?.name).toBe("Original Student");
   expect(migrated.profile?.picture).toBe(picture);
@@ -391,7 +409,7 @@ test("committee migration preserves authors, pictures and dates, is idempotent, 
   });
   expect(migrated.config.validityDate).toBe(date);
   expect(migrated.config.kaprodi).toEqual(original.config.kaprodi);
-  expect(original.config.leader).toBe("Chair");
+  expect(original.config).toHaveProperty("leader", "Chair");
   expect(original.profile?.committee).toBeUndefined();
   expect(migrateDocumentCommittee(migrated)).toBe(migrated);
   const cleared = {
@@ -404,7 +422,6 @@ test("committee migration preserves authors, pictures and dates, is idempotent, 
     ...original,
     profile: { ...original.profile!, committee: chosen },
   };
-  expect(documentCommittee(selected)).toEqual(chosen);
   expect(migrateDocumentCommittee(selected).profile?.committee).toEqual(chosen);
 });
 
@@ -423,9 +440,15 @@ test("v2 database upgrade migrates each document's own committee and never refil
     documentVariables: "[documentId+name], documentId, name",
   });
   const a = makeDocument("a", "Student A");
-  a.config = { leader: "Chair A", member_1: "Examiner A" };
+  a.config = Object.assign({} as HighTexConfig, {
+    leader: "Chair A",
+    member_1: "Examiner A",
+  });
   const b = makeDocument("b", "Student B");
-  b.config = { leader: "Chair B", member_2: "Examiner B" };
+  b.config = Object.assign({} as HighTexConfig, {
+    leader: "Chair B",
+    member_2: "Examiner B",
+  });
   const c = { ...a, id: "cleared", profile: { ...a.profile!, committee: {} } };
   await old.table("documents").bulkPut([a, b, c]);
   old.close();

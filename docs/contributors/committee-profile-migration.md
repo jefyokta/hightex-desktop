@@ -39,17 +39,21 @@ in that object represent empty assignments. Legacy names never refill those
 roles. Runtime migrations remove the three legacy config keys and are
 idempotent.
 
+Forms, editor fields, and the compiler read `profile.committee` directly.
+Legacy configuration is interpreted only at migration boundaries, never as a
+runtime fallback for missing profile fields.
+
 ## Archive compatibility
 
 The archive remains schema v2. `committee` is optional, so older archives
 continue to parse. Import validation rejects malformed committee objects and
 non-string identities.
 
-At export only, `legacyCommitteeConfig` projects the current profile's names
-into the three old config fields. This lets older applications display the
-names. Older applications may discard the additional profile fields when they
-save an archive; this compatibility projection cannot preserve IDs and NIPs
-through an older importer. Updated clients preserve them on export/import.
+Exports store all chair and examiner data exclusively in `files/profile.json`.
+The config writer strips legacy committee keys and never recreates them. Old
+v2 archives remain readable through one-way migration into profile. Updated
+clients preserve names, IDs, and NIPs on export/import; applications with an
+older importer need to be updated to read the profile's committee fields.
 
 The archived bytes and hash of an existing snapshot are unchanged. Its
 in-memory interpretation uses the migration helper; the original file is

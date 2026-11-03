@@ -277,6 +277,10 @@ function FormWorkspace({
     for (const role of Object.keys(
       PERSON_LABELS,
     ) as (keyof FormData["people"])[]) {
+      if (!["head", "internAdvisor"].includes(role)) {
+        extra.people[role] = { name: "", nip: "" };
+        continue;
+      }
       if (source.people[role].name.trim()) extra.people[role].name = "";
       if (source.people[role].nip.trim()) extra.people[role].nip = "";
     }
@@ -361,6 +365,9 @@ function FormWorkspace({
           <summary className="cursor-pointer text-xs text-muted-foreground">
             {t("forms.view_source_data")}
           </summary>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t("forms.people_hint")}
+          </p>
           <dl className="mt-3 grid gap-x-6 gap-y-2 text-xs sm:grid-cols-2">
             {committee(data)
               .concat("head")

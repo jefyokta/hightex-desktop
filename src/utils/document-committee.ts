@@ -7,14 +7,15 @@ const legacyRoles = {
 type CommitteeDocument = Pick<HighTexDocument, "profile" | "config">;
 
 /** An explicit committee, even {}, is authoritative. Never resurrect cleared roles. */
-export function documentCommittee(
-  document: CommitteeDocument,
+export function migrateLegacyCommittee(
+  legacy: object,
+  current?: AcademicCommittee,
 ): AcademicCommittee {
-  if (document.profile?.committee !== undefined)
-    return document.profile.committee;
+  if (current !== undefined) return current;
   const committee: AcademicCommittee = {};
+  const fields = legacy as Record<string, unknown>;
   for (const role of Object.keys(legacyRoles) as (keyof AcademicCommittee)[]) {
-    const name = document.config[legacyRoles[role]];
+    const name = fields[legacyRoles[role]];
     if (typeof name === "string" && name.trim())
       committee[role] = { name, nip: "" };
   }
@@ -29,9 +30,11 @@ export function migrateDocumentCommittee<T extends CommitteeDocument>(
     Object.prototype.hasOwnProperty.call(document.config, key),
   );
   if (!hasLegacy) return document;
-  const committee = documentCommittee(document);
-  const config = { ...document.config };
-  for (const key of Object.values(legacyRoles)) delete config[key];
+  const committee = migrateLegacyCommittee(
+    document.config,
+    document.profile?.committee,
+  );
+  const config = withoutLegacyCommittee(document.config);
   // Preserve a genuinely absent author when there is no assignment to migrate.
   const profile =
     document.profile || Object.keys(committee).length
@@ -48,14 +51,9 @@ export function migrateDocumentCommittee<T extends CommitteeDocument>(
   return { ...document, config, profile };
 }
 
-/** Compatibility projection at the archive boundary, not a second runtime source. */
-export function legacyCommitteeConfig(
-  document: CommitteeDocument,
-): HighTexConfig {
-  if (document.profile?.committee === undefined) return document.config;
-  const config = { ...document.config };
-  for (const role of Object.keys(legacyRoles) as (keyof AcademicCommittee)[]) {
-    config[legacyRoles[role]] = document.profile.committee[role]?.name ?? "";
-  }
+/** Strip legacy committee keys before any document config is serialized. */
+export function withoutLegacyCommittee(value: HighTexConfig): HighTexConfig {
+  const config = { ...value } as HighTexConfig & Record<string, unknown>;
+  for (const key of Object.values(legacyRoles)) delete config[key];
   return config;
 }

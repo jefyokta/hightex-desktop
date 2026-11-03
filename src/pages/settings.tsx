@@ -48,6 +48,7 @@ import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 import { executeInteractively } from "@/utils/execute-interactively";
 import { useCitationCleanup } from "@/hooks/use-citation-cleanup";
 import { CommitteeFields } from "@/components/committee-fields";
+import { AdvisorFields } from "@/components/advisor-fields";
 
 export const Settings = () => {
   const { cleaning, deleteUnusedCitations } = useCitationCleanup();
@@ -768,113 +769,12 @@ const ProfileSection = () => {
               />
             </div>
 
-            <div className="grid w-full grid-cols-2 items-center gap-4">
-              <div className="space-y-0.5">
-                <Label>{t("settings.profile.advisor.name.label")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.profile.advisor.name.description")}
-                </p>
-              </div>
-
-              <Input
-                value={profile.advisorName}
-                onChange={(e) =>
-                  setProfile((prev) => ({
-                    ...prev,
-                    advisorName: e.target.value,
-                  }))
-                }
-              />
-            </div>
-
-            <div className="grid w-full grid-cols-2 items-center gap-4">
-              <div className="space-y-0.5">
-                <Label>{t("settings.profile.advisor.nip.label")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.profile.advisor.nip.description")}
-                </p>
-              </div>
-
-              <Input
-                value={profile.advisorNip}
-                onChange={(e) =>
-                  setProfile((prev) => ({
-                    ...prev,
-                    advisorNip: e.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="grid w-full  items-center gap-4">
-              <SettingSwitch
-                onChange={(e) => {
-                  if (e) {
-                    setProfile((prev) => ({
-                      ...prev,
-                      secondAdvisor: { name: "", nip: "" },
-                    }));
-                    return;
-                  }
-                  setProfile((prev) => ({ ...prev, secondAdvisor: undefined }));
-                }}
-                value={typeof profile.secondAdvisor !== "undefined"}
-                description={t(
-                  "settings.profile.second_advisor.enable_description",
-                )}
-                label={t("settings.profile.second_advisor.enable_label")}
-              />
-            </div>
-            {typeof profile.secondAdvisor !== "undefined" && (
-              <>
-                <div className="grid w-full grid-cols-2 items-center gap-4">
-                  <div className="space-y-0.5">
-                    <Label>
-                      {t("settings.profile.second_advisor.name.label")}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {t("settings.profile.second_advisor.name.description")}
-                    </p>
-                  </div>
-
-                  <Input
-                    value={profile.secondAdvisor.name}
-                    onChange={(e) =>
-                      setProfile((prev) => ({
-                        ...prev,
-                        secondAdvisor: {
-                          nip: prev.secondAdvisor?.nip || "",
-                          name: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="grid w-full grid-cols-2 items-center gap-4">
-                  <div className="space-y-0.5">
-                    <Label>
-                      {t("settings.profile.second_advisor.nip.label")}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {t("settings.profile.second_advisor.nip.description")}
-                    </p>
-                  </div>
-
-                  <Input
-                    value={profile.secondAdvisor.nip}
-                    onChange={(e) =>
-                      setProfile((prev) => ({
-                        ...prev,
-                        secondAdvisor: {
-                          name: prev.secondAdvisor?.name || "",
-                          nip: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-              </>
-            )}
+            <AdvisorFields
+              profile={profile}
+              onChange={(patch) =>
+                setProfile((previous) => ({ ...previous, ...patch }))
+              }
+            />
             <CommitteeFields
               value={profile.committee}
               onChange={(committee) =>

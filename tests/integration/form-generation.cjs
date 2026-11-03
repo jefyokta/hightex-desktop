@@ -24,7 +24,7 @@ import React from 'react';import {createRoot} from 'react-dom/client';import {Me
 window.config={get:()=>({language:'id'})};window.hightex={};window.profile={get:async()=>({name:'Local Student',nim:'LOCAL123',advisorName:'Local Advisor',advisorNip:'LOCALNIP',cv:''})};
 const db=HighTexDB.getInstance();await db.open();
 const doc={id:'doc-a',title:'Implementasi _machine learning_ untuk klasifikasi',altTitle:'',category:'1',keywords:{indonesian:[],english:[]},profile:{name:'Student A',nim:'123456',advisorName:'Advisor One',advisorNip:'NIP-A',secondAdvisor:{name:'Advisor Two',nip:'NIP-B'},cv:'',committee:{chair:{id:'chair',name:'Chair Person',nip:'NIP-C'},examiner1:{id:'examiner-1',name:'Examiner One',nip:'NIP-E1'},examiner2:{id:'examiner-2',name:'Examiner Two',nip:'NIP-E2'}}},config:{kaprodi:{name:'Head Person',nip:'NIP-H'},consentDate:new Date(2026,10,2),validityDate:new Date(2026,10,3)}};
-const legacy={...doc,id:'legacy',title:'Legacy document',profile:undefined,config:{member_1:'Legacy Examiner'}};
+const legacy={...doc,id:'legacy',title:'Legacy document',profile:undefined,config:{}};
 const kp={...doc,id:'kp',title:'Laporan _internship_ KP',profile:{...doc.profile,advisorName:'KP Advisor'},config:{intern:{validity:new Date(2026,10,2)}}};
 await db.documents.bulkPut([doc,legacy,kp]);window.db=db;window.original=JSON.stringify(await db.documents.toArray());
 localStorage.setItem('hightex:forms:v1:doc-a',JSON.stringify({version:1,stage:'proposal',internId:'kp',choices:{},inputs:{proposal:{scores:{'TA02:advisor1':['100']},minutesComment:'INJECTED COMMENT',revisions:{advisor1:{changes:'INJECTED REVISION',comment:'INJECTED COMMENT'}}}}}));
@@ -131,12 +131,7 @@ app
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
     console.log("SERVER", origin);
-    const model = load(path.resolve(__dirname, "../../src/forms/model.ts"), {
-      "../utils/document-committee": load(
-        path.resolve(__dirname, "../../src/utils/document-committee.ts"),
-        {},
-      ),
-    });
+    const model = load(path.resolve(__dirname, "../../src/forms/model.ts"), {});
     const { FormArchiveService } = load(
       path.resolve(__dirname, "../../electron/service/form-archive-service.ts"),
       {

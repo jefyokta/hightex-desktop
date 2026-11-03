@@ -1,5 +1,4 @@
 import { readAuthorProfile } from "@hightex/importer";
-import { documentCommittee } from "./document-committee";
 
 export const emptyAuthorProfile = (): AuthorProfile => ({
   name: "",
@@ -36,7 +35,7 @@ export const resolveDocumentProfile = (
 ): DocumentProfile => ({
   ...emptyAuthorProfile(),
   ...document.profile,
-  committee: documentCommittee(document),
+  committee: document.profile?.committee ?? {},
   isCloud: false,
   incomplete: !document.profile?.name.trim() || !document.profile?.nim.trim(),
 });

@@ -51,6 +51,11 @@ const loadConfig = async () => {
 loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
+  lecturers: {
+    cached: () => ipcRenderer.invoke("hightex:lecturers:cached"),
+    refresh: (force?: boolean) =>
+      ipcRenderer.invoke("hightex:lecturers:refresh", force === true),
+  },
   onboarding: {
     status: () => ipcRenderer.invoke("hightex:onboarding:status"),
     acknowledge: (guides: GuideAcknowledgment[]) =>

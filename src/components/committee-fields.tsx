@@ -1,7 +1,5 @@
-import { useId } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { t } from "@/utils/lang";
+import { LecturerPicker } from "./lecturer-picker";
 
 const roles = [
   ["chair", "editor.expandable.setting.leaded_by"],
@@ -12,53 +10,29 @@ const roles = [
 export function CommitteeFields({
   value = {},
   onChange,
+  disabled = false,
 }: {
   value?: AcademicCommittee;
   onChange: (value: AcademicCommittee) => void;
+  disabled?: boolean;
 }) {
-  const id = useId();
   return (
     <details className="rounded-md border p-3">
       <summary className="cursor-pointer text-sm font-medium">
-        {t("editor.expandable.setting.thesis_examination_committee")}
+        {t("document_profile.committee_title")}
       </summary>
       <div className="mt-4 space-y-4">
+        <p className="text-xs text-muted-foreground">
+          {t("document_profile.committee_hint")}
+        </p>
         {roles.map(([role, label]) => (
-          <div key={role} className="grid gap-2">
-            <Label htmlFor={`${id}-${role}-name`}>{t(label)}</Label>
-            <Input
-              id={`${id}-${role}-name`}
-              value={value[role]?.name ?? ""}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  [role]: {
-                    name: event.target.value,
-                    nip: value[role]?.id ? "" : (value[role]?.nip ?? ""),
-                  },
-                })
-              }
-            />
-            <Label
-              className="text-xs text-muted-foreground"
-              htmlFor={`${id}-${role}-nip`}
-            >
-              NIP / NIK
-            </Label>
-            <Input
-              id={`${id}-${role}-nip`}
-              value={value[role]?.nip ?? ""}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  [role]: {
-                    name: value[role]?.name ?? "",
-                    nip: event.target.value,
-                  },
-                })
-              }
-            />
-          </div>
+          <LecturerPicker
+            key={role}
+            label={t(label)}
+            disabled={disabled}
+            value={value[role] ?? { name: "", nip: "" }}
+            onChange={(person) => onChange({ ...value, [role]: person })}
+          />
         ))}
       </div>
     </details>

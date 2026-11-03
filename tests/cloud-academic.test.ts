@@ -74,12 +74,14 @@ const document = (id = "local-doc"): HighTexDocument => ({
     advisorNip: "MANUAL",
     secondAdvisor: { name: "Stale advisor", nip: "STALE" },
     cv: "<p>Local CV</p>",
+    committee: {
+      chair: { name: "Manual chair", nip: "" },
+      examiner1: { name: "Manual examiner", nip: "" },
+      examiner2: { name: "Manual examiner two", nip: "" },
+    },
     picture: new Blob([new Uint8Array([1, 2])], { type: "image/webp" }),
   },
   config: {
-    leader: "Manual chair",
-    member_1: "Manual examiner",
-    member_2: "Manual examiner two",
     kaprodi: { name: "Manual head", nip: "OLD" },
     dekan: { name: "Manual dean", nip: "OLD" },
     validityDate: new Date("2026-10-21T00:00:00Z"),
@@ -148,11 +150,13 @@ test("active mentorship roles and thesis assignments map by role, with server-fo
       advisorName: "Advisor One, M.Kom.",
       advisorNip: "NIP1",
       secondAdvisor: { name: "Advisor Two, M.Kom.", nip: "NIP2" },
+      committee: {
+        chair: { name: "Chair", nip: "" },
+        examiner1: { name: "Examiner One", nip: "" },
+        examiner2: { name: "Examiner Two", nip: "" },
+      },
     },
     committee: {
-      leader: "Chair",
-      member_1: "Examiner One",
-      member_2: "Examiner Two",
       kaprodi: { name: "Program Head", nip: "HEAD" },
       dekan: { name: "Dean", nip: "DEAN" },
     },
@@ -170,6 +174,8 @@ test("cloud committee retains directory IDs and NIPs in profiles and validates t
     nip: "000023",
   });
   const parsed = parseCloudAcademic(server, university);
+  for (const key of ["leader", "member_1", "member_2"])
+    expect(parsed.committee).not.toHaveProperty(key);
   expect(parsed.author.committee).toMatchObject({
     chair: { id: "17", name: "Chair", nip: "000017" },
     examiner1: { id: "23", name: "Examiner One", nip: "000023" },
@@ -204,7 +210,47 @@ test("cloud committee retains directory IDs and NIPs in profiles and validates t
   ).rejects.toMatchObject({ code: "academic_changed" });
   delete profile.committee;
   entries["files/profile.json"] = strToU8(JSON.stringify(profile));
+  // Simulate an old archive; newly exported archives have no committee config.
+  const config = JSON.parse(strFromU8(entries["files/config.json"]));
+  entries["files/config.json"] = strToU8(
+    JSON.stringify({
+      ...config,
+      leader: "Chair",
+      member_1: "Examiner One",
+      member_2: "Examiner Two",
+    }),
+  );
   await client.verify({ ...input, file: zipSync(entries) }, "server-doc");
+});
+
+test("legacy cloud cache is normalized into profile and cannot reintroduce committee config on save or export", async () => {
+  const old = academic();
+  delete old.author.committee;
+  Object.assign(old.committee, {
+    leader: "Legacy Chair",
+    member_1: "Legacy Examiner",
+    member_2: "",
+  });
+  await db.cacheCloudAcademic("local-doc", old);
+  const saved = await db.updateProfile("local-doc", { cv: "Updated CV" });
+  expect(saved.profile?.committee).toEqual({
+    chair: { name: "Legacy Chair", nip: "" },
+    examiner1: { name: "Legacy Examiner", nip: "" },
+  });
+  expect(saved.cloudAcademic?.author.committee).toEqual(
+    saved.profile?.committee,
+  );
+  const entries = unzipSync(
+    (await new Exporter("local-doc").exportForPush()).file,
+  );
+  const config = JSON.parse(strFromU8(entries["files/config.json"]));
+  const profile = JSON.parse(strFromU8(entries["files/profile.json"]));
+  expect(profile.committee).toEqual(saved.profile?.committee);
+  for (const key of ["leader", "member_1", "member_2"]) {
+    expect(saved.config).not.toHaveProperty(key);
+    expect(saved.cloudAcademic?.committee).not.toHaveProperty(key);
+    expect(config).not.toHaveProperty(key);
+  }
 });
 
 test("missing assignments clear old manual values instead of guessing advisors/examiners", async () => {
@@ -229,7 +275,7 @@ test("missing assignments clear old manual values instead of guessing advisors/e
     examiner1: { name: "", nip: "" },
     examiner2: { name: "", nip: "" },
   });
-  expect(doc?.config.leader).toBeUndefined();
+  expect(doc?.config).not.toHaveProperty("leader");
 });
 
 test("ambiguous roles, mismatched thesis student and malformed university data fail", () => {
@@ -353,7 +399,7 @@ test("cloud fields survive stale settings/profile writes while title, CV/photo a
   expect(result.config.validityDate).toEqual(editedDate);
   expect(result.profile?.name).toBe(academic().author.name);
   expect(result.profile?.committee?.chair?.name).toBe("Chair");
-  expect(result.config.leader).toBeUndefined();
+  expect(result.config).not.toHaveProperty("leader");
   const picture = new Blob([new Uint8Array([3, 4])], { type: "image/webp" });
   const profile = await db.updateProfile("local-doc", {
     name: "Attempted edit",

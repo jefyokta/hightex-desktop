@@ -1,5 +1,3 @@
-import { documentCommittee } from "../utils/document-committee";
-
 export type FormStage = "proposal" | "defense";
 export type FormCode =
   | "B0"
@@ -217,7 +215,7 @@ export function documentFormData(
     name: profile?.secondAdvisor?.name ?? "",
     nip: profile?.secondAdvisor?.nip ?? "",
   };
-  const committee = documentCommittee({ ...document, profile });
+  const committee = profile?.committee ?? {};
   for (const role of ["examiner1", "examiner2", "chair"] as const) {
     data.people[role] = {
       name: committee[role]?.name ?? "",
@@ -281,6 +279,11 @@ export function resolveFormData(
       Object.assign(data, { [key]: source[key] });
   }
   for (const key of Object.keys(PERSON_LABELS) as PersonKey[]) {
+    // Core lecturer assignments always come from profile, including intentional blanks.
+    if (!["head", "internAdvisor"].includes(key)) {
+      data.people[key] = { ...source.people[key] };
+      continue;
+    }
     data.people[key] = {
       name: source.people[key].name.trim()
         ? source.people[key].name

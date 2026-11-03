@@ -85,9 +85,6 @@ export const parseCloudAcademic = (me: unknown, university: unknown) => {
       },
     },
     committee: {
-      leader: person(thesis.session_chair).name,
-      member_1: person(thesis.first_examiner).name,
-      member_2: person(thesis.second_examiner).name,
       kaprodi: person(officials.lead_program_study, "nip"),
       dekan: person(officials.dean, "nip"),
     },
@@ -173,18 +170,22 @@ export class CloudAcademicClient {
         second?.nip !== data.author.secondAdvisor?.nip
       )
         return fail("academic_changed");
-      for (const key of ["leader", "member_1", "member_2"] as const)
-        if (config[key] !== data.committee[key])
-          return fail("academic_changed");
       const committee = readAuthorProfile(profile, "profile")?.committee;
-      // Older v2 archives only contain the compatibility names in config.
-      if (committee !== undefined) {
-        for (const role of ["chair", "examiner1", "examiner2"] as const) {
+      for (const [role, legacy] of [
+        ["chair", "leader"],
+        ["examiner1", "member_1"],
+        ["examiner2", "member_2"],
+      ] as const) {
+        const expected = data.author.committee?.[role];
+        if (committee === undefined) {
+          // Read-only validation for old v2 archives; never copy these fields back.
+          if (text(config[legacy]) !== (expected?.name ?? ""))
+            return fail("academic_changed");
+        } else {
           const actual = committee[role];
-          const expected = data.author.committee?.[role];
           if (
-            actual?.name !== expected?.name ||
-            actual?.nip !== expected?.nip ||
+            (actual?.name ?? "") !== (expected?.name ?? "") ||
+            (actual?.nip ?? "") !== (expected?.nip ?? "") ||
             actual?.id !== expected?.id
           )
             return fail("academic_changed");

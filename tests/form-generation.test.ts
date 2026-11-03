@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { migrateDocumentCommittee } from "../src/utils/document-committee";
 import {
   buildFormFiles,
   defaultSelection,
@@ -19,6 +20,11 @@ const profile: AuthorProfile = {
   advisorName: "Advisor A",
   advisorNip: "NIP-A",
   secondAdvisor: { name: "Advisor B", nip: "NIP-B" },
+  committee: {
+    chair: { name: "Chair", nip: "" },
+    examiner1: { name: "Examiner 1", nip: "" },
+    examiner2: { name: "Examiner 2", nip: "" },
+  },
   cv: "",
 };
 const document: HighTexDocument = {
@@ -29,9 +35,6 @@ const document: HighTexDocument = {
   keywords: { indonesian: [], english: [] },
   profile,
   config: {
-    leader: "Chair",
-    member_1: "Examiner 1",
-    member_2: "Examiner 2",
     kaprodi: { name: "Head", nip: "NIP-H" },
     consentDate: new Date(2026, 10, 2),
     validityDate: new Date(2026, 10, 3),
@@ -46,6 +49,22 @@ const fixture = (
   selection: defaultSelection(stage),
 });
 describe("local form generation", () => {
+  test("runtime ignores legacy committee config until it is migrated to profile", () => {
+    const legacy = {
+      ...document,
+      profile: { ...profile, committee: undefined },
+      config: {
+        ...document.config,
+        leader: "Stale Chair",
+        member_1: "Stale Examiner",
+      },
+    };
+    expect(documentFormData(legacy).people.chair.name).toBe("");
+    expect(documentFormData(legacy).people.examiner1.name).toBe("");
+    expect(
+      documentFormData(migrateDocumentCommittee(legacy)).people.chair.name,
+    ).toBe("Stale Chair");
+  });
   test("committee names and NIPs come from profile and explicitly cleared roles ignore legacy config", () => {
     const selected = {
       ...document,
@@ -112,7 +131,16 @@ describe("local form generation", () => {
     expect(resolved.name).toBe(profile.name);
     expect(resolved.title).toBe(document.title);
     expect(resolved.people.advisor1.name).toBe("Advisor A");
-    expect(resolved.people.examiner1.nip).toBe("NIP-E");
+    expect(resolved.people.examiner1.nip).toBe("");
+    draft.people.chair = { name: "Stale chair", nip: "Stale NIP" };
+    const cleared = documentFormData({
+      ...document,
+      profile: { ...profile, committee: {} },
+    });
+    expect(resolveFormData(cleared, draft).people.chair).toEqual({
+      name: "",
+      nip: "",
+    });
     expect("scores" in resolved).toBe(false);
     expect("revisions" in resolved).toBe(false);
   });

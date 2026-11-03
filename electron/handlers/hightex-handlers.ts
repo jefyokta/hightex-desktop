@@ -26,11 +26,18 @@ import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 import { ServerUrl } from "../url/server-url";
 import { FormArchiveService } from "../service/form-archive-service";
 import type { FormPrintInput } from "../../src/forms/model";
+import { lecturerDirectory } from "../service/lecturer-directory-service";
 
 export class HighTexHandler {
   private static store = new Store();
 
   static register() {
+    IPCMain.handle("hightex:lecturers:cached", () =>
+      lecturerDirectory.cached(),
+    );
+    IPCMain.handle("hightex:lecturers:refresh", (_, force?: boolean) =>
+      lecturerDirectory.refresh(force === true),
+    );
     IPCMain.handle("forms:archive:export", (_, input: FormPrintInput) =>
       new FormArchiveService().export(input),
     );

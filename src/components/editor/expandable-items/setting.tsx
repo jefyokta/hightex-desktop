@@ -27,8 +27,8 @@ import { TabHeader } from "./components/tab-header";
 import { DatePickerInput } from "@/components/ui/date-picker";
 import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
-import { documentCommittee } from "@/utils/document-committee";
 import { CommitteeFields } from "@/components/committee-fields";
+import { AdvisorFields } from "@/components/advisor-fields";
 
 export const Setting = () => {
   const db = HighTexDB.getInstance();
@@ -271,75 +271,16 @@ export const Setting = () => {
             value={doc.profile?.nim ?? ""}
             onChange={(nim) => updateProfile({ nim })}
           />
-          <Field
-            label={t(
-              isInternDoc
-                ? "document_profile.campus_advisor"
-                : "settings.profile.advisor.name.label",
-            )}
-            value={doc.profile?.advisorName ?? ""}
-            onChange={(advisorName) => updateProfile({ advisorName })}
+          <AdvisorFields
+            profile={doc.profile ?? emptyAuthorProfile()}
+            onChange={updateProfile}
+            intern={isInternDoc}
+            readOnly={academic.locked}
           />
-          <Field
-            label={t("settings.profile.advisor.nip.label")}
-            value={doc.profile?.advisorNip ?? ""}
-            onChange={(advisorNip) => updateProfile({ advisorNip })}
-          />
-
-          {!isInternDoc && (
-            <>
-              {!academic.locked && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    updateProfile({
-                      secondAdvisor: doc.profile?.secondAdvisor
-                        ? undefined
-                        : { name: "", nip: "" },
-                    })
-                  }
-                >
-                  {t(
-                    doc.profile?.secondAdvisor
-                      ? "document_profile.remove_second_advisor"
-                      : "settings.profile.second_advisor.enable_label",
-                  )}
-                </Button>
-              )}
-              {doc.profile?.secondAdvisor && (
-                <>
-                  <Field
-                    label={t("settings.profile.second_advisor.name.label")}
-                    value={doc.profile.secondAdvisor.name}
-                    onChange={(name) =>
-                      updateProfile({
-                        secondAdvisor: {
-                          ...doc.profile!.secondAdvisor!,
-                          name,
-                        },
-                      })
-                    }
-                  />
-                  <Field
-                    label={t("settings.profile.second_advisor.nip.label")}
-                    value={doc.profile.secondAdvisor.nip}
-                    onChange={(nip) =>
-                      updateProfile({
-                        secondAdvisor: {
-                          ...doc.profile!.secondAdvisor!,
-                          nip,
-                        },
-                      })
-                    }
-                  />
-                </>
-              )}
-            </>
-          )}
           {!isInternDoc && (
             <CommitteeFields
-              value={documentCommittee(doc)}
+              disabled={academic.locked}
+              value={doc.profile?.committee}
               onChange={(committee) => updateProfile({ committee })}
             />
           )}

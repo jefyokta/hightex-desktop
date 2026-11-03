@@ -13,9 +13,10 @@ declare global {
       committee?: AcademicCommittee;
     };
     committee: {
-      leader: string;
-      member_1: string;
-      member_2: string;
+      /** Legacy cache input only; new assignments are stored in author.committee. */
+      leader?: string;
+      member_1?: string;
+      member_2?: string;
       kaprodi: { name: string; nip: string };
       dekan: { name: string; nip: string };
     };

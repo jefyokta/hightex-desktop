@@ -8,10 +8,7 @@ import { writeProfileEntries } from "./profile";
 import { contentAssets } from "../content-assets";
 import { applyCloudAcademic } from "../cloud-academic";
 import { contentFingerprint } from "./content-fingerprint";
-import {
-  legacyCommitteeConfig,
-  migrateDocumentCommittee,
-} from "../document-committee";
+import { migrateDocumentCommittee } from "../document-committee";
 
 /**
  * export to ht | htx | hightex file
@@ -123,7 +120,7 @@ export class Exporter {
     this.scheme.writter.putManifest(
       this.scheme.createManifest(document, this.options.format),
     );
-    this.scheme.writter.putConfig(legacyCommitteeConfig(document));
+    this.scheme.writter.putConfig(document.config);
     this.scheme.writter.putReference(snapshot.cites);
     this.scheme.writter.putAliases(snapshot.aliases);
     this.scheme.writter.putVariables(

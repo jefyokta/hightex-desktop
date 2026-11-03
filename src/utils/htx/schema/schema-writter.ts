@@ -1,5 +1,6 @@
 import { JSONContent } from "@tiptap/core";
 import { strToU8 } from "fflate";
+import { withoutLegacyCommittee } from "../../document-committee";
 
 /**
  *
@@ -33,7 +34,9 @@ export class SchemaWritter {
   }
 
   putConfig(conf: HighTexDocument["config"]) {
-    this.entries["files/config.json"] = this.jsonToU8(conf);
+    this.entries["files/config.json"] = this.jsonToU8(
+      withoutLegacyCommittee(conf),
+    );
   }
   putReference(cites: CiteRecord[]) {
     const tmp: Record<string, string> = {};
@@ -50,7 +53,7 @@ export class SchemaWritter {
     this.entries["files/assets/aliases.json"] = this.jsonToU8(aliases);
   }
 
-  private jsonToU8(json: any) {
+  private jsonToU8(json: unknown) {
     return strToU8(JSON.stringify(json));
   }
 

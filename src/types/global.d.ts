@@ -144,6 +144,7 @@ declare global {
     file: FileApi;
     editor: EditorAPI;
     hightex: {
+      lecturers: LecturerDirectoryAPI;
       submission: {
         pdf(input: SnapshotPDFInput): Promise<{ path: string } | null>;
         advisor: AdvisorAPI;
