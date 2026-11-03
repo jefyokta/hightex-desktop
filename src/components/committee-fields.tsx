@@ -17,7 +17,7 @@ export function CommitteeFields({
   disabled?: boolean;
 }) {
   return (
-    <details className="rounded-md border p-3">
+    <details data-tour="profile-committee" className="rounded-md border p-3">
       <summary className="cursor-pointer text-sm font-medium">
         {t("document_profile.committee_title")}
       </summary>

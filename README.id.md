@@ -200,4 +200,4 @@ HighTex Desktop masih dalam pengembangan aktif. Fitur, arsitektur, dan alur kerj
 
 ## Kredit
 
-Lihat [Credits](./credits.md) untuk daftar kontributor, proyek open-source, dan ucapan terima kasih.
+Lihat [Credits](./CREDITS.md) untuk daftar kontributor, proyek open-source, dan ucapan terima kasih.

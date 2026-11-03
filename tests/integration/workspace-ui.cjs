@@ -17,6 +17,7 @@ import {AppLayout} from '/src/layouts/app-layout.tsx';
 import {Dashboard} from '/src/pages/local.tsx';
 import {Citation} from '/src/pages/citation.tsx';
 import {Forms} from '/src/pages/forms.tsx';
+import {Settings} from '/src/pages/settings.tsx';
 import {RemoteDocuments} from '/src/pages/remote.tsx';
 import {ConfirmProvider} from '/src/context/confrim-context.tsx';
 import {MultiSelectProvider} from '/src/context/multi-select-context.tsx';
@@ -27,6 +28,7 @@ import {HighTexDB} from '/src/editor/storage/hightex-db.ts';
 import {emptyAuthorProfile} from '/src/utils/document-profile.ts';
 import {Toaster} from 'sonner';
 import {GUIDE_RELEASES} from '/src/data/ui-guides.ts';
+window.release130=GUIDE_RELEASES.find(release=>release.version==='1.3.0');GUIDE_RELEASES.splice(1);window.restoreRelease130=()=>GUIDE_RELEASES.splice(1,GUIDE_RELEASES.length-1,window.release130);
 window.addRelease=()=>GUIDE_RELEASES.push({version:'1.3.0',guides:[{...GUIDE_RELEASES[0].guides[0],id:'fixture-1-3-0',name:'guide.features.formatting.name',revision:1,steps:[...GUIDE_RELEASES[0].guides[0].steps,...GUIDE_RELEASES[0].guides[3].steps]},{...GUIDE_RELEASES[0].guides[1],id:'fixture-second',name:'guide.features.chapterTree.name',revision:1}]});
 window.workspaceGuides=GUIDE_RELEASES[0].guides.filter(guide=>guide.scope==='workspace');
 window.workspaceSeen=Object.fromEntries(window.workspaceGuides.map(guide=>[guide.id,guide.revision]));
@@ -34,12 +36,13 @@ import '/src/App.css';
 const listeners=new Set();const config={language:'id',theme:'light',export:{saveDialog:true,saveFolder:''},zotero:{enabled:false}};
 window.config={get:()=>config,ready:async()=>config,onChange:fn=>{listeners.add(fn);return()=>listeners.delete(fn)},set:async patch=>{Object.assign(config,patch);listeners.forEach(fn=>fn(config));return config}};
 window.changeLanguage=language=>window.config.set({language});window.changeTheme=theme=>{document.documentElement.classList.toggle('dark',theme==='dark')};
-window.profile={get:async()=>emptyAuthorProfile(),picture:async()=>false};
+window.profileSaves=0;window.profile={get:async()=>emptyAuthorProfile(),set:async()=>{window.profileSaves++},picture:async()=>false};
 window.opened=[];window.editor={open:async(id)=>{window.opened.push(id)},has:async()=>false};
 window.pdf=[];window.exports=[];window.cancelExport=false;
 window.ipcRenderer={invoke:async(channel,...args)=>{if(channel==='hightex:pdf'){window.pdf.push(args);return null}if(channel==='hightex:export'){window.exports.push(args[1]);return {canceled:window.cancelExport}}return []}};
-window.hightex={categories:async()=>[{id:1,name:'Skripsi',variant:'thesis',chapters:[{chapter:'1',title:'Pendahuluan'}]},{id:2,name:'Proposal',variant:'proposal',chapters:[{chapter:'1',title:'Pendahuluan'}]}],onPdfProgress:()=>()=>{}};
+window.hightex={version:async()=>'1.3.0',categories:async()=>[{id:1,name:'Skripsi',variant:'thesis',chapters:[{chapter:'1',title:'Pendahuluan'}]},{id:2,name:'Proposal',variant:'proposal',chapters:[{chapter:'1',title:'Pendahuluan'}]}],onPdfProgress:()=>()=>{}};
 window.installation={time:'2026-01-01T00:00:00.000Z',firstInstalled:false,installedVersion:'1.2.0',currentVersion:'1.2.0',previousVersion:'1.2.0',versionChanged:false,seenGuides:{...window.workspaceSeen}};
+window.formExports=0;window.hightex.forms={export:async()=>{window.formExports++;return null}};
 window.hightex.onboarding={status:async()=>structuredClone(window.installation),acknowledge:async guides=>{for(const guide of guides)window.installation.seenGuides[guide.id]=Math.max(window.installation.seenGuides[guide.id]??0,guide.revision);return structuredClone(window.installation)}};
 window.file={getPath:async()=>'/fixture.hightex'};
 const db=HighTexDB.getInstance();await db.open();window.db=db;
@@ -48,13 +51,15 @@ await db.documents.bulkPut(titles.map((title,index)=>({id:'doc'+index,title,altT
 await db.cite.clear();await db.cite.put({key:'example',bib:'@book{example,title={Research methods},author={Jane Doe},year={2026}}'});
 const update=db.updateDocument.bind(db);window.failSave=false;db.updateDocument=async(...args)=>{if(window.failSave)throw Error('Fixture save failure');return update(...args)};
 function Probe(){window.navigate=useNavigate();return null}
-const root=createRoot(document.getElementById('root'));let mountId=0;window.mountWorkspace=()=>root.render(React.createElement(UserContext.Provider,{key:++mountId,value:{user:false,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(TooltipProvider,null,React.createElement(MultiSelectProvider,null,React.createElement(ConfirmProvider,null,React.createElement(MemoryRouter,{initialEntries:['/dashboard']},React.createElement(Probe),React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(AppLayout)},React.createElement(Route,{path:'/dashboard',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/projects/local',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/citation',element:React.createElement(Citation)}),React.createElement(Route,{path:'/dashboard/forms',element:React.createElement(Forms)}),React.createElement(Route,{path:'/dashboard/projects/cloud',element:React.createElement(RemoteDocuments)})))),React.createElement(Toaster)))))));
+const root=createRoot(document.getElementById('root'));let mountId=0;window.mountWorkspace=()=>root.render(React.createElement(UserContext.Provider,{key:++mountId,value:{user:false,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(TooltipProvider,null,React.createElement(MultiSelectProvider,null,React.createElement(ConfirmProvider,null,React.createElement(MemoryRouter,{initialEntries:['/dashboard']},React.createElement(Probe),React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(AppLayout)},React.createElement(Route,{path:'/dashboard',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/projects/local',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/citation',element:React.createElement(Citation)}),React.createElement(Route,{path:'/dashboard/forms',element:React.createElement(Forms)}),React.createElement(Route,{path:'/settings',element:React.createElement(Settings)}),React.createElement(Route,{path:'/dashboard/projects/cloud',element:React.createElement(RemoteDocuments)})))),React.createElement(Toaster)))))));
 window.mountWorkspace();
 </script></body></html>`;
 const execute = (code) =>
-  win.webContents.executeJavaScript(
-    `(async()=>await eval(${JSON.stringify(code)}))()`,
-  );
+  win.webContents
+    .executeJavaScript(`(async()=>await eval(${JSON.stringify(code)}))()`)
+    .catch((error) => {
+      throw new Error(`Evaluation failed: ${code}`, { cause: error });
+    });
 async function until(code) {
   const deadline = Date.now() + 20000;
   while (!(await execute(`(async()=>Boolean(await (${code})))()`))) {
@@ -615,6 +620,121 @@ app
     await until(`document.querySelector('[data-guide-announcement]')`);
     await clickText("Lewati panduan");
     await closeDialog();
+    // Real 1.3.0 release: fallback controls, live targets, localization and no automatic edits.
+    win.setSize(1360, 940);
+    const profileBefore = await execute(
+      "window.db.documents.toArray().then(docs=>JSON.stringify(docs))",
+    );
+    await execute(
+      `window.restoreRelease130();window.installation.currentVersion='1.3.0';window.mountWorkspace()`,
+    );
+    await until(`document.querySelector('[data-guide-announcement]')`);
+    assert.deepEqual(
+      await execute(
+        `Array.from(document.querySelectorAll('[data-guide-id]')).map(item=>item.dataset.guideId)`,
+      ),
+      ["form-generation", "lecturer-directory"],
+    );
+    await clickText("Lanjut tur");
+    await until(
+      `document.querySelector('[data-tour-panel][data-tour-step=forms-document]') && document.querySelector('#forms-document') && document.querySelector('[data-tour-highlight]')`,
+    );
+    await clickText("Berikutnya");
+    await until(
+      `document.querySelector('[data-tour-panel][data-tour-step=forms-stage]')?.textContent.includes('Pilih dokumen untuk menampilkan') && document.querySelector('[data-tour-highlight]')`,
+    );
+    // The tour waits for the user's selection; it never chooses a document on their behalf.
+    assert.equal(
+      await execute(`document.querySelector('#forms-document').value`),
+      "",
+    );
+    await setValue("#forms-document", "doc7");
+    await until(
+      `document.querySelector('[data-tour="forms-stage"]') && document.querySelector('[data-tour-panel]')?.textContent.includes('B0 dan B1')`,
+    );
+    await screenshot("release130-forms-stage");
+    for (const step of [
+      "forms-selection",
+      "forms-data",
+      "forms-preview",
+      "forms-export",
+    ]) {
+      await clickText("Berikutnya");
+      await until(
+        `document.querySelector('[data-tour-panel][data-tour-step=${step}]') && document.querySelector('[data-tour-highlight]')`,
+      );
+    }
+    assert.equal(
+      await execute(
+        `document.querySelector('[data-tour="forms-export"]').disabled`,
+      ),
+      false,
+    );
+    await screenshot("release130-forms-export");
+    await clickText("Berikutnya");
+    await until(
+      `document.querySelector('[data-tour-panel][data-tour-step=profile-advisors]') && document.querySelector('[data-tour="default-profile"]') && document.querySelector('[data-tour-highlight]')`,
+    );
+    await execute(`window.changeLanguage('en')`);
+    await until(
+      `document.querySelector('[data-tour-panel]')?.textContent.includes('Choose advisors from the directory')`,
+    );
+    await screenshot("release130-lecturers-en");
+    await execute(`window.changeLanguage('id')`);
+    for (const step of [
+      "lecturer-refresh",
+      "profile-committee",
+      "default-profile-save",
+    ]) {
+      await clickText("Berikutnya");
+      await until(
+        `document.querySelector('[data-tour-panel][data-tour-step=${step}]') && document.querySelector('[data-tour-highlight]')`,
+      );
+    }
+    await clickText("Selesai");
+    await until(
+      `!document.querySelector('[data-tour-panel]') && document.querySelector('[data-document-id]')`,
+    );
+    assert.equal(await execute("window.profileSaves"), 0);
+    assert.equal(await execute("window.formExports"), 0);
+    assert.equal(
+      await execute(
+        "window.db.documents.toArray().then(docs=>JSON.stringify(docs))",
+      ),
+      profileBefore,
+    );
+    assert.equal(
+      await execute(`window.installation.seenGuides['form-generation']`),
+      1,
+    );
+    assert.equal(
+      await execute(`window.installation.seenGuides['lecturer-directory']`),
+      1,
+    );
+    // No-document fallback remains usable on a narrow window.
+    await execute(`window.db.documents.clear()`);
+    await clickText("Panduan penggunaan");
+    await until(`document.querySelector('[data-guide-announcement] select')`);
+    await setValue("[data-guide-announcement] select", "form-generation");
+    await clickText("Mulai panduan");
+    await until(
+      `document.querySelector('[data-tour="forms-empty"]') && document.querySelector('[data-tour-panel]')?.textContent.includes('Pilih dokumen untuk menampilkan')`,
+    );
+    win.setSize(540, 900);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    assert.ok(
+      await execute(
+        `(()=>{const r=document.querySelector('[data-tour-panel]').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight})()`,
+      ),
+    );
+    await screenshot("release130-forms-empty-mobile");
+    await execute(
+      `document.querySelector('[data-tour-panel] button[aria-label="Lewati panduan"]').click()`,
+    );
+    await until(`!document.querySelector('[data-tour-panel]')`);
+    console.log(
+      "PASS: real 1.3.0 forms and lecturer tours, fallback before document selection, live targets, local default save guidance, English/Indonesian, route restoration, empty mobile state and no automatic profile/document writes or exports.",
+    );
     console.log(
       "PASS: automatic feature summaries, skip-all-seen, ID-based feature selection, visited-only manual replay, localized steps, current-release-first, deferred announcements, no repeat on ordinary updates, italic Indonesian titles/keywords, neutral workspace surfaces.",
     );

@@ -1178,7 +1178,7 @@
       },
       "chapters": {
         "title": "Move between chapters without losing your place",
-        "description": "Use the toolbar arrows for the previous or next chapter. Mod means Command on Mac or Ctrl on other systems. Mod+number opens the chapter with that number when it exists in the document schema, for example Mod+1 for chapter 1. Mod+0 always opens the appendix, Mod+n for  the next chapter. Each chapter remembers its last scroll position during the editor session."
+        "description": "Use the toolbar arrows for the previous or next chapter. Mod means Command on Mac or Ctrl on other systems. Mod+number opens the chapter with that number when it exists in the document schema, for example Mod+1 for chapter 1. Mod+0 always opens the appendix, Mod+N opens the next chapter. Each chapter remembers its last scroll position during the editor session."
       },
       "exports": {
         "title": "Details and exports are in the action menu",
@@ -1226,7 +1226,7 @@
       },
       "chapters": {
         "name": "Navigate chapters",
-        "summary": "Use chapter arrows, Mod+number from the schema, or Mod+N for the appendix."
+        "summary": "Use chapter arrows, Mod+number from the schema, or Mod+0 for the appendix."
       },
       "formatting": {
         "name": "Format your writing",
@@ -1390,6 +1390,74 @@
             "title": "Export PDF after reviewing the result",
             "description": "Use Export PDF to create a file ready to read or share. Wait for the process to finish and choose a save location if prompted. Keep the .hightex file so the document remains editable."
           }
+        }
+      }
+    },
+    "release130": {
+      "forms": {
+        "name": "Generate a form package",
+        "summary": "Prepare proposal or defense forms from your document, check the preview, and download separate PDFs in a ZIP.",
+        "empty": "Choose a document to display its forms and preview. If you have no documents, create one or import a .hightex file on the Documents page first. You can still continue or skip this guide.",
+        "document": {
+          "title": "Start with the document you need",
+          "description": "Open Forms under Tools in the sidebar. Choose the document to prepare forms for. Its title and author details follow your selection; you can use this feature without signing in."
+        },
+        "stage": {
+          "title": "Choose proposal or defense",
+          "description": "The stage determines which forms are available. B0 and B1 are proposal-only, while B3 is available for both stages. A second advisor is detected from the profile, so there is no extra checkbox here."
+        },
+        "selection": {
+          "title": "Select the forms to download",
+          "description": "Checkboxes determine the contents of the ZIP. Click a form title to view its fields and preview without changing its checkbox. Use All or Clear to change the selection together."
+        },
+        "data": {
+          "title": "Fill in only the missing details",
+          "description": "Author details, advisors, chair, and examiners come from the document profile. Older documents without a profile use the local default. Complete only the additional administration details needed by this form. To change a lecturer, edit the document profile in the editor."
+        },
+        "preview": {
+          "title": "Check the result before printing",
+          "description": "The preview shows the layout and pages of the form you are viewing. Check names, staff numbers, and administration details. Grades, comments, report corrections, and signatures are intentionally left blank for faculty to complete."
+        },
+        "export": {
+          "title": "Download separate PDFs in one ZIP",
+          "description": "Download ZIP creates a separate PDF for each checked form. If the button is disabled, fill in the author name and student number and select at least one form."
+        }
+      },
+      "lecturers": {
+        "name": "Choose lecturers and save a default profile",
+        "summary": "Search by name or staff number, choose advisors and examiners, and save your selections for offline use.",
+        "advisors": {
+          "title": "Choose advisors from the directory",
+          "description": "Enter your name and student number in the local profile, then search for an advisor by name or staff number. The staff number follows your selection. Add a second advisor if needed. This local profile supplies defaults; internship advisors remain manual in internship documents."
+        },
+        "refresh": {
+          "title": "Keep using the directory offline",
+          "description": "The bundled directory or your last saved copy works without signing in or connecting to the internet. When online, use Refresh directory to check for updates. Updating the directory never changes names or staff numbers already saved in a profile; select a lecturer again to use their updated details."
+        },
+        "committee": {
+          "title": "Choose the chair and examiners",
+          "description": "Expand this section to choose the chair, first examiner, and second examiner with their staff numbers. These selections are saved with the profile, so you do not need to type their names again when preparing forms."
+        },
+        "save": {
+          "title": "Save defaults for later use",
+          "description": "Save after completing your profile and choosing lecturers. Changing defaults does not automatically replace existing document profiles. To apply them, open document settings in the editor, choose Use local defaults, and save the document changes."
+        }
+      },
+      "documentProfile": {
+        "name": "Author and lecturer details per document",
+        "summary": "Set the author, advisors, chair, and examiners for this document independently of other documents.",
+        "profile": {
+          "title": "Each document keeps its own profile",
+          "description": "This section holds the author details, advisors, chair, and examiners for the open document. Search for lecturers by name or staff number. The profile supplies document and form data and is included in .hightex exports. Internship advisors remain manual."
+        },
+        "defaults": {
+          "title": "Copy defaults when you need them",
+          "description": "Use local defaults copies your local profile from Settings into this document. Review the result before saving. Editing the local profile or refreshing the lecturer directory does not automatically replace details already saved in a document."
+        },
+        "locked": "This document uses cloud academic data for author details and lecturer assignments. Use local defaults is unavailable while those fields are locked. Update them through the server data source.",
+        "save": {
+          "title": "Save the document profile changes",
+          "description": "Use Save in this panel after changing author details or lecturer selections. It becomes available when there are changes. Other documents and the default profile keep their own data."
         }
       }
     }

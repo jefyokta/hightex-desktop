@@ -23,9 +23,9 @@ import {ConfigContextProvider} from '/src/context/config-context.tsx';
 import {TooltipProvider} from '/src/components/ui/tooltip.tsx';
 import {EditorNavigatorSlave} from '/src/slaves/editor-navigator.tsx';
 import {HighTexDB} from '/src/editor/storage/hightex-db.ts';
-import {GUIDE_RELEASES} from '/src/data/ui-guides.ts';
+import {availableGuides} from '/src/data/ui-guides.ts';
 import {getEditorChapter} from '/src/editor/event/index.ts';
-window.editorGuides=GUIDE_RELEASES.flatMap(release=>release.guides.filter(guide=>guide.scope==='editor'));
+window.editorGuides=availableGuides('1.2.0','editor');
 import '/src/App.css';
 const config={language:'id',theme:'light',editor:{scrollBar:true,aliasHint:false,spellCheck:false,tableResizeGuides:true}};
 window.config={get:()=>config,onChange:()=>()=>{},set:async()=>{}};
@@ -40,7 +40,12 @@ function Probe(){window.currentEditor=useCurrentEditor().editor;window.currentEd
 function Shell(){return React.createElement(EditorChrome,null,React.createElement(EditorProvider,null,React.createElement(ParamsContextProvider,null,React.createElement(Probe),React.createElement(ExpandableSideBarContextProvider,null,React.createElement('div',{className:'flex h-full w-full'},React.createElement(ExpandableSideBar),React.createElement(Outlet)),React.createElement(EditorGuide)),React.createElement(EditorNavigatorSlave))))}
 createRoot(document.getElementById('root')).render(React.createElement(ConfigContextProvider,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,{initialEntries:['/document/demo/1']},React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(Shell)},React.createElement(Route,{path:'/document/:id/:chapter?/:version?',element:React.createElement(Editor)})))))));
 </script></body></html>`;
-const execute = (code) => win.webContents.executeJavaScript(code);
+const execute = (code) =>
+  win.webContents
+    .executeJavaScript(`(async()=>await eval(${JSON.stringify(code)}))()`)
+    .catch((error) => {
+      throw new Error(`Evaluation failed: ${code}`, { cause: error });
+    });
 async function until(code) {
   const deadline = Date.now() + 20000;
   while (!(await execute(`(async()=>Boolean(await (${code})))()`))) {
@@ -424,23 +429,85 @@ app
     assert.equal(await shortcut("1", { ctrlKey: true }), true);
     await ready("/document/demo/1");
     assert.equal(await shortcut("n"), true);
+    await ready("/document/demo/4");
+    assert.equal(await shortcut("0"), true);
     await ready("/document/demo/attachment");
-    assert.equal(await shortcut("n"), true);
+    assert.equal(await shortcut("0"), true);
     await ready("/document/demo/attachment");
     await execute(`window.navigate('/document/demo/cv')`);
     await until(
       `window.currentPath==='/document/demo/cv' && document.querySelector('[contenteditable=true]')?.textContent.includes('CV fixture')`,
     );
-    assert.equal(await shortcut("n", { ctrlKey: true }), true);
+    assert.equal(await shortcut("0", { ctrlKey: true }), true);
     await ready("/document/demo/attachment");
     await execute(`window.navigate('/document/demo/1/v1')`);
     await ready("/document/demo/1/v1");
     assert.equal(await shortcut("4"), true);
     await ready("/document/demo/4/v1");
-    assert.equal(await shortcut("n"), true);
+    assert.equal(await shortcut("0"), true);
     await ready("/document/demo/attachment/v1");
+    // The new editor feature is offered at 1.3.0, opens settings and leaves saved data intact.
+    await execute(`window.navigate('/document/demo/1')`);
+    await ready("/document/demo/1");
+    const documentBefore = await execute(
+      `window.db.documents.get('demo').then(doc=>JSON.stringify(doc))`,
+    );
+    await execute(
+      `window.installation.currentVersion='1.3.0';window.dispatchEvent(new Event('hightex:editor-guide'))`,
+    );
+    await until(`document.querySelector('[data-guide-announcement] select')`);
+    await execute(
+      `const field=document.querySelector('[data-guide-announcement] select');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(field,'document-author-profile');field.dispatchEvent(new Event('change',{bubbles:true}));`,
+    );
+    await execute(
+      `Array.from(document.querySelectorAll('[data-guide-announcement] button')).find(button=>button.textContent.trim()==='Mulai panduan').click()`,
+    );
+    for (const step of [
+      "document-profile",
+      "document-profile-default",
+      "document-profile-save",
+    ]) {
+      await until(
+        `document.querySelector('[data-tour-panel][data-tour-step=${step}]') && document.querySelector('[data-tour-highlight]')`,
+      );
+      if (step === "document-profile-default")
+        assert.ok(
+          await execute(
+            `!!document.querySelector('[data-tour="document-profile-default"]')`,
+          ),
+        );
+      if (step === "document-profile-save") {
+        assert.equal(
+          await execute(
+            `document.querySelector('[data-tour="document-settings-save"]').disabled`,
+          ),
+          true,
+        );
+        await shot("release130-document-profile");
+      }
+      await clickText(
+        step === "document-profile-save" ? "Selesai" : "Berikutnya",
+      );
+    }
+    await until(`!document.querySelector('[data-tour-panel]')`);
+    assert.equal(
+      await execute(
+        `window.db.documents.get('demo').then(doc=>JSON.stringify(doc))`,
+      ),
+      documentBefore,
+    );
+    assert.equal(
+      await execute(
+        `window.installation.seenGuides['document-author-profile']`,
+      ),
+      1,
+    );
+    assert.equal(await execute("window.currentPath"), "/document/demo/1");
     console.log(
-      "PASS: Mod+N always opens the appendix, numeric shortcuts follow schema chapters, unavailable numbers are ignored, and version context is preserved.",
+      "PASS: real 1.3.0 document profile guide opens settings, explains explicit defaults and saving, preserves saved document data and does not repeat 1.2.0 features.",
+    );
+    console.log(
+      "PASS: Mod+0 opens the appendix, Mod+N advances chapters, numeric shortcuts follow schema chapters, unavailable numbers are ignored, and version context is preserved.",
     );
     console.log(
       "PASS: " +

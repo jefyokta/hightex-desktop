@@ -101,7 +101,7 @@ export function LecturerPicker({
             disabled={disabled}
             className="h-auto min-h-9 w-full justify-between gap-2 text-left font-normal"
           >
-            <span className="min-w-0 whitespace-normal break-words">
+            <span className="min-w-0 whitespace-normal wrap-break-word">
               {value.name ? name(value.name) : t("lecturers.choose")}
             </span>
             <ChevronsUpDown className="shrink-0 opacity-50" />
@@ -142,7 +142,7 @@ export function LecturerPicker({
                     }}
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="whitespace-normal break-words">
+                      <div className="whitespace-normal wrap-break-word">
                         {name(row.name)}
                       </div>
                       <div className="text-xs text-muted-foreground">

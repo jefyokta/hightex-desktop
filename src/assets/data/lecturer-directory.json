@@ -1,13 +1,13 @@
 {
   "source": "https://hightex.jefyokta.dev/api/",
-  "generated_at": "2026-11-03T10:42:57.974279Z",
+  "generated_at": "2026-11-03T17:23:41.116Z",
   "schema_version": 1,
-  "version": "2410804c0fa54e064bb1128c258120cf8650d9eb8cf47bf73ce6eb2b449d4070",
+  "version": "a9c07c95f38ac91335e189c9faa8b92fee718deddbfb383031d697f0901e3808",
   "data": [
     {
-      "id": "2",
-      "name": "Teungku Khairil Ahsyar",
-      "nip": "12xxx"
+      "id": "12",
+      "name": "Tengku Khairil Ahsyar",
+      "nip": "198505202023211020"
     }
   ]
 }

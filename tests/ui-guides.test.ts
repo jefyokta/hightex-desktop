@@ -36,14 +36,64 @@ const status = (
   seenGuides: {},
   ...overrides,
 });
+const baselineReleases = availableReleases("1.2.0");
 const baseline = availableGuides("1.2.0", "workspace");
 const seenBaseline = Object.fromEntries(
   baseline.map((guide) => [guide.id, guide.revision]),
 );
 
+test("planned 1.3.0 guides appear on upgrade without repeating seen 1.2.0 features", () => {
+  const seenOldGuides = Object.fromEntries(
+    GUIDE_RELEASES.filter(({ version }) => version === "1.2.0")
+      .flatMap(({ guides }) => guides)
+      .map(({ id, revision }) => [id, revision]),
+  );
+  for (const currentVersion of ["1.2.1", "1.3.0-beta.1"]) {
+    expect(
+      guidePlan(
+        status({ currentVersion, seenGuides: seenOldGuides }),
+        "workspace",
+      ),
+    ).toBeNull();
+    expect(
+      guidePlan(
+        status({ currentVersion, seenGuides: seenOldGuides }),
+        "editor",
+      ),
+    ).toBeNull();
+  }
+  const upgrade = status({ seenGuides: seenOldGuides });
+  const workspace = guidePlan(upgrade, "workspace")!;
+  expect(workspace.mode).toBe("updates");
+  expect(workspace.guides.map(({ id }) => id)).toEqual([
+    "form-generation",
+    "lecturer-directory",
+  ]);
+  const editor = guidePlan(upgrade, "editor")!;
+  expect(editor.guides.map(({ id }) => id)).toEqual([
+    "document-author-profile",
+  ]);
+  const acknowledged = {
+    ...upgrade,
+    seenGuides: {
+      ...seenOldGuides,
+      ...Object.fromEntries(
+        guideAcknowledgments(workspace).map(({ id, revision }) => [
+          id,
+          revision,
+        ]),
+      ),
+    },
+  };
+  expect(guidePlan(acknowledged, "workspace")).toBeNull();
+  expect(guidePlan(acknowledged, "editor")?.guides.map(({ id }) => id)).toEqual(
+    ["document-author-profile"],
+  );
+});
+
 test("new installation offers named features with the current release first", () => {
   const plan = guidePlan(status({ firstInstalled: true }), "workspace", false, [
-    ...GUIDE_RELEASES,
+    ...baselineReleases,
     release,
   ]);
   expect(plan?.mode).toBe("welcome");
@@ -126,7 +176,7 @@ test("automatic skip acknowledges every unseen feature, including missed release
     status({ currentVersion: "1.4.0", seenGuides: seenBaseline }),
     "workspace",
     false,
-    [...GUIDE_RELEASES, release, next],
+    [...baselineReleases, release, next],
   )!;
   expect(plan.mode).toBe("updates");
   expect(plan.guides.map((guide) => guide.id)).toEqual([
@@ -155,7 +205,7 @@ test("replay shows seen features but acknowledges only features actually opened"
     status({ seenGuides: { "new-feature": 1 } }),
     "workspace",
     true,
-    [...GUIDE_RELEASES, release],
+    [...baselineReleases, release],
   )!;
   expect(plan.mode).toBe("replay");
   expect(plan.guides[0].version).toBe("1.3.0");

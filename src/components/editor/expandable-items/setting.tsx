@@ -141,6 +141,7 @@ export const Setting = () => {
           )}
 
           <Button
+            data-tour="document-settings-save"
             size="sm"
             variant="outline"
             disabled={!isDirty || loading}
@@ -241,7 +242,11 @@ export const Setting = () => {
             )}
           </p>
         )}
-        <Section disabled={academic.locked} title={t("document_profile.title")}>
+        <Section
+          tour="document-profile"
+          disabled={academic.locked}
+          title={t("document_profile.title")}
+        >
           {!academic.locked && (
             <>
               <p className="text-xs text-muted-foreground">
@@ -252,7 +257,12 @@ export const Setting = () => {
                 )}
               </p>
 
-              <Button size="sm" variant="outline" onClick={useDefaultProfile}>
+              <Button
+                data-tour="document-profile-default"
+                size="sm"
+                variant="outline"
+                onClick={useDefaultProfile}
+              >
                 {t("document_profile.use_default")}
               </Button>
               <p className="text-xs text-muted-foreground">
@@ -530,13 +540,15 @@ const Section = ({
   title,
   children,
   disabled,
+  tour,
 }: {
   title: string;
   children: React.ReactNode;
   disabled?: boolean;
+  tour?: string;
 }) => {
   return (
-    <Card className="bg-muted/10">
+    <Card data-tour={tour} className="bg-muted/10">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>

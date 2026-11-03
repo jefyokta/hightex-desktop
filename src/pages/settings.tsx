@@ -707,7 +707,7 @@ const ProfileSection = () => {
   };
 
   return (
-    <Card>
+    <Card data-tour="default-profile">
       <CardHeader>
         <CardTitle>{t("settings.profile.label")}</CardTitle>
 
@@ -783,6 +783,7 @@ const ProfileSection = () => {
             />
             <div className="flex justify-end pt-4">
               <Button
+                data-tour="default-profile-save"
                 onClick={() =>
                   executeInteractively(saveProfile, { successMessage: "Saved" })
                 }

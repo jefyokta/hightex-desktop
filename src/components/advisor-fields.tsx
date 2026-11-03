@@ -45,7 +45,7 @@ export function AdvisorFields({
       </div>
     );
   return (
-    <div className="space-y-3">
+    <div data-tour="profile-advisors" className="space-y-3">
       <LecturerDirectoryStatus />
       <LecturerPicker
         label={t("settings.profile.advisor.name.label")}

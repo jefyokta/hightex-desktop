@@ -1178,7 +1178,7 @@
       },
       "chapters": {
         "title": "Pindah bab tanpa kehilangan posisi",
-        "description": "Gunakan panah di toolbar untuk bab sebelumnya atau berikutnya. Mod berarti Command di Mac atau Ctrl di sistem lain. Mod+nomor langsung membuka bab yang nomornya tersedia pada schema dokumen, misalnya Mod+1 untuk bab 1. Mod+0 selalu membuka Lampiran, Mod+n untuk berpindah ke bab berikutnya. Setiap bab mengingat scroll terakhir selama sesi editor."
+        "description": "Gunakan panah di toolbar untuk bab sebelumnya atau berikutnya. Mod berarti Command di Mac atau Ctrl di sistem lain. Mod+nomor langsung membuka bab yang nomornya tersedia pada schema dokumen, misalnya Mod+1 untuk bab 1. Mod+0 selalu membuka Lampiran, Mod+N untuk berpindah ke bab berikutnya. Setiap bab mengingat scroll terakhir selama sesi editor."
       },
       "exports": {
         "title": "Detail dan ekspor ada di menu tindakan",
@@ -1226,7 +1226,7 @@
       },
       "chapters": {
         "name": "Navigasi antar bab",
-        "summary": "Gunakan panah antar bab, Mod+nomor sesuai schema, atau Mod+N untuk Lampiran."
+        "summary": "Gunakan panah antar bab, Mod+nomor sesuai schema, atau Mod+0 untuk Lampiran."
       },
       "formatting": {
         "name": "Memformat tulisan",
@@ -1390,6 +1390,74 @@
             "title": "Ekspor PDF setelah diperiksa",
             "description": "Gunakan tombol ekspor PDF untuk menghasilkan berkas yang siap dibaca atau dibagikan. Tunggu proses selesai dan pilih lokasi simpan jika diminta. Tetap simpan berkas .hightex agar dokumennya bisa diedit kembali."
           }
+        }
+      }
+    },
+    "release130": {
+      "forms": {
+        "name": "Membuat paket formulir",
+        "summary": "Siapkan formulir sempro atau sidang dari dokumenmu, periksa preview, lalu unduh PDF terpisah dalam ZIP.",
+        "empty": "Pilih dokumen untuk menampilkan formulir dan preview. Jika belum ada dokumen, buat atau impor .hightex di halaman Dokumen terlebih dahulu. Kamu tetap bisa melanjutkan atau melewati panduan.",
+        "document": {
+          "title": "Mulai dari dokumen yang akan digunakan",
+          "description": "Halaman Formulir ada di bagian Alat pada sidebar. Pilih dokumen yang ingin dibuatkan formulir. Judul dan data penulis mengikuti dokumen pilihanmu; fitur ini dapat digunakan tanpa login."
+        },
+        "stage": {
+          "title": "Pilih sempro atau sidang",
+          "description": "Tahap menentukan daftar formulir yang tersedia. B0 dan B1 hanya untuk sempro, sedangkan B3 tersedia untuk keduanya. Pembimbing kedua otomatis mengikuti profil, tanpa perlu mencentangnya lagi di sini."
+        },
+        "selection": {
+          "title": "Centang formulir yang ingin diunduh",
+          "description": "Checkbox menentukan isi paket ZIP. Klik judul formulir untuk melihat isian dan preview-nya tanpa mengubah centang. Gunakan Semua atau Kosongkan untuk mengatur pilihan sekaligus."
+        },
+        "data": {
+          "title": "Lengkapi data yang memang belum tersedia",
+          "description": "Identitas, pembimbing, ketua, dan penguji mengikuti profil dokumen. Dokumen lama yang belum memiliki profil memakai profil lokal. Lengkapi hanya data administrasi tambahan yang diperlukan formulir ini. Untuk mengganti dosen, ubah profil dokumennya di editor."
+        },
+        "preview": {
+          "title": "Periksa hasil sebelum dicetak",
+          "description": "Preview memperlihatkan susunan dan halaman formulir yang sedang dibuka. Periksa nama, NIP, serta data administrasi. Kolom nilai, komentar, perbaikan laporan, dan tanda tangan sengaja dikosongkan untuk diisi dosen."
+        },
+        "export": {
+          "title": "Unduh PDF terpisah dalam satu ZIP",
+          "description": "Unduh ZIP menghasilkan PDF terpisah untuk setiap formulir yang dicentang. Jika tombol belum aktif, pastikan nama dan NIM terisi serta setidaknya satu formulir dipilih."
+        }
+      },
+      "lecturers": {
+        "name": "Memilih dosen dan menyimpan profil default",
+        "summary": "Cari nama atau NIP, pilih pembimbing dan penguji, lalu simpan untuk digunakan kembali secara offline.",
+        "advisors": {
+          "title": "Pilih pembimbing dari daftar dosen",
+          "description": "Isi nama dan NIM pada profil lokal, lalu cari pembimbing berdasarkan nama atau NIP. NIP terisi dari pilihanmu. Tambahkan pembimbing kedua jika diperlukan. Profil lokal menjadi data default; pembimbing KP tetap diisi manual pada dokumen KP."
+        },
+        "refresh": {
+          "title": "Daftar dosen tetap tersedia saat offline",
+          "description": "Daftar bawaan aplikasi atau data terakhir yang tersimpan bisa dipakai tanpa login dan tanpa internet. Saat online, gunakan Perbarui daftar untuk mengecek data terbaru. Pembaruan daftar tidak mengubah nama atau NIP yang sudah kamu simpan; pilih ulang dosennya jika ingin memakai data terbaru."
+        },
+        "committee": {
+          "title": "Pilih ketua sidang dan penguji",
+          "description": "Buka bagian ini untuk memilih ketua sidang, penguji pertama, dan penguji kedua beserta NIP-nya. Pilihan ini tersimpan bersama profil. Kamu tidak perlu mengetik ulang nama dosen saat membuat formulir."
+        },
+        "save": {
+          "title": "Simpan profil default untuk digunakan kembali",
+          "description": "Simpan setelah selesai mengisi profil dan memilih dosen. Perubahan default tidak otomatis mengganti profil dokumen yang sudah ada. Untuk menerapkannya, buka pengaturan dokumen di editor, pilih Ambil data default, lalu simpan perubahan dokumen."
+        }
+      },
+      "documentProfile": {
+        "name": "Profil penulis dan dosen per dokumen",
+        "summary": "Atur identitas, pembimbing, ketua, dan penguji untuk dokumen ini tanpa mengubah dokumen lain.",
+        "profile": {
+          "title": "Setiap dokumen menyimpan profilnya sendiri",
+          "description": "Bagian ini memuat identitas penulis, pembimbing, ketua, dan penguji untuk dokumen yang sedang dibuka. Pilih dosen berdasarkan nama atau NIP. Profil ini digunakan oleh dokumen dan formulir, serta ikut terbawa saat ekspor .hightex. Pembimbing KP tetap manual."
+        },
+        "defaults": {
+          "title": "Ambil default hanya saat kamu membutuhkannya",
+          "description": "Ambil data default menyalin profil lokal dari Pengaturan ke dokumen ini. Periksa kembali hasilnya sebelum menyimpan. Mengubah profil lokal atau memperbarui daftar dosen tidak otomatis mengganti data yang sudah tersimpan pada dokumen."
+        },
+        "locked": "Identitas dan penugasan dosen pada dokumen ini dikendalikan oleh data akademik cloud. Ambil data default tidak tersedia saat terkunci. Ikuti sumber data server untuk memperbarui data tersebut.",
+        "save": {
+          "title": "Simpan perubahan profil dokumen",
+          "description": "Gunakan Simpan pada panel ini setelah mengubah identitas atau pilihan dosen. Tombol aktif ketika ada perubahan. Dokumen lain dan profil default tetap memakai datanya sendiri."
         }
       }
     }

@@ -321,6 +321,7 @@ function FormWorkspace({
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div
+          data-tour="forms-stage"
           className="flex rounded-lg bg-muted/50 p-1"
           role="group"
           aria-label={t("forms.stage")}
@@ -342,7 +343,11 @@ function FormWorkspace({
           <span className="text-xs text-muted-foreground">
             {t("forms.zip_count", { count: sheets.length })}
           </span>
-          <Button type="submit" disabled={!ready || busy}>
+          <Button
+            data-tour="forms-export"
+            type="submit"
+            disabled={!ready || busy}
+          >
             {busy ? <Loader2 className="animate-spin" /> : <Download />}
             {t(busy ? "forms.exporting" : "forms.download_zip")}
           </Button>
@@ -387,7 +392,11 @@ function FormWorkspace({
         </details>
       </div>
       <div className="grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <fieldset disabled={busy} className="min-w-0 rounded-xl border">
+        <fieldset
+          data-tour="forms-selection"
+          disabled={busy}
+          className="min-w-0 rounded-xl border"
+        >
           <div className="flex items-center justify-between border-b px-3 py-3">
             <span className="text-xs font-semibold">
               {t("forms.choose_forms")}
@@ -463,7 +472,7 @@ function FormWorkspace({
               {t("forms.faculty_blank")}
             </p>
           </div>
-          <fieldset disabled={busy}>
+          <fieldset data-tour="forms-inputs" disabled={busy}>
             <FormInputs
               code={current}
               data={data}
@@ -494,7 +503,9 @@ function FormWorkspace({
               {t("forms.storage_failed")}
             </p>
           )}
-          <PDFPreview input={preview} />
+          <div data-tour="forms-preview">
+            <PDFPreview input={preview} />
+          </div>
         </div>
       </div>
     </form>
@@ -574,7 +585,10 @@ export function Forms() {
           </Button>
         </div>
       ) : !documents.length ? (
-        <div className="rounded-xl border p-8 text-center">
+        <div
+          data-tour="forms-empty"
+          className="rounded-xl border p-8 text-center"
+        >
           <FileStack className="mx-auto mb-3 size-8 text-muted-foreground" />
           <p className="text-sm">{t("forms.no_documents")}</p>
         </div>

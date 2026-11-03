@@ -200,4 +200,4 @@ HighTex Desktop is under active development. Features, architecture, and workflo
 
 ## Credits
 
-See [Credits](./credits.md) for contributors, open-source projects, and acknowledgements.
+See [Credits](./CREDITS.md) for contributors, open-source projects, and acknowledgements.
