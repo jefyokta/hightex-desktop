@@ -42,3 +42,5 @@ test.sh
 
 docs/contributors/editor-content-loss.md
 docs/contributors/pdf-generation-flow.md
+docs/test-reports/
+_todo.md
