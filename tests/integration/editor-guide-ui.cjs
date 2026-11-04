@@ -4,6 +4,7 @@ const { createServer } = require("node:http");
 const { mkdtempSync, writeFileSync } = require("node:fs");
 const path = require("node:path");
 const assert = require("node:assert/strict");
+const { assertGuideVisuals } = require("./guide-visual-assertions.cjs");
 const root = path.resolve(__dirname, "../..");
 const profile = mkdtempSync("/private/tmp/hightex-editor-guide-");
 app.setPath("userData", profile);
@@ -32,9 +33,9 @@ window.config={get:()=>config,onChange:()=>()=>{},set:async()=>{}};
 window.hightex={categories:async()=>[{id:1,name:'Thesis',variant:'thesis',chapters:[{chapter:'1',title:'Pendahuluan'},{chapter:'4',title:'Pembahasan'}]}],cloud:{academic:{locked:async()=>false}}};
 window.installation={time:'2026-01-01T00:00:00.000Z',firstInstalled:false,installedVersion:'1.2.0',currentVersion:'1.2.0',previousVersion:'1.2.0',versionChanged:false,seenGuides:{welcome:2,'workspace-1-1-2':2}};
 window.hightex.onboarding={status:async()=>structuredClone(window.installation),acknowledge:async guides=>{for(const guide of guides)window.installation.seenGuides[guide.id]=guide.revision;return structuredClone(window.installation)}};
-window.profile={get:async()=>({})};
+window.defaultProfile={name:'Default Writer',nim:'456',advisorName:'New Advisor',advisorNip:'00011',committee:{chair:{name:'New Chair',nip:'00013'}}};window.profile={get:async()=>structuredClone(window.defaultProfile)};
 const db=HighTexDB.getInstance();await db.open();window.db=db;
-for(const id of ['demo','other'])await db.documents.put({id,title:'Scroll fixture',altTitle:'',category:'1',config:{},keywords:{indonesian:[],english:[]},profile:{name:'Writer',nim:'123',cv:'<p>CV fixture</p>'}});
+for(const id of ['demo','other'])await db.documents.put({id,title:'Scroll fixture',altTitle:'',category:'1',config:{},keywords:{indonesian:[],english:[]},profile:{name:'Writer',nim:'123',advisorName:'Old Advisor',advisorNip:'00001',secondAdvisor:{name:'Keep Second',nip:'00002'},committee:{chair:{name:'Old Chair',nip:'00003'},examiner1:{name:'Keep Examiner',nip:'00004'}},cv:'<p>CV fixture</p>'}});
 for(const doc of ['demo','other'])for(const chapter of ['1','4'])for(const version of ['', '.v1'])await db.chapters.put({id:doc+'.'+chapter+version,content:Array.from({length:90},(_,index)=>({type:'paragraph',attrs:{id:'paragraph-'+index},content:[{type:'text',text:'Paragraph '+index+' '+('Text to exercise chapter scroll memory. '.repeat(8))}]}))});
 function Probe(){window.currentEditor=useCurrentEditor().editor;window.currentEditorChapter=window.currentEditor?getEditorChapter(window.currentEditor)?.getId():null;window.navigate=useNavigate();window.currentPath=useLocation().pathname;window.setTargets=useParams().setParams;return null}
 function Shell(){return React.createElement(EditorChrome,null,React.createElement(EditorProvider,null,React.createElement(ParamsContextProvider,null,React.createElement(Probe),React.createElement(ExpandableSideBarContextProvider,null,React.createElement('div',{className:'flex h-full w-full'},React.createElement(ExpandableSideBar),React.createElement(Outlet)),React.createElement(EditorGuide)),React.createElement(EditorNavigatorSlave))))}
@@ -175,7 +176,12 @@ app
         (await win.webContents.capturePage()).toPNG(),
       );
     };
+    await assertGuideVisuals(execute);
     await shot("editor-guide-chapters");
+    await execute(`document.documentElement.classList.add('dark')`);
+    await assertGuideVisuals(execute);
+    await shot("editor-guide-chapters-dark");
+    await execute(`document.documentElement.classList.remove('dark')`);
     await execute(
       `document.querySelector('[data-tour="chapter-navigation"] button[aria-label="Bab berikutnya"]').click()`,
     );
@@ -223,6 +229,19 @@ app
       ),
       "guide must not scroll the titlebar out of view",
     );
+    for (const step of [
+      "sidebar-chapters",
+      "sidebar-citations",
+      "sidebar-settings",
+    ]) {
+      await until(
+        `!Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()==='Berikutnya')?.disabled`,
+      );
+      await clickText("Berikutnya");
+      await until(
+        `document.querySelector('[data-tour-panel][data-tour-step="${step}"]') && document.querySelector('[data-tour-highlight]')`,
+      );
+    }
     await clickText("Selesai");
     await until(`!document.querySelector('[data-tour-panel]')`);
     await until(
@@ -503,6 +522,112 @@ app
       1,
     );
     assert.equal(await execute("window.currentPath"), "/document/demo/1");
+    // Wait for the guide's restored sidebar animation before interacting with it.
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    // Copying local defaults requires a preview, keeps blank defaults unchecked and only saves on explicit Save.
+    if (
+      !(await execute(
+        `!!document.querySelector('[data-tour="editor-tab-setting"]')`,
+      ))
+    )
+      await execute(
+        `document.querySelector('[data-tour="editor-sidebar"]').click()`,
+      );
+    await until(`document.querySelector('[data-tour="editor-tab-setting"]')`);
+    await execute(
+      `document.querySelector('[data-tour="editor-tab-setting"]').click()`,
+    );
+    await until(
+      `document.querySelector('[data-tour="document-profile-default"]')`,
+    );
+    const openPreview = async () => {
+      await execute(
+        `document.querySelector('[data-tour="document-profile-default"]').click()`,
+      );
+      await until(`document.querySelector('[data-default-profile-preview]')`);
+    };
+    const dialogButton = (text) =>
+      execute(
+        `(()=>{const buttons=Array.from(document.querySelectorAll('[data-default-profile-preview] button'));const button=buttons.find(button=>button.textContent.trim()===${JSON.stringify(text)});if(!button)throw Error('Missing preview action '+${JSON.stringify(text)}+'; buttons: '+JSON.stringify(buttons.map(button=>button.textContent)));button.click();})()`,
+      );
+    await openPreview();
+    assert.equal(
+      await execute(
+        `document.querySelector('[data-profile-change=secondAdvisor] [role=checkbox]').getAttribute('aria-checked')`,
+      ),
+      "false",
+    );
+    assert.equal(
+      await execute(
+        `document.querySelector('[data-profile-change=examiner1] [role=checkbox]').getAttribute('aria-checked')`,
+      ),
+      "false",
+    );
+    assert.ok(
+      await execute(
+        `document.querySelector('[data-profile-change=advisor]').textContent.includes('Old Advisor') && document.querySelector('[data-profile-change=advisor]').textContent.includes('New Advisor')`,
+      ),
+    );
+    await shot("default-profile-preview");
+    await dialogButton("Batal");
+    await until(`!document.querySelector('[data-default-profile-preview]')`);
+    assert.equal(
+      await execute(
+        `document.querySelector('[data-tour="document-settings-save"]').disabled`,
+      ),
+      true,
+    );
+    assert.equal(
+      await execute(
+        `window.db.documents.get('demo').then(doc=>JSON.stringify(doc))`,
+      ),
+      documentBefore,
+    );
+    await openPreview();
+    await execute(
+      `document.querySelector('[data-profile-change=name] [role=checkbox]').click();document.querySelector('[data-profile-change=nim] [role=checkbox]').click();`,
+    );
+    await dialogButton("Terapkan ke draf");
+    await until(
+      `!document.querySelector('[data-default-profile-preview]') && !document.querySelector('[data-tour="document-settings-save"]').disabled`,
+    );
+    assert.equal(
+      await execute(
+        `window.db.documents.get('demo').then(doc=>JSON.stringify(doc))`,
+      ),
+      documentBefore,
+    );
+    await execute(
+      `document.querySelector('[data-tour="document-settings-save"]').click()`,
+    );
+    await until(
+      `document.querySelector('[data-tour="document-settings-save"]').disabled`,
+    );
+    const copied = await execute(
+      `window.db.documents.get('demo').then(doc=>doc.profile)`,
+    );
+    assert.equal(copied.name, "Writer");
+    assert.equal(copied.nim, "123");
+    assert.equal(copied.advisorName, "New Advisor");
+    assert.equal(copied.advisorNip, "00011");
+    assert.equal(copied.committee.chair.name, "New Chair");
+    assert.equal(copied.secondAdvisor.name, "Keep Second");
+    assert.equal(copied.committee.examiner1.name, "Keep Examiner");
+    assert.equal(copied.cv, "<p>CV fixture</p>");
+    // Matching defaults show a no-changes state.
+    await execute(
+      `window.defaultProfile=JSON.parse(${JSON.stringify(JSON.stringify(copied))})`,
+    );
+    await openPreview();
+    assert.ok(
+      await execute(
+        `document.querySelector('[data-default-profile-preview]').textContent.includes('Tidak ada perubahan')`,
+      ),
+    );
+    await dialogButton("Tutup");
+    console.log(
+      "PASS: default-profile preview, before/after values, cancellation, field selection, blank-value protection, draft-only apply, explicit persistence, CV and unrelated lecturers retained, and unchanged-profile feedback.",
+    );
     console.log(
       "PASS: real 1.3.0 document profile guide opens settings, explains explicit defaults and saving, preserves saved document data and does not repeat 1.2.0 features.",
     );

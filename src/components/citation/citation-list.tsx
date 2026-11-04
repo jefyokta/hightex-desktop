@@ -28,6 +28,7 @@ export const CitationList = memo(function CitationList({
     <div className="h-full divide-y divide-muted/40 overflow-y-auto rounded-xl">
       {cites.map((cite) => (
         <div
+          data-tour="reference-library"
           key={cite.getId()}
           className="px-3 py-2 transition hover:bg-muted/30"
         >

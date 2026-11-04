@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { t, useAppLanguage } from "@/utils/lang";
+import "@/css/ui-guides.css";
 
 export function GuideAnnouncement({ guide }: { guide: GuideController }) {
   useAppLanguage();
@@ -31,11 +32,12 @@ export function GuideAnnouncement({ guide }: { guide: GuideController }) {
     >
       <DialogContent
         data-guide-announcement
+        overlayClassName="guide-announcement-scrim"
         style={{
           maxHeight: `calc(100dvh - ${headerInset + 32}px)`,
           top: `calc(50% + ${headerInset / 2}px)`,
         }}
-        className="workspace flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden p-6 sm:max-w-lg"
+        className="workspace guide-surface flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden p-6 sm:max-w-lg"
         onCloseAutoFocus={(event) => {
           if (starting.current) event.preventDefault();
         }}
@@ -123,7 +125,7 @@ export function GuideAnnouncement({ guide }: { guide: GuideController }) {
           </Button>
           <Button
             size="sm"
-            className="workspace-primary"
+            className="guide-primary"
             onClick={() => {
               starting.current = true;
               startTour();

@@ -47,6 +47,7 @@ export const Citation = () => {
           <>
             <Button
               variant="outline"
+              data-tour="reference-zotero"
               onClick={zotero.openImport}
               disabled={loading}
             >
@@ -70,6 +71,7 @@ export const Citation = () => {
           <div className="relative">
             <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground" />
             <Input
+              data-tour="reference-search"
               type="search"
               aria-label={t("citation.search", { count: citations.length })}
               value={query}
@@ -100,7 +102,10 @@ export const Citation = () => {
               </Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-sm text-muted-foreground">
+            <div
+              data-tour="reference-empty"
+              className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center text-sm text-muted-foreground"
+            >
               <p>
                 {query.trim() ? t("dashboard.no_results") : t("citation.empty")}
               </p>

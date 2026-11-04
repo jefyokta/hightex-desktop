@@ -7,10 +7,18 @@ import {
   offset,
   shift,
 } from "@floating-ui/react";
-import { ArrowLeft, ArrowRight, Focus, Loader2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CircleHelp,
+  Focus,
+  Loader2,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { t, useAppLanguage } from "@/utils/lang";
+import "@/css/ui-guides.css";
 
 const focusable =
   'button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href],[tabindex]:not([tabindex="-1"])';
@@ -55,6 +63,7 @@ export function GuidedTour({
   );
   const [fallback, setFallback] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [canAdvance, setCanAdvance] = useState(false);
   const headerInset = Math.max(
     0,
     document.querySelector("[data-editor-titlebar]")?.getBoundingClientRect()
@@ -129,6 +138,12 @@ export function GuidedTour({
     const find = () => {
       if (disposed) return;
       setPaused(Boolean(externalPopup()));
+      setCanAdvance(
+        !step.advanceWhen ||
+          Array.from(
+            document.querySelectorAll<HTMLElement>(step.advanceWhen),
+          ).some(isVisible),
+      );
       const candidates: string[] = JSON.parse(selectors);
       let found: HTMLElement | null = null;
       let foundIndex = -1;
@@ -184,7 +199,7 @@ export function GuidedTour({
       if (frame !== undefined) cancelAnimationFrame(frame);
       target.current = null;
     };
-  }, [selectors, index]);
+  }, [selectors, index, step.advanceWhen]);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -231,7 +246,7 @@ export function GuidedTour({
           'input,select,textarea,[contenteditable="true"]',
         )
       ) {
-        if (event.key === "ArrowRight" && current) {
+        if (event.key === "ArrowRight" && current && canAdvance) {
           if (index < steps.length - 1) {
             event.preventDefault();
             onIndex(index + 1);
@@ -253,26 +268,40 @@ export function GuidedTour({
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [index, onDismiss, onIndex, onPreviousGuide, onNextGuide, steps.length]);
+  }, [
+    index,
+    onDismiss,
+    onIndex,
+    onPreviousGuide,
+    onNextGuide,
+    steps.length,
+    canAdvance,
+  ]);
 
   return createPortal(
     <div
-      className="workspace"
+      className="workspace pointer-events-none fixed inset-0 z-[1000000000]"
       style={{ visibility: paused ? "hidden" : undefined }}
       data-tour-overlay
     >
-      {box && (
+      {box ? (
         <>
           <div
-            className="fixed inset-x-0 top-0 z-[2100]"
+            data-tour-scrim
+            aria-hidden="true"
+            className="guide-scrim pointer-events-auto fixed inset-x-0 top-0 z-[2100]"
             style={{ height: box.top }}
           />
           <div
-            className="fixed left-0 z-[2100]"
+            data-tour-scrim
+            aria-hidden="true"
+            className="guide-scrim pointer-events-auto fixed left-0 z-[2100]"
             style={{ top: box.top, width: box.left, height: box.height }}
           />
           <div
-            className="fixed right-0 z-[2100]"
+            data-tour-scrim
+            aria-hidden="true"
+            className="guide-scrim pointer-events-auto fixed right-0 z-[2100]"
             style={{
               top: box.top,
               left: box.left + box.width,
@@ -280,15 +309,24 @@ export function GuidedTour({
             }}
           />
           <div
-            className="fixed inset-x-0 bottom-0 z-[2100]"
+            data-tour-scrim
+            aria-hidden="true"
+            className="guide-scrim pointer-events-auto fixed inset-x-0 bottom-0 z-[2100]"
             style={{ top: box.top + box.height }}
           />
           <div
             data-tour-highlight
-            className="pointer-events-none fixed z-[2100] rounded-xl border-2 border-foreground/70"
-            style={{ ...box, boxShadow: "0 0 0 9999px rgb(0 0 0 / 32%)" }}
+            aria-hidden="true"
+            className="guide-spotlight pointer-events-none fixed z-[2100] rounded-xl"
+            style={box}
           />
         </>
+      ) : (
+        <div
+          data-tour-scrim
+          aria-hidden="true"
+          className="guide-scrim pointer-events-auto fixed inset-0 z-[2100]"
+        />
       )}
       <div
         ref={panel}
@@ -299,7 +337,7 @@ export function GuidedTour({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="fixed z-[2101] w-[min(360px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto rounded-xl bg-popover p-5 text-popover-foreground shadow-xl ring-1 ring-foreground/10 outline-none"
+        className="workspace guide-surface pointer-events-auto fixed z-[2101] w-[min(400px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto rounded-2xl p-5 outline-none"
         style={{
           maxHeight: `calc(100dvh - ${headerInset + 24}px)`,
           ...(position
@@ -308,7 +346,12 @@ export function GuidedTour({
         }}
       >
         <div className="flex items-center justify-between gap-3">
-          <p className="workspace-eyebrow">{eyebrow}</p>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="workspace-brand-icon flex size-8 shrink-0 items-center justify-center rounded-lg">
+              <CircleHelp className="size-4" aria-hidden="true" />
+            </span>
+            <p className="workspace-eyebrow">{eyebrow}</p>
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -318,6 +361,9 @@ export function GuidedTour({
           >
             <X />
           </Button>
+        </div>
+        <div className="guide-progress mt-4" aria-hidden="true">
+          <span style={{ width: `${((index + 1) / steps.length) * 100}%` }} />
         </div>
         <NativeSelect
           aria-label={t("guide.feature")}
@@ -333,12 +379,15 @@ export function GuidedTour({
           ))}
         </NativeSelect>
         <div aria-live="polite" aria-atomic="true">
-          <h2 id={titleId} className="mt-3 text-sm font-semibold">
+          <h2
+            id={titleId}
+            className="mt-4 text-base font-semibold leading-snug"
+          >
             {step.title}
           </h2>
           <p
             id={descriptionId}
-            className="mt-2 text-xs leading-relaxed text-muted-foreground"
+            className="mt-2 text-sm leading-relaxed text-muted-foreground"
           >
             {fallback && step.fallbackDescription
               ? step.fallbackDescription
@@ -352,6 +401,14 @@ export function GuidedTour({
           >
             <code>{step.example}</code>
           </pre>
+        )}
+        {!canAdvance && step.waitingDescription && (
+          <p
+            role="status"
+            className="mt-3 text-xs leading-relaxed text-muted-foreground"
+          >
+            {step.waitingDescription}
+          </p>
         )}
         {!box && (
           <p
@@ -407,8 +464,8 @@ export function GuidedTour({
             <Button
               type="button"
               size="sm"
-              className="workspace-primary"
-              disabled={!box}
+              className="guide-primary"
+              disabled={!box || !canAdvance}
               onClick={() =>
                 index < steps.length - 1
                   ? onIndex(index + 1)

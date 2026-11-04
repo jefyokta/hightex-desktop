@@ -42,6 +42,9 @@ export function GuidePlanTour({
             selectors: ready ? step.selectors : [],
             title: t(step.title),
             example: step.example ? t(step.example) : undefined,
+            waitingDescription: step.waitingDescription
+              ? t(step.waitingDescription)
+              : undefined,
             description: t(
               frozen && step.frozenDescription
                 ? step.frozenDescription

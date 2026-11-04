@@ -139,6 +139,7 @@ export const Row = ({
               ? onSelect()
               : void run(() => window.editor.open(doc.id, doc.file))
           }
+          data-tour="document-open"
           title={doc.title}
           className="workspace-document-title line-clamp-2 text-left text-sm font-medium leading-relaxed transition-colors outline-none focus-visible:underline disabled:opacity-60"
         >

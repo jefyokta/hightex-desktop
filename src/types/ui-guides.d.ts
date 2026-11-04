@@ -39,10 +39,13 @@ declare global {
     fallbackDescription?: LocaleKey;
     frozenDescription?: LocaleKey;
     example?: LocaleKey;
+    advanceWhen?: string;
+    waitingDescription?: LocaleKey;
     editor?: { sidebar?: SidebarTab; chapter?: "normal" | "abstract" };
   }
 
   interface UIGuide extends GuideAcknowledgment {
+    welcomeOrder?: number;
     name: LocaleKey;
     summary: LocaleKey;
     scope: GuideScope;
@@ -92,6 +95,8 @@ declare global {
     selectors: string[];
     fallbackDescription?: string;
     example?: string;
+    advanceWhen?: string;
+    waitingDescription?: string;
   }
 
   interface GuideTargetBox {

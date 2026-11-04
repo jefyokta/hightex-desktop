@@ -30,7 +30,10 @@ export const ChapteTree = () => {
   }, []);
 
   return (
-    <div className="w-full h-full overflow-auto ">
+    <div
+      data-tour="editor-chapter-list"
+      className="w-full h-full overflow-auto "
+    >
       <TabHeader
         title="Chapters"
         desc={t("editor.expandable.chapters.header")}
@@ -74,7 +77,14 @@ const ChapterNode = ({ chapter }: { chapter: Chapter }) => {
       }}
     >
       <FolderTrigger>
-        <span className="text-xs truncate!">
+        <span
+          data-tour={
+            chapter.getChapter() === "attachment"
+              ? "editor-chapter-appendix"
+              : undefined
+          }
+          className="text-xs truncate!"
+        >
           {chapter.query.isNormalChapter()
             ? `${chapter.getChapter()}. ${chapter.title}`
             : chapter.title.toUpperCase()}

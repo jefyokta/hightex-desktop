@@ -313,6 +313,7 @@ function FormWorkspace({
   };
   return (
     <form
+      data-tour="forms-workspace"
       className="space-y-5"
       onSubmit={(event) => {
         event.preventDefault();

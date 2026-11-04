@@ -91,6 +91,27 @@ test("planned 1.3.0 guides appear on upgrade without repeating seen 1.2.0 featur
   );
 });
 
+test("new users learn local defaults before forms while upgrades and replay retain release order", () => {
+  const welcome = guidePlan(status({ firstInstalled: true }), "workspace")!;
+  expect(
+    welcome.guides
+      .filter((guide) => guide.version === "1.3.0")
+      .map((guide) => guide.id),
+  ).toEqual(["lecturer-directory", "form-generation"]);
+  expect(
+    welcome.guides.slice(2).every((guide) => guide.version === "1.2.0"),
+  ).toBe(true);
+  const replay = guidePlan(
+    status({ firstInstalled: true }),
+    "workspace",
+    true,
+  )!;
+  expect(replay.guides.slice(0, 2).map((guide) => guide.id)).toEqual([
+    "form-generation",
+    "lecturer-directory",
+  ]);
+});
+
 test("new installation offers named features with the current release first", () => {
   const plan = guidePlan(status({ firstInstalled: true }), "workspace", false, [
     ...baselineReleases,
@@ -211,7 +232,7 @@ test("replay shows seen features but acknowledges only features actually opened"
   expect(plan.guides[0].version).toBe("1.3.0");
   expect(guideAcknowledgments(plan)).toEqual([]); // Closing the picker marks nothing.
   expect(guideAcknowledgments(plan, new Set(["references"]))).toEqual([
-    { id: "references", revision: 1 },
+    { id: "references", revision: 2 },
   ]);
   expect(guideAcknowledgments(plan, new Set(["missing"]))).toEqual([]);
 });
@@ -312,7 +333,10 @@ test("registry has unique feature IDs, valid revisions, named guides and transla
       expect(guide.id).toMatch(/^[a-z0-9-]{1,100}$/);
       expect(Number.isSafeInteger(guide.revision)).toBe(true);
       expect(guide.revision).toBeGreaterThan(0);
-      expect(guide.steps.length).toBeGreaterThan(0);
+      expect(guide.steps.length).toBeGreaterThan(1);
+      expect(
+        new Set(guide.steps.map((step) => step.description)).size,
+      ).toBeGreaterThan(1);
       const textKeys = [guide.name, guide.summary];
       const stepIds = new Set<string>();
       for (const step of guide.steps) {
@@ -323,6 +347,7 @@ test("registry has unique feature IDs, valid revisions, named guides and transla
         if (step.fallbackDescription) textKeys.push(step.fallbackDescription);
         if (step.frozenDescription) textKeys.push(step.frozenDescription);
         if (step.example) textKeys.push(step.example);
+        if (step.waitingDescription) textKeys.push(step.waitingDescription);
         if (guide.scope === "workspace")
           expect(step.route?.startsWith("/")).toBe(true);
       }
@@ -332,4 +357,34 @@ test("registry has unique feature IDs, valid revisions, named guides and transla
       }
     }
   }
+});
+
+test("expanded baseline guides return once for users who saw their shorter revisions", () => {
+  const old = Object.fromEntries(
+    availableGuides("1.2.0", "workspace").map((guide) => [guide.id, 1]),
+  );
+  const previousEditor = Object.fromEntries(
+    availableGuides("1.2.0", "editor").map((guide) => [
+      guide.id,
+      guide.revision,
+    ]),
+  );
+  previousEditor["chapter-navigation"] = 2;
+  previousEditor["editor-sidebar"] = 1;
+  const state = status({
+    currentVersion: "1.2.0",
+    seenGuides: { ...old, ...previousEditor },
+  });
+  expect(
+    guidePlan(state, "workspace")?.guides.map((guide) => guide.id),
+  ).toEqual([
+    "documents",
+    "document-filters",
+    "references",
+    "document-exports",
+  ]);
+  expect(guidePlan(state, "editor")?.guides.map((guide) => guide.id)).toEqual([
+    "chapter-navigation",
+    "editor-sidebar",
+  ]);
 });

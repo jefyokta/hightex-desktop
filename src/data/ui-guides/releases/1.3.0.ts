@@ -7,6 +7,7 @@ export default {
   guides: [
     {
       id: "form-generation",
+      welcomeOrder: 1,
       revision: 1,
       name: "guide.release130.forms.name",
       summary: "guide.release130.forms.summary",
@@ -19,6 +20,8 @@ export default {
           selectors: formsFallback,
           fallbackDescription: "guide.release130.forms.empty",
           route: formsRoute,
+          advanceWhen: '[data-tour="forms-workspace"]',
+          waitingDescription: "guide.release130.forms.select_first",
         },
         {
           id: "forms-stage",
@@ -64,11 +67,19 @@ export default {
     },
     {
       id: "lecturer-directory",
+      welcomeOrder: 0,
       revision: 1,
       name: "guide.release130.lecturers.name",
       summary: "guide.release130.lecturers.summary",
       scope: "workspace",
       steps: [
+        {
+          id: "profile-identity",
+          title: "guide.release130.lecturers.identity.title",
+          description: "guide.release130.lecturers.identity.description",
+          selectors: ['[data-tour="default-profile-identity"]'],
+          route: profileRoute,
+        },
         {
           id: "profile-advisors",
           title: "guide.release130.lecturers.advisors.title",

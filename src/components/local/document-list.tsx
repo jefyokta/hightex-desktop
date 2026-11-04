@@ -203,6 +203,7 @@ export const DocumentList = ({
           <>
             <Button
               variant="outline"
+              data-tour="document-import"
               disabled={busy}
               onClick={() => importRef.current?.click()}
             >
@@ -240,6 +241,7 @@ export const DocumentList = ({
               <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground" />
               <Input
                 type="search"
+                data-tour="document-search"
                 value={query}
                 disabled={busy}
                 onChange={(event) => setQuery(event.target.value)}
@@ -250,6 +252,7 @@ export const DocumentList = ({
             </div>
             <div className="flex gap-2">
               <NativeSelect
+                data-tour="document-category"
                 aria-label={t("dashboard.category")}
                 disabled={busy}
                 value={category}
@@ -265,6 +268,7 @@ export const DocumentList = ({
                 ))}
               </NativeSelect>
               <NativeSelect
+                data-tour="document-sort"
                 aria-label={t("dashboard.sort")}
                 disabled={busy}
                 value={sort}
@@ -290,6 +294,7 @@ export const DocumentList = ({
             {!selectMode && (
               <Button
                 variant="ghost"
+                data-tour="document-select"
                 size="sm"
                 disabled={busy || !visible.length}
                 onClick={() => {
@@ -305,13 +310,19 @@ export const DocumentList = ({
         </section>
       )}
       {selectMode && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 p-3">
+        <div
+          data-tour="document-selection"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 p-3"
+        >
           {busy && <Loader2 className="size-4 animate-spin" />}
           {selectionActions}
         </div>
       )}
       {documents.length === 0 ? (
-        <div className="flex min-h-[45vh] flex-col items-center justify-center  px-6 py-16 text-center">
+        <div
+          data-tour="document-empty"
+          className="flex min-h-[45vh] flex-col items-center justify-center  px-6 py-16 text-center"
+        >
           <span className="workspace-brand-icon mb-5 flex size-14 items-center justify-center rounded-2xl">
             <FileStack className="size-6" />
           </span>
@@ -335,7 +346,10 @@ export const DocumentList = ({
           </div>
         </div>
       ) : visible.length === 0 ? (
-        <div className="flex min-h-64 flex-col items-center justify-center  p-8 text-center">
+        <div
+          data-tour="document-no-results"
+          className="flex min-h-64 flex-col items-center justify-center  p-8 text-center"
+        >
           <SlidersHorizontal className="mb-4 size-6 text-muted-foreground" />
           <h2 className="font-medium">{t("dashboard.no_results")}</h2>
           <p className="mt-2 text-sm text-muted-foreground">

@@ -1,0 +1,166 @@
+const documentsRoute = "/dashboard";
+const emptyDocuments = [
+  '[data-tour="document-empty"]',
+  '[data-tour="document-no-results"]',
+];
+const documentActions = ['[data-tour="document-actions"]', ...emptyDocuments];
+
+export const workspaceGuides = [
+  {
+    id: "documents",
+    revision: 2,
+    name: "guide.features.documents.name",
+    summary: "guide.features.documents.summary",
+    scope: "workspace",
+    steps: [
+      {
+        id: "documents",
+        title: "guide.walkthrough.documents.create.title",
+        description: "guide.walkthrough.documents.create.description",
+        selectors: ['[data-tour="document-create"]'],
+        route: documentsRoute,
+      },
+      {
+        id: "document-import",
+        title: "guide.walkthrough.documents.import.title",
+        description: "guide.walkthrough.documents.import.description",
+        selectors: ['[data-tour="document-import"]'],
+        route: documentsRoute,
+      },
+      {
+        id: "document-open",
+        title: "guide.walkthrough.documents.open.title",
+        description: "guide.walkthrough.documents.open.description",
+        selectors: ['[data-tour="document-open"]', ...emptyDocuments],
+        fallbackDescription: "guide.walkthrough.documents.open.empty",
+        route: documentsRoute,
+      },
+    ],
+  },
+  {
+    id: "document-filters",
+    revision: 2,
+    name: "guide.features.organize.name",
+    summary: "guide.features.organize.summary",
+    scope: "workspace",
+    steps: [
+      {
+        id: "organize",
+        title: "guide.walkthrough.organize.search.title",
+        description: "guide.walkthrough.organize.search.description",
+        selectors: ['[data-tour="document-search"]', ...emptyDocuments],
+        fallbackDescription: "guide.walkthrough.requires_document",
+        advanceWhen: '[data-tour="document-filters"]',
+        waitingDescription: "guide.walkthrough.requires_document",
+        route: documentsRoute,
+      },
+      {
+        id: "document-category",
+        title: "guide.walkthrough.organize.category.title",
+        description: "guide.walkthrough.organize.category.description",
+        selectors: ['[data-tour="document-category"]', ...emptyDocuments],
+        fallbackDescription: "guide.walkthrough.requires_document",
+        route: documentsRoute,
+      },
+      {
+        id: "document-sort",
+        title: "guide.walkthrough.organize.sort.title",
+        description: "guide.walkthrough.organize.sort.description",
+        selectors: ['[data-tour="document-sort"]', ...emptyDocuments],
+        fallbackDescription: "guide.walkthrough.requires_document",
+        route: documentsRoute,
+      },
+      {
+        id: "document-select",
+        title: "guide.walkthrough.organize.select.title",
+        description: "guide.walkthrough.organize.select.description",
+        selectors: [
+          '[data-tour="document-selection"]',
+          '[data-tour="document-select"]',
+          ...emptyDocuments,
+        ],
+        route: documentsRoute,
+      },
+    ],
+  },
+  {
+    id: "references",
+    revision: 2,
+    name: "guide.features.references.name",
+    summary: "guide.features.references.summary",
+    scope: "workspace",
+    steps: [
+      {
+        id: "references",
+        title: "guide.walkthrough.references.bibtex.title",
+        description: "guide.walkthrough.references.bibtex.description",
+        selectors: ['[data-tour="reference-add"]'],
+        route: "/dashboard/citation",
+        example: "guide.walkthrough.references.bibtex.example",
+      },
+      {
+        id: "reference-zotero",
+        title: "guide.walkthrough.references.zotero.title",
+        description: "guide.walkthrough.references.zotero.description",
+        selectors: ['[data-tour="reference-zotero"]'],
+        route: "/dashboard/citation",
+      },
+      {
+        id: "reference-search",
+        title: "guide.walkthrough.references.search.title",
+        description: "guide.walkthrough.references.search.description",
+        selectors: ['[data-tour="reference-search"]'],
+        route: "/dashboard/citation",
+      },
+      {
+        id: "reference-library",
+        title: "guide.walkthrough.references.library.title",
+        description: "guide.walkthrough.references.library.description",
+        selectors: [
+          '[data-tour="reference-library"]',
+          '[data-tour="reference-empty"]',
+          '[data-tour="reference-search"]',
+        ],
+        fallbackDescription: "guide.walkthrough.references.library.empty",
+        route: "/dashboard/citation",
+      },
+    ],
+  },
+  {
+    id: "document-exports",
+    revision: 2,
+    name: "guide.features.exports.name",
+    summary: "guide.features.exports.summary",
+    scope: "workspace",
+    steps: [
+      {
+        id: "exports",
+        title: "guide.walkthrough.exports.actions.title",
+        description: "guide.walkthrough.exports.actions.description",
+        selectors: documentActions,
+        fallbackDescription: "guide.walkthrough.requires_visible_document",
+        advanceWhen: '[data-tour="document-actions"]',
+        waitingDescription: "guide.walkthrough.requires_visible_document",
+        route: documentsRoute,
+      },
+      {
+        id: "export-many",
+        title: "guide.walkthrough.exports.many.title",
+        description: "guide.walkthrough.exports.many.description",
+        selectors: [
+          '[data-tour="document-selection"]',
+          '[data-tour="document-select"]',
+          ...emptyDocuments,
+        ],
+        route: documentsRoute,
+      },
+      {
+        id: "export-location",
+        title: "guide.walkthrough.exports.location.title",
+        description: "guide.walkthrough.exports.location.description",
+        selectors: ['[data-tour="export-settings"]'],
+        route: "/settings",
+      },
+    ],
+  },
+] satisfies UIGuide[];

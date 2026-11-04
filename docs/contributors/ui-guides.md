@@ -27,6 +27,11 @@ closing the picker without starting marks nothing. A manual tour finishes after
 its selected feature; automatic tours advance through all announced features.
 Users can switch features directly in the tour selector.
 
+Fresh-install welcome tours can set `welcomeOrder` on a feature to put setup
+before dependent features within the same release. Upgrade announcements and
+manual replay retain the release's registered order. Release groups still sort
+by semantic version, newest first.
+
 Workspace and editor scopes are independent. Editor announcements appear when a
 user opens a document, without opening any extra window automatically. Existing
 imports, confirmation dialogs or mobile drawers take priority; the announcement
@@ -98,24 +103,31 @@ spotlight until that popup closes. Use fallback selectors and
 highlighted controls and tour actions; Escape skips. Targets follow scroll,
 resize, rerenders and animated sidebars.
 
+Steps may declare an `advanceWhen` CSS selector and a localized
+`waitingDescription`. Next and the right-arrow shortcut remain disabled until
+that selector matches a visible element. This is a read-only readiness check;
+it never selects or creates data on the user's behalf.
+
 ## Planned 1.3.0 guides
 
 `src/data/ui-guides/releases/1.3.0.ts` registers three new features at revision 1:
 
-| Guide ID                  | Scope     | Steps | Content                                                                                                                       |
-| ------------------------- | --------- | ----- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `form-generation`         | Workspace | 6     | Choose a document, proposal/defense stages, form selection, profile/administration data, preview, and separate PDFs in a ZIP. |
-| `lecturer-directory`      | Workspace | 4     | Search by name/NIP, offline data and refresh, chair/examiner selection, and saving the local default profile.                 |
-| `document-author-profile` | Editor    | 3     | Per-document author/lecturer data, explicitly copying defaults, and saving document settings.                                 |
+| Guide ID                  | Scope     | Steps | Content                                                                                                                        |
+| ------------------------- | --------- | ----- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `form-generation`         | Workspace | 6     | Choose a document, proposal/defense stages, form selection, profile/administration data, preview, and separate PDFs in a ZIP.  |
+| `lecturer-directory`      | Workspace | 5     | Author identity, search by name/NIP, offline data and refresh, chair/examiner selection, and saving the local default profile. |
+| `document-author-profile` | Editor    | 3     | Per-document author/lecturer data, explicitly copying defaults, and saving document settings.                                  |
 
 These guides become automatically eligible at application version `1.3.0`.
 The definitions do not bump the application version. Existing 1.2.0 IDs,
 revisions and seen state remain unchanged.
 
 The form tour never selects a document, changes stage/checkboxes, or exports
-files automatically. Without documents or a selected document, fallback text
-points to the document picker or empty state. Users may select a document while
-following the guide, and subsequent steps then track the real controls.
+files automatically. Its first step waits for a selected document before enabling
+Next, so an empty page does not produce six repeated fallback explanations.
+Users can select a document while following the guide; the remaining steps
+then track its real controls. Without documents, the empty state explains how
+to close the guide, create/import a document and reopen it from help.
 
 The lecturer guide navigates to `/settings` and the form guide to
 `/dashboard/forms`; closing either restores the original workspace route.
@@ -131,7 +143,7 @@ and assessment/comment/correction/signature fields stay blank for faculty.
 ## Editor writing tours
 
 The editor guides for `1.2.0` live in `src/data/ui-guides/releases/1.2.0/editor.ts`.
-They cover 11 features with 24 steps: navigation, writing/heading structure, text
+They cover 11 features with 29 steps: navigation, writing/heading structure, text
 formatting, document metadata/keywords, figures/tables, equations, citations and
 bibliography, cross-references/aliases, variables/symbols, review/save/PDF and the
 sidebar. Both locale files contain the explanations and literal syntax examples.
@@ -163,15 +175,73 @@ markers preserve the installation date during migration. Old aggregate IDs from
 the prototype remain harmless; the feature-based definitions receive their own
 IDs and are announced once.
 
-Run `bun test tests/ui-guides.test.ts tests/first-installed.test.ts` for planner,
-registry, locale and persistence checks. UI checks use isolated temporary
+Run `bun test tests/ui-guides.test.ts tests/first-installed.test.ts tests/default-profile-changes.test.ts`
+for planner, registry, locale, persistence and selective-copy checks. UI checks use isolated temporary
 profiles and fixtures; run them sequentially:
 
 ```sh
 env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron tests/integration/workspace-ui.cjs
 env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron tests/integration/editor-guide-ui.cjs
+env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron tests/integration/default-profile-ui.cjs
 ```
 
 Cloud access during development uses the local HighTex server configured in
 `LOCAL_SERVER` (currently `http://127.0.0.1:8000`). These guide checks need no cloud
 connection or account.
+
+## Reviewing local defaults
+
+The editor's Use local defaults action opens a field-by-field before/after
+preview. Only selected changes are applied to the document settings draft;
+the existing Save action is still required to persist them. Closing/cancelling
+the preview changes nothing. Unchanged profiles show an explicit no-change state.
+
+Fields that would clear an existing name or NIP start unchecked, including a
+partially empty lecturer record. Users may explicitly select those changes to
+clear a value. Lecturer names and NIPs are copied together. Nonselected roles,
+CV and photos are preserved. Internship documents accept only author name/NIM
+from this action, retaining their manual advisor data. Cloud-locked author data
+continues to disable default-copy access.
+
+The pure diff/apply rules are in `src/utils/default-profile-changes.ts`; the
+preview uses `DefaultProfilePreview` and never writes the database itself.
+
+## Workspace walkthroughs and revisions
+
+The four baseline workspace guides live in `src/data/ui-guides/releases/1.2.0/workspace.ts`.
+They contain 14 steps: create/import/open (3), search/category/sort/selection (4),
+BibTeX/Zotero/search/reference row (4), and document menu/bulk export/export folder (3).
+Each step explains the visible control and the outcome of using it. Avoid adding
+steps just to increase the counter. Current registered guides all have multiple
+steps and distinct explanations, verified by the registry test.
+
+The baseline workspace guides now use revision 2; chapter navigation uses revision 3
+and the sidebar guide revision 2. Their IDs stay stable. Previously acknowledged
+older revisions are offered once again, while unchanged guides keep their read state.
+Navigation includes chapter-list jumps and appendices; the sidebar visits its actual
+tabs and restores the user's previous panel when dismissed.
+
+Search and export tours wait for a document rather than repeating the empty state
+for every step. They explain how to create/import one or clear filters and can be
+closed at any time. Reference-library steps explain the empty state when needed.
+Export-folder guidance visits Settings and restores the original workspace route.
+Tour navigation never starts a document import/export or a category refresh.
+
+## Visual focus during tours
+
+`src/css/ui-guides.css` keeps the coach and release announcement on the application's
+popover, text and action colors. The temporary backdrop dims and lightly blurs
+surrounding UI, with stronger dimming in dark mode. The actual target remains clear
+and interactive. A border/shadow, readable body text and compact progress bar help
+separate the coach from the background without overriding the selected theme.
+
+The tour layer sits above incidental notifications. Opening a real dialog, menu
+or selection popup still pauses the entire focus layer so those controls can be
+used normally. The backdrop also covers the workspace while a target is loading.
+`DialogContent.overlayClassName` scopes the announcement backdrop without changing
+other application dialogs. No guide IDs/revisions change for this visual update.
+
+The workspace/editor Electron checks verify rendered text/action contrast (at
+least 4.5:1), surfaces matching both themes, dimmed blurred backdrops, notification
+layering, target interactions, popup pauses and viewport bounds. Their screenshots
+include light/dark coach and announcement examples.

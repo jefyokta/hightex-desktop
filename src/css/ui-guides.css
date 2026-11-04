@@ -1,0 +1,57 @@
+/* Keep the application theme; contrast comes from the temporary backdrop. */
+.workspace.guide-surface {
+  color-scheme: light;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid color-mix(in oklab, var(--foreground) 22%, var(--border));
+  box-shadow:
+    0 24px 64px rgb(0 0 0 / 28%),
+    0 4px 12px rgb(0 0 0 / 16%);
+}
+
+.dark .workspace.guide-surface {
+  color-scheme: dark;
+}
+
+.guide-scrim,
+.guide-announcement-scrim[data-slot="dialog-overlay"] {
+  background: rgb(0 0 0 / 30%);
+  backdrop-filter: blur(2px);
+}
+
+.dark .guide-scrim,
+.dark .guide-announcement-scrim[data-slot="dialog-overlay"] {
+  background: rgb(0 0 0 / 62%);
+}
+
+.guide-spotlight {
+  border: 2px solid var(--foreground);
+  box-shadow: 0 0 0 3px var(--background);
+}
+
+.guide-progress {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.guide-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+.guide-surface .guide-primary:hover {
+  background: color-mix(in oklab, var(--primary) 88%, var(--background));
+}
+
+/* Keep incidental notifications behind the guide's focus treatment. */
+.guide-announcement-scrim[data-slot="dialog-overlay"] {
+  z-index: 1000000000;
+}
+
+.guide-surface[data-guide-announcement] {
+  z-index: 1000000001;
+}

@@ -6,6 +6,7 @@ const { mkdtempSync, writeFileSync } = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 const assert = require("node:assert/strict");
+const { assertGuideVisuals } = require("./guide-visual-assertions.cjs");
 const profile = mkdtempSync(path.join(os.tmpdir(), "hightex-workspace-"));
 app.setPath("userData", profile);
 let vite, server, win;
@@ -29,7 +30,7 @@ import {emptyAuthorProfile} from '/src/utils/document-profile.ts';
 import {Toaster} from 'sonner';
 import {GUIDE_RELEASES} from '/src/data/ui-guides.ts';
 window.release130=GUIDE_RELEASES.find(release=>release.version==='1.3.0');GUIDE_RELEASES.splice(1);window.restoreRelease130=()=>GUIDE_RELEASES.splice(1,GUIDE_RELEASES.length-1,window.release130);
-window.addRelease=()=>GUIDE_RELEASES.push({version:'1.3.0',guides:[{...GUIDE_RELEASES[0].guides[0],id:'fixture-1-3-0',name:'guide.features.formatting.name',revision:1,steps:[...GUIDE_RELEASES[0].guides[0].steps,...GUIDE_RELEASES[0].guides[3].steps]},{...GUIDE_RELEASES[0].guides[1],id:'fixture-second',name:'guide.features.chapterTree.name',revision:1}]});
+window.addRelease=()=>GUIDE_RELEASES.push({version:'1.3.0',guides:[{...GUIDE_RELEASES[0].guides[0],id:'fixture-1-3-0',name:'guide.features.formatting.name',revision:1,steps:[GUIDE_RELEASES[0].guides[0].steps[0],GUIDE_RELEASES[0].guides[3].steps[0]]},{...GUIDE_RELEASES[0].guides[1],id:'fixture-second',name:'guide.features.chapterTree.name',revision:1}]});
 window.workspaceGuides=GUIDE_RELEASES[0].guides.filter(guide=>guide.scope==='workspace');
 window.workspaceSeen=Object.fromEntries(window.workspaceGuides.map(guide=>[guide.id,guide.revision]));
 import '/src/App.css';
@@ -41,6 +42,7 @@ window.opened=[];window.editor={open:async(id)=>{window.opened.push(id)},has:asy
 window.pdf=[];window.exports=[];window.cancelExport=false;
 window.ipcRenderer={invoke:async(channel,...args)=>{if(channel==='hightex:pdf'){window.pdf.push(args);return null}if(channel==='hightex:export'){window.exports.push(args[1]);return {canceled:window.cancelExport}}return []}};
 window.hightex={version:async()=>'1.3.0',categories:async()=>[{id:1,name:'Skripsi',variant:'thesis',chapters:[{chapter:'1',title:'Pendahuluan'}]},{id:2,name:'Proposal',variant:'proposal',chapters:[{chapter:'1',title:'Pendahuluan'}]}],onPdfProgress:()=>()=>{}};
+window.categoryUpdates=0;window.categoryUpdateFails=false;window.hightex.refreshCategories=async()=>{window.categoryUpdates++;if(window.categoryUpdateFails)throw Error('Offline');return window.hightex.categories()};
 window.installation={time:'2026-01-01T00:00:00.000Z',firstInstalled:false,installedVersion:'1.2.0',currentVersion:'1.2.0',previousVersion:'1.2.0',versionChanged:false,seenGuides:{...window.workspaceSeen}};
 window.formExports=0;window.hightex.forms={export:async()=>{window.formExports++;return null}};
 window.hightex.onboarding={status:async()=>structuredClone(window.installation),acknowledge:async guides=>{for(const guide of guides)window.installation.seenGuides[guide.id]=Math.max(window.installation.seenGuides[guide.id]??0,guide.revision);return structuredClone(window.installation)}};
@@ -71,6 +73,15 @@ const clickText = (text) =>
   execute(
     `(()=>{const item=Array.from(document.querySelectorAll('button,[role=menuitem]')).find(item=>item.textContent.trim()===${JSON.stringify(text)} && !item.closest('[data-state=closed]'));if(!item)throw Error('Missing action '+${JSON.stringify(text)});item.click()})()`,
   );
+const advanceGuide = async (step, next = "Berikutnya") => {
+  await until(
+    `!Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()===${JSON.stringify(next)})?.disabled`,
+  );
+  await clickText(next);
+  await until(
+    `document.querySelector('[data-tour-panel][data-tour-step="${step}"]') && document.querySelector('[data-tour-highlight]')`,
+  );
+};
 const setValue = (selector, value) =>
   execute(
     `(()=>{const input=document.querySelector(${JSON.stringify(selector)});if(!input)throw Error('Missing field '+${JSON.stringify(selector)});const prototype=input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:input.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(prototype,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}))})()`,
@@ -397,7 +408,12 @@ app
       await execute(`!!document.querySelector('[data-tour-panel]')`),
       false,
     );
+    await assertGuideVisuals(execute, true);
     await screenshot("workspace-welcome-summary");
+    await execute(`window.changeTheme('dark')`);
+    await assertGuideVisuals(execute, true);
+    await screenshot("workspace-welcome-summary-dark");
+    await execute(`window.changeTheme('light')`);
     await clickText("Lanjut tur");
     await until(
       `document.querySelector('[data-tour-panel][data-tour-step=documents]') && document.querySelector('[data-tour-highlight]')`,
@@ -419,8 +435,14 @@ app
         "Detail dan ekspor dokumen",
       ],
     );
+    await assertGuideVisuals(execute);
     await screenshot("workspace-welcome-guide");
-    await clickText("Berikutnya");
+    await execute(`window.changeTheme('dark')`);
+    await assertGuideVisuals(execute);
+    await screenshot("workspace-welcome-guide-dark");
+    await execute(`window.changeTheme('light')`);
+    for (const step of ["document-import", "document-open", "organize"])
+      await advanceGuide(step);
     await until(
       `document.querySelector('[data-tour-panel][data-tour-step=organize]') && document.querySelector('[data-tour-highlight]')`,
     );
@@ -438,7 +460,13 @@ app
         `!!document.activeElement.closest('[data-tour-panel],[data-tour="document-filters"]')`,
       ),
     );
-    await clickText("Berikutnya");
+    for (const step of [
+      "document-category",
+      "document-sort",
+      "document-select",
+      "references",
+    ])
+      await advanceGuide(step);
     await until(
       `document.querySelector('[data-tour-panel][data-tour-step=references]') && document.querySelector('[data-tour="reference-add"]')`,
     );
@@ -453,7 +481,13 @@ app
     await until(
       `!document.querySelector('[role=dialog]:not([data-tour-panel]):not([data-state=closed])') && getComputedStyle(document.querySelector('[data-tour-overlay]')).visibility==='visible'`,
     );
-    await clickText("Berikutnya");
+    for (const step of [
+      "reference-zotero",
+      "reference-search",
+      "reference-library",
+      "exports",
+    ])
+      await advanceGuide(step);
     await until(
       `document.querySelector('[data-tour-panel][data-tour-step=exports]') && document.querySelector('[data-tour="document-actions"]')`,
     );
@@ -468,6 +502,8 @@ app
       `!document.querySelector('[role=menu][data-state=open]') && getComputedStyle(document.querySelector('[data-tour-overlay]')).visibility==='visible'`,
     );
     await screenshot("workspace-guide-exports");
+    await advanceGuide("export-many");
+    await advanceGuide("export-location");
     await clickText("Selesai");
     await closeDialog();
     assert.deepEqual(
@@ -484,6 +520,28 @@ app
       false,
     );
 
+    await execute(`window.navigate('/settings')`);
+    await until(
+      `document.querySelector('[data-tour="category-settings"] button')`,
+    );
+    assert.equal(await execute("window.categoryUpdates"), 0);
+    await execute(
+      `window.categoryUpdateFails=true;document.querySelector('[data-tour="category-settings"] button').click()`,
+    );
+    await until(
+      `document.querySelector('[data-tour="category-settings"] [role=alert]')`,
+    );
+    assert.equal(await execute("window.categoryUpdates"), 1);
+    await execute(
+      `window.categoryUpdateFails=false;document.querySelector('[data-tour="category-settings"] button').click()`,
+    );
+    await until(
+      `document.querySelector('[data-tour="category-settings"] [role=status]')`,
+    );
+    assert.equal(await execute("window.categoryUpdates"), 2);
+    await execute(`window.navigate('/dashboard')`);
+    await until(`document.querySelector('[data-document-id]')`);
+
     // Manual replay selects features by stable ID and never marks unopened ones seen.
     await execute(
       `delete window.installation.seenGuides.references;delete window.installation.seenGuides['document-exports']`,
@@ -499,9 +557,15 @@ app
     await until(
       `document.querySelector('[data-tour-panel][data-tour-step=references]') && document.querySelector('[data-tour-highlight]')`,
     );
+    for (const step of [
+      "reference-zotero",
+      "reference-search",
+      "reference-library",
+    ])
+      await advanceGuide(step, "Next");
     await clickText("Done");
     await closeDialog();
-    assert.equal(await execute("window.installation.seenGuides.references"), 1);
+    assert.equal(await execute("window.installation.seenGuides.references"), 2);
     assert.equal(
       await execute(
         `window.installation.seenGuides['document-exports']===undefined`,
@@ -639,9 +703,20 @@ app
     await until(
       `document.querySelector('[data-tour-panel][data-tour-step=forms-document]') && document.querySelector('#forms-document') && document.querySelector('[data-tour-highlight]')`,
     );
-    await clickText("Berikutnya");
-    await until(
-      `document.querySelector('[data-tour-panel][data-tour-step=forms-stage]')?.textContent.includes('Pilih dokumen untuk menampilkan') && document.querySelector('[data-tour-highlight]')`,
+    assert.equal(
+      await execute(
+        `Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()==='Berikutnya').disabled`,
+      ),
+      true,
+    );
+    await execute(`document.querySelector('[data-tour-panel]').focus()`);
+    win.webContents.sendInputEvent({ type: "keyDown", keyCode: "Right" });
+    win.webContents.sendInputEvent({ type: "keyUp", keyCode: "Right" });
+    assert.equal(
+      await execute(
+        `document.querySelector('[data-tour-panel]').dataset.tourStep`,
+      ),
+      "forms-document",
     );
     // The tour waits for the user's selection; it never chooses a document on their behalf.
     assert.equal(
@@ -650,7 +725,11 @@ app
     );
     await setValue("#forms-document", "doc7");
     await until(
-      `document.querySelector('[data-tour="forms-stage"]') && document.querySelector('[data-tour-panel]')?.textContent.includes('B0 dan B1')`,
+      `document.querySelector('[data-tour="forms-stage"]') && !Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()==='Berikutnya').disabled`,
+    );
+    await clickText("Berikutnya");
+    await until(
+      `document.querySelector('[data-tour-panel][data-tour-step=forms-stage]')?.textContent.includes('B0/B1')`,
     );
     await screenshot("release130-forms-stage");
     for (const step of [
@@ -673,7 +752,11 @@ app
     await screenshot("release130-forms-export");
     await clickText("Berikutnya");
     await until(
-      `document.querySelector('[data-tour-panel][data-tour-step=profile-advisors]') && document.querySelector('[data-tour="default-profile"]') && document.querySelector('[data-tour-highlight]')`,
+      `document.querySelector('[data-tour-panel][data-tour-step=profile-identity]') && document.querySelector('[data-tour="default-profile-identity"]') && document.querySelector('[data-tour-highlight]')`,
+    );
+    await clickText("Berikutnya");
+    await until(
+      `document.querySelector('[data-tour-panel][data-tour-step=profile-advisors]') && document.querySelector('[data-tour-highlight]')`,
     );
     await execute(`window.changeLanguage('en')`);
     await until(
@@ -718,7 +801,7 @@ app
     await setValue("[data-guide-announcement] select", "form-generation");
     await clickText("Mulai panduan");
     await until(
-      `document.querySelector('[data-tour="forms-empty"]') && document.querySelector('[data-tour-panel]')?.textContent.includes('Pilih dokumen untuk menampilkan')`,
+      `document.querySelector('[data-tour="forms-empty"]') && document.querySelector('[data-tour-panel]')?.textContent.includes('Belum ada dokumen')`,
     );
     win.setSize(540, 900);
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -727,11 +810,45 @@ app
         `(()=>{const r=document.querySelector('[data-tour-panel]').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight})()`,
       ),
     );
+    assert.equal(
+      await execute(
+        `Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()==='Berikutnya').disabled`,
+      ),
+      true,
+    );
     await screenshot("release130-forms-empty-mobile");
     await execute(
       `document.querySelector('[data-tour-panel] button[aria-label="Lewati panduan"]').click()`,
     );
     await until(`!document.querySelector('[data-tour-panel]')`);
+    win.setSize(1360, 940);
+    for (const feature of ["document-filters", "document-exports"]) {
+      await clickText("Panduan penggunaan");
+      await until(`document.querySelector('[data-guide-announcement] select')`);
+      await setValue("[data-guide-announcement] select", feature);
+      await clickText("Mulai panduan");
+      await until(
+        `document.querySelector('[data-tour-panel]') && document.querySelector('[data-tour="document-empty"]') && document.querySelector('[data-tour-highlight]')`,
+      );
+      assert.equal(
+        await execute(
+          `Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()==='Berikutnya').disabled`,
+        ),
+        true,
+      );
+      await execute(
+        `document.querySelector('[data-tour-panel] button[aria-label="Lewati panduan"]').click()`,
+      );
+      await until(`!document.querySelector('[data-tour-panel]')`);
+    }
+    assert.equal(
+      await execute("window.categoryUpdates"),
+      2,
+      "guides do not refresh categories automatically",
+    );
+    console.log(
+      "PASS: 14 baseline workspace steps, document-dependent empty-state gates, category refresh on explicit click, offline failure and successful retry.",
+    );
     console.log(
       "PASS: real 1.3.0 forms and lecturer tours, fallback before document selection, live targets, local default save guidance, English/Indonesian, route restoration, empty mobile state and no automatic profile/document writes or exports.",
     );
@@ -740,6 +857,9 @@ app
     );
     console.log(
       "PASS: dashboard search/filter/sort, recent order, open/create, draft cancellation, failed save retry, current profile preservation, export routing, scoped bulk selection/deletion/cancellation, live language, dark theme, responsive drawer and secondary pages.",
+    );
+    console.log(
+      "PASS: theme-matched tour and announcement, temporary dimmed backdrop, readable primary actions and preserved spotlight interactions.",
     );
     console.log("Screenshots: " + profile);
   })

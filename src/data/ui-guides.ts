@@ -48,6 +48,15 @@ export function guidePlan(
     status.firstInstalled ||
     (status.installedVersion !== null &&
       Object.keys(status.seenGuides).length === 0);
+  if (firstUse && !replay) {
+    const versions = [...new Set(guides.map((guide) => guide.version))];
+    guides.sort(
+      (a, b) =>
+        versions.indexOf(a.version) - versions.indexOf(b.version) ||
+        (a.welcomeOrder ?? Number.MAX_SAFE_INTEGER) -
+          (b.welcomeOrder ?? Number.MAX_SAFE_INTEGER),
+    );
+  }
   return { mode: replay ? "replay" : firstUse ? "welcome" : "updates", guides };
 }
 
