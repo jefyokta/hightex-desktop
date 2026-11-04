@@ -58,7 +58,6 @@ export default class BaseHandler extends Handler {
     this.chapteListener.afterPageLayout(pageElement, page, breakToken);
     this.list.afterPageLayout(pageElement, page, breakToken);
     this.image.afterPageLayout(pageElement, page, breakToken);
-    this.figureTable.afterPageLayout(pageElement, page, breakToken);
     this.link.afterPageLayout(pageElement, page, breakToken);
     this.att.afterPageLayout(pageElement, page, breakToken);
   }
@@ -68,12 +67,24 @@ export default class BaseHandler extends Handler {
     breakToken: BreakToken,
     layout: Layout,
   ): void {
-    this.figureTable.onPageLayout(wrapper, breakToken, layout);
+    this.figureTable.beginPage(breakToken);
     this.image.onPageLayout(wrapper, breakToken, layout);
   }
 
-  beforePageLayout(page: Page, _breakToken?: BreakToken): void {
-    this.figureTable.handleFigureTableBeforePageLayout(page);
+  onBreakToken(token: BreakToken | undefined, overflow: Range | undefined) {
+    return this.figureTable.onBreakToken(token, overflow);
+  }
+
+  layout(wrapper: HTMLElement, layout: Layout): void {
+    this.figureTable.layout(wrapper, layout);
+  }
+
+  onOverflow(
+    overflow: Range | undefined,
+    wrapper: HTMLElement,
+    bounds: DOMRect,
+  ) {
+    return this.figureTable.onOverflow(overflow, wrapper, bounds);
   }
 
   afterRendered(page: Page[], chunk: Chunker): void {
@@ -98,7 +109,9 @@ export default class BaseHandler extends Handler {
     this.link.beforeParsed();
   }
 
-  afterParsed(): void {}
+  afterParsed(parsed: HTMLElement): void {
+    this.figureTable.afterParsed(parsed);
+  }
 
   private injectWatermark(): void {
     if (!this.wm || !this.picture) return;
