@@ -140,7 +140,12 @@
       "version": {
         "label": "Version",
         "description": "Current installed version"
-      }
+      },
+      "creator": "Creator and maintainer",
+      "license": "Software license",
+      "contributors": "and contributors",
+      "license_description": "GPL version 3 only. You may redistribute and modify this software under its terms. It comes without any warranty.",
+      "source": "View source code"
     },
     "updater": {
       "label": "Software Update",

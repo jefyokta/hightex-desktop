@@ -140,7 +140,12 @@
       "version": {
         "label": "Versi",
         "description": "Versi yang terpasang saat ini"
-      }
+      },
+      "creator": "Pencipta dan pengelola",
+      "license": "Lisensi perangkat lunak",
+      "contributors": "dan para kontributor",
+      "license_description": "GPL versi 3 saja. Perangkat lunak ini dapat didistribusikan dan dimodifikasi sesuai ketentuannya, tanpa jaminan apa pun.",
+      "source": "Lihat source code"
     },
     "updater": {
       "label": "Pembaruan Perangkat Lunak",

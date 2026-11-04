@@ -1,10 +1,11 @@
 {
     "name": "hightex-desktop",
     "private": true,
+    "license": "GPL-3.0-only",
     "version": "1.2.1",
     "type": "module",
     "author": {
-        "name": "Jefy okta",
+        "name": "Jepi Okta Mipa",
         "email": "jefyokta@gmail.com"
     },
     "scripts": {

@@ -159,3 +159,15 @@ Before requesting review:
 Respond to review feedback with updates or an explanation of your reasoning. If the scope changes during review, update the PR title, description, and verification details to match the final implementation.
 
 Thank you for helping improve HighTex Desktop.
+
+## Licensing Contributions
+
+HighTex Desktop uses [GPL-3.0-only](./LICENSE). By submitting a contribution for
+inclusion in this repository, you agree to license that contribution under the
+same terms. You retain copyright in your contribution; contributing does not
+transfer copyright to the maintainer or an institution.
+
+Only submit material you are authorized to contribute. Preserve existing copyright
+and third-party license notices. Identify any external code or assets and their
+license in your pull request. This policy applies to new submissions and does not
+replace any permission needed for previously contributed material.

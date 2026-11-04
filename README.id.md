@@ -198,6 +198,30 @@ Electron mungkin bukan solusi yang paling elegan, tetapi teknologi inilah yang m
 
 HighTex Desktop masih dalam pengembangan aktif. Fitur, arsitektur, dan alur kerja dapat terus berubah seiring berkembangnya proyek.
 
+## Lisensi
+
+HighTex Desktop menggunakan **GNU General Public License versi 3 saja**
+(`GPL-3.0-only`). Ketentuan lengkap tersedia di [LICENSE](./LICENSE), dengan
+pemberitahuan hak cipta dan penyangkalan jaminan di [COPYRIGHT](./COPYRIGHT).
+
+Hak cipta © 2026 **Jepi Okta Mipa dan para kontributor**. Lihat
+[CREDITS.md](./CREDITS.md) untuk pencipta, kontributor, dan ucapan terima kasih.
+
+HighTex Desktop dapat digunakan, dimodifikasi, dan didistribusikan sesuai GPL.
+Distribusi binary atau versi modifikasi harus memenuhi kewajiban GPL, termasuk
+menyediakan source code yang bersesuaian dan mempertahankan pemberitahuan yang
+berlaku.
+
+Lisensi ini berlaku untuk repositori desktop ini. Lisensi ini tidak melisensikan
+repositori server HighTex yang terpisah atau otomatis berlaku pada dokumen yang
+ditulis pengguna. Dependensi pihak ketiga dan aset yang diidentifikasi secara
+terpisah tetap mengikuti lisensinya masing-masing.
+
+Source untuk suatu binary rilis tersedia melalui tag atau commit yang cocok di
+[repositori sumber](https://github.com/jefyokta/hightex-desktop). Pendistribusi wajib
+menyediakan source yang bersesuaian sesuai ketentuan GPL, termasuk skrip build dan
+source komponen yang tercakup; tautan ke revisi lain atau lebih baru bukan pengganti.
+
 ## Kredit
 
 Lihat [Credits](./CREDITS.md) untuk daftar kontributor, proyek open-source, dan ucapan terima kasih.

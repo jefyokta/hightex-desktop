@@ -1,0 +1,26 @@
+HighTex Desktop
+Copyright (C) 2026 Jepi Okta Mipa and contributors.
+SPDX-License-Identifier: GPL-3.0-only
+
+HighTex Desktop is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3 only.
+
+HighTex Desktop is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with HighTex Desktop. If not, see <https://www.gnu.org/licenses/>.
+
+Creator and maintainer: Jepi Okta Mipa (jefyokta)
+Source code: https://github.com/jefyokta/hightex-desktop
+Contributors and acknowledgements: CREDITS.md and the Git history.
+
+Copyright in individual contributions remains with the respective holders.
+Third-party components and separately identified assets retain their own
+copyright notices and licenses.
+
+This notice applies to HighTex Desktop. It does not license the separate
+HighTex server repository or automatically license documents created by users.

@@ -46,7 +46,7 @@ window.categoryUpdates=0;window.categoryUpdateFails=false;window.hightex.refresh
 window.installation={time:'2026-01-01T00:00:00.000Z',firstInstalled:false,installedVersion:'1.2.0',currentVersion:'1.2.0',previousVersion:'1.2.0',versionChanged:false,seenGuides:{...window.workspaceSeen}};
 window.formExports=0;window.hightex.forms={export:async()=>{window.formExports++;return null}};
 window.hightex.onboarding={status:async()=>structuredClone(window.installation),acknowledge:async guides=>{for(const guide of guides)window.installation.seenGuides[guide.id]=Math.max(window.installation.seenGuides[guide.id]??0,guide.revision);return structuredClone(window.installation)}};
-window.file={getPath:async()=>'/fixture.hightex'};
+window.licenseSources=[];window.file={getPath:async()=>'/fixture.hightex',openExternal:async url=>{window.licenseSources.push(url)}};
 const db=HighTexDB.getInstance();await db.open();window.db=db;
 const titles=['Analisis kebutuhan sistem informasi akademik','Perancangan pengalaman pengguna perpustakaan digital','Evaluasi kualitas layanan administrasi kampus','Sistem rekomendasi buku dengan _collaborative filtering_','Analisis sentimen ulasan pengguna aplikasi','Penerapan machine learning untuk klasifikasi dokumen','Model pengelolaan arsip digital perguruan tinggi','Perancangan sistem informasi layanan mahasiswa berbasis web'];
 await db.documents.bulkPut(titles.map((title,index)=>({id:'doc'+index,title,altTitle:index===0?'Academic information systems':'',category:index%2?'2':'1',updatedAt:new Date(2026,9,index+1),keywords:{indonesian:index===2?['_aksesibilitas_']:[],english:[]},config:{},profile:{...emptyAuthorProfile(),name:'Penulis',nim:'123',cv:'original cv'}})));
@@ -524,6 +524,54 @@ app
     await until(
       `document.querySelector('[data-tour="category-settings"] button')`,
     );
+    assert.ok(
+      await execute(`document.body.textContent.includes('Jepi Okta Mipa')`),
+    );
+    await execute(`document.querySelector('[data-license-open]').click()`);
+    await until(
+      `document.querySelector('[data-license-dialog] [data-license-text]')`,
+    );
+    assert.ok(
+      await execute(
+        `document.querySelector('[data-license-text]').textContent.includes('Copyright (C) 2026 Jepi Okta Mipa and contributors.')`,
+      ),
+    );
+    assert.ok(
+      await execute(
+        `document.querySelector('[data-license-text]').textContent.includes('GNU GENERAL PUBLIC LICENSE') && document.querySelector('[data-license-text]').textContent.includes('WITHOUT ANY WARRANTY')`,
+      ),
+    );
+    await execute(
+      `document.querySelector('[data-license-text]').scrollTop=document.querySelector('[data-license-text]').scrollHeight`,
+    );
+    assert.ok(
+      await execute(
+        `document.querySelector('[data-license-text]').scrollTop>0`,
+      ),
+      "the complete offline license must scroll within its dialog",
+    );
+    assert.ok(
+      await execute(
+        `(()=>{const rect=document.querySelector('[data-license-dialog]').getBoundingClientRect();return rect.top>=0 && rect.bottom<=innerHeight})()`,
+      ),
+    );
+    await execute(`window.changeLanguage('en')`);
+    await until(
+      `document.querySelector('[data-license-dialog]').textContent.includes('Software license')`,
+    );
+    await execute(`document.querySelector('[data-license-source]').click()`);
+    assert.deepEqual(await execute(`window.licenseSources`), [
+      "https://github.com/jefyokta/hightex-desktop",
+    ]);
+    await execute(`window.changeLanguage('id')`);
+    await until(
+      `document.querySelector('[data-license-dialog]').textContent.includes('Lisensi perangkat lunak')`,
+    );
+    await screenshot("desktop-license-offline");
+    await execute(
+      `Array.from(document.querySelectorAll('[data-license-dialog] button')).find(button=>button.textContent.trim()==='Tutup').click()`,
+    );
+    await until(`!document.querySelector('[data-license-dialog]')`);
     assert.equal(await execute("window.categoryUpdates"), 0);
     await execute(
       `window.categoryUpdateFails=true;document.querySelector('[data-tour="category-settings"] button').click()`,
@@ -860,6 +908,9 @@ app
     );
     console.log(
       "PASS: theme-matched tour and announcement, temporary dimmed backdrop, readable primary actions and preserved spotlight interactions.",
+    );
+    console.log(
+      "PASS: offline GPL license, creator/copyright notice, bounded license scrolling, live English/Indonesian labels and source-code link.",
     );
     console.log("Screenshots: " + profile);
   })

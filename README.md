@@ -198,6 +198,29 @@ Electron may not be the most elegant solution, but it is the one that allows Hig
 
 HighTex Desktop is under active development. Features, architecture, and workflows may continue to evolve as the project grows.
 
+## License
+
+HighTex Desktop is licensed under the **GNU General Public License, version 3 only**
+(`GPL-3.0-only`). See [LICENSE](./LICENSE) for the full terms and
+[COPYRIGHT](./COPYRIGHT) for the copyright and warranty notice.
+
+Copyright © 2026 **Jepi Okta Mipa and contributors**. See [CREDITS.md](./CREDITS.md)
+for the creator, contributors and acknowledgements.
+
+You may use, modify and redistribute HighTex Desktop under the GPL. When distributing
+covered binaries or modified versions, follow the GPL's requirements, including
+providing the corresponding source code and preserving the required notices.
+
+This license applies to this desktop repository. It does not license the separate
+HighTex server repository or automatically apply to documents written with the app.
+Third-party dependencies and separately identified assets retain their own licenses.
+
+For a released binary, obtain the corresponding source from the matching tag or
+commit in the [source repository](https://github.com/jefyokta/hightex-desktop).
+Distributors must make the corresponding source available as required by the GPL,
+including the build scripts and source of covered components; a link to an unrelated
+or newer revision is not a substitute.
+
 ## Credits
 
 See [Credits](./CREDITS.md) for contributors, open-source projects, and acknowledgements.

@@ -2,6 +2,9 @@
 
 HighTex Desktop brings together work from its contributors and the open-source projects that support its thesis-writing workflow.
 
+Copyright © 2026 Jepi Okta Mipa and contributors. See [COPYRIGHT](./COPYRIGHT) and
+[LICENSE](./LICENSE) for the project notice and GPL-3.0-only terms.
+
 ## Creator and Maintainer
 
 - **[Jepi Okta Mipa (jefyokta)](https://github.com/jefyokta)** — creator of HighTex and maintainer of HighTex Desktop.

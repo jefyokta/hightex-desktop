@@ -1,4 +1,14 @@
 import { PageHeader } from "@/components/dashboard/page-header";
+import licenseText from "../../LICENSE?raw";
+import copyrightNotice from "../../COPYRIGHT?raw";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { AccountProfile } from "@/components/account-profile";
 import { useEffect, useState } from "react";
 
@@ -804,6 +814,7 @@ const ProfileSection = () => {
   );
 };
 const AppInfoSection = () => {
+  const [licenseOpen, setLicenseOpen] = useState(false);
   const [version, setVersion] = useState<string | null>(null);
   const [status, setStatus] = useState<UpdaterStatus | null>(null);
   const [checking, setChecking] = useState(false);
@@ -945,6 +956,63 @@ const AppInfoSection = () => {
           </span>
         </div>
 
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <Label>{t("settings.about.creator")}</Label>
+          <span>Jepi Okta Mipa</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <Label>{t("settings.about.license")}</Label>
+          <Button
+            data-license-open
+            variant="outline"
+            size="sm"
+            onClick={() => setLicenseOpen(true)}
+          >
+            GPL-3.0-only
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          © 2026 Jepi Okta Mipa {t("settings.about.contributors")}
+        </p>
+        <Dialog open={licenseOpen} onOpenChange={setLicenseOpen}>
+          <DialogContent
+            className="flex max-h-[85dvh] flex-col sm:max-w-2xl"
+            data-license-dialog
+          >
+            <DialogHeader>
+              <DialogTitle>{t("settings.about.license")}</DialogTitle>
+              <DialogDescription>
+                {t("settings.about.license_description")}
+              </DialogDescription>
+            </DialogHeader>
+            <pre
+              data-license-text
+              tabIndex={0}
+              aria-label={t("settings.about.license")}
+              className="has-scrollbar min-h-0 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border bg-muted/30 p-4 text-xs leading-relaxed"
+            >
+              {copyrightNotice + "\n" + licenseText}
+            </pre>
+            <DialogFooter className="m-0 shrink-0 border-0 bg-transparent p-0">
+              <Button
+                data-license-source
+                variant="outline"
+                onClick={() =>
+                  executeInteractively(() =>
+                    window.file.openExternal(
+                      "https://github.com/jefyokta/hightex-desktop",
+                    ),
+                  )
+                }
+              >
+                {t("settings.about.source")}
+              </Button>
+              <Button onClick={() => setLicenseOpen(false)}>
+                {t("common.close")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <Separator />
 
         <div className="flex items-center justify-between">
