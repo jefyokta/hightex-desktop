@@ -182,11 +182,13 @@ declare global {
         }) => void,
       ): () => void;
       categories(): Promise<Category[]>;
+      refreshCategories(): Promise<Category[]>;
+      onCategoriesChanged(callback: () => void): () => void;
       serverUrl(path?: string): Promise<string>;
       profile(): Promise<DocumentProfile>;
       onOpenFile(cb: (file: string) => void): () => void;
       readFile(filePath: string): Promise<NonSharedBuffer>;
-      category(id: string): Promise<Category>;
+      category(id: string): Promise<Category | undefined>;
       version(): Promise<string>;
       onboarding: {
         status(): Promise<OnboardingStatus>;
@@ -304,11 +306,26 @@ declare global {
     getUserDataPath(): Promise<string>;
   }
 
+  interface EditorArchiveSnapshot {
+    buffer: Uint8Array;
+    fileName: string;
+    filePath?: string;
+  }
   interface EditorAPI {
+    ready(buffer: Uint8Array): Promise<void>;
+    onCloseState(callback: (locked: boolean) => void): () => void;
     onFlush(
-      callback: (request: string, documentId: string) => void,
+      callback: (
+        request: string,
+        documentId: string,
+        archive?: boolean | "save",
+      ) => void,
     ): () => void;
-    completeFlush(request: string, error?: string): void;
+    completeFlush(
+      request: string,
+      error?: string,
+      snapshot?: EditorArchiveSnapshot,
+    ): void;
     open(documentId: string, file?: string): Promise<void>;
     has(documentId: string): Promise<boolean>;
     save(buffer: Uint8Array, fileName: string): Promise<string | undefined>;

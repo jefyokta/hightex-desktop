@@ -49,6 +49,9 @@ export const Dashboard = () => {
   useEffect(() => {
     alive.current = true;
     void load();
+    const offCategories = window.hightex.onCategoriesChanged?.(
+      () => void load(),
+    );
     const offUpdated = Manager.app.on("document:updated", ({ document }) =>
       setDocuments((previous) => [
         document,
@@ -62,6 +65,7 @@ export const Dashboard = () => {
     );
     return () => {
       alive.current = false;
+      offCategories?.();
       offUpdated();
       offDeleted();
     };

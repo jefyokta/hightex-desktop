@@ -54,10 +54,10 @@ export function useSaveDocument(
 
     saving.current = true;
     const run = generation.current;
-    const content = editor.state.doc;
     setStatus("saving");
     try {
       await Manager.emit("update", { editor });
+      const content = editor.state.doc;
       const { buffer, document } = await new Exporter(doc.id).buildExport();
       const filePath = await window.editor.save(
         buffer,

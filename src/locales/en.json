@@ -152,6 +152,14 @@
       "ready": "Version {version} ready to install",
       "restart_install": "Restart & Install",
       "check": "Check For Update"
+    },
+    "categories": {
+      "title": "Document categories",
+      "description": "Fetch categories and chapter structures from the server. The cache stays available offline. Open editors keep their current structure until reopened.",
+      "update": "Update categories",
+      "updating": "Updating categories…",
+      "success": "Categories updated and cached for offline use. Reopen the editor to use the latest chapter structure.",
+      "failed": "Could not update categories. The previous cache is still available; check your connection and try again."
     }
   },
   "common": {
@@ -556,6 +564,18 @@
       "note": "Add a note",
       "bold": "Bold",
       "italic": "Italic"
+    },
+    "close": {
+      "title": "Save the document archive?",
+      "message": "Some changes have not been saved to the .hightex file.",
+      "detail": "Autosaved changes remain in the local database. Choose Save .hightex to save the archive, including unsaved settings drafts.",
+      "save": "Save .hightex",
+      "discard": "Close without saving archive",
+      "cancel": "Cancel",
+      "failed": "The editor could not close safely.",
+      "kept": "The window remains open. Try saving again before closing the editor.",
+      "loading": "The document has not finished loading.",
+      "loadingDetail": "Wait for the document to be ready to save an archive, or close without saving the archive."
     }
   },
   "remote": {
@@ -604,8 +624,9 @@
   "error": {
     "category": {
       "missing": "Categories is missing!",
-      "missing.desc": "Try to get online or reinstall the app",
-      "update_failed": "Failed to update category"
+      "missing.desc": "No categories are available in the cache or backup. Update categories in Settings when connected to the internet.",
+      "update_failed": "Failed to update category",
+      "unavailable": "The document category (ID {id}) is unavailable in the cache, installer backup or server. Update categories in Settings when online. Your document data is still saved."
     },
     "report": {
       "unexpected_error": "Unexpected Error",
@@ -851,7 +872,19 @@
     "copy_default_cv": "Use default CV and photo",
     "copy_default_cv_confirm": "Replace this document’s CV and photo?",
     "copy_default_cv_description": "Copies the CV and photo from the local default profile into this document.",
-    "default_cv_empty": "The default profile has no CV or photo."
+    "default_cv_empty": "The default profile has no CV or photo.",
+    "defaults": {
+      "title": "Review local defaults",
+      "description": "Choose which details to copy into this document.",
+      "before": "Current details",
+      "after": "Local defaults",
+      "empty": "Empty",
+      "empty_hint": "Changes that would clear an existing name or staff number start unchecked. Select them only if you intend to remove the previous value.",
+      "save_hint": "Changes are applied to the settings draft. Use Save in document settings to store them.",
+      "apply": "Apply to draft",
+      "unchanged": "The document already matches your local defaults. There are no changes to apply.",
+      "failed": "Local defaults could not be loaded. Please try again."
+    }
   },
   "submission_review": {
     "title": "Submissions",

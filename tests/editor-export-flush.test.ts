@@ -111,7 +111,10 @@ function rendererFixture(ready: boolean) {
   >(
     "../src/slaves/editor-flush.tsx",
     {
-      react: { useEffect: (setup: () => void) => setup() },
+      react: {
+        useEffect: (setup: () => void) => setup(),
+        useRef: () => ({ current: undefined }),
+      },
       "react-router-dom": { useParams: () => ({ id: "doc" }) },
       "@/hooks/use-editor": {
         useCurrentEditor: () => ({
@@ -159,5 +162,5 @@ test("a loading editor refuses export flush rather than saving its placeholder",
   const f = rendererFixture(false);
   f.receive("request", "doc");
   await Promise.resolve();
-  expect(f.replies[0]?.error).toBe("Editor is not ready for PDF export");
+  expect(f.replies[0]?.error).toBe("Editor is not ready to save");
 });

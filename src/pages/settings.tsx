@@ -248,7 +248,7 @@ export const Settings = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card data-tour="export-settings">
         <CardHeader>
           <CardTitle>{t("settings.export.export")}</CardTitle>
           <CardDescription>{t("settings.export.description")}</CardDescription>
@@ -420,6 +420,8 @@ export const Settings = () => {
           </div>
         </CardContent>
       </Card>
+
+      <CategorySection />
 
       <Card>
         <CardHeader>
@@ -731,44 +733,45 @@ const ProfileSection = () => {
           </p>
         ) : (
           <>
-            <div className="grid w-full grid-cols-2 items-center gap-4">
-              <div className="space-y-0.5">
-                <Label>{t("settings.profile.name.label")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.profile.name.description")}
-                </p>
+            <div data-tour="default-profile-identity" className="space-y-6">
+              <div className="grid w-full grid-cols-2 items-center gap-4">
+                <div className="space-y-0.5">
+                  <Label>{t("settings.profile.name.label")}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.profile.name.description")}
+                  </p>
+                </div>
+
+                <Input
+                  value={profile.name}
+                  onChange={(e) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                />
               </div>
 
-              <Input
-                value={profile.name}
-                onChange={(e) =>
-                  setProfile((prev) => ({
-                    ...prev,
-                    name: e.target.value,
-                  }))
-                }
-              />
-            </div>
+              <div className="grid w-full grid-cols-2 items-center gap-4">
+                <div className="space-y-0.5">
+                  <Label>{t("settings.profile.nim.label")}</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.profile.nim.description")}
+                  </p>
+                </div>
 
-            <div className="grid w-full grid-cols-2 items-center gap-4">
-              <div className="space-y-0.5">
-                <Label>{t("settings.profile.nim.label")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.profile.nim.description")}
-                </p>
+                <Input
+                  value={profile.nim}
+                  onChange={(e) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      nim: e.target.value,
+                    }))
+                  }
+                />
               </div>
-
-              <Input
-                value={profile.nim}
-                onChange={(e) =>
-                  setProfile((prev) => ({
-                    ...prev,
-                    nim: e.target.value,
-                  }))
-                }
-              />
             </div>
-
             <AdvisorFields
               profile={profile}
               onChange={(patch) =>
@@ -973,6 +976,61 @@ const AppInfoSection = () => {
             {t("settings.updater.check")}
           </Button>
         </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const CategorySection = () => {
+  const [updating, setUpdating] = useState(false);
+  const [result, setResult] = useState<"success" | "failed" | null>(null);
+  const refresh = async () => {
+    if (updating) return;
+    setUpdating(true);
+    setResult(null);
+    try {
+      await window.hightex.refreshCategories();
+      setResult("success");
+    } catch {
+      setResult("failed");
+    } finally {
+      setUpdating(false);
+    }
+  };
+  return (
+    <Card data-tour="category-settings">
+      <CardHeader>
+        <CardTitle>{t("settings.categories.title")}</CardTitle>
+        <CardDescription>
+          {t("settings.categories.description")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Button
+          variant="outline"
+          onClick={() => void refresh()}
+          disabled={updating}
+          aria-busy={updating}
+        >
+          <RefreshCw className={updating ? "animate-spin" : ""} />
+          {t(
+            updating
+              ? "settings.categories.updating"
+              : "settings.categories.update",
+          )}
+        </Button>
+        {result && (
+          <p
+            role={result === "failed" ? "alert" : "status"}
+            className="text-sm text-muted-foreground"
+          >
+            {t(
+              result === "failed"
+                ? "settings.categories.failed"
+                : "settings.categories.success",
+            )}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

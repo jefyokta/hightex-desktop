@@ -152,6 +152,14 @@
       "ready": "Versi {version} siap dipasang",
       "restart_install": "Restart & Pasang",
       "check": "Cek Pembaruan"
+    },
+    "categories": {
+      "title": "Kategori dokumen",
+      "description": "Ambil pembaruan kategori dan susunan bab dari server. Cache tetap bisa dipakai offline. Editor yang sudah terbuka memakai susunan lamanya sampai dibuka ulang.",
+      "update": "Perbarui kategori",
+      "updating": "Memperbarui kategori…",
+      "success": "Kategori diperbarui dan disimpan untuk penggunaan offline. Buka ulang editor untuk memakai susunan bab terbaru.",
+      "failed": "Kategori gagal diperbarui. Cache sebelumnya tetap tersedia; periksa koneksi lalu coba lagi."
     }
   },
   "common": {
@@ -556,6 +564,18 @@
       "note": "Tambahkan catatan",
       "bold": "Tebal",
       "italic": "Miring"
+    },
+    "close": {
+      "title": "Simpan arsip dokumen?",
+      "message": "Ada perubahan yang belum disimpan ke file .hightex.",
+      "detail": "Perubahan yang tersimpan otomatis tetap ada di database lokal. Pilih Simpan .hightex untuk menyimpan arsip beserta perubahan panel yang masih berupa draft.",
+      "save": "Simpan .hightex",
+      "discard": "Tutup tanpa simpan arsip",
+      "cancel": "Batal",
+      "failed": "Editor belum bisa ditutup dengan aman.",
+      "kept": "Jendela tetap terbuka. Coba simpan kembali sebelum menutup editor.",
+      "loading": "Dokumen belum selesai dimuat.",
+      "loadingDetail": "Tunggu dokumen siap untuk menyimpan arsip, atau tutup tanpa menyimpan arsip."
     }
   },
   "remote": {
@@ -604,8 +624,9 @@
   "error": {
     "category": {
       "missing": "Kategori tidak ditemukan!",
-      "missing.desc": "Coba sambungkan ke internet atau pasang ulang aplikasinya",
-      "update_failed": "Gagal memperbarui kategori."
+      "missing.desc": "Kategori belum tersedia di cache atau backup. Perbarui kategori di Pengaturan saat terhubung ke internet.",
+      "update_failed": "Gagal memperbarui kategori.",
+      "unavailable": "Kategori dokumen (ID {id}) belum tersedia di cache, backup installer, atau server. Perbarui kategori di Pengaturan saat terhubung ke internet. Data dokumen tetap tersimpan."
     },
     "frame": {
       "not": {
@@ -851,7 +872,19 @@
     "copy_default_cv": "Ambil CV dan foto default",
     "copy_default_cv_confirm": "Ganti CV dan foto dokumen ini?",
     "copy_default_cv_description": "Menyalin CV dan foto dari profil default lokal ke dokumen ini.",
-    "default_cv_empty": "Profil default belum memiliki CV atau foto."
+    "default_cv_empty": "Profil default belum memiliki CV atau foto.",
+    "defaults": {
+      "title": "Tinjau data default",
+      "description": "Pilih data yang ingin disalin ke dokumen ini.",
+      "before": "Saat ini",
+      "after": "Dari profil default",
+      "empty": "Kosong",
+      "empty_hint": "Data default yang mengosongkan nama atau NIP tidak dipilih otomatis. Centang hanya jika memang ingin menghapus nilai sebelumnya.",
+      "save_hint": "Perubahan masuk ke draf pengaturan. Tekan Simpan pada panel dokumen untuk menyimpannya.",
+      "apply": "Terapkan ke draf",
+      "unchanged": "Data dokumen sudah sama dengan profil default. Tidak ada perubahan untuk diterapkan.",
+      "failed": "Profil default belum berhasil dimuat. Silakan coba lagi."
+    }
   },
   "submission_review": {
     "title": "Submission",

@@ -11,6 +11,12 @@ export class EditorHandler {
       return Boolean(EditorWindow.get(docId));
     });
 
+    IPCMain.handle("editor:ready", async (event, buffer: Uint8Array) => {
+      const window = BrowserWindow.fromWebContents(event.sender);
+      const state = window && EditorWindow.getFromWindow(window);
+      if (state) await EditorWindow.ready(state, buffer);
+    });
+
     IPCMain.handle(
       "editor:save",
       (event, buffer: Uint8Array, fileName: string) => {

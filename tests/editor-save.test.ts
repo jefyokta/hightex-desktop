@@ -22,14 +22,28 @@ function fixture() {
     "./../main/application": {},
     fs: {
       default: {
-        mkdirSync() {},
-        writeFileSync: (file: string, buffer: Uint8Array) => {
-          if (failWrite) throw new Error("Disk full");
-          files.set(file, buffer);
+        promises: {
+          mkdir: async () => {},
+          rename: async (source: string, target: string) => {
+            files.set(target, files.get(source)!);
+            files.delete(source);
+          },
+          rm: async (file: string) => {
+            files.delete(file);
+          },
+          writeFile: async (file: string, buffer: Uint8Array) => {
+            if (failWrite) throw new Error("Disk full");
+            files.set(file, buffer);
+          },
         },
       },
     },
     path: { default: path },
+    "node:crypto": { randomUUID: () => "fixture" },
+    "../utilities/archive-fingerprint": {
+      archiveFingerprint: (bytes: Uint8Array) =>
+        Buffer.from(bytes).toString("hex"),
+    },
   };
   const sandbox = {
     exports: {} as {
@@ -77,6 +91,7 @@ test("saving again reuses the chosen file path and writes the latest bytes", asy
   await f.save(f.state, latest, "thesis.hightex");
   expect(f.prompts()).toBe(1);
   expect(f.files.get("/documents/thesis.hightex")).toEqual(latest);
+  expect(f.state.archiveBaseline).toBe("02");
 });
 
 test("canceling does not write or remember a file path and allows another save", async () => {
@@ -100,7 +115,20 @@ test("a failed write preserves the error and allows retrying the save", async ()
     f.save(f.state, new Uint8Array([1]), "thesis.hightex"),
   ).rejects.toThrow("Disk full");
   expect(f.state.document.filePath).toBeUndefined();
+  expect(f.state.archiveBaseline).toBeUndefined();
   f.fail(false);
   await f.save(f.state, new Uint8Array([2]), "thesis.hightex");
+  expect(f.files.size).toBe(1);
+});
+
+test("a failed replacement preserves the previous archive and saved baseline", async () => {
+  const f = fixture();
+  await f.save(f.state, new Uint8Array([1]), "thesis.hightex");
+  f.fail(true);
+  await expect(
+    f.save(f.state, new Uint8Array([2]), "thesis.hightex"),
+  ).rejects.toThrow("Disk full");
+  expect(f.files.get("/documents/thesis.hightex")).toEqual(new Uint8Array([1]));
+  expect(f.state.archiveBaseline).toBe("01");
   expect(f.files.size).toBe(1);
 });

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { FileWarningIcon, Save, X } from "lucide-react";
 
 import { useParams } from "react-router-dom";
@@ -29,6 +30,8 @@ import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { CommitteeFields } from "@/components/committee-fields";
 import { AdvisorFields } from "@/components/advisor-fields";
+import { documentDrafts } from "@/editor/document-drafts";
+import { DefaultProfilePreview } from "@/components/editor/default-profile-preview";
 
 export const Setting = () => {
   const db = HighTexDB.getInstance();
@@ -39,6 +42,22 @@ export const Setting = () => {
   const [original, setOriginal] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [defaults, setDefaults] = useState<{
+    documentId: string;
+    profile: Omit<Profile, "cv">;
+  } | null>(null);
+  const [loadingDefaults, setLoadingDefaults] = useState(false);
+  const previewRequest = useRef(0);
+  const previewScope = useRef({ cancelled: false });
+  useEffect(() => {
+    const scope = { cancelled: false };
+    previewScope.current = scope;
+    setDefaults(null);
+    setLoadingDefaults(false);
+    return () => {
+      scope.cancelled = true;
+    };
+  }, [id]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [academic, setAcademic] = useState<{ locked: boolean; error?: string }>(
@@ -66,9 +85,18 @@ export const Setting = () => {
     };
 
     load();
+    const offCategories = window.hightex.onCategoriesChanged?.(() => {
+      void window.hightex
+        .categories()
+        .then((categories) => {
+          if (mounted) setCategories(categories);
+        })
+        .catch((error) => console.error("Could not reload categories", error));
+    });
 
     return () => {
       mounted = false;
+      offCategories?.();
     };
   }, [db, id]);
 
@@ -95,7 +123,26 @@ export const Setting = () => {
     }
   };
 
-  if (!doc) return null;
+  useEffect(() => {
+    if (!doc || doc.id !== id || !isDirty) return;
+    const draft = {
+      document: doc,
+      commit: async () => {
+        const saved = await db.updateDocument(
+          doc,
+          doc.profile ? getAuthorDetails(doc.profile) : undefined,
+        );
+        setDoc(saved);
+        setOriginal(JSON.stringify(saved));
+      },
+    };
+    documentDrafts.set(doc.id, draft);
+    return () => {
+      if (documentDrafts.get(doc.id) === draft) documentDrafts.delete(doc.id);
+    };
+  }, [doc, id, isDirty, db]);
+
+  if (!doc || doc.id !== id) return null;
 
   const selectedCategory = categories.find(
     (category) => String(category.id) === String(doc.category),
@@ -115,12 +162,20 @@ export const Setting = () => {
   };
 
   const useDefaultProfile = async () => {
-    const profile = await window.profile.get();
-    updateProfile(
-      isInternDoc
-        ? { name: profile.name, nim: profile.nim }
-        : getAuthorDetails({ ...profile, committee: profile.committee ?? {} }),
-    );
+    const request = ++previewRequest.current;
+    const scope = previewScope.current;
+    setLoadingDefaults(true);
+    try {
+      const profile = await window.profile.get();
+      if (!scope.cancelled && request === previewRequest.current)
+        setDefaults({ documentId: doc.id, profile });
+    } catch {
+      if (!scope.cancelled && request === previewRequest.current)
+        toast.error(t("document_profile.defaults.failed"));
+    } finally {
+      if (!scope.cancelled && request === previewRequest.current)
+        setLoadingDefaults(false);
+    }
   };
 
   return (
@@ -262,6 +317,7 @@ export const Setting = () => {
                 size="sm"
                 variant="outline"
                 onClick={useDefaultProfile}
+                disabled={loadingDefaults}
               >
                 {t("document_profile.use_default")}
               </Button>
@@ -532,6 +588,18 @@ export const Setting = () => {
           </Section>
         )}
       </div>
+      {defaults?.documentId === doc.id && !academic.locked && (
+        <DefaultProfilePreview
+          current={doc.profile}
+          defaults={defaults.profile}
+          intern={isInternDoc}
+          onClose={() => setDefaults(null)}
+          onApply={(patch) => {
+            updateProfile(patch);
+            setDefaults(null);
+          }}
+        />
+      )}
     </div>
   );
 };

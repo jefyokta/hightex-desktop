@@ -4,8 +4,7 @@ import {
 } from "@main/utilities/first-installed";
 import fs, { writeFileSync } from "fs";
 import path from "path";
-import { app, dialog } from "electron";
-import Store from "electron-store";
+import { BrowserWindow, app, dialog } from "electron";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { DocumentProfileService } from "../service/document-profile-service";
@@ -29,8 +28,6 @@ import type { FormPrintInput } from "../../src/forms/model";
 import { lecturerDirectory } from "../service/lecturer-directory-service";
 
 export class HighTexHandler {
-  private static store = new Store();
-
   static register() {
     IPCMain.handle("hightex:lecturers:cached", () =>
       lecturerDirectory.cached(),
@@ -194,9 +191,7 @@ export class HighTexHandler {
         send("Checking session", 10);
         await ServerService.request("/me").catch(() => null);
         send("Checking categories update", 50);
-        const categories: { data: Category } =
-          await ServerService.request("/categories");
-        this.store.set("hightex.categories", JSON.stringify(categories));
+        await CategoryService.refresh();
         send("Loading documents", 65);
         await ServerService.request("/document").catch(() => null);
 
@@ -214,6 +209,14 @@ export class HighTexHandler {
 
     IPCMain.handle("hightex:categories", async () => {
       return await CategoryService.getAll();
+    });
+
+    IPCMain.handle("hightex:categories:refresh", async () => {
+      const categories = await CategoryService.refresh();
+      for (const window of BrowserWindow.getAllWindows()) {
+        window.webContents.send("hightex:categories:changed");
+      }
+      return categories;
     });
 
     IPCMain.handle("hightex:onboarding:status", () => firstInstalled());

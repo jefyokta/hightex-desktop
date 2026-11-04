@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
+import { EditorCloseGuard } from "../electron/utilities/editor-close-guard";
 
 function fixture(
   isPackaged: boolean,
@@ -192,6 +193,7 @@ test.each([false, true])(
   async (dev) => {
     const f = fixture(!dev);
     f.modules["./../main/application"] = { Application: f.Application };
+    f.modules["../utilities/editor-close-guard"] = { EditorCloseGuard };
     const { EditorWindow } = f.load<
       typeof import("../electron/windows/editor-window")
     >("../electron/windows/editor-window.ts");

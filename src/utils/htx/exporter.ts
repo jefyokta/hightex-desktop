@@ -8,6 +8,7 @@ import { writeProfileEntries } from "./profile";
 import { contentAssets } from "../content-assets";
 import { applyCloudAcademic } from "../cloud-academic";
 import { contentFingerprint } from "./content-fingerprint";
+import { previewDocumentDraft } from "@/editor/document-drafts";
 import { migrateDocumentCommittee } from "../document-committee";
 
 /**
@@ -60,7 +61,7 @@ export class Exporter {
     };
   }
 
-  async buildExport(academic?: CloudAcademicData) {
+  async buildExport(academic?: CloudAcademicData, draft?: HighTexDocument) {
     const snapshot = await this.db.transaction(
       "r",
       [
@@ -72,7 +73,10 @@ export class Exporter {
         this.db.images,
       ],
       async () => {
-        const document = await this.db.documents.get(this.documentId);
+        const current = await this.db.documents.get(this.documentId);
+        const document = current
+          ? previewDocumentDraft(current, draft)
+          : undefined;
         if (!document)
           throw new HighTexExportError(
             t("error.htx.document_not_found_for_export"),

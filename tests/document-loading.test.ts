@@ -4,6 +4,7 @@ import Dexie from "dexie";
 import { indexedDB, IDBKeyRange } from "fake-indexeddb";
 import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Document } from "../src/editor/document";
+import { CategoryEmpty } from "../src/exception/categories-empty";
 import { Chapter } from "../src/editor/chapter";
 import { useChapterStore } from "../src/hooks/use-chapter";
 
@@ -26,7 +27,10 @@ const originalStoreChapter = useChapterStore.getState().chapter;
 Dexie.dependencies.indexedDB = indexedDB;
 Dexie.dependencies.IDBKeyRange = IDBKeyRange;
 const db = HighTexDB.getInstance();
-const api = { categories: async () => categories };
+const api: {
+  categories: () => Promise<Category[]>;
+  category?: (id: string) => Promise<Category | undefined>;
+} = { categories: async () => categories };
 
 beforeAll(async () => {
   Object.defineProperty(globalThis, "window", {
@@ -39,6 +43,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await Promise.all(db.tables.map((table) => table.clear()));
   api.categories = async () => categories;
+  delete api.category;
   for (const id of ["active", "background"])
     await db.documents.put({
       id,
@@ -152,6 +157,33 @@ test("a versioned document binds normal and static chapters to that version with
   expect(
     version.chapters.every((chapter) => chapter.getId().endsWith(".v1")),
   ).toBe(true);
+  expect(
+    JSON.stringify((await db.chapters.get("active.1"))?.content),
+  ).toContain("Original chapter one");
+});
+
+test("an incomplete category list can recover the requested category before warming the document", async () => {
+  const requested: string[] = [];
+  api.categories = async () => [{ ...categories[0], id: 2 }];
+  api.category = async (id) => {
+    requested.push(id);
+    return categories[0];
+  };
+  const doc = await new Document("active").warm({ activate: false });
+  expect(doc.ready).toBe(true);
+  expect(doc.category?.id).toBe(1);
+  expect(requested).toEqual(["1"]);
+  expect(
+    JSON.stringify((await db.chapters.get("active.1"))?.content),
+  ).toContain("Original chapter one");
+});
+test("an unavailable category reports a category error and preserves the document instead of declaring it broken", async () => {
+  api.categories = async () => [{ ...categories[0], id: 2 }];
+  api.category = async () => undefined;
+  await expect(
+    new Document("active").warm({ activate: false }),
+  ).rejects.toBeInstanceOf(CategoryEmpty);
+  expect(await db.documents.get("active")).toBeDefined();
   expect(
     JSON.stringify((await db.chapters.get("active.1"))?.content),
   ).toContain("Original chapter one");

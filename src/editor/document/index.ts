@@ -4,7 +4,6 @@ import { Chapter } from "../chapter";
 import { DocumentNotFound } from "../../exception/document-not-found";
 import { Manager } from "../manager";
 import { CategoryEmpty } from "@/exception/categories-empty";
-import { DocumentBroken } from "@/exception/documet-broken";
 import { Symbols } from "@/utils/symbol";
 
 export class Document {
@@ -28,7 +27,7 @@ export class Document {
   public async setFilePath(file?: string) {
     if (!this.doc) return;
     this.doc.file = file;
-    return await this.table.put(this.doc);
+    return await this.table.update(this.id, { file });
   }
 
   constructor(documentId: string, version?: string) {
@@ -150,9 +149,11 @@ export class Document {
       throw new CategoryEmpty();
     }
 
-    const category = categories.find((c) => c.id.toString() === doc.category);
+    const category =
+      categories.find((c) => c.id.toString() === doc.category) ??
+      (await window.hightex.category?.(doc.category));
     if (!category) {
-      throw new DocumentBroken(this.id);
+      throw new CategoryEmpty(doc.category);
     }
     this.category = category;
 

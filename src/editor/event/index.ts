@@ -30,7 +30,7 @@ export const events = {
     editorSessions.delete(editor);
     if (editor.isDestroyed || !isCurrent()) return false;
     const session = { chapter, ready: false };
-  // editor.state.plugins.map((p)=>console.log(p.key))
+    // editor.state.plugins.map((p)=>console.log(p.key))
 
     editorSessions.set(editor, session);
     const active = () =>
@@ -70,7 +70,8 @@ export const events = {
 
     normalizing.add(editor);
     try {
-      // convertTableHeaderLikeCells(editor);
+      // Persist stable IDs now, so reopening does not repair the saved archive.
+      ensureUniqueId(editor);
     } finally {
       normalizing.delete(editor);
     }

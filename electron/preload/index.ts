@@ -123,6 +123,13 @@ contextBridge.exposeInMainWorld("hightex", {
     ipcRenderer.on("hightex:pdf:progress", handler);
     return () => ipcRenderer.removeListener("hightex:pdf:progress", handler);
   },
+  refreshCategories: () => ipcRenderer.invoke("hightex:categories:refresh"),
+  onCategoriesChanged(callback: () => void) {
+    const listener = () => callback();
+    ipcRenderer.on("hightex:categories:changed", listener);
+    return () =>
+      ipcRenderer.removeListener("hightex:categories:changed", listener);
+  },
   categories: async () => {
     return await ipcRenderer.invoke("hightex:categories");
   },
@@ -384,17 +391,35 @@ contextBridge.exposeInMainWorld("file", {
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld("editor", {
-  onFlush(callback: (request: string, documentId: string) => void) {
+  ready: (buffer: Uint8Array) => ipcRenderer.invoke("editor:ready", buffer),
+  onCloseState(callback: (locked: boolean) => void) {
+    const listener = (_event: Electron.IpcRendererEvent, locked: boolean) =>
+      callback(locked);
+    ipcRenderer.on("editor:close-state", listener);
+    return () => ipcRenderer.removeListener("editor:close-state", listener);
+  },
+  onFlush(
+    callback: (
+      request: string,
+      documentId: string,
+      archive?: boolean | "save",
+    ) => void,
+  ) {
     const listener = (
       _event: Electron.IpcRendererEvent,
       request: string,
       documentId: string,
-    ) => callback(request, documentId);
+      archive?: boolean | "save",
+    ) => callback(request, documentId, archive);
     ipcRenderer.on("editor:flush", listener);
     return () => ipcRenderer.removeListener("editor:flush", listener);
   },
-  completeFlush(request: string, error?: string) {
-    ipcRenderer.send(`editor:flush:result:${request}`, error);
+  completeFlush(
+    request: string,
+    error?: string,
+    snapshot?: EditorArchiveSnapshot,
+  ) {
+    ipcRenderer.send(`editor:flush:result:${request}`, error, snapshot);
   },
   open(documentId: string, file?: string) {
     return ipcRenderer.invoke("editor:open", documentId, file);

@@ -3,6 +3,12 @@ import { randomUUID } from "node:crypto";
 import { Application } from "./../main/application";
 import fs from "fs";
 import path from "path";
+import { archiveFingerprint } from "../utilities/archive-fingerprint";
+import { EditorCloseGuard } from "../utilities/editor-close-guard";
+import { ConfigService } from "../service/config-service";
+import { LoggerService } from "../service/logger-service";
+import en from "../../src/locales/en.json";
+import id from "../../src/locales/id.json";
 export class EditorWindow {
   private static windows = new Map<string, EditorWindowState>();
 
@@ -39,10 +45,77 @@ export class EditorWindow {
       },
     });
 
-    this.windows.set(documentId, {
+    const state: EditorWindowState = {
       window,
       document: { id: documentId, filePath },
+    };
+    this.windows.set(documentId, state);
+    const guard = new EditorCloseGuard({
+      lock: (locked) => {
+        if (!window.isDestroyed())
+          window.webContents.send("editor:close-state", locked);
+      },
+      dirty: async () => {
+        if (!state.initialized) return true;
+        const snapshot = await this.snapshot(documentId);
+        // Also notice files removed or changed outside HighTex since opening.
+        if (state.document.filePath) {
+          try {
+            return (
+              archiveFingerprint(
+                await fs.promises.readFile(state.document.filePath),
+              ) !== archiveFingerprint(snapshot.buffer)
+            );
+          } catch {
+            return true;
+          }
+        }
+        return state.archiveBaseline !== archiveFingerprint(snapshot.buffer);
+      },
+      confirm: async () => {
+        const messages = this.closeMessages();
+        if (!state.initialized) {
+          const { response } = await dialog.showMessageBox(window, {
+            type: "question",
+            title: messages.title,
+            message: messages.loading,
+            detail: messages.loadingDetail,
+            buttons: [messages.discard, messages.cancel],
+            defaultId: 1,
+            cancelId: 1,
+            noLink: true,
+          });
+          return response === 0 ? "discard" : "cancel";
+        }
+        const { response } = await dialog.showMessageBox(window, {
+          type: "question",
+          title: messages.title,
+          message: messages.message,
+          detail: messages.detail,
+          buttons: [messages.save, messages.discard, messages.cancel],
+          defaultId: 0,
+          cancelId: 2,
+          noLink: true,
+        });
+        return (["save", "discard", "cancel"] as const)[response] ?? "cancel";
+      },
+      save: async () => {
+        const snapshot = await this.requestFlush(documentId, "save", 120000);
+        return Boolean(snapshot?.filePath);
+      },
+      close: () => window.close(),
+      error: async (error) => {
+        LoggerService.write(error, "editor:close");
+        const messages = this.closeMessages();
+        if (!window.isDestroyed())
+          await dialog.showMessageBox(window, {
+            type: "error",
+            message: messages.failed,
+            detail: messages.kept,
+          });
+      },
     });
+    window.on("close", (event) => guard.request(event));
 
     window.once("closed", () => {
       if (this.windows.get(documentId)?.window === window) {
@@ -79,39 +152,73 @@ export class EditorWindow {
   }
 
   static async flush(documentId: string, timeout = 30000): Promise<void> {
+    if (!this.get(documentId)) return;
+    await this.requestFlush(documentId, false, timeout);
+  }
+
+  private static async snapshot(
+    documentId: string,
+  ): Promise<EditorArchiveSnapshot> {
+    const snapshot = await this.requestFlush(documentId, true, 30000);
+    if (!snapshot?.buffer || typeof snapshot.fileName !== "string")
+      throw new Error("Editor archive is unavailable");
+    return snapshot;
+  }
+
+  private static closeMessages() {
+    return (ConfigService.getKey("language") === "id" ? id : en).editor.close;
+  }
+
+  static async ready(state: EditorWindowState, bytes: Uint8Array) {
+    if (state.initialized) return;
+    state.archiveBaseline = archiveFingerprint(bytes);
+    state.initialized = true;
+  }
+
+  private static async requestFlush(
+    documentId: string,
+    archive: boolean | "save",
+    timeout: number,
+  ): Promise<EditorArchiveSnapshot | undefined> {
     const window = this.get(documentId);
-    if (!window) return;
+    if (!window) throw new Error("Editor is closed");
     const request = randomUUID();
     const channel = `editor:flush:result:${request}`;
-    await new Promise<void>((resolve, reject) => {
-      const cleanup = () => {
-        clearTimeout(timer);
-        ipcMain.removeListener(channel, onResult);
-        window.removeListener("closed", onClosed);
-      };
-      const onResult = (event: Electron.IpcMainEvent, error?: string) => {
-        if (event.sender !== window.webContents) return;
-        cleanup();
-        if (error) reject(new Error(error));
-        else resolve();
-      };
-      const onClosed = () => {
-        cleanup();
-        reject(new Error("Editor closed before pending changes were saved"));
-      };
-      const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error("Timed out waiting for editor changes to be saved"));
-      }, timeout);
-      ipcMain.on(channel, onResult);
-      window.once("closed", onClosed);
-      try {
-        window.webContents.send("editor:flush", request, documentId);
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    });
+    return await new Promise<EditorArchiveSnapshot | undefined>(
+      (resolve, reject) => {
+        const cleanup = () => {
+          clearTimeout(timer);
+          ipcMain.removeListener(channel, onResult);
+          window.removeListener("closed", onClosed);
+        };
+        const onResult = (
+          event: Electron.IpcMainEvent,
+          error?: string,
+          snapshot?: EditorArchiveSnapshot,
+        ) => {
+          if (event.sender !== window.webContents) return;
+          cleanup();
+          if (error) reject(new Error(error));
+          else resolve(snapshot);
+        };
+        const onClosed = () => {
+          cleanup();
+          reject(new Error("Editor closed before pending changes were saved"));
+        };
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Timed out waiting for editor changes to be saved"));
+        }, timeout);
+        ipcMain.on(channel, onResult);
+        window.once("closed", onClosed);
+        try {
+          window.webContents.send("editor:flush", request, documentId, archive);
+        } catch (error) {
+          cleanup();
+          reject(error);
+        }
+      },
+    );
   }
 
   static async save(
@@ -122,14 +229,30 @@ export class EditorWindow {
     let filePath = state.document.filePath;
     if (!filePath) {
       const result = await dialog.showSaveDialog(state.window, {
-        defaultPath: path.join(app.getPath("downloads"), fileName),
+        defaultPath: path.join(
+          app.getPath("downloads"),
+          path.basename(fileName),
+        ),
+        filters: [{ name: "HighTex", extensions: ["hightex"] }],
       });
-      if (result.canceled) return;
+      if (result.canceled || !result.filePath) return;
       filePath = result.filePath;
     }
 
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, buffer);
+    const fingerprint = archiveFingerprint(buffer);
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+    const temporary = path.join(
+      path.dirname(filePath),
+      `.${path.basename(filePath)}.${randomUUID()}.tmp`,
+    );
+    try {
+      await fs.promises.writeFile(temporary, buffer, { flag: "wx" });
+      await fs.promises.rename(temporary, filePath);
+    } finally {
+      await fs.promises.rm(temporary, { force: true }).catch(() => {});
+    }
+    state.archiveBaseline = fingerprint;
+    state.initialized = true;
     state.document.filePath = filePath;
     return filePath;
   }
