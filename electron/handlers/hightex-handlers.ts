@@ -25,15 +25,26 @@ import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 import { ServerUrl } from "../url/server-url";
 import { FormArchiveService } from "../service/form-archive-service";
 import type { FormPrintInput } from "../../src/forms/model";
-import { lecturerDirectory } from "../service/lecturer-directory-service";
+import {
+  lecturerDirectory,
+  lecturerCloud,
+} from "../service/lecturer-directory-service";
 
 export class HighTexHandler {
   static register() {
-    IPCMain.handle("hightex:lecturers:cached", () =>
-      lecturerDirectory.cached(),
+    IPCMain.handle("hightex:lecturers:cloud", () => lecturerCloud.fetch());
+    IPCMain.handle("hightex:lecturers:list", () => lecturerDirectory.list());
+    IPCMain.handle(
+      "hightex:lecturers:save",
+      (_, input: LecturerDirectoryInput) => lecturerDirectory.save(input),
     );
-    IPCMain.handle("hightex:lecturers:refresh", (_, force?: boolean) =>
-      lecturerDirectory.refresh(force === true),
+    IPCMain.handle("hightex:lecturers:remove", (_, id: string) =>
+      lecturerDirectory.remove(id),
+    );
+    IPCMain.handle(
+      "hightex:lecturers:import",
+      (_, data: unknown, filename?: string) =>
+        lecturerDirectory.import(data, filename),
     );
     IPCMain.handle("forms:archive:export", (_, input: FormPrintInput) =>
       new FormArchiveService().export(input),

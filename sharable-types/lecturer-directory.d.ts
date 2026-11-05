@@ -1,24 +1,50 @@
 export {};
 
 declare global {
+  type LecturerSource =
+    | { type: "manual" }
+    | { type: "file"; filename?: string }
+    | { type: "cloud"; url: string }
+    | { type: "unknown" };
   interface LecturerDirectoryEntry extends AcademicPerson {
     id: string;
-  }
-  interface LecturerDirectoryPayload {
-    schema_version: 1;
-    version: string;
-    data: LecturerDirectoryEntry[];
+    source: LecturerSource;
   }
   interface LecturerDirectoryState {
-    source: string;
     data: LecturerDirectoryEntry[];
-    version: string | null;
-    checkedAt: number | null;
-    fromSeed: boolean;
-    error?: "network" | "invalid" | "storage";
+    error?: "storage";
   }
+  interface LecturerDirectoryInput {
+    id?: string;
+    name: string;
+    nip: string;
+  }
+  interface LecturerDirectoryImportResult extends LecturerDirectoryState {
+    added: number;
+    skipped: number;
+  }
+  type LecturerCloudError =
+    | "not_authenticated"
+    | "session_changed"
+    | "forbidden"
+    | "network"
+    | "invalid_response"
+    | "storage";
+  type LecturerCloudResult =
+    | { ok: true; result: LecturerDirectoryImportResult }
+    | { ok: false; error: LecturerCloudError };
   interface LecturerDirectoryAPI {
-    cached(): Promise<LecturerDirectoryState>;
-    refresh(force?: boolean): Promise<LecturerDirectoryState>;
+    fetchCloud(): Promise<LecturerCloudResult>;
+    list(): Promise<LecturerDirectoryState>;
+    save(input: LecturerDirectoryInput): Promise<
+      LecturerDirectoryState & {
+        entry: LecturerDirectoryEntry;
+      }
+    >;
+    remove(id: string): Promise<LecturerDirectoryState>;
+    import(
+      data: unknown,
+      filename?: string,
+    ): Promise<LecturerDirectoryImportResult>;
   }
 }

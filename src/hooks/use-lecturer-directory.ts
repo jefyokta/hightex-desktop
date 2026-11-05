@@ -1,70 +1,69 @@
 import { useSyncExternalStore } from "react";
 
-type State = LecturerDirectoryState & { loading: boolean; refreshing: boolean };
-let state: State = {
-  source: "",
-  data: [],
-  version: null,
-  checkedAt: null,
-  fromSeed: false,
-  loading: true,
-  refreshing: false,
-};
+type State = LecturerDirectoryState & { loading: boolean };
+let state: State = { data: [], loading: true };
 let bootstrap: Promise<void> | undefined;
-let refreshJob: Promise<void> | undefined;
+let cloudJob: Promise<LecturerCloudResult> | undefined;
 const subscribers = new Set<() => void>();
-const publish = (patch: Partial<State>) => {
-  state = { ...state, ...patch };
+const publish = (next: LecturerDirectoryState) => {
+  state = { ...next, loading: false };
   subscribers.forEach((fn) => fn());
 };
 
-export function refreshLecturerDirectory(force = false): Promise<void> {
-  if (refreshJob) return refreshJob;
-  const api = window.hightex?.lecturers;
-  if (!api) return Promise.resolve();
-  publish({ refreshing: true });
-  refreshJob = api
-    .refresh(force)
-    .then((next) => publish({ ...next, error: next.error, loading: false }))
-    .catch(() => publish({ error: "network", loading: false }))
-    .finally(() => {
-      refreshJob = undefined;
-      publish({ refreshing: false });
-    });
-  return refreshJob;
-}
-function initialize() {
-  if (bootstrap) return;
-  bootstrap = (async () => {
+export async function loadLecturerDirectory(): Promise<void> {
+  try {
     const api = window.hightex?.lecturers;
-    if (!api) {
-      publish({ loading: false });
-      return;
-    }
-    try {
-      publish({ ...(await api.cached()), loading: false });
-    } catch {
-      publish({ loading: false, error: "storage" });
-    }
-    if (navigator.onLine) await refreshLecturerDirectory();
-  })();
+    publish(api ? await api.list() : { data: [], error: "storage" });
+  } catch {
+    publish({
+      data: state.data,
+      error: "storage",
+    });
+  }
 }
-const check = () => {
-  if (navigator.onLine) void refreshLecturerDirectory();
-};
+
+export async function saveLecturer(input: LecturerDirectoryInput) {
+  // Finish the initial read before publishing a mutation's newer state.
+  if (bootstrap) await bootstrap;
+  const result = await window.hightex.lecturers.save(input);
+  publish({ data: result.data });
+  return result.entry;
+}
+
+export async function removeLecturer(id: string) {
+  if (bootstrap) await bootstrap;
+  publish(await window.hightex.lecturers.remove(id));
+}
+
+export async function importLecturers(data: unknown, filename?: string) {
+  if (bootstrap) await bootstrap;
+  const result = await window.hightex.lecturers.import(data, filename);
+  publish({ data: result.data });
+  return result;
+}
+
+export function fetchCloudLecturers(): Promise<LecturerCloudResult> {
+  if (cloudJob) return cloudJob;
+  cloudJob = (async (): Promise<LecturerCloudResult> => {
+    if (bootstrap) await bootstrap;
+    try {
+      const result = await window.hightex.lecturers.fetchCloud();
+      if (result.ok) publish({ data: result.result.data });
+      return result;
+    } catch {
+      return { ok: false, error: "network" };
+    }
+  })().finally(() => {
+    cloudJob = undefined;
+  });
+  return cloudJob;
+}
+
 function subscribe(fn: () => void) {
   subscribers.add(fn);
-  if (subscribers.size === 1) {
-    window.addEventListener("online", check);
-    window.addEventListener("focus", check);
-  }
-  initialize();
+  bootstrap ??= loadLecturerDirectory();
   return () => {
     subscribers.delete(fn);
-    if (!subscribers.size) {
-      window.removeEventListener("online", check);
-      window.removeEventListener("focus", check);
-    }
   };
 }
 const snapshot = () => state;

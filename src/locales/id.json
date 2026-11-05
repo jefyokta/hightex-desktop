@@ -347,14 +347,67 @@
     "search": "Cari nama atau NIP…",
     "none": "Dosen tidak ditemukan.",
     "loading": "Memuat daftar dosen…",
-    "refresh": "Perbarui daftar",
-    "seed": "Daftar dosen bawaan aplikasi · tersedia offline",
-    "checked": "Daftar dosen diperiksa {date}",
-    "offline_hint": "Memakai daftar tersimpan; pembaruan belum berhasil.",
-    "empty_hint": "Daftar dosen belum tersedia untuk server ini. Hubungkan internet untuk mengunduhnya.",
+    "empty_hint": "Daftar dosenmu masih kosong. Tambahkan dosen untuk mulai memilih.",
     "clear": "Kosongkan pilihan",
     "refine_search": "Ketik nama atau NIP untuk mempersempit hasil.",
-    "complete_profile": "Lengkapi pilihan dosen melalui profil dokumen di editor. Nama dan NIP mengikuti dosen yang dipilih."
+    "complete_profile": "Lengkapi pilihan dosen melalui profil dokumen di editor. Nama dan NIP mengikuti dosen yang dipilih.",
+    "title": "Data dosen",
+    "manage": "Kelola data dosen",
+    "add": "Tambah dosen",
+    "edit": "Edit dosen",
+    "delete": "Hapus",
+    "name_label": "Nama lengkap dan gelar",
+    "nip_label": "NIP / NIK",
+    "local_hint": "Kelola daftar dosen sendiri di perangkat ini. Data tersedia offline dan tidak diunggah otomatis.",
+    "local_status": "Daftar dosen lokal · {count} dosen",
+    "snapshot_hint": "Mengedit atau menghapus dosen tidak mengubah data yang sudah tersimpan di profil atau dokumen.",
+    "delete_hint": "Hapus dosen ini dari daftar lokal? Data yang sudah tersimpan di profil dan dokumen tetap ada.",
+    "edit_person": "Edit {name}",
+    "delete_person": "Hapus {name}",
+    "save": "Simpan dosen",
+    "save_error": "Dosen belum berhasil disimpan. Isianmu masih tersedia; silakan coba lagi.",
+    "delete_error": "Dosen belum berhasil dihapus. Silakan coba lagi.",
+    "storage_error": "Daftar dosen lokal belum bisa dibaca. Silakan coba lagi.",
+    "retry": "Coba lagi",
+    "source_label": "Sumber data",
+    "source_manual": "Manual",
+    "import": "Impor JSON",
+    "import_file": "File JSON dosen",
+    "import_hint": "Tambahkan dosen dari file di perangkatmu. File diproses secara lokal dan tidak diunggah.",
+    "import_format": "Gunakan array berisi name/nip, atau objek dengan array data. Nama dan NIP wajib diisi; NIP harus berupa teks dalam tanda kutip. Maksimal 16 MiB dan 50.000 dosen.",
+    "import_duplicates": "NIP yang sudah ada dilewati. Data lama tidak ditimpa. ID dan klaim sumber di dalam file diabaikan.",
+    "import_size_error": "Ukuran file melebihi batas 16 MiB.",
+    "import_invalid": "JSON dosen tidak valid. Setiap dosen wajib memiliki nama dan NIP yang tidak kosong dalam tanda kutip. Maksimal 50.000 dosen.",
+    "import_preview": "{count} dosen dari {file} siap diimpor.",
+    "import_confirm": "Impor dosen",
+    "import_success": "{added} dosen ditambahkan; {skipped} data yang sudah ada dilewati.",
+    "import_save_error": "Impor belum tersimpan. Daftar lama tetap utuh. Periksa ruang penyimpanan dan batas 50.000 dosen dalam direktori, lalu coba lagi.",
+    "page_status": "Menampilkan {from}–{to} dari {total}",
+    "previous_page": "Sebelumnya",
+    "next_page": "Berikutnya",
+    "page_description": "Kelola dosen dan catat asal datanya.",
+    "editor_hint": "Isi nama lengkap dan NIP dosen.",
+    "source_file": "File",
+    "source_cloud": "Cloud",
+    "source_unknown": "Belum dicatat",
+    "all_sources": "Semua sumber",
+    "nip_missing": "NIP belum diisi",
+    "import_format_title": "Format JSON",
+    "cloud_fetch": "Ambil dari Cloud",
+    "cloud_login": "Login dan ambil data dosen",
+    "cloud_loading": "Mengambil data dosen…",
+    "cloud_login_hint": "Login terlebih dahulu untuk mengambil data dosen dari server. Setelah diambil, data bisa digunakan offline di perangkat ini.",
+    "cloud_hint": "Ambil data dosen untuk digunakan offline. Data yang sudah ada tetap dipertahankan.",
+    "cloud_offline": "Hubungkan internet untuk mengambil data dari Cloud. Daftar tersimpan tetap bisa digunakan offline.",
+    "cloud_success": "{added} dosen dari Cloud ditambahkan; {skipped} data yang sudah ada dilewati.",
+    "cloud_errors": {
+      "not_authenticated": "Login terlebih dahulu untuk mengambil data dosen dari server. Daftar tersimpan tetap tersedia.",
+      "session_changed": "Akun atau server berubah. Coba lagi dari akun saat ini; daftar tersimpan tetap utuh.",
+      "forbidden": "Akunmu tidak memiliki akses ke daftar dosen ini. Daftar tersimpan tetap utuh.",
+      "network": "Data dosen belum bisa diambil. Periksa koneksi lalu coba lagi; daftar tersimpan tetap utuh.",
+      "invalid_response": "Daftar dosen dari server tidak valid. Daftar tersimpan tetap utuh.",
+      "storage": "Data dosen belum bisa disimpan. Periksa ruang penyimpanan dan batas direktori, lalu coba lagi."
+    }
   },
   "forms": {
     "title": "Pembuatan Formulir",
@@ -1464,14 +1517,10 @@
       },
       "lecturers": {
         "name": "Memilih dosen dan menyimpan profil default",
-        "summary": "Cari nama atau NIP, pilih pembimbing dan penguji, lalu simpan untuk digunakan kembali secara offline.",
+        "summary": "Kelola daftar dosen lokal, pilih pembimbing dan penguji, lalu simpan profil default.",
         "advisors": {
           "title": "Pilih pembimbing dari daftar dosen",
-          "description": "Cari pembimbing berdasarkan nama atau NIP; NIP mengikuti pilihanmu. Tambahkan pembimbing kedua jika diperlukan."
-        },
-        "refresh": {
-          "title": "Daftar dosen tetap tersedia saat offline",
-          "description": "Daftar tersimpan tetap bisa digunakan offline. Perbarui daftar saat online; pilih ulang dosen jika ingin memakai perubahan nama atau NIP."
+          "description": "Cari dosen yang sudah kamu simpan berdasarkan nama atau NIP. Jika belum ada, pilih Tambah dosen. Tambahkan pembimbing kedua jika diperlukan."
         },
         "committee": {
           "title": "Pilih ketua sidang dan penguji",
@@ -1484,6 +1533,10 @@
         "identity": {
           "title": "Isi identitas pada profil default",
           "description": "Isi nama dan NIM untuk digunakan kembali pada dokumen. Profil ini tersimpan lokal di perangkatmu."
+        },
+        "manage": {
+          "title": "Kelola data dosen di perangkatmu",
+          "description": "Buka halaman Data dosen untuk menambah, mengimpor, atau mengedit dosen beserta sumber datanya. Perubahan daftar tidak mengubah profil atau dokumen lama."
         }
       },
       "documentProfile": {

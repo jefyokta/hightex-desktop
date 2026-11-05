@@ -14,6 +14,7 @@ import {
   Presentation,
   History,
   ArrowUpRight,
+  UsersRound,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -110,6 +111,11 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
             "/dashboard/citation",
             <Quote size={17} />,
             t("workspace.citations"),
+          )}
+          {item(
+            "/dashboard/lecturers",
+            <UsersRound size={17} />,
+            t("lecturers.title"),
           )}
           <Collapsible open={cloudOpen} onOpenChange={setCloudOpen}>
             <CollapsibleTrigger className="workspace-nav-item">

@@ -68,7 +68,7 @@ export default {
     {
       id: "lecturer-directory",
       welcomeOrder: 0,
-      revision: 1,
+      revision: 3,
       name: "guide.release130.lecturers.name",
       summary: "guide.release130.lecturers.summary",
       scope: "workspace",
@@ -91,9 +91,9 @@ export default {
           route: profileRoute,
         },
         {
-          id: "lecturer-refresh",
-          title: "guide.release130.lecturers.refresh.title",
-          description: "guide.release130.lecturers.refresh.description",
+          id: "lecturer-manage",
+          title: "guide.release130.lecturers.manage.title",
+          description: "guide.release130.lecturers.manage.description",
           selectors: ["[data-lecturer-directory-status]"],
           route: profileRoute,
         },

@@ -347,14 +347,67 @@
     "search": "Search name or NIP…",
     "none": "No lecturer found.",
     "loading": "Loading lecturers…",
-    "refresh": "Refresh directory",
-    "seed": "Bundled lecturer directory · available offline",
-    "checked": "Directory checked {date}",
-    "offline_hint": "Using saved directory; update was unsuccessful.",
-    "empty_hint": "No directory is available for this server. Connect to download it.",
+    "empty_hint": "Your lecturer list is empty. Add a lecturer to get started.",
     "clear": "Clear selection",
     "refine_search": "Type a name or NIP to narrow the results.",
-    "complete_profile": "Complete lecturer selections in the document profile in the editor. Names and NIPs follow the selected lecturer."
+    "complete_profile": "Complete lecturer selections in the document profile in the editor. Names and NIPs follow the selected lecturer.",
+    "title": "Lecturer directory",
+    "manage": "Manage lecturers",
+    "add": "Add lecturer",
+    "edit": "Edit lecturer",
+    "delete": "Delete",
+    "name_label": "Full name and academic titles",
+    "nip_label": "NIP / NIK",
+    "local_hint": "Manage your own lecturer list on this device. Entries are available offline and are not automatically uploaded.",
+    "local_status": "Local lecturer directory · {count} entries",
+    "snapshot_hint": "Editing or deleting an entry does not change lecturer details already saved in profiles or documents.",
+    "delete_hint": "Remove this lecturer from your local list? Details already saved in profiles and documents will remain.",
+    "edit_person": "Edit {name}",
+    "delete_person": "Delete {name}",
+    "save": "Save lecturer",
+    "save_error": "Unable to save the lecturer. Your changes are still here; please try again.",
+    "delete_error": "Unable to delete the lecturer. Please try again.",
+    "storage_error": "Unable to read your local lecturer list. Please try again.",
+    "retry": "Try again",
+    "source_label": "Data source",
+    "source_manual": "Manual",
+    "import": "Import JSON",
+    "import_file": "Lecturer JSON file",
+    "import_hint": "Add lecturers from a file on your device. The file is processed locally and is not uploaded.",
+    "import_format": "Use an array of name/nip objects, or an object with a data array. Name and NIP are required; NIP must be quoted text. Maximum 16 MiB and 50,000 entries.",
+    "import_duplicates": "Existing NIPs are skipped. Existing entries are never overwritten. IDs and source claims in the file are ignored.",
+    "import_size_error": "This file exceeds the 16 MiB limit.",
+    "import_invalid": "Invalid lecturer JSON. Every entry needs a name and a non-empty NIP written as quoted text. Maximum 50,000 entries.",
+    "import_preview": "{count} lecturers from {file} are ready to import.",
+    "import_confirm": "Import lecturers",
+    "import_success": "Added {added} lecturers; skipped {skipped} existing entries.",
+    "import_save_error": "Import was not saved. Your existing list is unchanged. Check available storage and the 50,000-entry directory limit, then try again.",
+    "page_status": "Showing {from}–{to} of {total}",
+    "previous_page": "Previous",
+    "next_page": "Next",
+    "page_description": "Manage lecturers and keep track of where their details came from.",
+    "editor_hint": "Enter the lecturer’s full name and staff number.",
+    "source_file": "File",
+    "source_cloud": "Cloud",
+    "source_unknown": "Not recorded",
+    "all_sources": "All sources",
+    "nip_missing": "NIP not filled in",
+    "import_format_title": "JSON format",
+    "cloud_fetch": "Get from Cloud",
+    "cloud_login": "Log in and get lecturers",
+    "cloud_loading": "Getting lecturers…",
+    "cloud_login_hint": "Log in to get lecturers from the server. Downloaded data stays available offline on this device.",
+    "cloud_hint": "Get lecturers for offline use. Existing entries are kept.",
+    "cloud_offline": "Connect to get lecturers from Cloud. Your saved list remains available offline.",
+    "cloud_success": "Added {added} lecturers from Cloud; skipped {skipped} existing entries.",
+    "cloud_errors": {
+      "not_authenticated": "Log in to get lecturers from the server. Your saved list is still available.",
+      "session_changed": "The account or server changed. Try again from the current account; your saved list is unchanged.",
+      "forbidden": "Your account does not have access to this lecturer directory. Your saved list is unchanged.",
+      "network": "Unable to get lecturers. Check your connection and try again; your saved list is unchanged.",
+      "invalid_response": "The server returned an invalid lecturer list. Your saved list is unchanged.",
+      "storage": "Unable to save the lecturers. Check available storage and the directory limit, then try again."
+    }
   },
   "forms": {
     "title": "Forms Generation",
@@ -1464,14 +1517,10 @@
       },
       "lecturers": {
         "name": "Choose lecturers and save a default profile",
-        "summary": "Search by name or staff number, choose advisors and examiners, and save your selections for offline use.",
+        "summary": "Manage a local lecturer list, choose advisors and examiners, and save your default profile.",
         "advisors": {
           "title": "Choose advisors from the directory",
-          "description": "Search for an advisor by name or staff number; their number follows your selection. Add a second advisor if needed."
-        },
-        "refresh": {
-          "title": "Keep using the directory offline",
-          "description": "Your saved directory works offline. Refresh directory when online, then select a lecturer again to use updated names or staff numbers."
+          "description": "Search your saved lecturers by name or staff number. Choose Add lecturer if someone is missing. Add a second advisor if needed."
         },
         "committee": {
           "title": "Choose the chair and examiners",
@@ -1484,6 +1533,10 @@
         "identity": {
           "title": "Enter your default author details",
           "description": "Enter your name and student number to reuse in documents. This profile is stored locally on your device."
+        },
+        "manage": {
+          "title": "Manage lecturers on your device",
+          "description": "Open the Lecturer directory page to add, import, or edit lecturers and their data sources. Directory changes do not rewrite existing profiles or documents."
         }
       },
       "documentProfile": {

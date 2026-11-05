@@ -19,6 +19,7 @@ import {Dashboard} from '/src/pages/local.tsx';
 import {Citation} from '/src/pages/citation.tsx';
 import {Forms} from '/src/pages/forms.tsx';
 import {Settings} from '/src/pages/settings.tsx';
+import {Lecturers} from '/src/pages/lecturers.tsx';
 import {RemoteDocuments} from '/src/pages/remote.tsx';
 import {ConfirmProvider} from '/src/context/confrim-context.tsx';
 import {MultiSelectProvider} from '/src/context/multi-select-context.tsx';
@@ -53,7 +54,7 @@ await db.documents.bulkPut(titles.map((title,index)=>({id:'doc'+index,title,altT
 await db.cite.clear();await db.cite.put({key:'example',bib:'@book{example,title={Research methods},author={Jane Doe},year={2026}}'});
 const update=db.updateDocument.bind(db);window.failSave=false;db.updateDocument=async(...args)=>{if(window.failSave)throw Error('Fixture save failure');return update(...args)};
 function Probe(){window.navigate=useNavigate();return null}
-const root=createRoot(document.getElementById('root'));let mountId=0;window.mountWorkspace=()=>root.render(React.createElement(UserContext.Provider,{key:++mountId,value:{user:false,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(TooltipProvider,null,React.createElement(MultiSelectProvider,null,React.createElement(ConfirmProvider,null,React.createElement(MemoryRouter,{initialEntries:['/dashboard']},React.createElement(Probe),React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(AppLayout)},React.createElement(Route,{path:'/dashboard',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/projects/local',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/citation',element:React.createElement(Citation)}),React.createElement(Route,{path:'/dashboard/forms',element:React.createElement(Forms)}),React.createElement(Route,{path:'/settings',element:React.createElement(Settings)}),React.createElement(Route,{path:'/dashboard/projects/cloud',element:React.createElement(RemoteDocuments)})))),React.createElement(Toaster)))))));
+const root=createRoot(document.getElementById('root'));let mountId=0;window.mountWorkspace=()=>root.render(React.createElement(UserContext.Provider,{key:++mountId,value:{user:false,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(TooltipProvider,null,React.createElement(MultiSelectProvider,null,React.createElement(ConfirmProvider,null,React.createElement(MemoryRouter,{initialEntries:['/dashboard']},React.createElement(Probe),React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(AppLayout)},React.createElement(Route,{path:'/dashboard',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/projects/local',element:React.createElement(Dashboard)}),React.createElement(Route,{path:'/dashboard/citation',element:React.createElement(Citation)}),React.createElement(Route,{path:'/dashboard/forms',element:React.createElement(Forms)}),React.createElement(Route,{path:'/dashboard/lecturers',element:React.createElement(Lecturers)}),React.createElement(Route,{path:'/settings',element:React.createElement(Settings)}),React.createElement(Route,{path:'/dashboard/projects/cloud',element:React.createElement(RemoteDocuments)})))),React.createElement(Toaster)))))));
 window.mountWorkspace();
 </script></body></html>`;
 const execute = (code) =>
@@ -813,7 +814,7 @@ app
     await screenshot("release130-lecturers-en");
     await execute(`window.changeLanguage('id')`);
     for (const step of [
-      "lecturer-refresh",
+      "lecturer-manage",
       "profile-committee",
       "default-profile-save",
     ]) {
@@ -840,7 +841,7 @@ app
     );
     assert.equal(
       await execute(`window.installation.seenGuides['lecturer-directory']`),
-      1,
+      3,
     );
     // No-document fallback remains usable on a narrow window.
     await execute(`window.db.documents.clear()`);

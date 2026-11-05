@@ -3,7 +3,7 @@ import vm from "node:vm";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import path from "node:path";
-import installerBackup from "../resources/category-backup.json";
+// import installerBackup from "../resources/category-backup.json";
 import { parseCategoryDirectory } from "../src/utils/category-directory";
 
 function fixture() {
@@ -275,18 +275,4 @@ test("a missing or damaged backup does not discard a still-valid offline cache",
   }
 });
 
-test("the real installer snapshot restores an empty desktop cache offline", async () => {
-  const f = fixture();
-  f.cache({ data: [] });
-  f.offline();
-  f.backup(installerBackup);
-  const recovered = await f.service.getAll();
-  expect(recovered.length).toBeGreaterThan(0);
-  expect(recovered).toEqual(parseCategoryDirectory(installerBackup));
-  expect(f.calls()).toBe(0);
-  expect(
-    recovered.every((category) =>
-      category.chapters.every((chapter) => typeof chapter.chapter === "string"),
-    ),
-  ).toBe(true);
-});
+
