@@ -25,10 +25,14 @@ import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 import { ServerUrl } from "../url/server-url";
 import { FormArchiveService } from "../service/form-archive-service";
 import type { FormPrintInput } from "../../src/forms/model";
-import { lecturerDirectory } from "../service/lecturer-directory-service";
+import {
+  lecturerDirectory,
+  lecturerCloud,
+} from "../service/lecturer-directory-service";
 
 export class HighTexHandler {
   static register() {
+    IPCMain.handle("hightex:lecturers:cloud", () => lecturerCloud.fetch());
     IPCMain.handle("hightex:lecturers:list", () => lecturerDirectory.list());
     IPCMain.handle(
       "hightex:lecturers:save",

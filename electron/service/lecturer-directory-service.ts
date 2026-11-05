@@ -7,6 +7,12 @@ import {
   type LocalDirectoryStorage,
 } from "./lecturer-directory-client";
 import { createLecturerDirectoryStorage } from "./lecturer-directory-storage";
+import { LecturerCloudClient } from "./lecturer-cloud-client";
+import { requestCloudLecturers } from "./lecturer-cloud-transport";
+import { documentService } from "./document-service";
+import { SessionService } from "./session-service";
+import { SessionHandler } from "../handlers/session-handlers";
+import { desktopAuth } from "./auth-service";
 
 const db = Connection.get();
 let storage: LocalDirectoryStorage | undefined;
@@ -35,4 +41,18 @@ export const lecturerDirectory = new LocalLecturerDirectory({
   remove: (id) => getStorage().remove(id),
   insert: (entries) => getStorage().insert(entries),
   createId: randomUUID,
+});
+
+export const lecturerCloud = new LecturerCloudClient(lecturerDirectory, {
+  session: () => {
+    const token = SessionService.getToken();
+    if (!token || !SessionService.getUser()) return null;
+    return { ...documentService.context(), token };
+  },
+  request: requestCloudLecturers,
+  unauthenticated: () => {
+    desktopAuth.cancel();
+    SessionService.clear();
+    void SessionHandler.broadcastSession();
+  },
 });

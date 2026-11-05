@@ -11,6 +11,7 @@ import { name } from "@/utils/name";
 import { PageHeader } from "./dashboard/page-header";
 import { LecturerEditor } from "./lecturer-editor";
 import { LecturerImportButton } from "./lecturer-import";
+import { LecturerCloudButton } from "./lecturer-cloud";
 import { LecturerSourceLabel } from "./lecturer-source";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -70,6 +71,7 @@ export function LecturerDirectoryManager() {
           </>
         }
       />
+      <LecturerCloudButton disabled={directory.loading || !!directory.error} />
       <section className="space-y-5">
         <div className="flex flex-wrap gap-3">
           <Input

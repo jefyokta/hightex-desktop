@@ -392,7 +392,22 @@
     "source_unknown": "Belum dicatat",
     "all_sources": "Semua sumber",
     "nip_missing": "NIP belum diisi",
-    "import_format_title": "Format JSON"
+    "import_format_title": "Format JSON",
+    "cloud_fetch": "Ambil dari Cloud",
+    "cloud_login": "Login dan ambil data dosen",
+    "cloud_loading": "Mengambil data dosen…",
+    "cloud_login_hint": "Login terlebih dahulu untuk mengambil data dosen dari server. Setelah diambil, data bisa digunakan offline di perangkat ini.",
+    "cloud_hint": "Ambil data dosen untuk digunakan offline. Data yang sudah ada tetap dipertahankan.",
+    "cloud_offline": "Hubungkan internet untuk mengambil data dari Cloud. Daftar tersimpan tetap bisa digunakan offline.",
+    "cloud_success": "{added} dosen dari Cloud ditambahkan; {skipped} data yang sudah ada dilewati.",
+    "cloud_errors": {
+      "not_authenticated": "Login terlebih dahulu untuk mengambil data dosen dari server. Daftar tersimpan tetap tersedia.",
+      "session_changed": "Akun atau server berubah. Coba lagi dari akun saat ini; daftar tersimpan tetap utuh.",
+      "forbidden": "Akunmu tidak memiliki akses ke daftar dosen ini. Daftar tersimpan tetap utuh.",
+      "network": "Data dosen belum bisa diambil. Periksa koneksi lalu coba lagi; daftar tersimpan tetap utuh.",
+      "invalid_response": "Daftar dosen dari server tidak valid. Daftar tersimpan tetap utuh.",
+      "storage": "Data dosen belum bisa disimpan. Periksa ruang penyimpanan dan batas direktori, lalu coba lagi."
+    }
   },
   "forms": {
     "title": "Pembuatan Formulir",

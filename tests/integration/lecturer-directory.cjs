@@ -11,12 +11,19 @@ const profile = mkdtempSync(path.join(os.tmpdir(), "hightex-lecturers-"));
 app.setPath("userData", profile);
 let win, vite, server, db;
 let directoryRequests = 0;
+let cloudStatus = 200;
+let cloudPayload = {
+  schema_version: 1,
+  version: "a".repeat(64),
+  data: [{ id: "12", name: "Cloud Lecturer", nip: "000987" }],
+};
+let cloudSession = null;
 const fixture =
-  "<!doctype html><html><body><div id=\"root\"></div><script type=\"module\">\nimport React from 'react'; import {createRoot} from 'react-dom/client';\nimport {MemoryRouter,Routes,Route,Link} from 'react-router-dom';\nimport {AdvisorFields} from '/src/components/advisor-fields.tsx';\nimport {CommitteeFields} from '/src/components/committee-fields.tsx';\nimport {Lecturers} from '/src/pages/lecturers.tsx';\nimport {useLecturerDirectory} from '/src/hooks/use-lecturer-directory.ts';\nimport {documentFormData} from '/src/forms/model.ts';\nimport {Toaster} from 'sonner';\nimport {t} from '/src/utils/lang.ts'; import '/src/App.css';\nwindow.config={get:()=>({language:'id'})};\nObject.defineProperty(navigator,'onLine',{get:()=>false});\nwindow.labels={primary:t('settings.profile.advisor.name.label'),chair:t('editor.expandable.setting.leaded_by'),examiner:t('editor.expandable.setting.primary_examiner_name'),add:t('lecturers.add'),save:t('lecturers.save'),remove:t('lecturers.delete')};\nconst h=React.createElement;\nfunction Fixture(){\n const [profile,setProfile]=React.useState(()=>JSON.parse(localStorage.getItem('profile')||'null')||{name:'Student',nim:'123',advisorName:'',advisorNip:'',cv:'',committee:{}});\n const [intern,setIntern]=React.useState({advisorName:'Manual KP',advisorNip:'KP001'});\n const directory=useLecturerDirectory();\n window.directory=directory;window.profileValue=profile;\n React.useEffect(()=>{localStorage.setItem('profile',JSON.stringify(profile));},[profile]);\n window.formValue=documentFormData({id:'fixture',title:'Title',category:'1',keywords:{indonesian:[],english:[]},altTitle:'',config:{},profile});\n const profileView=h('section',{className:'space-y-5'},\n   h(AdvisorFields,{profile,onChange:patch=>setProfile(p=>({...p,...patch}))}),\n   h(CommitteeFields,{value:profile.committee,onChange:committee=>setProfile(p=>({...p,committee}))}),\n   h('div',{'data-intern':true},h(AdvisorFields,{profile:intern,intern:true,onChange:patch=>setIntern(p=>({...p,...patch}))}))\n );\n return h('main',{className:'mx-auto max-w-5xl space-y-6 p-6'},\n   h('nav',{className:'flex gap-4'},h(Link,{to:'/fixture'},'Profil'),h(Link,{to:'/dashboard/lecturers'},'Data dosen')),\n   h(Routes,null,\n     h(Route,{path:'/dashboard/lecturers',element:h(Lecturers)}),\n     h(Route,{path:'/fixture',element:profileView})\n   ),\n   h(Toaster)\n );\n}\ncreateRoot(document.getElementById('root')).render(h(React.StrictMode,null,h(MemoryRouter,{initialEntries:['/dashboard/lecturers']},h(Fixture))));\n</script></body></html>";
+  "<!doctype html><html><body><div id=\"root\"></div><script type=\"module\">\nimport React from 'react'; import {createRoot} from 'react-dom/client';\nimport {MemoryRouter,Routes,Route,Link} from 'react-router-dom';\nimport {AdvisorFields} from '/src/components/advisor-fields.tsx';\nimport {CommitteeFields} from '/src/components/committee-fields.tsx';\nimport {Lecturers} from '/src/pages/lecturers.tsx';\nimport {useLecturerDirectory} from '/src/hooks/use-lecturer-directory.ts';\nimport {documentFormData} from '/src/forms/model.ts';\nimport {Toaster} from 'sonner';\nimport {UserContext} from '/src/context/user-context.tsx';\nimport {AuthModalProvider,useAuthModal} from '/src/context/auth-modal-context.tsx';\nimport {t} from '/src/utils/lang.ts'; import '/src/App.css';\nwindow.config={get:()=>({language:'id'})};\nwindow.fixtureOnline=false;Object.defineProperty(navigator,'onLine',{get:()=>window.fixtureOnline});\nwindow.labels={primary:t('settings.profile.advisor.name.label'),chair:t('editor.expandable.setting.leaded_by'),examiner:t('editor.expandable.setting.primary_examiner_name'),add:t('lecturers.add'),save:t('lecturers.save'),remove:t('lecturers.delete')};\nconst h=React.createElement;\nfunction LoginFixture(){\n const {loginOpen,closeLogin}=useAuthModal();\n return loginOpen?h('div',{'data-fixture-login':true},\n   h('button',{onClick:async()=>{const user=await window.fixtureCloud.login();window.fixtureUser(user);closeLogin();}},'Konfirmasi login'),\n   h('button',{onClick:closeLogin},'Batal login')):null;\n}\nfunction Fixture(){\n const [user,setUser]=React.useState(false);window.fixtureUser=setUser;\n const [profile,setProfile]=React.useState(()=>JSON.parse(localStorage.getItem('profile')||'null')||{name:'Student',nim:'123',advisorName:'',advisorNip:'',cv:'',committee:{}});\n const [intern,setIntern]=React.useState({advisorName:'Manual KP',advisorNip:'KP001'});\n const directory=useLecturerDirectory();\n window.directory=directory;window.profileValue=profile;\n React.useEffect(()=>{localStorage.setItem('profile',JSON.stringify(profile));},[profile]);\n window.formValue=documentFormData({id:'fixture',title:'Title',category:'1',keywords:{indonesian:[],english:[]},altTitle:'',config:{},profile});\n const profileView=h('section',{className:'space-y-5'},\n   h(AdvisorFields,{profile,onChange:patch=>setProfile(p=>({...p,...patch}))}),\n   h(CommitteeFields,{value:profile.committee,onChange:committee=>setProfile(p=>({...p,committee}))}),\n   h('div',{'data-intern':true},h(AdvisorFields,{profile:intern,intern:true,onChange:patch=>setIntern(p=>({...p,...patch}))}))\n );\n return h(UserContext.Provider,{value:{user,refresh:async()=>{}}},h('main',{className:'mx-auto max-w-5xl space-y-6 p-6'},\n   h('nav',{className:'flex gap-4'},h(Link,{to:'/fixture'},'Profil'),h(Link,{to:'/dashboard/lecturers'},'Data dosen')),\n   h(Routes,null,\n     h(Route,{path:'/dashboard/lecturers',element:h(Lecturers)}),\n     h(Route,{path:'/fixture',element:profileView})\n   ),\n   h(LoginFixture),h(Toaster)\n ));\n}\ncreateRoot(document.getElementById('root')).render(h(React.StrictMode,null,h(AuthModalProvider,null,h(MemoryRouter,{initialEntries:['/dashboard/lecturers']},h(Fixture)))));\n</script></body></html>";
 const preload = path.join(profile, "preload.cjs");
 writeFileSync(
   preload,
-  `const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('hightex',{lecturers:{list:()=>ipcRenderer.invoke('directory:list'),save:input=>ipcRenderer.invoke('directory:save',input),remove:id=>ipcRenderer.invoke('directory:remove',id),import:(data,filename)=>ipcRenderer.invoke('directory:import',data,filename)}});`,
+  `const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('fixtureCloud',{login:()=>ipcRenderer.invoke('fixture:login'),logout:()=>ipcRenderer.invoke('fixture:logout')});contextBridge.exposeInMainWorld('hightex',{lecturers:{fetchCloud:()=>ipcRenderer.invoke('directory:cloud'),list:()=>ipcRenderer.invoke('directory:list'),save:input=>ipcRenderer.invoke('directory:save',input),remove:id=>ipcRenderer.invoke('directory:remove',id),import:(data,filename)=>ipcRenderer.invoke('directory:import',data,filename)}});`,
 );
 async function execute(code) {
   return win.webContents.executeJavaScript(`(async()=>{${code}})()`);
@@ -92,7 +99,26 @@ app
         res.end(await vite.transformIndexHtml("/fixture", fixture));
         return;
       }
-      if (req.url.includes("/api/lecturers")) directoryRequests++;
+      if (req.url === "/api/lecturers") {
+        directoryRequests++;
+        assert.equal(req.headers.authorization, "Bearer fixture-token");
+        assert.equal(req.headers.cookie, undefined);
+        res.setHeader("Content-Type", "application/json");
+        if (cloudStatus === 413) {
+          res.setHeader("Content-Length", String(17 * 1024 * 1024));
+          res.writeHead(200);
+          res.end();
+          return;
+        }
+        if (cloudStatus === 302) {
+          res.writeHead(302, { Location: "/unexpected-redirect" });
+          res.end();
+          return;
+        }
+        res.writeHead(cloudStatus);
+        res.end(JSON.stringify(cloudPayload));
+        return;
+      }
       vite.middlewares(req, res, () => {
         res.statusCode = 404;
         res.end();
@@ -116,6 +142,10 @@ app
         {
           exports,
           URL,
+          fetch,
+          TextDecoder,
+          AbortSignal,
+          process,
           require: (name) =>
             name.startsWith(".")
               ? loadModule(path.resolve(path.dirname(filename), name + ".ts"))
@@ -181,6 +211,44 @@ app
     ipcMain.handle("directory:import", (_, data, filename) =>
       client.import(data, filename),
     );
+    const { LecturerCloudClient } = loadModule(
+      path.resolve(
+        __dirname,
+        "../../electron/service/lecturer-cloud-client.ts",
+      ),
+    );
+    const { requestCloudLecturers } = loadModule(
+      path.resolve(
+        __dirname,
+        "../../electron/service/lecturer-cloud-transport.ts",
+      ),
+    );
+    const cloud = new LecturerCloudClient(
+      {
+        importCloud: (rows, url) => client.importCloud(rows, url),
+      },
+      {
+        session: () => cloudSession,
+        request: requestCloudLecturers,
+        unauthenticated: () => {
+          cloudSession = null;
+          void execute("window.fixtureUser(false)");
+        },
+      },
+    );
+    ipcMain.handle("directory:cloud", () => cloud.fetch());
+    ipcMain.handle("fixture:login", () => {
+      cloudSession = {
+        sessionId: "fixture-" + Date.now(),
+        serverUrl: origin + "/api/",
+        accountId: "student-a",
+        token: "fixture-token",
+      };
+      return { id: "student-a", name: "Fixture Student" };
+    });
+    ipcMain.handle("fixture:logout", () => {
+      cloudSession = null;
+    });
     win = new BrowserWindow({
       show: false,
       width: 1000,
@@ -456,6 +524,107 @@ app
     writeFileSync(
       path.join(profile, "directory.png"),
       (await win.webContents.capturePage()).toPNG(),
+    );
+    // Explicit login-and-download is the only trigger; cancellation never requests data.
+    await clickText("Kelola data dosen", "a");
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-lecturer-cloud] button').disabled",
+      ),
+      true,
+    );
+    await execute(
+      "window.fixtureOnline=true;window.dispatchEvent(new Event('online'))",
+    );
+    await until(
+      "!document.querySelector('[data-lecturer-cloud] button').disabled",
+    );
+    assert.equal(directoryRequests, 0);
+    await clickText("Login dan ambil data dosen");
+    await until("document.querySelector('[data-fixture-login]')");
+    await clickText("Batal login");
+    await until("!document.querySelector('[data-fixture-login]')");
+    assert.equal(directoryRequests, 0);
+
+    // Add a local row to prove both successful and failed cloud fetches preserve it.
+    await clickText(labels.add, "[data-lecturer-directory-manager] button");
+    await saveEditor("Keep local", "001122");
+    await clickText("Login dan ambil data dosen");
+    await clickText("Konfirmasi login");
+    await until(
+      "window.directory.data.length===2 && !document.querySelector('[data-lecturer-cloud] button').disabled",
+    );
+    assert.equal(directoryRequests, 1);
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-lecturer-source=cloud] a').getAttribute('href')",
+      ),
+      origin + "/api/lecturers",
+    );
+    assert.equal(
+      await execute(
+        "return window.directory.data.find(e=>e.name==='Keep local').source.type",
+      ),
+      "manual",
+    );
+    assert.equal(
+      await execute("return JSON.stringify(window.profileValue)"),
+      selected,
+    );
+    await clickText("Ambil dari Cloud");
+    await until(
+      "!document.querySelector('[data-lecturer-cloud] button').disabled",
+    );
+    assert.equal(directoryRequests, 2);
+    assert.equal(await execute("return window.directory.data.length"), 2);
+
+    for (const status of [403, 500, 413, 302]) {
+      cloudStatus = status;
+      await clickText("Ambil dari Cloud");
+      await until(
+        "!document.querySelector('[data-lecturer-cloud] button').disabled && document.querySelector('[data-lecturer-cloud] [role=alert]')",
+      );
+      assert.equal(await execute("return window.directory.data.length"), 2);
+    }
+    cloudStatus = 200;
+    cloudPayload = {
+      schema_version: 1,
+      version: "a".repeat(64),
+      data: [{ id: "14", name: "No NIP", nip: "" }],
+    };
+    await clickText("Ambil dari Cloud");
+    await until(
+      "!document.querySelector('[data-lecturer-cloud] button').disabled && document.querySelector('[data-lecturer-cloud] [role=alert]')",
+    );
+    assert.equal(await execute("return window.directory.data.length"), 2);
+    cloudStatus = 401;
+    await clickText("Ambil dari Cloud");
+    await until(
+      "document.querySelector('[data-lecturer-cloud] button').textContent.includes('Login dan ambil')",
+    );
+    assert.equal(cloudSession, null);
+    assert.equal(await execute("return window.directory.data.length"), 2);
+    const requestsBeforeReload = directoryRequests;
+    await win.reload();
+    await until("window.directory && !window.directory.loading");
+    assert.equal(await execute("return window.directory.data.length"), 2);
+    assert.equal(
+      directoryRequests,
+      requestsBeforeReload,
+      "Offline restart never downloads",
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-lecturer-cloud] button').disabled",
+      ),
+      true,
+    );
+    writeFileSync(
+      path.join(profile, "directory-cloud.png"),
+      (await win.webContents.capturePage()).toPNG(),
+    );
+    console.log(
+      "PASS: login intent and cancellation, authenticated Bearer fetch, automatic Cloud source URL, duplicate skipping, preserved local/profile data, 401/403/HTTP/invalid/oversized/redirect rejection, and offline persistence after logout.",
     );
     console.log(
       "PASS: empty offline first launch, picker add, local CRUD, required/literal NIP, selection without server IDs, unchanged profile/form snapshots, SQLite persistence, atomic JSON imports, duplicate handling, page navigation, source metadata/filtering, no database paths, pagination/search, persisted empty directory, and no server directory requests.",

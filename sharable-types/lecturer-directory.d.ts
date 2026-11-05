@@ -23,7 +23,18 @@ declare global {
     added: number;
     skipped: number;
   }
+  type LecturerCloudError =
+    | "not_authenticated"
+    | "session_changed"
+    | "forbidden"
+    | "network"
+    | "invalid_response"
+    | "storage";
+  type LecturerCloudResult =
+    | { ok: true; result: LecturerDirectoryImportResult }
+    | { ok: false; error: LecturerCloudError };
   interface LecturerDirectoryAPI {
+    fetchCloud(): Promise<LecturerCloudResult>;
     list(): Promise<LecturerDirectoryState>;
     save(input: LecturerDirectoryInput): Promise<
       LecturerDirectoryState & {

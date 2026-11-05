@@ -3,6 +3,7 @@ import { useSyncExternalStore } from "react";
 type State = LecturerDirectoryState & { loading: boolean };
 let state: State = { data: [], loading: true };
 let bootstrap: Promise<void> | undefined;
+let cloudJob: Promise<LecturerCloudResult> | undefined;
 const subscribers = new Set<() => void>();
 const publish = (next: LecturerDirectoryState) => {
   state = { ...next, loading: false };
@@ -39,6 +40,23 @@ export async function importLecturers(data: unknown, filename?: string) {
   const result = await window.hightex.lecturers.import(data, filename);
   publish({ data: result.data });
   return result;
+}
+
+export function fetchCloudLecturers(): Promise<LecturerCloudResult> {
+  if (cloudJob) return cloudJob;
+  cloudJob = (async (): Promise<LecturerCloudResult> => {
+    if (bootstrap) await bootstrap;
+    try {
+      const result = await window.hightex.lecturers.fetchCloud();
+      if (result.ok) publish({ data: result.result.data });
+      return result;
+    } catch {
+      return { ok: false, error: "network" };
+    }
+  })().finally(() => {
+    cloudJob = undefined;
+  });
+  return cloudJob;
 }
 
 function subscribe(fn: () => void) {

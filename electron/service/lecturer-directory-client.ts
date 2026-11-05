@@ -46,7 +46,7 @@ export function parseLocalLecturerEntries(
   });
 }
 
-/** User-managed entries only. No server, account, or installer directory. */
+/** Local entries persist independently of login and never ship in the installer. */
 export class LocalLecturerDirectory {
   constructor(private storage: LocalDirectoryStorage) {}
 
@@ -103,6 +103,22 @@ export class LocalLecturerDirectory {
       type: "file",
       ...(filename === undefined ? {} : { filename }),
     });
+    return this.append(rows, source);
+  }
+
+  /** Called by the authenticated main-process fetch flow, never with a renderer URL. */
+  importCloud(rows: { name: string; nip: string }[], url: string) {
+    const source = parseLecturerSource({ type: "cloud", url });
+    return this.append(
+      rows.map((row) => parseLecturerPerson(row)),
+      source,
+    );
+  }
+
+  private append(
+    rows: { name: string; nip: string }[],
+    source: LecturerSource,
+  ): LecturerDirectoryImportResult {
     const data = this.entries();
     const nips = new Set(data.filter((row) => row.nip).map((row) => row.nip));
     const added: LecturerDirectoryEntry[] = [];

@@ -52,6 +52,7 @@ loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
   lecturers: {
+    fetchCloud: () => ipcRenderer.invoke("hightex:lecturers:cloud"),
     list: () => ipcRenderer.invoke("hightex:lecturers:list"),
     save: (input: LecturerDirectoryInput) =>
       ipcRenderer.invoke("hightex:lecturers:save", input),

@@ -392,7 +392,22 @@
     "source_unknown": "Not recorded",
     "all_sources": "All sources",
     "nip_missing": "NIP not filled in",
-    "import_format_title": "JSON format"
+    "import_format_title": "JSON format",
+    "cloud_fetch": "Get from Cloud",
+    "cloud_login": "Log in and get lecturers",
+    "cloud_loading": "Getting lecturers…",
+    "cloud_login_hint": "Log in to get lecturers from the server. Downloaded data stays available offline on this device.",
+    "cloud_hint": "Get lecturers for offline use. Existing entries are kept.",
+    "cloud_offline": "Connect to get lecturers from Cloud. Your saved list remains available offline.",
+    "cloud_success": "Added {added} lecturers from Cloud; skipped {skipped} existing entries.",
+    "cloud_errors": {
+      "not_authenticated": "Log in to get lecturers from the server. Your saved list is still available.",
+      "session_changed": "The account or server changed. Try again from the current account; your saved list is unchanged.",
+      "forbidden": "Your account does not have access to this lecturer directory. Your saved list is unchanged.",
+      "network": "Unable to get lecturers. Check your connection and try again; your saved list is unchanged.",
+      "invalid_response": "The server returned an invalid lecturer list. Your saved list is unchanged.",
+      "storage": "Unable to save the lecturers. Check available storage and the directory limit, then try again."
+    }
   },
   "forms": {
     "title": "Forms Generation",
