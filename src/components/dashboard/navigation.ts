@@ -3,6 +3,7 @@ import type { LocaleKey } from "@/utils/lang";
 export const workspacePages: Array<{ path: string; label: LocaleKey }> = [
   { path: "/dashboard/projects/local", label: "workspace.documents" },
   { path: "/dashboard/citation", label: "workspace.citations" },
+  { path: "/dashboard/lecturers", label: "lecturers.title" },
   { path: "/dashboard/projects/cloud", label: "workspace.cloud_documents" },
   { path: "/dashboard/submissions", label: "workspace.submissions" },
   { path: "/dashboard/snapshots", label: "workspace.snapshots" },

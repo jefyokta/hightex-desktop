@@ -52,9 +52,12 @@ loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
   lecturers: {
-    cached: () => ipcRenderer.invoke("hightex:lecturers:cached"),
-    refresh: (force?: boolean) =>
-      ipcRenderer.invoke("hightex:lecturers:refresh", force === true),
+    list: () => ipcRenderer.invoke("hightex:lecturers:list"),
+    save: (input: LecturerDirectoryInput) =>
+      ipcRenderer.invoke("hightex:lecturers:save", input),
+    remove: (id: string) => ipcRenderer.invoke("hightex:lecturers:remove", id),
+    import: (data: unknown, filename?: string) =>
+      ipcRenderer.invoke("hightex:lecturers:import", data, filename),
   },
   onboarding: {
     status: () => ipcRenderer.invoke("hightex:onboarding:status"),

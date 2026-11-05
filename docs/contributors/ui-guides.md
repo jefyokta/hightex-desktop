@@ -110,13 +110,13 @@ it never selects or creates data on the user's behalf.
 
 ## Planned 1.3.0 guides
 
-`src/data/ui-guides/releases/1.3.0.ts` registers three new features at revision 1:
+`src/data/ui-guides/releases/1.3.0.ts` registers three features (the local lecturer directory is revision 3):
 
-| Guide ID                  | Scope     | Steps | Content                                                                                                                        |
-| ------------------------- | --------- | ----- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `form-generation`         | Workspace | 6     | Choose a document, proposal/defense stages, form selection, profile/administration data, preview, and separate PDFs in a ZIP.  |
-| `lecturer-directory`      | Workspace | 5     | Author identity, search by name/NIP, offline data and refresh, chair/examiner selection, and saving the local default profile. |
-| `document-author-profile` | Editor    | 3     | Per-document author/lecturer data, explicitly copying defaults, and saving document settings.                                  |
+| Guide ID                  | Scope     | Steps | Content                                                                                                                          |
+| ------------------------- | --------- | ----- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `form-generation`         | Workspace | 6     | Choose a document, proposal/defense stages, form selection, profile/administration data, preview, and separate PDFs in a ZIP.    |
+| `lecturer-directory`      | Workspace | 5     | Author identity, search by name/NIP, local directory management, chair/examiner selection, and saving the local default profile. |
+| `document-author-profile` | Editor    | 3     | Per-document author/lecturer data, explicitly copying defaults, and saving document settings.                                    |
 
 These guides become automatically eligible at application version `1.3.0`.
 The definitions do not bump the application version. Existing 1.2.0 IDs,
@@ -136,7 +136,7 @@ panel state on dismissal. It never copies defaults, saves profile data, or
 changes lecturer selections. Cloud-locked documents have a fallback explanation
 instead of an unavailable default-copy action. Internship advisors remain manual.
 
-Both languages explain that directory refreshes do not rewrite stored profiles,
+Both languages explain that local directory edits do not rewrite stored profiles,
 default profile changes do not rewrite existing documents, B0/B1 are proposal-only,
 and assessment/comment/correction/signature fields stay blank for faculty.
 

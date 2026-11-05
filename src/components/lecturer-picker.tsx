@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { Check, ChevronsUpDown, RefreshCw } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,12 +14,11 @@ import {
   CommandItem,
   CommandGroup,
 } from "@/components/ui/command";
-import {
-  useLecturerDirectory,
-  refreshLecturerDirectory,
-} from "@/hooks/use-lecturer-directory";
+import { useLecturerDirectory } from "@/hooks/use-lecturer-directory";
 import { name } from "@/utils/name";
-import { getCurrentLanguage, t } from "@/utils/lang";
+import { t } from "@/utils/lang";
+import { LecturerEditor } from "./lecturer-editor";
+import { Link } from "react-router-dom";
 
 export function LecturerDirectoryStatus() {
   const directory = useLecturerDirectory();
@@ -32,29 +31,11 @@ export function LecturerDirectoryStatus() {
         {directory.loading
           ? t("lecturers.loading")
           : directory.error
-            ? t("lecturers.offline_hint")
-            : directory.fromSeed
-              ? t("lecturers.seed")
-              : directory.checkedAt
-                ? t("lecturers.checked", {
-                    date: new Date(directory.checkedAt).toLocaleDateString(
-                      getCurrentLanguage() === "id" ? "id-ID" : "en-US",
-                      { day: "numeric", month: "short", year: "numeric" },
-                    ),
-                  })
-                : t("lecturers.empty_hint")}
+            ? t("lecturers.storage_error")
+            : t("lecturers.local_status", { count: directory.data.length })}
       </span>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={directory.refreshing}
-        onClick={() => void refreshLecturerDirectory(true)}
-      >
-        <RefreshCw
-          className={directory.refreshing ? "animate-spin" : undefined}
-        />
-        {t("lecturers.refresh")}
+      <Button type="button" variant="ghost" size="sm" asChild>
+        <Link to="/dashboard/lecturers">{t("lecturers.manage")}</Link>
       </Button>
     </div>
   );
@@ -74,6 +55,7 @@ export function LecturerPicker({
   const id = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState<{ name: string } | null>(null);
   const directory = useLecturerDirectory();
   const search = query.trim().toLocaleLowerCase();
   const matches = directory.data.filter((row) =>
@@ -86,7 +68,6 @@ export function LecturerPicker({
         open={open}
         onOpenChange={(next) => {
           setOpen(next);
-          if (next && navigator.onLine) void refreshLecturerDirectory();
           if (!next) setQuery("");
         }}
       >
@@ -125,9 +106,11 @@ export function LecturerPicker({
                 >
                   {directory.loading
                     ? t("lecturers.loading")
-                    : directory.data.length
-                      ? t("lecturers.none")
-                      : t("lecturers.empty_hint")}
+                    : directory.error
+                      ? t("lecturers.storage_error")
+                      : directory.data.length
+                        ? t("lecturers.none")
+                        : t("lecturers.empty_hint")}
                 </div>
               )}
               <CommandGroup>
@@ -135,8 +118,10 @@ export function LecturerPicker({
                   <CommandItem
                     key={row.id}
                     value={row.id}
+                    disabled={!row.nip.trim()}
                     onSelect={() => {
-                      onChange({ ...row });
+                      // Local directory IDs are not server lecturer IDs.
+                      onChange({ name: row.name, nip: row.nip });
                       setOpen(false);
                       setQuery("");
                     }}
@@ -146,7 +131,7 @@ export function LecturerPicker({
                         {name(row.name)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        NIP / NIK: {row.nip || "—"}
+                        NIP / NIK: {row.nip || t("lecturers.nip_missing")}
                       </div>
                     </div>
                     {row.name === value.name && row.nip === value.nip && (
@@ -160,6 +145,20 @@ export function LecturerPicker({
                   {t("lecturers.refine_search")}
                 </p>
               )}
+              <CommandGroup>
+                <CommandItem
+                  value="add-local-lecturer"
+                  disabled={directory.loading || !!directory.error}
+                  onSelect={() => {
+                    setAdding({ name: query.trim() });
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                >
+                  <Plus />
+                  {t("lecturers.add")}
+                </CommandItem>
+              </CommandGroup>
               {(value.name || value.nip) && (
                 <CommandGroup>
                   <CommandItem
@@ -181,6 +180,13 @@ export function LecturerPicker({
       <p className="text-xs text-muted-foreground">
         NIP / NIK: {value.nip || "—"}
       </p>
+      {adding && (
+        <LecturerEditor
+          initialName={adding.name}
+          onClose={() => setAdding(null)}
+          onSaved={(row) => onChange({ name: row.name, nip: row.nip })}
+        />
+      )}
     </div>
   );
 }

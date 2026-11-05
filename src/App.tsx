@@ -15,6 +15,7 @@ import { Dashboard } from "./pages/local";
 import { RemoteDocuments } from "./pages/remote";
 import { Citation } from "./pages/citation";
 import { Settings } from "./pages/settings";
+import { Lecturers } from "./pages/lecturers";
 import { Editor } from "./pages/editor";
 import { FullDocument } from "./components/printable";
 import { Single } from "./components/printable/single";
@@ -67,6 +68,7 @@ function App() {
             <Route path="/dashboard/splitter" element={<Splitter />} />
             <Route path="/dashboard/snapshots" element={<Snapshot />} />
             <Route path="/dashboard/forms" element={<Forms />} />
+            <Route path="/dashboard/lecturers" element={<Lecturers />} />
 
             <Route path="/settings" element={<Settings />} />
             <Route
