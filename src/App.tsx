@@ -35,6 +35,7 @@ import { FormsPrint } from "./pages/forms-print";
 import { Submission } from "./pages/submission";
 import { Review } from "./pages/review";
 import { SubmissionPrint } from "./pages/submission-print";
+import { CloudCVEditor } from "./pages/cloud/cv";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
@@ -69,6 +70,7 @@ function App() {
             <Route path="/dashboard/snapshots" element={<Snapshot />} />
             <Route path="/dashboard/forms" element={<Forms />} />
             <Route path="/dashboard/lecturers" element={<Lecturers />} />
+            <Route path="/dashboard/cloud/cv" element={<CloudCVEditor />} />
 
             <Route path="/settings" element={<Settings />} />
             <Route

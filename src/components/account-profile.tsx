@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useUser } from "@/hooks/use-user";
 import { useOnline } from "@/hooks/use-online";
 import { HighTexDB } from "@/editor/storage/hightex-db";
@@ -20,7 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Input } from "./ui/input";
 import {
   Select,
   SelectContent,
@@ -39,7 +39,12 @@ export const AccountProfile = () => {
         <CardTitle>{t("account_profile.title")}</CardTitle>
         <CardDescription>{t("account_profile.description")}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {user && (
+          <Button size="sm" asChild>
+            <Link to="/dashboard/cloud/cv">{t("cloud_cv.edit")}</Link>
+          </Button>
+        )}
         {!user ? (
           <LoginGate compact />
         ) : !online ? (
@@ -55,8 +60,6 @@ export const AccountProfile = () => {
 };
 const AccountProfileForm = () => {
   const [data, setData] = useState<AccountProfileData>();
-  const [cv, setCv] = useState("");
-  const [photo, setPhoto] = useState<File>();
   const [serverPhoto, setServerPhoto] = useState<Blob>();
   const [photoUrl, setPhotoUrl] = useState("");
   const [docs, setDocs] = useState<HighTexDocument[]>([]);
@@ -64,9 +67,7 @@ const AccountProfileForm = () => {
   const [fields, setFields] = useState<AccountField[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string>();
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [notice, setNotice] = useState<string>();
-  const content = useRef<HTMLDivElement>(null);
   const operation = useRef(false);
   const alive = useRef(true);
   const loadVersion = useRef(0);
@@ -93,11 +94,7 @@ const AccountProfileForm = () => {
   };
   const accept = (next: AccountProfileData) => {
     setData(next);
-    setCv(next.cv ?? "");
-    setPhoto(undefined);
     setFields([]);
-    if (content.current)
-      content.current.innerHTML = sanitizeCvHtml(next.cv ?? "");
   };
   const load = async () => {
     const version = ++loadVersion.current;
@@ -146,11 +143,7 @@ const AccountProfileForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
-    if (content.current && data)
-      content.current.innerHTML = sanitizeCvHtml(data.cv ?? "");
-  }, [data]);
-  useEffect(() => {
-    const image = photo ?? serverPhoto;
+    const image = serverPhoto;
     if (!image) {
       setPhotoUrl("");
       return;
@@ -158,7 +151,7 @@ const AccountProfileForm = () => {
     const url = URL.createObjectURL(image);
     setPhotoUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [photo, serverPhoto]);
+  }, [serverPhoto]);
   const current = async () => {
     const session = await window.hightex.submission.context();
     if (
@@ -174,7 +167,6 @@ const AccountProfileForm = () => {
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
-    setFieldErrors({});
     try {
       await action();
     } catch (cause) {
@@ -185,45 +177,6 @@ const AccountProfileForm = () => {
       if (alive.current) setBusy(false);
     }
   };
-  const save = () =>
-    run(async () => {
-      if (!data) return;
-      await current();
-      const response = await window.account.update({
-        sessionId: data.session.sessionId,
-        ...(cv !== (data.cv ?? "") ? { cv } : {}),
-        ...(photo
-          ? {
-              image: {
-                bytes: new Uint8Array(await photo.arrayBuffer()),
-                type: photo.type,
-                name: photo.name,
-              },
-            }
-          : {}),
-      });
-      if (!alive.current) return;
-      if (!response.ok) {
-        showError(response.error);
-        setFieldErrors(response.fields ?? {});
-        return;
-      }
-      accept(response.data);
-      const picture = await window.account.picture(
-        response.data.session.sessionId,
-      );
-      if (!alive.current) return;
-      if (picture.ok)
-        setServerPhoto(
-          picture.data
-            ? new Blob([picture.data.bytes.slice().buffer], {
-                type: picture.data.type,
-              })
-            : undefined,
-        );
-      else showError(picture.error);
-      setNotice(t("account_profile.saved"));
-    });
   const apply = () =>
     run(async () => {
       if (!data || !documentId || !fields.length) return;
@@ -275,16 +228,7 @@ const AccountProfileForm = () => {
           size="sm"
           variant="outline"
           disabled={busy}
-          onClick={() =>
-            void run(async () => {
-              if (
-                (photo || cv !== (data?.cv ?? "")) &&
-                !(await confirm({ title: t("account_profile.reload_confirm") }))
-              )
-                return;
-              await load();
-            })
-          }
+          onClick={() => void run(load)}
         >
           <RefreshCw className={`size-4 ${busy ? "animate-spin" : ""}`} />
           {t("submission_review.refresh")}
@@ -326,9 +270,9 @@ const AccountProfileForm = () => {
             {t("account_profile.web_settings")}
           </Button>
           <div className="space-y-2">
-            <label htmlFor="account-image" className="text-sm font-medium">
+            <p className="text-sm font-medium">
               {t("account_profile.picture")}
-            </label>
+            </p>
             {photoUrl && (
               <img
                 src={photoUrl}
@@ -336,92 +280,11 @@ const AccountProfileForm = () => {
                 className="size-24 rounded-xl object-cover"
               />
             )}
-            <Input
-              id="account-image"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              disabled={busy}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (!file) return;
-                if (
-                  file.size > 2 * 1024 * 1024 ||
-                  !["image/png", "image/jpeg", "image/webp"].includes(file.type)
-                ) {
-                  setPhoto(undefined);
-                  showError("invalid_image");
-                  return;
-                }
-                setPhoto(file);
-              }}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t("account_profile.picture_hint")}
-            </p>
-            {fieldErrors.image?.map((message, index) => (
-              <p key={index} className="text-xs text-destructive">
-                {message}
-              </p>
-            ))}
-            {photo && (
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={busy}
-                onClick={() => setPhoto(undefined)}
-              >
-                {t("account_profile.cancel_picture")}
-              </Button>
-            )}
           </div>
           <div className="space-y-2">
-            <label id="account-cv-label" className="text-sm font-medium">
-              CV
-            </label>
-            <div
-              ref={content}
-              role="textbox"
-              aria-labelledby="account-cv-label"
-              contentEditable={!busy}
-              suppressContentEditableWarning
-              className="min-h-32 rounded-xl border bg-background p-3 text-sm"
-              onInput={(event) =>
-                setCv(
-                  event.currentTarget.textContent?.trim()
-                    ? sanitizeCvHtml(event.currentTarget.innerHTML)
-                    : "",
-                )
-              }
-              onPaste={(event) => {
-                event.preventDefault();
-                document.execCommand(
-                  "insertText",
-                  false,
-                  event.clipboardData.getData("text/plain"),
-                );
-              }}
-              onDrop={(event) => event.preventDefault()}
-            />
-            {fieldErrors.cv?.map((message, index) => (
-              <p key={index} className="text-xs text-destructive">
-                {message}
-              </p>
-            ))}
+            <p className="text-sm font-medium">CV</p>
+            <p className="text-sm text-muted-foreground">{plain(data.cv)}</p>
           </div>
-          {fieldErrors.profile?.map((message, index) => (
-            <p key={index} className="text-xs text-destructive">
-              {message}
-            </p>
-          ))}
-          <Button
-            size="sm"
-            disabled={busy || (!photo && cv === (data.cv ?? ""))}
-            onClick={() => void save()}
-          >
-            {busy && <LoaderCircle className="size-4 animate-spin" />}
-            {t("account_profile.save")}
-          </Button>
           <div className="rounded-xl border p-4 space-y-3">
             <h3 className="text-sm font-medium">
               {t("account_profile.apply")}
@@ -491,13 +354,7 @@ const AccountProfileForm = () => {
             <Button
               size="sm"
               variant="outline"
-              disabled={
-                busy ||
-                !selected ||
-                !fields.length ||
-                Boolean(photo) ||
-                cv !== (data.cv ?? "")
-              }
+              disabled={busy || !selected || !fields.length}
               onClick={() => void apply()}
             >
               {t("account_profile.apply")}

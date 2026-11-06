@@ -1118,6 +1118,16 @@
       "canceled": "Login dibatalkan."
     }
   },
+  "cloud_cv": {
+    "title": "CV cloud Anda",
+    "navigation": "CV dan foto profil",
+    "edit": "Edit CV dan foto profil",
+    "picture_hint": "Gambar dikonversi ke WEBP sebelum diunggah, maksimal 2 MB setelah konversi.",
+    "invalid_image": "Gambar tidak dapat diproses atau melebihi 2 MB setelah konversi. Pilih gambar lain.",
+    "description": "Edit CV dan foto akun Anda, lalu simpan perubahan ke server.",
+    "hint": "Tulis CV dalam satu paragraf. Klik foto untuk menggantinya.",
+    "offline": "Sambungkan ke internet untuk memuat atau menyimpan CV dan foto profil."
+  },
   "account_profile": {
     "title": "Profil akun online",
     "description": "Foto dan CV akun disimpan di server. Perubahan dokumen dilakukan secara terpisah.",
