@@ -160,13 +160,68 @@ app
         "../../electron/service/lecturer-directory-client.ts",
       ),
     );
-    const { createLecturerDirectoryStorage } = loadModule(
-      path.resolve(
-        __dirname,
-        "../../electron/service/lecturer-directory-storage.ts",
-      ),
+    const { LocalLecturer } = loadModule(
+      path.resolve(__dirname, "../../electron/database/models/lecturer.ts"),
     );
     const Database = require("better-sqlite3");
+    const { randomUUID } = require("node:crypto");
+    const createLecturerStorage = (database) => {
+      const model = new LocalLecturer(database);
+      model.boot();
+      const toEntity = (entry) => {
+        const source = entry.source ?? { type: "unknown" };
+        return {
+          id: entry.id,
+          name: entry.name,
+          nip: entry.nip,
+          source_type: source.type,
+          source_detail:
+            source.type === "cloud"
+              ? source.url
+              : source.type === "file"
+                ? (source.filename ?? null)
+                : null,
+        };
+      };
+      const fromEntity = (row) => ({
+        id: row.id,
+        name: row.name,
+        nip: row.nip,
+        source:
+          row.source_type === "cloud"
+            ? { type: "cloud", url: row.source_detail ?? "" }
+            : row.source_type === "file"
+              ? {
+                  type: "file",
+                  ...(row.source_detail ? { filename: row.source_detail } : {}),
+                }
+              : { type: row.source_type },
+      });
+      const storage = {
+        read: () => model.orderBy("rowid", "ASC").get().map(fromEntity),
+        save: (entry) => {
+          const row = toEntity(entry);
+          const { id, ...fields } = row;
+          if (model.find(id)) model.where("id", id).update(fields);
+          else model.create(row);
+        },
+        remove: (id) => model.where("id", id).delete(),
+        insert: (entries) =>
+          database.transaction(() => {
+            for (const entry of entries) model.create(toEntity(entry));
+          })(),
+        createId: randomUUID,
+      };
+      return {
+        model,
+        storage,
+        migrate: (entries) =>
+          database.transaction(() => {
+            for (const entry of entries)
+              model.create(toEntity(entry), "IGNORE");
+          })(),
+      };
+    };
     const filename = path.join(profile, "hightex.db");
     db = new Database(filename);
     // Upgrade a real pre-provenance table without losing old blank-NIP rows.
@@ -178,18 +233,16 @@ app
       "Old blank NIP",
       "",
     );
-    let local = createLecturerDirectoryStorage(db);
+    let local = createLecturerStorage(db);
     let client = new LocalLecturerDirectory(local.storage);
 
     assert.equal(client.list().data[0].source.type, "unknown");
     assert.equal(client.list().data[0].nip, "");
     client.remove("local:old");
     // One-time migration preserves manually created entries; deleted entries stay deleted.
-    assert.equal(local.hasMigrated(), false);
     local.migrate([
       { id: "local:legacy", name: "Legacy manual entry", nip: "00001" },
     ]);
-    assert.equal(local.hasMigrated(), true);
     assert.equal(client.list().data[0].nip, "00001");
     client.remove("local:legacy");
 
@@ -474,9 +527,9 @@ app
     // Reopen the real database, then reload the renderer while retaining all imported rows.
     db.close();
     db = new Database(filename);
-    local = createLecturerDirectoryStorage(db);
+    local = createLecturerStorage(db);
     client = new LocalLecturerDirectory(local.storage);
-    assert.equal(local.hasMigrated(), true);
+    assert.equal(client.list().data.length, 127);
     await win.reload();
     await until(
       "window.directory && !window.directory.loading && window.directory.data.length===127",

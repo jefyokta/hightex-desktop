@@ -19,4 +19,11 @@ declare global {
     type: SharingType | string;
     documentId: string;
   }
+
+  interface LecturerEntity extends Entity {
+    name: string;
+    nip: string;
+    source_type: LecturerSource["type"];
+    source_detail: string | null;
+  }
 }

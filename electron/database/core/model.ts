@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { Connection } from "./connection";
-import { ColumnDefinition, SchemaBuilder } from "./schema";
+import { ColumnDefinition, IndexDefinition, SchemaBuilder } from "./schema";
 import { Select } from "../builder/select";
 import { Insert, Update, Delete } from "../builder/mutations";
 import {
@@ -21,7 +21,7 @@ export abstract class Model<
 
   protected static TABLENAME = "";
 
-  protected connection: Database.Database = Connection.get();
+  protected connection: Database.Database;
   protected _tableName: string = "";
   protected primaryKeyType: "INTEGER" | "TEXT" = "INTEGER";
   protected serialable = true;
@@ -31,6 +31,7 @@ export abstract class Model<
     keyof Omit<T, "id" | "createdAt">,
     ColumnDefinition
   >;
+  protected indexes: IndexDefinition[] = [];
 
   public get tableName() {
     return this._tableName;
@@ -44,7 +45,8 @@ export abstract class Model<
   private _delete!: Delete<T>;
   private _loadedRelations: Map<string, Relation> = new Map();
 
-  constructor() {
+  constructor(connection: Database.Database = Connection.get()) {
+    this.connection = connection;
     this._resetBuilders();
   }
 
@@ -68,7 +70,7 @@ export abstract class Model<
     return this;
   }
 
-  readonly boot = (): void => {
+  boot(): void {
     const cols = SchemaBuilder.compile(
       this.schema,
       this.primaryKey(),
@@ -77,7 +79,29 @@ export abstract class Model<
 
     const sql = `CREATE TABLE IF NOT EXISTS ${this.tableName} (${cols});`;
     this.connection.prepare(sql).run();
-  };
+    const columns = this.connection
+      .prepare(`PRAGMA table_info(${this.tableName})`)
+      .all() as { name: string }[];
+    const existing = new Set(columns.map((column) => column.name));
+    const missingColumns = Object.entries(this.schema)
+      .filter(([name]) => !existing.has(name))
+      .map(([name, definition]) =>
+        SchemaBuilder.compileColumn(name, definition),
+      );
+    if (missingColumns.length) {
+      this.connection.transaction(() => {
+        for (const column of missingColumns)
+          this.connection.exec(
+            `ALTER TABLE ${this.tableName} ADD COLUMN ${column}`,
+          );
+      })();
+    }
+    for (const index of SchemaBuilder.compileIndexes(
+      this.tableName,
+      this.indexes,
+    ))
+      this.connection.exec(index);
+  }
 
   with<K extends keyof R & string>(
     relationName: K,
@@ -144,8 +168,8 @@ export abstract class Model<
     return this;
   }
 
-  orderBy(col: Col<T>, direction: "ASC" | "DESC" = "DESC"): this {
-    this._select.orderBy(col, direction);
+  orderBy(col: Col<T> | "rowid", direction: "ASC" | "DESC" = "DESC"): this {
+    this._select.orderBy(col as Col<T>, direction);
     return this;
   }
 
@@ -193,17 +217,19 @@ export abstract class Model<
 
   create(
     data: Omit<T, "id" | "createdAt"> & { id?: string | number },
+    conflict: ConflictStrategy = "REPLACE",
   ): T | undefined {
     const insert = this._insert
       .values(data as Record<string, unknown>)
-      .onConflict("REPLACE");
+      .onConflict(conflict);
     const result = this.connection
       .prepare(insert.toString())
       .run(insert.getBindings());
     this._resetBuilders();
-    return new (this.constructor as new () => this)().find(
-      result.lastInsertRowid as any,
-    ) as unknown as T;
+    const id = data.id ?? result.lastInsertRowid;
+    const created = this.find(id as any) as unknown as T | undefined;
+    this._resetBuilders();
+    return created;
   }
 
   save(): void {
