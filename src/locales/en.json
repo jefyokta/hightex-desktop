@@ -1118,6 +1118,16 @@
       "canceled": "Sign-in canceled."
     }
   },
+  "cloud_cv": {
+    "title": "Your cloud CV",
+    "navigation": "CV and profile photo",
+    "edit": "Edit CV and profile photo",
+    "picture_hint": "Images are converted to WEBP before upload, up to 2 MB after conversion.",
+    "invalid_image": "The image could not be processed or exceeds 2 MB after conversion. Choose another image.",
+    "description": "Edit your account CV and photo, then save your changes to the server.",
+    "hint": "Write your CV as a single paragraph. Click the photo to replace it.",
+    "offline": "Connect to the internet to load or save your CV and profile photo."
+  },
   "account_profile": {
     "title": "Online account profile",
     "description": "Your account photo and CV are stored on the server. Apply document changes separately.",

@@ -15,6 +15,7 @@ import {
   History,
   ArrowUpRight,
   UsersRound,
+  ContactRound,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -56,6 +57,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
   const { openLogin } = useAuthModal();
   const { openLogout } = useLogoutModal();
   const cloudActive =
+    pathname.startsWith("/dashboard/cloud/") ||
     pathname.startsWith("/dashboard/projects/cloud") ||
     pathname.startsWith("/dashboard/submissions");
   const [cloudOpen, setCloudOpen] = useState(cloudActive);
@@ -136,6 +138,11 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
                   "/dashboard/submissions",
                   <FileText size={15} />,
                   t("workspace.submissions"),
+                )}
+                {item(
+                  "/dashboard/cloud/cv",
+                  <ContactRound size={15} />,
+                  t("cloud_cv.navigation"),
                 )}
               </div>
             </CollapsibleContent>

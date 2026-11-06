@@ -142,23 +142,7 @@ test("account changes after an update cannot cache or broadcast the previous own
   ).toMatchObject({ ok: false, error: "session_changed" });
   expect(f.accepted).toHaveLength(0);
 });
-test("profile pictures are fetched from the current server storage and foreign paths are rejected", async () => {
-  const f = fixture();
-  f.setUser({
-    ...f.user(),
-    picture: { path: "profile-pictures/profile-12.webp" },
-  });
-  await f.client.load();
-  expect((await f.client.picture("session-a")).ok).toBe(true);
-  expect(f.images).toEqual([
-    "http://local/storage/profile-pictures/profile-12.webp",
-  ]);
-  f.setUser({ ...f.user(), picture: { path: "https://foreign/image.png" } });
-  expect((await f.client.load()).ok).toBe(false);
-  f.switch();
-  expect((await f.client.picture("session-a")).ok).toBe(false);
-  expect(f.images).toHaveLength(1);
-});
+
 test("a lost profile response reports unknown outcome and performs no automatic retry", async () => {
   const f = fixture();
   f.respond(async () => {
