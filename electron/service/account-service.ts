@@ -17,10 +17,19 @@ export const accountService = new AccountClient({
       },
     }),
   image: async (url) => {
+
+    const headers = new Headers
+    const token = SessionService.getToken();
+
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
     const response = await fetch(url, {
       signal: AbortSignal.timeout(15000),
       redirect: "error",
       cache: "no-store",
+      headers
     });
     if (Number(response.headers.get("content-length")) > 2 * 1024 * 1024)
       throw Error("Image too large");

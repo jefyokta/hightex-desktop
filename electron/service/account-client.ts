@@ -194,8 +194,8 @@ export class AccountClient {
       const cached = this.cache.get(sessionId);
       if (!cached) throw new AccountError("invalid_response");
       if (!cached.picturePath) return null;
-      const url = new ServerUrl(session.serverUrl).resolve(
-        `/storage/${cached.picturePath}`,
+      const url = new ServerUrl(session.serverUrl).endpoint(
+        `${cached.picturePath}`,
       );
       const response = await this.transport.image(url.toString());
       this.context(sessionId);
