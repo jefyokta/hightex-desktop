@@ -1,6 +1,6 @@
-import { HasStorage } from "./concerns/has-storage";
+import { HasStorage } from "../concerns/has-storage";
 
-export class InstallationInfo extends HasStorage {
+export class InstallationInfoService extends HasStorage {
   protected storageName: string = "install";
 
   isFirstInstall() {

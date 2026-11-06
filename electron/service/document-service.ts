@@ -3,12 +3,12 @@ import { app } from "electron";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
-import { CloudSyncClient } from "./cloud-sync-client";
+import { CloudSyncClient } from "../clients/cloud-sync-client";
 import { ServerService } from "./server-service";
 import { SessionService } from "./session-service";
 import { CategoryService } from "./category-service";
 import { ServerUrl } from "../url/server-url";
-import { CloudAcademicClient } from "./cloud-academic-client";
+import { CloudAcademicClient } from "../clients/cloud-academic-client";
 
 // Legacy global hashes/aliases are retained in their original store as backups.
 const store = new Store<{ bindings: Record<string, CloudBinding> }>({

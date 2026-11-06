@@ -4,7 +4,7 @@ import {
   buildZoteroItemListUrl,
   buildZoteroTestUrl,
   parseZoteroItems,
-} from "../service/zotero-service";
+} from "../utilities/zotero";
 
 export class ZoteroHandler {
   static register() {

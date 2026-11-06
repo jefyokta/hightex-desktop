@@ -1,5 +1,5 @@
 // Opt-in: bun run tests/integration/local-server.ts. Never prints credentials.
-import { SubmissionClient } from "../../electron/service/submission-client";
+import { SubmissionClient } from "../../electron/clients/submission-client";
 import { readSnapshot } from "../../src/review/snapshot-reader";
 import { syncScenario } from "./sync-scenario";
 import { submissionScenario } from "./submission-scenario";

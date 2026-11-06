@@ -1,6 +1,6 @@
 import { shell } from "electron";
-import { AuthClient } from "./auth-client";
-import { accountRequest } from "./account-transport";
+import { AuthClient } from "../clients/auth-client";
+import { accountRequest } from "../transports/account-transport";
 import { SessionService } from "./session-service";
 import { ServerUrl } from "../url/server-url";
 import { SessionHandler } from "../handlers/session-handlers";

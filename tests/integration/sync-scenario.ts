@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import {
   CloudSyncClient,
   type CloudTransport,
-} from "../../electron/service/cloud-sync-client";
+} from "../../electron/clients/cloud-sync-client";
 import { readSnapshot } from "../../src/review/snapshot-reader";
 import { emptyAuthorProfile } from "../../src/utils/document-profile";
 import { writeProfileEntries } from "../../src/utils/htx/profile";

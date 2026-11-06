@@ -2,9 +2,9 @@ import { contentFingerprint } from "../src/utils/htx/content-fingerprint";
 import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { strToU8, zipSync, unzipSync } from "fflate";
-import { CloudSyncClient } from "../electron/service/cloud-sync-client";
-import { SubmissionClient } from "../electron/service/submission-client";
-import { SubmissionWorkflow } from "../electron/service/submission-workflow";
+import { CloudSyncClient } from "../electron/clients/cloud-sync-client";
+import { SubmissionClient } from "../electron/clients/submission-client";
+import { SubmissionWorkflow } from "../electron/workflows/submission-workflow";
 
 const hash = (file: Uint8Array) =>
   createHash("sha256").update(file).digest("hex");

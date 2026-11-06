@@ -6,9 +6,9 @@ import {
   LocalLecturerDirectory,
   parseLocalLecturerEntries,
   type LocalDirectoryStorage,
-} from "./lecturer-directory-client";
-import { LecturerCloudClient } from "./lecturer-cloud-client";
-import { requestCloudLecturers } from "./lecturer-cloud-transport";
+} from "../directory/lecturer-directory";
+import { LecturerCloudClient } from "../clients/lecturer-cloud-client";
+import { requestCloudLecturers } from "../transports/lecturer-cloud-transport";
 import { documentService } from "./document-service";
 import { SessionService } from "./session-service";
 import { SessionHandler } from "../handlers/session-handlers";

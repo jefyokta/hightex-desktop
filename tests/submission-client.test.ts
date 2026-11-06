@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import {
   SubmissionClient,
   parseSubmissionList,
-} from "../electron/service/submission-client";
+} from "../electron/clients/submission-client";
 
 const document = (documentId = "student-doc", submissionId = 87) => ({
   id: documentId,

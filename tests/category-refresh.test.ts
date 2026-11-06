@@ -43,7 +43,7 @@ function fixture() {
     }
   }
   const modules: Record<string, unknown> = {
-    "./concerns/has-storage": { HasStorage },
+    "../concerns/has-storage": { HasStorage },
     "../../src/utils/category-directory": { parseCategoryDirectory },
     electron: {
       app: {
@@ -274,5 +274,3 @@ test("a missing or damaged backup does not discard a still-valid offline cache",
     expect(f.calls()).toBe(0);
   }
 });
-
-

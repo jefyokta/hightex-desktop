@@ -14,7 +14,7 @@ import { ProfileHandler } from "../handlers/profile-handlers";
 import { SessionHandler } from "../handlers/session-handlers";
 import { HighTexHandler } from "../handlers/hightex-handlers";
 import { ZoteroHandler } from "../handlers/zotero-handler";
-import { FileOpenManager } from "../service/file-open-service";
+import { FileOpenManager } from "../managers/file-open-manager";
 import { SharingHandler } from "../handlers/sharing-handler";
 import { DatabaseBootstraper } from "@main/database/core/bootstrapper";
 import { NetworkService } from "@main/service/network-service";

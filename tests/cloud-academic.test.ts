@@ -6,7 +6,7 @@ import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import {
   CloudAcademicClient,
   parseCloudAcademic,
-} from "../electron/service/cloud-academic-client";
+} from "../electron/clients/cloud-academic-client";
 import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Exporter } from "../src/utils/htx/exporter";
 import {

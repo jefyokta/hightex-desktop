@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import {
   CloudSyncClient,
   type CloudTransport,
-} from "../electron/service/cloud-sync-client";
+} from "../electron/clients/cloud-sync-client";
 
 const byteSha = (file: Uint8Array) =>
   createHash("sha256").update(file).digest("hex");

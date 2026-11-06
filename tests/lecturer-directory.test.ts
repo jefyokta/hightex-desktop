@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import {
   LocalLecturerDirectory,
   parseLocalLecturerEntries,
-} from "../electron/service/lecturer-directory-client";
+} from "../electron/directory/lecturer-directory";
 import {
   MAX_LECTURERS,
   parseLecturerImport,

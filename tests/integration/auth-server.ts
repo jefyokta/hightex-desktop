@@ -1,7 +1,7 @@
 // Opt-in: local demo HTTP flow; no OS/browser registration or persisted tokens.
 import assert from "node:assert/strict";
-import { AuthClient } from "../../electron/service/auth-client";
-import { accountRequest } from "../../electron/service/account-transport";
+import { AuthClient } from "../../electron/clients/auth-client";
+import { accountRequest } from "../../electron/transports/account-transport";
 import { ServerUrl } from "../../electron/url/server-url";
 const server = ServerUrl.instance;
 const base = server.api.href;

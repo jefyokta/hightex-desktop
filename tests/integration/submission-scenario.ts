@@ -4,9 +4,9 @@ import { strict as assert } from "node:assert";
 import {
   CloudSyncClient,
   type CloudTransport,
-} from "../../electron/service/cloud-sync-client";
-import { SubmissionClient } from "../../electron/service/submission-client";
-import { SubmissionWorkflow } from "../../electron/service/submission-workflow";
+} from "../../electron/clients/cloud-sync-client";
+import { SubmissionClient } from "../../electron/clients/submission-client";
+import { SubmissionWorkflow } from "../../electron/workflows/submission-workflow";
 import { readSnapshot } from "../../src/review/snapshot-reader";
 
 // Opt-in --submit. Only submits the existing Codex sync demo, never other data.

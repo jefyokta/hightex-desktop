@@ -1,5 +1,5 @@
 import Store from "electron-store";
-import { SubmissionWorkflow } from "./submission-workflow";
+import { SubmissionWorkflow } from "../workflows/submission-workflow";
 import { documentService, cloudAcademicService } from "./document-service";
 import { submissionService } from "./submission-service";
 

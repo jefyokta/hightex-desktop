@@ -182,11 +182,11 @@ test("preload buffers a cold-start file until the renderer subscribes, including
 test("second-instance deep links wait for core services, even after Electron is ready", async () => {
   const handled: string[] = [];
   const { FileOpenManager } = loadSource<
-    typeof import("../electron/service/file-open-service")
+    typeof import("../electron/managers/file-open-manager")
   >(
-    "../electron/service/file-open-service.ts",
+    "../electron/managers/file-open-manager.ts",
     {
-      "./deep-link-service": {
+      "../service/deep-link-service": {
         DeepLinkService: class {
           constructor(private url: string) {}
           static isDeepLink(args: string[]) {
@@ -290,11 +290,11 @@ test("a startup document deep link is never also treated as a local .hightex pat
   const opened: string[] = [];
   let handled = 0;
   const { FileOpenManager } = loadSource<
-    typeof import("../electron/service/file-open-service")
+    typeof import("../electron/managers/file-open-manager")
   >(
-    "../electron/service/file-open-service.ts",
+    "../electron/managers/file-open-manager.ts",
     {
-      "./deep-link-service": {
+      "../service/deep-link-service": {
         DeepLinkService: {
           isDeepLink: () => ({
             handle: async () => {

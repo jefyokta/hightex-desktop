@@ -1,5 +1,8 @@
 import Store from "electron-store";
-import { AdvisorClient, type AdvisorStoreData } from "./advisor-client";
+import {
+  AdvisorClient,
+  type AdvisorStoreData,
+} from "../clients/advisor-client";
 import { submissionService } from "./submission-service";
 import { ServerService } from "./server-service";
 

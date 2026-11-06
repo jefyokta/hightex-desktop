@@ -2,8 +2,8 @@ import { expect, test } from "bun:test";
 import {
   AdvisorClient,
   type AdvisorStoreData,
-} from "../electron/service/advisor-client";
-import { SubmissionClient } from "../electron/service/submission-client";
+} from "../electron/clients/advisor-client";
+import { SubmissionClient } from "../electron/clients/submission-client";
 
 const fixture = () => {
   let actor = {

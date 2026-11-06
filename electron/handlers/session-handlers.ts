@@ -1,5 +1,5 @@
 import { BrowserWindow } from "electron";
-import { parseAccountUser } from "../service/auth-client";
+import { parseAccountUser } from "../clients/auth-client";
 import { desktopAuth } from "../service/auth-service";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";

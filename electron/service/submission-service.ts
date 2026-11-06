@@ -1,4 +1,4 @@
-import { SubmissionClient } from "./submission-client";
+import { SubmissionClient } from "../clients/submission-client";
 import { ServerService } from "./server-service";
 import { SessionService } from "./session-service";
 import { ServerUrl } from "../url/server-url";

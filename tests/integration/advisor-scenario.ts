@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import {
   AdvisorClient,
   type AdvisorStoreData,
-} from "../../electron/service/advisor-client";
-import type { SubmissionClient } from "../../electron/service/submission-client";
+} from "../../electron/clients/advisor-client";
+import type { SubmissionClient } from "../../electron/clients/submission-client";
 
 // Read-only against the demo server. Review mutations are covered by fixtures.
 export const advisorScenario = async (

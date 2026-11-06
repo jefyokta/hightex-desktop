@@ -155,10 +155,7 @@ app
       return exports;
     }
     const { LocalLecturerDirectory } = loadModule(
-      path.resolve(
-        __dirname,
-        "../../electron/service/lecturer-directory-client.ts",
-      ),
+      path.resolve(__dirname, "../../electron/directory/lecturer-directory.ts"),
     );
     const { LocalLecturer } = loadModule(
       path.resolve(__dirname, "../../electron/database/models/lecturer.ts"),
@@ -267,13 +264,13 @@ app
     const { LecturerCloudClient } = loadModule(
       path.resolve(
         __dirname,
-        "../../electron/service/lecturer-cloud-client.ts",
+        "../../electron/clients/lecturer-cloud-client.ts",
       ),
     );
     const { requestCloudLecturers } = loadModule(
       path.resolve(
         __dirname,
-        "../../electron/service/lecturer-cloud-transport.ts",
+        "../../electron/transports/lecturer-cloud-transport.ts",
       ),
     );
     const cloud = new LecturerCloudClient(

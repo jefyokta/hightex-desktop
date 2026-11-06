@@ -2,8 +2,8 @@ import { getCloudErrorCode } from "../../sharable-types/cloud-error";
 import { contentFingerprint } from "../../src/utils/htx/content-fingerprint";
 import { randomUUID } from "node:crypto";
 import { parseHighTexV2 } from "@hightex/importer";
-import type { CloudSyncClient } from "./cloud-sync-client";
-import type { SubmissionClient } from "./submission-client";
+import type { CloudSyncClient } from "../clients/cloud-sync-client";
+import type { SubmissionClient } from "../clients/submission-client";
 
 interface WorkflowStore {
   read(): Record<string, SubmissionAttempt>;

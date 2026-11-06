@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import { LocalLecturerDirectory } from "../electron/service/lecturer-directory-client";
+import { LocalLecturerDirectory } from "../electron/directory/lecturer-directory";
 import {
   LecturerCloudClient,
   parseCloudLecturers,
   type LecturerCloudSession,
-} from "../electron/service/lecturer-cloud-client";
+} from "../electron/clients/lecturer-cloud-client";
 
 const payload = (
   data: unknown[] = [{ id: "12", name: "Cloud Lecturer", nip: "000123" }],

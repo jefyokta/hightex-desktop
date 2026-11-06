@@ -3,7 +3,7 @@ import { parseCategoryDirectory } from "../../src/utils/category-directory";
 import { readFile } from "fs/promises";
 import path from "path";
 
-import { HasStorage } from "./concerns/has-storage";
+import { HasStorage } from "../concerns/has-storage";
 import { LoggerService } from "./logger-service";
 import { ServerService } from "./server-service";
 

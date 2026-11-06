@@ -1,4 +1,4 @@
-import { HasStorage } from "./concerns/has-storage";
+import { HasStorage } from "../concerns/has-storage";
 
 /** Maps the account-scoped server document ID to the local document ID. */
 export class DocumentAliasService extends HasStorage<Record<string, string>> {

@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import { zipSync, unzipSync, strToU8 } from "fflate";
-import { CloudSyncClient } from "../../electron/service/cloud-sync-client";
+import { CloudSyncClient } from "../../electron/clients/cloud-sync-client";
 import { contentFingerprint } from "../../src/utils/htx/content-fingerprint";
 import { Schema } from "../../src/utils/htx/schema";
 import { emptyAuthorProfile } from "../../src/utils/document-profile";

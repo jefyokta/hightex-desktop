@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { AccountClient } from "../electron/service/account-client";
+import { AccountClient } from "../electron/clients/account-client";
 const fixture = () => {
   let session: ReviewSession = {
     accountId: "12",

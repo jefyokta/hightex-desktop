@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
-import { AuthClient, parseAccountUser } from "../electron/service/auth-client";
+import { AuthClient, parseAccountUser } from "../electron/clients/auth-client";
 
 // Isolate the real main-process handler without starting Electron or installing
 // module mocks that would affect other tests in the same Bun process.
@@ -36,7 +36,7 @@ const harness = (request: () => Promise<unknown>) => {
       },
     },
     "../service/server-service": { ServerService: { request } },
-    "../service/auth-client": { parseAccountUser },
+    "../clients/auth-client": { parseAccountUser },
     "../service/auth-service": {
       desktopAuth: new AuthClient({
         serverUrl: () => "http://local/api/",

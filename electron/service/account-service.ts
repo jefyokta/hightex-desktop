@@ -1,6 +1,6 @@
 import { shell } from "electron";
-import { AccountClient } from "./account-client";
-import { accountRequest } from "./account-transport";
+import { AccountClient } from "../clients/account-client";
+import { accountRequest } from "../transports/account-transport";
 import { submissionService } from "./submission-service";
 import { SessionService } from "./session-service";
 import { ServerUrl } from "../url/server-url";
@@ -17,8 +17,7 @@ export const accountService = new AccountClient({
       },
     }),
   image: async (url) => {
-
-    const headers = new Headers
+    const headers = new Headers();
     const token = SessionService.getToken();
 
     if (token) {
@@ -29,7 +28,7 @@ export const accountService = new AccountClient({
       signal: AbortSignal.timeout(15000),
       redirect: "error",
       cache: "no-store",
-      headers
+      headers,
     });
     if (Number(response.headers.get("content-length")) > 2 * 1024 * 1024)
       throw Error("Image too large");

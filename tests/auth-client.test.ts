@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { AuthClient } from "../electron/service/auth-client";
+import { AuthClient } from "../electron/clients/auth-client";
 const fixture = () => {
   let server = "http://local/api/",
     now = Date.now(),

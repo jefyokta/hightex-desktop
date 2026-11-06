@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { AccountClient } from "../../electron/service/account-client";
-import type { SubmissionClient } from "../../electron/service/submission-client";
+import { AccountClient } from "../../electron/clients/account-client";
+import type { SubmissionClient } from "../../electron/clients/submission-client";
 export const accountScenario = async (
   transport: {
     request(

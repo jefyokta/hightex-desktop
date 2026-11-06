@@ -3,7 +3,7 @@ import {
   parseLecturerPerson,
 } from "../../src/utils/lecturer-import";
 import { parseLecturerSource } from "../../src/utils/lecturer-source";
-import type { LocalLecturerDirectory } from "./lecturer-directory-client";
+import type { LocalLecturerDirectory } from "../directory/lecturer-directory";
 
 export interface LecturerCloudSession {
   sessionId: string;

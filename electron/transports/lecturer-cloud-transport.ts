@@ -1,6 +1,6 @@
 import { ServerUrl } from "../url/server-url";
 import { MAX_LECTURER_IMPORT_BYTES } from "../../src/utils/lecturer-import";
-import type { LecturerCloudSession } from "./lecturer-cloud-client";
+import type { LecturerCloudSession } from "../clients/lecturer-cloud-client";
 
 /** No response bodies, tokens, or lecturer identities are logged. */
 export async function requestCloudLecturers(session: LecturerCloudSession) {

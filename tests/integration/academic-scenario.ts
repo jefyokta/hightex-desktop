@@ -1,8 +1,8 @@
 import { strict as assert } from "node:assert";
 import { randomUUID } from "node:crypto";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { CloudAcademicClient } from "../../electron/service/cloud-academic-client";
-import type { CloudTransport } from "../../electron/service/cloud-sync-client";
+import { CloudAcademicClient } from "../../electron/clients/cloud-academic-client";
+import type { CloudTransport } from "../../electron/clients/cloud-sync-client";
 import { readSnapshot } from "../../src/review/snapshot-reader";
 
 // Read-only integration: normalize/validate a copy of the demo artifact in memory.

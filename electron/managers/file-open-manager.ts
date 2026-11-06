@@ -1,4 +1,4 @@
-import { DeepLinkService } from "./deep-link-service";
+import { DeepLinkService } from "../service/deep-link-service";
 
 type FileOpenCallback = (filePath: string) => void;
 type CliOpenCallback = (args: string[]) => void | Promise<void>;

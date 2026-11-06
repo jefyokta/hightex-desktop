@@ -63,8 +63,8 @@ const fixture = () => {
     server: load<typeof import("../electron/service/server-service")>(
       "../electron/service/server-service.ts",
     ).ServerService,
-    account: load<typeof import("../electron/service/account-transport")>(
-      "../electron/service/account-transport.ts",
+    account: load<typeof import("../electron/transports/account-transport")>(
+      "../electron/transports/account-transport.ts",
     ).accountRequest,
     respond: (next: typeof response) => {
       response = next;
