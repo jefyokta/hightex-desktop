@@ -24,6 +24,7 @@ import {
   Save,
   Check,
   AlertCircle,
+  GitBranch,
   // MessageCircle,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ import { useChapterStore } from "@/hooks/use-chapter";
 import { SettingModal } from "./settings-modal";
 import { useSaveDocument } from "@/hooks/use-save-document";
 import { ChapterNavigation } from "./chapter-navigation";
+import { BranchManagerDialog } from "./branch-manager-dialog";
 // import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 // import { cn } from "@/lib/utils";
 // import { CommentStorage } from "@/editor/storage/comment";
@@ -60,12 +62,19 @@ export const NavBar: React.FC = () => {
     }
   ).navigation;
   const { chapter } = useChapterStore();
+  const activeDocument = chapter?.document.ready
+    ? chapter.document.getDocument()
+    : undefined;
+  const activeBranchName = activeDocument?.parentId
+    ? activeDocument.branchName || activeDocument.title
+    : undefined;
   const { save, status: saveStatus } = useSaveDocument(editor, chapter);
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [pdfProgress, setPdfProgress] = React.useState<number>(0);
   const [pdfStatus, setPdfStatus] = React.useState<string>("");
   const [openSetting, setOpenSetting] = useState(false);
+  const [openBranchDialog, setOpenBranchDialog] = useState(false);
   const state = useEditorState({
     editor,
     selector: (ctx) => ({
@@ -153,6 +162,26 @@ export const NavBar: React.FC = () => {
               className="flex items-center gap-1"
             >
               <ButtonGroup>
+                <button
+                  type="button"
+                  title={
+                    activeBranchName
+                      ? t("editor.branches.active", { name: activeBranchName })
+                      : t("editor.branches.title")
+                  }
+                  aria-label={
+                    activeBranchName
+                      ? t("editor.branches.active", { name: activeBranchName })
+                      : t("editor.branches.title")
+                  }
+                  className="flex h-8 max-w-40 items-center gap-1.5 rounded-md px-2 text-xs text-neutral-700 transition hover:bg-neutral-200 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                  onClick={() => setOpenBranchDialog(true)}
+                >
+                  <GitBranch className="size-3.5 shrink-0" />
+                  {activeBranchName && (
+                    <span className="truncate">{activeBranchName}</span>
+                  )}
+                </button>
                 <Button
                   title="undo"
                   icon={Undo2}
@@ -473,6 +502,14 @@ export const NavBar: React.FC = () => {
         </div>
       </div>
       <SettingModal open={openSetting} onClose={() => setOpenSetting(false)} />
+      {chapter && editor && (
+        <BranchManagerDialog
+          open={openBranchDialog}
+          onOpenChange={setOpenBranchDialog}
+          editor={editor}
+          chapter={chapter}
+        />
+      )}
     </>
   );
 };
@@ -523,7 +560,7 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
   shortcut,
 }) => {
   return (
-    <Tooltip >
+    <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
