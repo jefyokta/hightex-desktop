@@ -328,6 +328,7 @@ declare global {
     ): void;
     open(documentId: string, file?: string): Promise<void>;
     has(documentId: string): Promise<boolean>;
+    flush(documentId: string): Promise<void>;
     save(buffer: Uint8Array, fileName: string): Promise<string | undefined>;
   }
 }

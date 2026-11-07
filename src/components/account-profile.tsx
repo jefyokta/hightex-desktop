@@ -108,15 +108,15 @@ const AccountProfileForm = () => {
     accept(response.data);
     const [picture, local] = await Promise.all([
       window.account.picture(response.data.session.sessionId),
-      HighTexDB.getInstance().documents.toArray(),
+      HighTexDB.getMainDocuments(),
     ]);
     if (!alive.current || version !== loadVersion.current) return;
     if (picture.ok)
       setServerPhoto(
         picture.data
           ? new Blob([picture.data.bytes.slice().buffer], {
-            type: picture.data.type,
-          })
+              type: picture.data.type,
+            })
           : undefined,
       );
     else {
@@ -207,7 +207,7 @@ const AccountProfileForm = () => {
         editor: (id) => window.editor.has(id),
       });
       if (!alive.current) return;
-      setDocs(await db.documents.toArray());
+      setDocs(await HighTexDB.getMainDocuments());
       setNotice(t("account_profile.applied"));
     });
   const selected = docs.find((doc) => doc.id === documentId);

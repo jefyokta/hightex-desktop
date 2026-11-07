@@ -5,7 +5,7 @@ export const CliDocumentsSlave = () => {
   useEffect(() => {
     const listener = async (_event: unknown, requestId: string) => {
       try {
-        const documents = await HighTexDB.getDocuments();
+        const documents = await HighTexDB.getMainDocuments();
 
         window.ipcRenderer.send(`cli:documents:response:${requestId}`, {
           documents: documents.map(({ id, title, updatedAt }) => ({

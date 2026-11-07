@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Editor } from "@tiptap/core";
-import { GitBranch, GitMerge, Trash2 } from "lucide-react";
+import { GitBranch, GitCompare, GitMerge, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Chapter } from "@/editor/chapter";
 import { Manager } from "@/editor/manager";
@@ -14,6 +14,7 @@ import {
 import { getEditorChapter } from "@/editor/event";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
+import { BranchComparisonDialog } from "./branch-comparison-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,6 +40,7 @@ export function BranchManagerDialog({
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<HighTexDocument>();
+  const [compareBranchId, setCompareBranchId] = useState<string>();
 
   const refresh = useCallback(async () => {
     try {
@@ -122,6 +124,25 @@ export function BranchManagerDialog({
       if (error instanceof ShouldNotified)
         toast.warning(error.message, { description: error.description });
       else toast.error(t("editor.branches.merge_failed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const compare = async (branch: HighTexDocument) => {
+    setBusy(true);
+    try {
+      await flushCurrent();
+      const mainId = branch.parentId;
+      await Promise.all(
+        [mainId, branch.id]
+          .filter((id): id is string => !!id && id !== chapter.getDocumentId())
+          .map((id) => window.editor.flush(id)),
+      );
+      setCompareBranchId(branch.id);
+    } catch (error) {
+      console.error("Could not prepare branch comparison", error);
+      toast.error(t("editor.branches.compare_failed"));
     } finally {
       setBusy(false);
     }
@@ -219,6 +240,16 @@ export function BranchManagerDialog({
                     <Button
                       variant="ghost"
                       size="icon-sm"
+                      title={t("editor.branches.compare")}
+                      aria-label={t("editor.branches.compare")}
+                      disabled={busy}
+                      onClick={() => void compare(branch)}
+                    >
+                      <GitCompare />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
                       title={t("editor.branches.merge_to_main")}
                       aria-label={t("editor.branches.merge_to_main")}
                       disabled={busy}
@@ -245,6 +276,13 @@ export function BranchManagerDialog({
           })}
         </div>
       </DialogContent>
+      <BranchComparisonDialog
+        open={!!compareBranchId}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setCompareBranchId(undefined);
+        }}
+        branchId={compareBranchId}
+      />
     </Dialog>
   );
 }

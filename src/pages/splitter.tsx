@@ -102,7 +102,7 @@ export const Splitter = () => {
   const [progress, setProgress] = useState<string>();
 
   useEffect(() => {
-    HighTexDB.getDocuments().then(setDocs);
+    HighTexDB.getMainDocuments().then(setDocs);
   }, []);
 
   const add = async (

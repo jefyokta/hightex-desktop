@@ -153,7 +153,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
     const context = await window.hightex.cloud.context();
     const [response, docs, available] = await Promise.all([
       window.hightex.cloud.list(context.sessionId),
-      HighTexDB.getInstance().documents.toArray(),
+      HighTexDB.getMainDocuments(),
       window.hightex.categories(),
     ]);
     const mapped = Object.fromEntries(

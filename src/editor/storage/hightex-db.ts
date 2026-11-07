@@ -93,6 +93,9 @@ export class HighTexDB extends Dexie {
   static async getDocuments() {
     return await this.getInstance().documents.toArray();
   }
+  static async getMainDocuments() {
+    return (await this.getDocuments()).filter((document) => !document.parentId);
+  }
   deleteVar(name: string, docId: string) {
     return this.documentVariables
       .where("name")

@@ -566,7 +566,7 @@ export const Settings = () => {
               );
 
               try {
-                const docs = await HighTexDB.getDocuments();
+                const docs = await HighTexDB.getMainDocuments();
 
                 let deleted = 0;
 

@@ -31,7 +31,7 @@ export const AppLayout = () => {
     let revision = 0;
     const fillRecent = async () => {
       const request = ++revision;
-      const docs = await HighTexDB.getInstance().documents.toArray();
+      const docs = await HighTexDB.getMainDocuments();
       if (!alive || request !== revision) return;
       setRecent(
         docs
