@@ -64,6 +64,8 @@ contextBridge.exposeInMainWorld("hightex", {
     status: () => ipcRenderer.invoke("hightex:onboarding:status"),
     acknowledge: (guides: GuideAcknowledgment[]) =>
       ipcRenderer.invoke("hightex:onboarding:acknowledge", guides),
+    acknowledgeProfileSetup: () =>
+      ipcRenderer.invoke("hightex:onboarding:profile-acknowledge"),
   },
   submission: {
     pdf: (input: SnapshotPDFInput) =>

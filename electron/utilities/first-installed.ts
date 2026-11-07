@@ -56,6 +56,7 @@ function load(): GuideInstallationRecord {
           : version,
     lastVersion: version,
     seenGuides,
+    profileSetupPending: previous.profileSetupPending === true || !exists,
   };
   // Commit before caching, so a failed write can be retried.
   persist(next);
@@ -80,8 +81,21 @@ export const firstInstalled = (): OnboardingStatus => {
       launch!.previousVersion !== null &&
       launch!.previousVersion !== current.lastVersion,
     seenGuides: { ...current.seenGuides },
+    profileSetupPending: current.profileSetupPending,
   };
 };
+
+export function acknowledgeProfileSetup(): OnboardingStatus {
+  const current = load();
+  if (!current.profileSetupPending) return firstInstalled();
+  const next: GuideInstallationRecord = {
+    ...current,
+    profileSetupPending: false,
+  };
+  persist(next);
+  record = next;
+  return firstInstalled();
+}
 
 export function acknowledgeGuides(
   guides: GuideAcknowledgment[],

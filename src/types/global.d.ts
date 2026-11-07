@@ -193,6 +193,7 @@ declare global {
       onboarding: {
         status(): Promise<OnboardingStatus>;
         acknowledge(guides: GuideAcknowledgment[]): Promise<OnboardingStatus>;
+        acknowledgeProfileSetup(): Promise<OnboardingStatus>;
       };
       reportError(payload: {
         title: string;

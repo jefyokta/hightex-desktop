@@ -1254,6 +1254,16 @@
     "cloud_hint": "Masuk untuk menyimpan salinan cloud dan mengirim tulisan untuk review. Dokumen lokalmu tetap bisa digunakan.",
     "account_login_hint": "Masuk untuk mengelola profil akun dan identitas akademikmu."
   },
+  "onboarding": {
+    "profile": {
+      "title": "Lengkapi profilmu",
+      "description": "Data ini menjadi nilai default untuk dokumen lokal baru. Kamu bisa mengubahnya nanti di Pengaturan.",
+      "skip": "Nanti saja",
+      "load_failed": "Profil gagal dimuat. Kamu bisa melengkapinya nanti di Pengaturan.",
+      "save_failed": "Profil gagal disimpan. Silakan coba lagi.",
+      "dismiss_failed": "Pilihanmu gagal disimpan. Silakan coba lagi."
+    }
+  },
   "guide": {
     "replay": "Panduan penggunaan",
     "welcome_eyebrow": "HighTex · {version}",

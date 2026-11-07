@@ -57,8 +57,7 @@ import { HighTexDB } from "@/editor/storage/hightex-db";
 import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 import { executeInteractively } from "@/utils/execute-interactively";
 import { useCitationCleanup } from "@/hooks/use-citation-cleanup";
-import { CommitteeFields } from "@/components/committee-fields";
-import { AdvisorFields } from "@/components/advisor-fields";
+import { ProfileFields } from "@/components/profile-fields";
 
 export const Settings = () => {
   const { cleaning, deleteUnusedCitations } = useCitationCleanup();
@@ -743,55 +742,10 @@ const ProfileSection = () => {
           </p>
         ) : (
           <>
-            <div data-tour="default-profile-identity" className="space-y-6">
-              <div className="grid w-full grid-cols-2 items-center gap-4">
-                <div className="space-y-0.5">
-                  <Label>{t("settings.profile.name.label")}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {t("settings.profile.name.description")}
-                  </p>
-                </div>
-
-                <Input
-                  value={profile.name}
-                  onChange={(e) =>
-                    setProfile((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="grid w-full grid-cols-2 items-center gap-4">
-                <div className="space-y-0.5">
-                  <Label>{t("settings.profile.nim.label")}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {t("settings.profile.nim.description")}
-                  </p>
-                </div>
-
-                <Input
-                  value={profile.nim}
-                  onChange={(e) =>
-                    setProfile((prev) => ({
-                      ...prev,
-                      nim: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-            <AdvisorFields
+            <ProfileFields
               profile={profile}
               onChange={(patch) =>
                 setProfile((previous) => ({ ...previous, ...patch }))
-              }
-            />
-            <CommitteeFields
-              value={profile.committee}
-              onChange={(committee) =>
-                setProfile((previous) => ({ ...previous, committee }))
               }
             />
             <div className="flex justify-end pt-4">

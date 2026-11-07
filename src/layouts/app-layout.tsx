@@ -1,4 +1,5 @@
 import { WorkspaceGuide } from "@/components/dashboard/workspace-guide";
+import { FirstInstallProfileDialog } from "@/components/dashboard/first-install-profile-dialog";
 import { useUIGuide } from "@/hooks/use-ui-guide";
 import { Outlet, useLocation } from "react-router-dom";
 import { Menu, WifiOff } from "lucide-react";
@@ -133,6 +134,7 @@ export const AppLayout = () => {
         </DialogContent>
       </Dialog>
       <WorkspaceGuide guide={guide} />
+      <FirstInstallProfileDialog guide={guide} />
     </div>
   );
 };
