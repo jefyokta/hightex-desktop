@@ -8,10 +8,10 @@ export class ProfileService {
 
   private static default(): Profile {
     return {
-      name: "Guest",
-      nim: "12250xxxx",
-      advisorName: "Advisor",
-      advisorNip: "1111",
+      name: "",
+      nim: "",
+      advisorName: "",
+      advisorNip: "",
       cv: "",
       committee: {},
     };

@@ -1,4 +1,5 @@
 import {
+  acknowledgeProfileSetup,
   firstInstalled,
   acknowledgeGuides,
 } from "@main/utilities/first-installed";
@@ -233,6 +234,9 @@ export class HighTexHandler {
     IPCMain.handle("hightex:onboarding:status", () => firstInstalled());
     IPCMain.handle("hightex:onboarding:acknowledge", (_event, guides) =>
       acknowledgeGuides(guides),
+    );
+    IPCMain.handle("hightex:onboarding:profile-acknowledge", () =>
+      acknowledgeProfileSetup(),
     );
 
     IPCMain.handle("hightex:version", () => {

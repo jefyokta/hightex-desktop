@@ -1254,6 +1254,16 @@
     "cloud_hint": "Sign in to keep a cloud copy and share your work for review. Your local documents are always available.",
     "account_login_hint": "Sign in to manage your account profile and academic identity."
   },
+  "onboarding": {
+    "profile": {
+      "title": "Set up your profile",
+      "description": "These details are used as defaults for new local documents. You can update them later in Settings.",
+      "skip": "Set up later",
+      "load_failed": "Your profile could not be loaded. You can set it up later in Settings.",
+      "save_failed": "Your profile could not be saved. Please try again.",
+      "dismiss_failed": "Your choice could not be saved. Please try again."
+    }
+  },
   "guide": {
     "replay": "Usage guide",
     "welcome_eyebrow": "HighTex · {version}",

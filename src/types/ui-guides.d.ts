@@ -20,6 +20,7 @@ declare global {
     previousVersion: string | null;
     versionChanged: boolean;
     seenGuides: Record<string, number>;
+    profileSetupPending?: boolean;
   }
 
   interface GuideInstallationRecord {
@@ -28,6 +29,7 @@ declare global {
     installedVersion: string | null;
     lastVersion: string;
     seenGuides: Record<string, number>;
+    profileSetupPending: boolean;
   }
 
   interface GuideStep {
