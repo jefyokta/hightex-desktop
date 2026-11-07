@@ -8,7 +8,7 @@ import { HighTexDB } from "../src/editor/storage/hightex-db";
 import {
   accountProfilePatch,
   applyAccountProfile,
-} from "../src/account/apply-profile";
+} from "../src/utils/account/apply-profile";
 const data: AccountProfileData = {
   session: { accountId: "12", sessionId: "a", serverUrl: "http://local/api/" },
   name: "Server Student",

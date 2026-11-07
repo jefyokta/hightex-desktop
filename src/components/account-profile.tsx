@@ -8,7 +8,7 @@ import {
   accountProfilePatch,
   applyAccountProfile,
   type AccountField,
-} from "@/account/apply-profile";
+} from "@/utils/account/apply-profile";
 import { sanitizeCvHtml } from "@/utils/sanitize-cv-html";
 import { toWebPBlob } from "@/utils/images-to-webp";
 import { confirm } from "@/utils/confirm";
@@ -115,8 +115,8 @@ const AccountProfileForm = () => {
       setServerPhoto(
         picture.data
           ? new Blob([picture.data.bytes.slice().buffer], {
-              type: picture.data.type,
-            })
+            type: picture.data.type,
+          })
           : undefined,
       );
     else {
