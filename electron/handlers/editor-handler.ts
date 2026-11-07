@@ -10,6 +10,9 @@ export class EditorHandler {
     IPCMain.handle("editor:has", (_, docId: string) => {
       return Boolean(EditorWindow.get(docId));
     });
+    IPCMain.handle("editor:flush", async (_, docId: string) => {
+      await EditorWindow.flush(docId);
+    });
 
     IPCMain.handle("editor:ready", async (event, buffer: Uint8Array) => {
       const window = BrowserWindow.fromWebContents(event.sender);

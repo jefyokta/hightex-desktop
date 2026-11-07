@@ -86,7 +86,7 @@ export const Present = () => {
       return;
     }
 
-    HighTexDB.getInstance().documents.toArray().then(setDocs);
+    HighTexDB.getMainDocuments().then(setDocs);
   }, [activeSession]);
 
   useEffect(() => {

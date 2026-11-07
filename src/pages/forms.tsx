@@ -534,7 +534,9 @@ export function Forms() {
     };
     refreshProfile();
     window.addEventListener("focus", refreshProfile);
-    const subscription = liveQuery(() => HighTexDB.getDocuments()).subscribe({
+    const subscription = liveQuery(() =>
+      HighTexDB.getMainDocuments(),
+    ).subscribe({
       next: (docs) => {
         if (!active) return;
         setDocuments(

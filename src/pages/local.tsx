@@ -83,6 +83,7 @@ export const Dashboard = () => {
     const doc: HighTexDocument = {
       ...metadata,
       id: crypto.randomUUID(),
+      parentId: null,
       updatedAt: new Date(),
       profile: {
         ...normalizeAuthorProfile(profile)!,
@@ -141,9 +142,23 @@ export const Dashboard = () => {
     toast.success(t("dashboard.saved"));
   };
   const deleteDocument = async (id: string) => {
+    const ids = [id];
+    const collect = async (parentId: string) => {
+      const children = await db.documents
+        .where("parentId")
+        .equals(parentId)
+        .toArray();
+      for (const child of children) {
+        await collect(child.id);
+        ids.push(child.id);
+      }
+    };
+    await collect(id);
     await Manager.deleteDocument(id);
-    if (!(await db.documents.get(id))) {
-      Manager.app.dispatch("documents:deleted", { documentIds: [id] });
+    const remaining = await db.documents.bulkGet(ids);
+    const deletedIds = ids.filter((_, index) => !remaining[index]);
+    if (deletedIds.length) {
+      Manager.app.dispatch("documents:deleted", { documentIds: deletedIds });
       toast.success(t("dashboard.deleted"));
     }
   };

@@ -61,7 +61,7 @@ export const StudentSubmission = ({
     const context = await window.hightex.cloud.context();
     const [list, local, available, pending] = await Promise.all([
       window.hightex.cloud.list(context.sessionId),
-      HighTexDB.getInstance().documents.toArray(),
+      HighTexDB.getMainDocuments(),
       window.hightex.categories(),
       window.hightex.submission.workflow.pending(context.sessionId),
     ]);

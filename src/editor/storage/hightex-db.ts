@@ -65,6 +65,16 @@ export class HighTexDB extends Dexie {
             document.profile = migrated.profile;
           });
       });
+    this.version(4)
+      .stores({ documents: "id, parentId" })
+      .upgrade(async (transaction) => {
+        await transaction
+          .table<HighTexDocument>("documents")
+          .toCollection()
+          .modify((document) => {
+            document.parentId ??= null;
+          });
+      });
     this.on("populate", (transaction) => {
       return transaction.table("cite").bulkPut(defaulBib);
     });
@@ -82,6 +92,9 @@ export class HighTexDB extends Dexie {
 
   static async getDocuments() {
     return await this.getInstance().documents.toArray();
+  }
+  static async getMainDocuments() {
+    return (await this.getDocuments()).filter((document) => !document.parentId);
   }
   deleteVar(name: string, docId: string) {
     return this.documentVariables
@@ -159,32 +172,60 @@ export class HighTexDB extends Dexie {
   }
 
   async deleteDocument(documentId: string) {
+    const descendants: string[] = [];
+    const collect = async (parentId: string) => {
+      const children = await this.documents
+        .where("parentId")
+        .equals(parentId)
+        .toArray();
+      for (const child of children) {
+        await collect(child.id);
+        descendants.push(child.id);
+      }
+    };
+    await collect(documentId);
+    const ids = [...descendants, documentId];
+
     if ("editor" in window) {
-      const windowOpened = await window.editor.has(documentId);
-      if (windowOpened) {
-        throw new ShouldNotified({
-          message: "Cannot delete document while it is being edited",
-          description: "Please close the editor before deleting this document.",
-        });
+      for (const id of ids) {
+        if (await window.editor.has(id)) {
+          throw new ShouldNotified({
+            message: "Cannot delete document while it is being edited",
+            description: "Please close the document and its branches first.",
+          });
+        }
       }
     }
-    await this.documents.delete(documentId);
 
-    const chapters = await this.chapters
-      .where("id")
-      .startsWith(documentId)
-      .toArray();
-
-    const chapterIds = chapters.map((c) => c.id);
-    await this.images.where("documentId").equals(documentId).delete();
-    await this.documentVariables
-      .where("documentId")
-      .equals(documentId)
-      .delete();
-    await Promise.all([
-      this.chapters.bulkDelete(chapterIds),
-      this.deleteChapterGraphs(chapterIds),
-    ]);
+    const chapters = await Promise.all(
+      ids.map((id) => this.chapters.where("id").startsWith(`${id}.`).toArray()),
+    );
+    const chapterIds = chapters.flatMap((items) => items.map(({ id }) => id));
+    await this.transaction(
+      "rw",
+      [
+        this.documents,
+        this.chapters,
+        this.chapterGraphs,
+        this.images,
+        this.documentVariables,
+        this.aliases,
+        this.cite,
+      ],
+      async () => {
+        await this.documents.bulkDelete(ids);
+        await this.chapters.bulkDelete(chapterIds);
+        await this.deleteChapterGraphs(chapterIds);
+        await Promise.all(
+          ids.flatMap((id) => [
+            this.images.where("documentId").equals(id).delete(),
+            this.documentVariables.where("documentId").equals(id).delete(),
+            this.aliases.where("documentId").equals(id).delete(),
+            this.cite.where("documentId").equals(id).delete(),
+          ]),
+        );
+      },
+    );
     return true;
   }
   async saveImage(blob: Blob, documentId: string): Promise<string> {

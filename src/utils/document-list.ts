@@ -12,6 +12,7 @@ export function filterDocuments(
     return Number.isFinite(value) ? value : 0;
   };
   return documents
+    .filter((doc) => !doc.parentId)
     .filter(
       (doc) =>
         (category === "all" || String(doc.category) === category) &&
@@ -21,7 +22,12 @@ export function filterDocuments(
             doc.altTitle,
             ...(doc.keywords?.indonesian ?? []),
             ...(doc.keywords?.english ?? []),
-          ].some((value) => value?.toLocaleLowerCase().includes(search))),
+          ].some((value) => value?.toLocaleLowerCase().includes(search)) ||
+          documents.some(
+            (branch) =>
+              branch.parentId === doc.id &&
+              branch.branchName?.toLocaleLowerCase().includes(search),
+          )),
     )
     .sort((a, b) => {
       const order =

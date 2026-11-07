@@ -199,6 +199,9 @@ export const prepareDraftImport = async (
       ...structuredClone(model.document),
       profile,
       id,
+      parentId: null,
+      branchName: undefined,
+      parentRevision: undefined,
       category: String(category.id),
       config,
       updatedAt: new Date(),
@@ -264,6 +267,11 @@ export const installDraft = async (
   before: DraftState,
 ) => {
   const id = prepared.state.document.id;
+  if (before.document) {
+    prepared.state.document.parentId = before.document.parentId ?? null;
+    prepared.state.document.branchName = before.document.branchName;
+    prepared.state.document.parentRevision = before.document.parentRevision;
+  }
   const expected = await draftRevision(before);
   await db.transaction("rw", tables(db), async () => {
     if (

@@ -433,6 +433,9 @@ contextBridge.exposeInMainWorld("editor", {
   has(documentId) {
     return ipcRenderer.invoke("editor:has", documentId);
   },
+  flush(documentId) {
+    return ipcRenderer.invoke("editor:flush", documentId);
+  },
   save(buffer, fileName) {
     return ipcRenderer.invoke("editor:save", buffer, fileName);
   },

@@ -67,8 +67,9 @@ export const DocumentList = ({
     () => filterDocuments(documents, query, category, sort),
     [documents, query, category, sort],
   );
+  const mainDocuments = documents.filter((doc) => !doc.parentId);
   const validSelection = selected.filter((id) =>
-    documents.some((doc) => doc.id === id),
+    mainDocuments.some((doc) => doc.id === id),
   );
   const allVisibleSelected =
     visible.length > 0 &&
@@ -288,7 +289,7 @@ export const DocumentList = ({
             <p className="text-xs text-muted-foreground" role="status">
               {t("dashboard.result_count", {
                 count: visible.length,
-                total: documents.length,
+                total: mainDocuments.length,
               })}
             </p>
             {!selectMode && (
@@ -375,6 +376,9 @@ export const DocumentList = ({
             <Row
               key={doc.id}
               doc={doc}
+              branches={documents.filter(
+                (branch) => branch.parentId === doc.id,
+              )}
               categories={categories}
               selected={validSelection.includes(doc.id)}
               selectMode={selectMode}
