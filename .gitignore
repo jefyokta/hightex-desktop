@@ -42,6 +42,10 @@ test.sh
 
 docs/contributors/editor-content-loss.md
 docs/contributors/pdf-generation-flow.md
+docs/contributors/branch-comparison-ui.md
+docs/contributors/form-workspace-input-plan.md
+docs/contributors/profile-isolation-plan.md
+docs/contributors/profile-isolation-revision-plan.md
 docs/test-reports/
 _todo.md
 *.tsbuildinfo
