@@ -10,6 +10,10 @@ import { applyCloudAcademic } from "../cloud-academic";
 import { contentFingerprint } from "./content-fingerprint";
 import { previewDocumentDraft } from "@/editor/document-drafts";
 import { migrateDocumentCommittee } from "../document-committee";
+import {
+  getWorkspaceAuthorProfile,
+  resolveAuthorProfile,
+} from "../document-profile";
 
 /**
  * export to ht | htx | hightex file
@@ -62,6 +66,7 @@ export class Exporter {
   }
 
   async buildExport(academic?: CloudAcademicData, draft?: HighTexDocument) {
+    const workspaceProfile = await getWorkspaceAuthorProfile();
     const snapshot = await this.db.transaction(
       "r",
       [
@@ -86,9 +91,14 @@ export class Exporter {
           .startsWith(`${document.id}.`)
           .toArray();
         const assets = contentAssets(chapters);
+        const resolved = {
+          ...document,
+          authorProfileMode: "workspace" as const,
+          profile: resolveAuthorProfile(document, workspaceProfile),
+        };
         return {
           document: migrateDocumentCommittee(
-            academic ? applyCloudAcademic(document, academic) : document,
+            academic ? applyCloudAcademic(resolved, academic) : resolved,
           ),
           chapters,
           cites: await this.db.cite

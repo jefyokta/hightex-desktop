@@ -1,5 +1,8 @@
 import fs from "fs";
-import { app, BrowserWindow, Menu, MenuItem } from "electron";
+import { app, BrowserWindow, Menu, MenuItem, dialog } from "electron";
+import { ConfigService } from "../service/config-service";
+import en from "../../src/locales/en.json";
+import id from "../../src/locales/id.json";
 import {
   autoUpdater,
   type ProgressInfo,
@@ -45,12 +48,14 @@ type UpdaterStatus =
   | { status: "error"; message: string; manual: boolean };
 
 export class Application {
+  public profileDraftBusy = false;
   private win: BrowserWindow | null = null;
 
   private server!: HightexProtocol;
   private fileOpen?: FileOpenManager;
   private documentWindowLoading?: Promise<void>;
   private pendingLinks: string[] = [];
+  private pendingDocumentFiles: string[] = [];
   private linksReady = false;
   private updaterReady = false;
   private updateDownloaded = false;
@@ -179,7 +184,7 @@ export class Application {
     return found;
   }
 
-  private async createWindow(options: { show?: boolean } = {}) {
+  private async createWindow(options: { show?: boolean } = {}, route = "/") {
     this.windowOptions = { ...options, ...this.windowOptions };
     const publicPath =
       this.isDev && process.env.VITE_DEV_SERVER_URL
@@ -217,6 +222,30 @@ export class Application {
         event.preventDefault();
       }
     });
+    const mainWindow = this.win;
+    mainWindow.webContents.on("will-prevent-unload", (event) => {
+      const messages = (ConfigService.getKey("language") === "id" ? id : en)
+        .profile;
+      if (this.profileDraftBusy) {
+        dialog.showMessageBoxSync(mainWindow, {
+          type: "info",
+          message: messages.save_pending,
+          detail: messages.save_pending_description,
+          buttons: [messages.stay],
+        });
+        return;
+      }
+      const response = dialog.showMessageBoxSync(mainWindow, {
+        type: "question",
+        message: messages.leave_title,
+        detail: messages.leave_description,
+        buttons: [messages.stay, messages.discard],
+        defaultId: 0,
+        cancelId: 0,
+        noLink: true,
+      });
+      if (response === 1) event.preventDefault();
+    });
 
     this.win.webContents.on("did-finish-load", () => {
       if (this.windowOptions.show) {
@@ -238,26 +267,43 @@ export class Application {
     });
 
     this.server.start();
+    const initialRoute = WorkspaceRuntime.migrating
+      ? "/profiles/migration"
+      : route;
+
     if (
       this.isDev &&
       process.env.VITE_DEV_SERVER_URL &&
       (!WorkspaceRuntime.profile || WorkspaceRuntime.migrating)
     ) {
       await this.win.loadURL(
-        WorkspaceRuntime.migrating
-          ? new URL("/profiles/migration", process.env.VITE_DEV_SERVER_URL).href
-          : process.env.VITE_DEV_SERVER_URL,
+        new URL(initialRoute, process.env.VITE_DEV_SERVER_URL).href,
       );
       return;
     }
 
-    await this.win.loadURL(
-      this.server.url +
-        (WorkspaceRuntime.migrating ? "/profiles/migration" : ""),
-    );
+    await this.win.loadURL(this.server.url + initialRoute);
+  }
+
+  public async openProfile() {
+    if (!this.win || this.win.isDestroyed()) {
+      await this.createWindow({}, "/profile");
+    } else {
+      this.win.webContents.send("application:navigate", "/profile");
+    }
+
+    if (!this.win || this.win.isDestroyed()) return;
+    if (this.win.isMinimized()) this.win.restore();
+    this.win.show();
+    this.win.focus();
   }
 
   public async openDocumentFile(filePath: string) {
+    if (WorkspaceRuntime.switching) {
+      WorkspaceRuntime.switchInterrupted = true;
+      this.pendingDocumentFiles.push(filePath);
+      return;
+    }
     if (!this.win || this.win.isDestroyed()) {
       this.documentWindowLoading = this.createWindow().finally(() => {
         this.documentWindowLoading = undefined;
@@ -280,7 +326,7 @@ export class Application {
     appEvent.addListener("unauthorized", () => {
       void SessionHandler.user();
     });
-    EditorHandler.register();
+    EditorHandler.register(this);
     WindowHandler.register();
     this.registerUpdater();
     await this.createWindow();
@@ -313,6 +359,11 @@ export class Application {
   }
 
   private async handleDeepLink(url: string) {
+    if (WorkspaceRuntime.switching) {
+      WorkspaceRuntime.switchInterrupted = true;
+      this.pendingLinks.push(url);
+      return;
+    }
     try {
       await new DeepLinkService(url).handle();
       this.win?.show();
@@ -323,6 +374,14 @@ export class Application {
         "deep-link",
       );
     }
+  }
+
+  public async resumePendingOpens() {
+    if (WorkspaceRuntime.switching) return;
+    const links = this.pendingLinks.splice(0);
+    const files = this.pendingDocumentFiles.splice(0);
+    for (const link of links) await this.handleDeepLink(link);
+    for (const file of files) await this.openDocumentFile(file);
   }
 
   private async handleCliArgs(args: string[]) {
@@ -375,7 +434,7 @@ export class Application {
     registerWorkspaceHandlers(this);
     ConfigHandler.register();
     SessionHandler.register();
-    ProfileHandler.register();
+    ProfileHandler.register(this);
     HighTexHandler.register();
     SnapshotHandler.register();
     ZoteroHandler.register();

@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStrictContext } from "@/lib/get-strict-context";
 import { Document } from "@/editor/document";
-import { resolveDocumentProfile } from "@/utils/document-profile";
+import {
+  resolveDocumentProfile,
+  resolveWorkspaceDocumentProfile,
+} from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { createDocumentPrintStore } from "@/compiler/print-store";
 import { HighTexDB } from "@/editor/storage/hightex-db";
@@ -111,7 +114,10 @@ export const PrintableProvider = ({
         }
 
         const nextDocument = new Document(id);
-        await nextDocument.warm({ activate: false });
+        await nextDocument.warm({
+          activate: false,
+          workspaceIdentity: refreshAcademic,
+        });
 
         if (!mounted) {
           return;
@@ -119,7 +125,11 @@ export const PrintableProvider = ({
 
         nextDocument.activate();
         setDocument(nextDocument);
-        setProfile(resolveDocumentProfile(nextDocument.getDocument()));
+        setProfile(
+          refreshAcademic
+            ? await resolveWorkspaceDocumentProfile(nextDocument.getDocument())
+            : resolveDocumentProfile(nextDocument.getDocument()),
+        );
         setReady(true);
       } catch (error) {
         if (!mounted) return;

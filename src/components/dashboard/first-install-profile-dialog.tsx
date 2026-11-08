@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,35 +10,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  ProfileFields,
-  type EditableProfile,
-} from "@/components/profile-fields";
 import { t } from "@/utils/lang";
-
-const emptyProfile = (): EditableProfile => ({
-  name: "",
-  nim: "",
-  advisorName: "",
-  advisorNip: "",
-  secondAdvisor: undefined,
-  committee: {},
-});
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 export function FirstInstallProfileDialog({
   guide,
 }: {
   guide: GuideController;
 }) {
-  const [profile, setProfile] = useState<EditableProfile>(emptyProfile);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const attempted = useRef(false);
-  const savingRef = useRef(false);
   const { status, plan, phase } = guide;
+  const { state: workspaceState } = useWorkspaces();
+  const activeWorkspace = workspaceState?.profiles.find(
+    (profile) => profile.id === workspaceState.activeId,
+  );
+  const local =
+    activeWorkspace?.type === "local" && !activeWorkspace.pendingCloudBinding;
 
   useEffect(() => {
     if (
+      !local ||
+      pathname === "/workspaces" ||
+      pathname === "/profile" ||
       !status?.profileSetupPending ||
       plan ||
       phase ||
@@ -47,56 +45,31 @@ export function FirstInstallProfileDialog({
       return;
 
     attempted.current = true;
-    let alive = true;
-    let loaded = false;
-    void window.profile
-      .get()
-      .then((value) => {
-        loaded = true;
-        if (!alive) return;
-        setProfile({
-          name: value.name ?? "",
-          nim: value.nim ?? "",
-          advisorName: value.advisorName ?? "",
-          advisorNip: value.advisorNip ?? "",
-          secondAdvisor: value.secondAdvisor,
-          committee: value.committee ?? {},
-        });
-        setOpen(true);
-      })
-      .catch(() => {
-        loaded = true;
-        if (!alive) return;
-        attempted.current = false;
-        toast.error(t("onboarding.profile.load_failed"));
-      });
+    setOpen(true);
+  }, [status, plan, phase, open, local, pathname]);
 
-    return () => {
-      alive = false;
-      if (!loaded) attempted.current = false;
-    };
-  }, [status, plan, phase, open]);
+  const chooseWorkspace = () => {
+    attempted.current = false;
+    setOpen(false);
+    navigate("/workspaces");
+  };
 
-  const finish = async (saveProfile: boolean) => {
-    if (savingRef.current) return;
-    savingRef.current = true;
+  const finish = async () => {
     setSaving(true);
     try {
-      if (saveProfile) await window.profile.set(profile);
       await window.hightex.onboarding.acknowledgeProfileSetup();
       setOpen(false);
     } catch {
-      toast.error(
-        t(
-          saveProfile
-            ? "onboarding.profile.save_failed"
-            : "onboarding.profile.dismiss_failed",
-        ),
-      );
+      toast.error(t("onboarding.profile.dismiss_failed"));
     } finally {
-      savingRef.current = false;
       setSaving(false);
     }
+  };
+
+  const editProfile = () => {
+    attempted.current = true;
+    setOpen(false);
+    navigate("/profile");
   };
 
   return (
@@ -104,7 +77,7 @@ export function FirstInstallProfileDialog({
       open={open}
       onOpenChange={(next) => {
         if (next) setOpen(true);
-        else void finish(false);
+        else void finish();
       }}
     >
       <DialogContent
@@ -120,38 +93,30 @@ export function FirstInstallProfileDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="flex min-h-0 flex-1 flex-col overflow-hidden"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void finish(true);
-          }}
-        >
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
-            <ProfileFields
-              profile={profile}
-              disabled={saving}
-              onChange={(patch) =>
-                setProfile((previous) => ({ ...previous, ...patch }))
-              }
-            />
-          </div>
-          <DialogFooter className="m-0 shrink-0 rounded-none px-6 py-4">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => void finish(false)}
-              disabled={saving}
-            >
-              {t("onboarding.profile.skip")}
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving
-                ? t("settings.profile.saving")
-                : t("settings.profile.save")}
-            </Button>
-          </DialogFooter>
-        </form>
+        <div className="px-6 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={chooseWorkspace}
+            disabled={saving}
+          >
+            {t("workspace_profiles.choose_before_profile")}
+          </Button>
+        </div>
+
+        <DialogFooter className="m-0 shrink-0 rounded-none px-6 py-4">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => void finish()}
+            disabled={saving}
+          >
+            {t("onboarding.profile.skip")}
+          </Button>
+          <Button type="button" onClick={editProfile} disabled={saving}>
+            {t("onboarding.profile.edit")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -6,12 +6,14 @@ import { ServerUrl } from "../url/server-url";
 import { SessionHandler } from "../handlers/session-handlers";
 import { WorkspaceRuntime } from "../workspaces/runtime";
 import { WorkspaceRegistry } from "../workspaces/registry";
+import { ProfileService } from "./profile-service";
 export const desktopAuth = new AuthClient({
   serverUrl: () => {
     if (
       WorkspaceRuntime.profile &&
       !WorkspaceRuntime.migrating &&
-      !WorkspaceRuntime.profile.serverUrl
+      WorkspaceRuntime.profile.type === "local" &&
+      !WorkspaceRuntime.profile.pendingCloudBinding
     )
       throw Error("Create or switch to a cloud profile to sign in.");
     return ServerUrl.instance.api.href;
@@ -23,9 +25,25 @@ export const desktopAuth = new AuthClient({
   }),
   save: (user, token, expiresAt) => {
     if (WorkspaceRuntime.root && !WorkspaceRuntime.migrating) {
+      const firstBinding = !WorkspaceRuntime.profile?.accountId;
       WorkspaceRuntime.profile = new WorkspaceRegistry(
         WorkspaceRuntime.root,
+        WorkspaceRuntime.serverUrl,
       ).bindAccount(String(user.id));
+      if (WorkspaceRuntime.profile.type === "cloud") {
+        if (firstBinding) ProfileService.clearProfilePicture();
+        const cloudUser = user as User & { cv?: unknown };
+        ProfileService.setCloudProfile({
+          name: user.name,
+          nim: user.identity_number ?? "",
+          cv:
+            typeof cloudUser.cv === "string"
+              ? cloudUser.cv
+              : cloudUser.cv === null
+                ? ""
+                : (ProfileService.getCloudProfile()?.cv ?? ""),
+        });
+      }
     }
     SessionService.setToken(token);
     SessionService.setExpiry(expiresAt);

@@ -1,5 +1,4 @@
 import { preserveCloudAcademic } from "@/utils/cloud-academic";
-import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
 
 interface DocumentDraft {
   document: HighTexDocument;
@@ -17,12 +16,7 @@ export function previewDocumentDraft(
   return preserveCloudAcademic(current, {
     ...current,
     ...draft,
-    profile: draft.profile
-      ? {
-          ...emptyAuthorProfile(),
-          ...current.profile,
-          ...getAuthorDetails(draft.profile),
-        }
-      : current.profile,
+    profile: current.profile,
+    authorProfileMode: "workspace",
   });
 }

@@ -40,7 +40,7 @@ export class SessionService {
     if (
       WorkspaceRuntime.profile &&
       !WorkspaceRuntime.migrating &&
-      !WorkspaceRuntime.profile.serverUrl
+      WorkspaceRuntime.profile.type === "local"
     )
       return undefined;
     const expiry = this.store.get("session.expiresAt") as string | undefined;
@@ -95,6 +95,12 @@ export class SessionService {
   }
 
   static getUser(): User | undefined {
+    if (
+      WorkspaceRuntime.profile &&
+      !WorkspaceRuntime.migrating &&
+      WorkspaceRuntime.profile.type === "local"
+    )
+      return undefined;
     const user = this.store.get("session.user");
     if (user && !("role" in user)) {
       (user as User).role = user.roles?.[0]?.name ?? null;

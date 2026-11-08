@@ -104,6 +104,8 @@ declare global {
     keywords: Keywords;
     config: HighTexConfig;
     profile?: AuthorProfile;
+    /** Whether author details follow the workspace default or belong to this document. */
+    authorProfileMode?: "workspace" | "document";
     // Local cloud policy/cache, deliberately excluded from portable archives.
     cloudAcademic?: CloudAcademicSource;
     updatedAt?: Date;

@@ -5,7 +5,8 @@ import {
 } from "@main/utilities/first-installed";
 import fs, { writeFileSync } from "fs";
 import path from "path";
-import { BrowserWindow, app, dialog } from "electron";
+import { BrowserWindow, app, dialog, shell } from "electron";
+import { WorkspaceRuntime } from "../workspaces/runtime";
 import { ServerService } from "../service/server-service";
 import { LoggerService } from "../service/logger-service";
 import { DocumentProfileService } from "../service/document-profile-service";
@@ -33,7 +34,14 @@ import {
 
 export class HighTexHandler {
   static register() {
-    IPCMain.handle("hightex:lecturers:cloud", () => lecturerCloud.fetch());
+    IPCMain.handle("hightex:lecturers:cloud", () =>
+      WorkspaceRuntime.profile?.type === "cloud"
+        ? lecturerCloud.fetch()
+        : ({ ok: false, error: "local_workspace" } as const),
+    );
+    IPCMain.handle("hightex:lecturers:web-download", () =>
+      shell.openExternal(ServerUrl.instance.resolve("/lecturers/export").href),
+    );
     IPCMain.handle("hightex:lecturers:list", () => lecturerDirectory.list());
     IPCMain.handle(
       "hightex:lecturers:save",

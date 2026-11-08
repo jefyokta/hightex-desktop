@@ -1,10 +1,13 @@
-import { app } from "electron";
+import { app, BrowserWindow } from "electron";
 import Store from "electron-store";
 import path from "path";
 import fs from "fs";
 
 export class ProfileService {
-  static store = new Store<{ profile: Profile | LegacyProfile }>();
+  static store = new Store<{
+    profile: Profile | LegacyProfile;
+    cloudProfile?: Pick<Profile, "name" | "nim" | "cv">;
+  }>();
 
   private static default(): Profile {
     return {
@@ -42,12 +45,24 @@ export class ProfileService {
     };
 
     this.store.set("profile", updated);
+    this.broadcastIdentityChange();
 
     return updated;
   }
 
+  /** Cache account identity in this Cloud workspace for offline document use. */
+  static setCloudProfile(profile: Pick<Profile, "name" | "nim" | "cv">) {
+    this.store.set("cloudProfile", profile);
+    this.broadcastIdentityChange();
+  }
+
+  static getCloudProfile() {
+    return this.store.get("cloudProfile");
+  }
+
   static clear() {
     this.store.set("profile", this.default());
+    this.broadcastIdentityChange();
   }
   static getProfilePicture() {
     if (!fs.existsSync(this.profilePicturePath)) {
@@ -64,5 +79,17 @@ export class ProfileService {
     // }
 
     fs.writeFileSync(this.profilePicturePath, file);
+    this.broadcastIdentityChange();
+  }
+
+  static clearProfilePicture() {
+    fs.rmSync(this.profilePicturePath, { force: true });
+    this.broadcastIdentityChange();
+  }
+
+  static broadcastIdentityChange() {
+    BrowserWindow.getAllWindows().forEach((window) => {
+      if (!window.isDestroyed()) window.webContents.send("profile:changed");
+    });
   }
 }

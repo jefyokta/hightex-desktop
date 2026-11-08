@@ -2,7 +2,10 @@ import { AuthRouter } from "./auth";
 import { AppHost } from "./app";
 import { Router } from "./contract";
 import { DocumentRouter } from "./document";
-import { workspaceIdFromUrl } from "../../../src/workspaces/identity";
+import {
+  workspaceHost,
+  workspaceIdFromUrl,
+} from "../../../src/workspaces/identity";
 import { WorkspaceRuntime } from "../../workspaces/runtime";
 import { WorkspaceRegistry } from "../../workspaces/registry";
 
@@ -15,11 +18,29 @@ export class Controller {
 
   static handle(url: URL) {
     const { host } = url;
+    if (
+      url.protocol === "hightex:" &&
+      host === "app" &&
+      !WorkspaceRuntime.migrating &&
+      WorkspaceRuntime.profile
+    ) {
+      const destination = new URL(
+        `${url.pathname}${url.search}${url.hash}`,
+        `hightex://${workspaceHost(WorkspaceRuntime.profile.id)}`,
+      );
+      return new Response(null, {
+        status: 302,
+        headers: { Location: destination.href },
+      });
+    }
     const profileId = workspaceIdFromUrl(url);
     const knownProfile =
       profileId &&
       WorkspaceRuntime.root &&
-      new WorkspaceRegistry(WorkspaceRuntime.root)
+      new WorkspaceRegistry(
+        WorkspaceRuntime.root,
+        WorkspaceRuntime.serverUrl,
+      )
         .read()
         .profiles.some((profile) => profile.id === profileId);
     const handler = knownProfile ? this.hosts.app : this.hosts[host];

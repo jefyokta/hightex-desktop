@@ -16,7 +16,11 @@ export function useWorkspaces() {
       void refresh();
     };
     window.addEventListener("workspaces:changed", changed);
-    return () => window.removeEventListener("workspaces:changed", changed);
+    const unsubscribe = window.workspaces?.onChange(changed);
+    return () => {
+      window.removeEventListener("workspaces:changed", changed);
+      unsubscribe?.();
+    };
   }, [refresh]);
   return { state, setState, error, setError, refresh };
 }

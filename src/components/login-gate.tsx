@@ -12,8 +12,9 @@ export const LoginGate = ({ compact = false }: { compact?: boolean }) => {
   const { openLogin } = useAuthModal();
   const { state } = useWorkspaces();
   const local =
-    state?.profiles.find((profile) => profile.id === state.activeId)
-      ?.serverUrl === null;
+    !state ||
+    state.profiles.find((profile) => profile.id === state.activeId)?.type ===
+      "local";
   return (
     <section
       className={`mx-auto flex max-w-xl flex-col items-center justify-center px-5 text-center ${compact ? "py-5" : "min-h-[55vh] py-12"}`}
@@ -35,20 +36,18 @@ export const LoginGate = ({ compact = false }: { compact?: boolean }) => {
       </p>
       {local ? (
         <Button asChild className="mt-6">
-          <Link to="/profile">{t("workspace_profiles.title")}</Link>
+          <Link to="/workspaces">{t("workspace_profiles.title")}</Link>
         </Button>
-      ) : (
+      ) : online ? (
         <Button
           className="workspace-primary mt-6"
           onClick={openLogin}
-          disabled={!online}
         >
           <LogIn />
           {t("common.login")}
         </Button>
-      )}
-      {!online && (
-        <p role="status" className="mt-3 text-xs text-muted-foreground">
+      ) : (
+        <p role="status" className="mt-6 text-sm text-muted-foreground">
           {t("workspace.offline_login")}
         </p>
       )}

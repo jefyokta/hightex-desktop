@@ -1,26 +1,69 @@
 {
   "workspace_profiles": {
-    "title": "Profil workspace",
-    "description": "Setiap profil menyimpan dokumen, akun, dan koneksi cloud secara terpisah.",
-    "active": "Profil aktif",
-    "local": "Lokal · tanpa akun cloud",
+    "title": "Workspace",
+    "description": "Setiap workspace memisahkan dokumen dan akun cloudnya.",
+    "create_title": "Buat workspace",
+    "create_description": "Pilih nama dan apakah workspace ini akan dihubungkan ke akun HighTex.",
+    "profiles_title": "Daftar workspace",
+    "profiles_description": "Satu akun hanya dapat terhubung ke satu workspace. Workspace Cloud tidak bisa diubah kembali menjadi Lokal.",
+    "active": "Workspace aktif",
+    "active_badge": "Aktif",
+    "local": "Workspace lokal · tanpa akun cloud",
+    "local_type": "Lokal",
+    "cloud_type": "Cloud",
+    "type": "Jenis workspace",
+    "local_hint": "Dokumen tersimpan di perangkat ini. Workspace ini bisa dihubungkan ke akun HighTex nanti.",
+    "cloud_hint": "Login untuk menghubungkan workspace ini ke akun HighTex. Data lokal yang sudah ada tetap berada di workspace ini.",
+    "cloud_bound": "Terhubung ke akun HighTex",
+    "cloud_unbound": "Login untuk menghubungkan akun HighTex",
+    "cloud_pending": "Menunggu login untuk menghubungkan workspace ini",
+    "connect_cloud": "Hubungkan ke Cloud",
+    "continue_login": "Lanjutkan login",
+    "cancel_cloud": "Tetap Lokal",
+    "choose_before_profile": "Pilih workspace dulu",
+    "cloud_login_required": "Hubungkan workspace ini untuk melanjutkan",
+    "cloud_login_description": "Login dengan akun HighTex untuk mengubah workspace Lokal ini menjadi Cloud. Saat offline, kamu tetap bisa memakai data lokalnya.",
+    "manage": "Kelola workspace",
+    "legacy_cloud_unavailable": "Workspace ini berasal dari server yang tidak didukung. Dokumennya tetap tersimpan lokal; sinkronisasi Cloud dinonaktifkan.",
     "switch": "Ganti",
-    "switch_hint": "Tutup jendela editor, preview, dan sharing terlebih dahulu. Pergantian memulai ulang HighTex; data dan login setiap profil tetap tersimpan.",
-    "name": "Nama profil",
-    "server": "Server cloud (opsional)",
-    "server_hint": "Kosongkan untuk profil lokal. Profil cloud terikat pada akun pertama yang login; gunakan profil lain untuk akun berbeda.",
-    "create": "Buat profil",
-    "migration_title": "Kelompokkan data lama ke profil",
-    "migration_description": "Update ini memisahkan pustaka lama berdasarkan binding server dan akun cloud. Dokumen tanpa binding masuk ke Lokal; branch mengikuti induknya. Penyimpanan asli tetap dipertahankan sebagai cadangan. HighTex dimulai ulang setelah verifikasi.",
+    "rename": "Ubah nama workspace",
+    "rename_title": "Ubah nama workspace",
+    "rename_description": "Pilih nama agar workspace ini mudah dikenali.",
+    "rename_action": "Simpan nama",
+    "name_taken": "Nama ini sudah dipakai workspace lain.",
+    "switch_hint": "HighTex akan menanyakan apakah perubahan di setiap editor disimpan atau dibuang. Tutup jendela preview dan sharing terlebih dahulu. Pergantian memulai ulang HighTex; data dan login setiap workspace tetap tersimpan.",
+    "name": "Nama workspace",
+    "create": "Buat workspace",
+    "migration_title": "Kelompokkan data lama ke workspace",
+    "migration_description": "Update ini memisahkan pustaka lama berdasarkan binding akun Cloud yang didukung. Dokumen tanpa binding atau dari server yang tidak didukung masuk ke Lokal; branch mengikuti induknya. Penyimpanan asli tetap dipertahankan sebagai cadangan. HighTex dimulai ulang setelah verifikasi.",
+    "step_summary": "Ringkasan",
+    "step_destinations": "Tujuan",
+    "step_transfer": "Pemindahan",
+    "migration_failed": "Migrasi belum selesai",
+    "destinations_title": "Tujuan workspace",
+    "destinations_description": "Periksa data pada setiap workspace sebelum memulai. Pustaka asli tetap dicadangkan.",
+    "destination_counts": "{documents} dokumen · {branches} branch · {assets} aset · {forms} draft formulir",
+    "branches": "branch",
+    "assets": "aset",
+    "forms": "draft formulir",
+    "review_title": "Tinjau keluarga dokumen ini",
+    "review_description": "Pilih tujuan untuk setiap keluarga yang belum pasti. Binding Cloud yang tidak didukung atau ambigu harus tetap di Lokal.",
+    "progress_copying": "Menyalin data",
+    "progress_verifying": "Memverifikasi salinan workspace",
+    "progress_complete": "Berhasil disalin dan diverifikasi",
+    "progress_failed": "Penyalinan gagal; sumber tetap tersimpan",
+    "retry": "Coba migrasi lagi",
     "documents": "dokumen",
     "conflict": "Tentukan tujuan keluarga dokumen ini: binding cloud yang ambigu tetap di Lokal beserta pengunciannya; hubungan induk yang rusak dilepas pada salinan hasil migrasi",
     "choose_destination": "Pilih tujuan",
-    "shared_legacy": "Referensi, variabel, dan data dosen yang sebelumnya bersama disalin ke setiap profil. Input form mengikuti dokumennya. Penulis dokumen dan binding cloud dipertahankan; migrasi tidak mengunggah data.",
+    "shared_legacy": "Referensi, variabel, dan data dosen yang sebelumnya bersama disalin ke setiap workspace. Input form mengikuti dokumennya. Identitas lama yang aman mengikuti workspace; identitas khusus dan binding Cloud dipertahankan. Migrasi tidak mengunggah data.",
     "preparing": "Membaca penyimpanan lama…",
     "migrate": "Cadangkan dan migrasikan",
     "migrating": "Memigrasikan dan memverifikasi…",
-    "local_login": "Buat atau pilih profil cloud untuk login.",
-    "switch_blocked": "Tutup jendela editor, preview, dan sharing sebelum mengganti profil."
+    "local_login": "Buat atau pilih workspace Cloud untuk login.",
+    "switch_blocked": "Tutup jendela preview atau ekspor sebelum mengganti workspace.",
+    "switch_canceled": "Pergantian workspace dibatalkan. Workspace aktif tidak berubah.",
+    "switch_interrupted": "Ada file atau tautan yang dibuka saat pergantian, jadi workspace aktif tidak berubah."
   },
   "settings": {
     "title": "Pengaturan",
@@ -117,10 +160,12 @@
       }
     },
     "profile": {
-      "label": "Profil default",
-      "description": "Data penulis default untuk dokumen baru",
-      "tooltip": "Dokumen yang sudah ada dan hasil import menyimpan data penulis masing-masing. Ubah melalui pengaturan dokumen.",
-      "loading": "Memuat profil...",
+      "label": "Profil penulis workspace",
+      "description": "Profil workspace aktif dipakai oleh semua dokumen dan ekspor.",
+      "tooltip": "Ubah data penulis di sini. Semua dokumen dalam workspace ini memakai profil yang sama.",
+      "loading": "Memuat profil penulis...",
+      "cv_description": "CV ini dipakai bersama oleh semua dokumen di workspace Lokal ini.",
+      "picture_invalid": "Foto tidak dapat diproses. Pilih gambar lain.",
       "name": {
         "label": "Nama",
         "description": "Nama kamu sebagai penulis dokumen"
@@ -151,11 +196,8 @@
           "description": "Nomor identitas pembimbing kedua Anda"
         }
       },
-      "save": "Simpan Profil",
-      "saving": "Menyimpan...",
-      "cloud_profile": "Utamakan Profil Cloud",
-      "cloud_profile_description": "Pakai profil cloud sebagai identitas utama",
-      "cloud_tooltip": "Kalau ini diaktifkan, pas kamu terhubung ke profil cloud, semua dokumen bakal pakai profil cloud"
+      "save": "Simpan profil",
+      "saving": "Menyimpan..."
     },
     "about": {
       "title": "Tentang",
@@ -377,7 +419,7 @@
     "empty_hint": "Daftar dosenmu masih kosong. Tambahkan dosen untuk mulai memilih.",
     "clear": "Kosongkan pilihan",
     "refine_search": "Ketik nama atau NIP untuk mempersempit hasil.",
-    "complete_profile": "Lengkapi pilihan dosen melalui profil dokumen di editor. Nama dan NIP mengikuti dosen yang dipilih.",
+    "complete_profile": "Pilih pembimbing dan penguji di halaman Profil. Nama dan NIP dipakai bersama oleh dokumen dalam workspace ini.",
     "title": "Data dosen",
     "manage": "Kelola data dosen",
     "add": "Tambah dosen",
@@ -421,6 +463,10 @@
     "nip_missing": "NIP belum diisi",
     "import_format_title": "Format JSON",
     "cloud_fetch": "Ambil dari Cloud",
+    "web_download": "Unduh JSON di web",
+    "local_web_hint": "Workspace Lokal: login di web, unduh JSON dosen, lalu pilih Impor JSON di sini.",
+    "web_offline": "Hubungkan internet untuk mengunduh JSON di web. File yang sudah ada tetap bisa diimpor offline.",
+    "web_open_failed": "Web belum berhasil dibuka. Coba lagi.",
     "cloud_login": "Login dan ambil data dosen",
     "cloud_loading": "Mengambil data dosen…",
     "cloud_login_hint": "Login terlebih dahulu untuk mengambil data dosen dari server. Setelah diambil, data bisa digunakan offline di perangkat ini.",
@@ -428,6 +474,7 @@
     "cloud_offline": "Hubungkan internet untuk mengambil data dari Cloud. Daftar tersimpan tetap bisa digunakan offline.",
     "cloud_success": "{added} dosen dari Cloud ditambahkan; {skipped} data yang sudah ada dilewati.",
     "cloud_errors": {
+      "local_workspace": "Pengambilan langsung memerlukan workspace Cloud. Di workspace Lokal, unduh JSON lewat web lalu impor di sini.",
       "not_authenticated": "Login terlebih dahulu untuk mengambil data dosen dari server. Daftar tersimpan tetap tersedia.",
       "session_changed": "Akun atau server berubah. Coba lagi dari akun saat ini; daftar tersimpan tetap utuh.",
       "forbidden": "Akunmu tidak memiliki akses ke daftar dosen ini. Daftar tersimpan tetap utuh.",
@@ -444,7 +491,7 @@
     "optional": "Opsional",
     "identity": "Identitas mahasiswa",
     "people": "Pembimbing dan tim penguji",
-    "people_hint": "Pembimbing, penguji, dan ketua mengikuti profil dokumen. Ubah melalui bagian profil di editor. Kaprodi dan tanggal mengikuti pengaturan dokumen.",
+    "people_hint": "Pembimbing, penguji, dan ketua mengikuti profil workspace aktif. Ubah melalui halaman Profil. Kaprodi dan tanggal mengikuti pengaturan dokumen.",
     "italic_hint": "Gunakan _teks_ untuk bagian judul yang dicetak miring.",
     "schedule": "Jadwal kegiatan",
     "signing": "Penandatanganan",
@@ -461,7 +508,44 @@
     "proposal": "Seminar Proposal",
     "defense": "Sidang Akhir",
     "storage_failed": "Draft belum tersimpan. Periksa ruang penyimpanan lokal.",
-    "autosaved": "Isian tambahan tersimpan lokal per dokumen dan tahap.",
+    "autosaved": "Isian tambahan tersimpan di profil ini; jadwal dipisahkan per tahap.",
+    "shared_title": "Isian bersama untuk profil ini",
+    "data_title": "Data formulir",
+    "data_reset": "Reset isian",
+    "data_source_profile": "Dari profil atau penugasan akademik",
+    "data_source_document": "Dari dokumen terpilih",
+    "data_empty_count": "{count} isian kosong",
+    "data_not_set": "Belum diisi",
+    "data_to_preview": "Ke preview dan unduh",
+    "data_review": "Periksa data formulir",
+    "data_review_counts": "{missing} field kosong · {invalid} field tidak valid",
+    "data_required_empty": "Wajib dilengkapi",
+    "data_filled": "Semua isian terisi",
+    "data_error_gpa": "IPK harus berupa angka antara 0 dan 4.",
+    "data_error_credits": "Jumlah SKS harus berupa bilangan bulat nol atau positif.",
+    "data_error_date": "Gunakan tanggal kalender yang valid.",
+    "data_error_time": "Gunakan waktu 00:00 sampai 23:59.",
+    "data_internship": "Data kerja praktek (B1)",
+    "data_open_document": "Buka dokumen",
+    "data_output_title": "Preview dan unduh formulir",
+    "data_fix_before_export": "Perbaiki field tidak valid sebelum preview atau ekspor",
+    "shared_hint": "Data administrasi tetap terisi saat berganti dokumen. Jadwal dan pilihan formulir disimpan terpisah untuk proposal dan sidang. Identitas, judul, serta data yang tersedia dari dokumen tetap mengikuti sumbernya. Isian kosong yang opsional boleh dilengkapi pada lembar cetak.",
+    "reset_shared": "Reset isian bersama",
+    "reset_confirm": "Reset isian formulir untuk profil ini?",
+    "reset_hint": "Isian tambahan kedua tahap dan pilihan formulir akan direset. Profil, dokumen, dan draft lama tetap tersimpan.",
+    "migration_title": "Pilih isian dari draft lama yang berbeda",
+    "migration_hint": "Nilai yang sama sudah digabungkan. Pilih nilai untuk dipakai bersama sebelum ekspor, atau lewati nilai yang berbeda untuk mengisi ulang.",
+    "choose_legacy_value": "Pilih nilai…",
+    "apply_legacy_values": "Gunakan pilihan",
+    "skip_legacy_conflicts": "Lewati nilai yang berbeda",
+    "no_selection": "Tidak ada formulir",
+    "recover_legacy": "Pulihkan isian draft lama",
+    "legacy_preserved": "Draft per dokumen yang lama tetap tersimpan. Pemulihan hanya mengganti isian tambahan yang tersedia pada draft terpilih, bukan profil atau dokumen.",
+    "choose_legacy_draft": "Pilih dokumen dan tahap…",
+    "restore_legacy": "Gunakan draft lama",
+    "restore_confirm": "Gunakan isian draft ini untuk profil aktif?",
+    "draft_load_failed": "Draft formulir belum dapat dibaca. Data tersimpan tidak ditimpa. Coba muat lagi.",
+    "profile_load_failed": "Profil belum dapat dimuat. Coba lagi sebelum membuat formulir.",
     "choose_forms": "Pilih formulir",
     "select_all": "Pilih semua",
     "clear_selection": "Kosongkan pilihan",
@@ -473,7 +557,7 @@
     "print": "Cetak",
     "download": "Unduh PDF",
     "exporting": "Membuat PDF…",
-    "complete_identity": "Lengkapi nama, NIM, dan judul, lalu pilih minimal satu formulir.",
+    "complete_identity": "Lengkapi nama dan NIM di halaman Profil, pastikan dokumen punya judul, lalu pilih minimal satu formulir.",
     "saved": "PDF tersimpan: {path}",
     "export_failed": "PDF belum berhasil dibuat. Coba lagi.",
     "empty_selection": "Pilih formulir untuk melihat pratinjau.",
@@ -483,7 +567,7 @@
     "no_documents": "Buat atau impor dokumen terlebih dahulu untuk mulai membuat formulir.",
     "document": "Dokumen tugas akhir",
     "choose_document": "Pilih dokumen lokal…",
-    "start_hint": "Pilih dokumen untuk memakai judul dan profilnya, termasuk pembimbing, penguji, dan ketua.",
+    "start_hint": "Pilih dokumen untuk memakai judul dan data akademiknya. Identitas mengikuti profil aktif dan isian tambahan dipakai bersama.",
     "complete_missing": "Lengkapi identitas yang belum tersedia",
     "optional_administration": "Lengkapi data administrasi (opsional)",
     "optional_administration_hint": "Cukup isi yang diperlukan. Bagian yang dikosongkan tetap bisa diisi pada lembar cetak.",
@@ -496,7 +580,7 @@
     "zip_saved": "ZIP tersimpan: {path}",
     "zip_hint": "Centang formulir untuk dimasukkan ke ZIP. Klik namanya untuk melihat pratinjau.",
     "faculty_blank": "Bagian untuk dosen dibiarkan kosong.",
-    "document_profile_source": "Dari profil dokumen",
+    "document_profile_source": "Dari profil workspace",
     "local_profile_source": "Dari profil lokal",
     "view_source_data": "Lihat data dosen",
     "all": "Semua",
@@ -513,8 +597,21 @@
     "indonesian": "Bahasa Indonesia"
   },
   "profile": {
+    "edit_cv": "Edit CV",
+    "back_to_profile": "Kembali ke Profil",
+    "cv_saved": "CV dan foto workspace tersimpan.",
     "title": "Profil",
-    "description": "Kelola akun dan data penulis default untuk dokumen baru."
+    "description": "Kelola akun dan identitas penulis.",
+    "leave_title": "Buang perubahan profil yang belum disimpan?",
+    "leave_description": "Perubahan profil belum disimpan. Tetap di halaman ini untuk menyimpannya, atau buang perubahan sebelum keluar.",
+    "stay": "Tetap di sini",
+    "discard": "Buang perubahan",
+    "save_pending": "Operasi profil sedang berjalan",
+    "save_pending_description": "Tunggu operasi selesai sebelum meninggalkan halaman ini atau menutup HighTex.",
+    "cached": "Menampilkan profil terakhir yang tersimpan di perangkat ini. Sambungkan internet dan login untuk mengedit atau menyimpan perubahan.",
+    "draft_retained": "Perubahan yang belum disimpan tetap ada di halaman ini. Sambungkan internet dan login untuk menyimpannya.",
+    "cache_failed": "Profil tersimpan belum bisa dimuat. Silakan coba lagi.",
+    "cache_empty": "Belum ada profil Cloud tersimpan di perangkat ini. Sambungkan internet dan login untuk memuatnya."
   },
   "editor": {
     "branches": {
@@ -540,6 +637,15 @@
       "compare_added": "Ditambahkan di branch",
       "branch": "Branch",
       "compare_formatting_only": "Struktur atau format bab berubah, tetapi teksnya sama.",
+      "compare_chapter": "Bab / bagian {id}",
+      "compare_previous": "Perubahan sebelumnya",
+      "compare_next": "Perubahan berikutnya",
+      "compare_changes": "Daftar perubahan",
+      "compare_text_changes": "Lihat perubahan teks",
+      "compare_readonly": "Hanya baca · blok merah di Main dihapus/diubah; blok hijau di Branch ditambahkan/diubah.",
+      "compare_render_failed": "Tampilan bab belum dapat dimuat. Coba lagi.",
+      "compare_stale": "Main atau Branch berubah. Perbarui untuk melihat perubahan terbaru.",
+      "compare_refresh": "Perbarui",
       "compare_status": {
         "added": "Ditambahkan",
         "removed": "Dihapus",
@@ -1011,37 +1117,19 @@
     "committee_title": "Penguji dan ketua",
     "committee_hint": "Pilih dosen dari daftar tersimpan. Nama dan NIP terisi otomatis dan disimpan pada profil ini.",
     "faculty_officials": "Pimpinan Fakultas dan Program Studi",
-    "title": "Profil dokumen",
-    "description": "Identitas penulis, pembimbing, penguji, dan ketua tersimpan dalam profil dokumen ini. Formulir dan lembar pengesahan memakai profil yang sama. Simpan untuk menerapkan perubahan.",
-    "missing": "Data penulis belum tersimpan pada dokumen ini. Isi data penulis atau tinjau profil default sebelum menyimpan.",
-    "use_default": "Ambil data default",
-    "default_hint": "Mengisi kolom di bawah untuk ditinjau. Simpan untuk menerapkan. CV dan foto tetap milik dokumen ini.",
+    "title": "Profil penulis",
+    "workspace_only": "Dokumen ini menggunakan profil workspace aktif. Ubah data profil di jendela utama HighTex.",
+    "edit_in_profile": "Buka Profil di jendela utama",
     "campus_advisor": "Pembimbing KP kampus",
     "remove_second_advisor": "Hapus pembimbing kedua",
-    "cv_hint": "Edit CV dan foto penulis pada bab Daftar Riwayat Hidup.",
-    "cv_title": "CV untuk dokumen ini",
-    "cv_description": "CV dan foto ini milik dokumen ini dan ikut disertakan dalam export HighTex.",
+    "cv_title": "CV workspace",
+    "cv_description": "CV dan foto workspace dipakai bersama oleh semua dokumen di workspace ini.",
     "picture": "Foto penulis",
-    "print_missing": "Data penulis pada dokumen ini belum lengkap.",
-    "notice_title": "Lengkapi data penulis dokumen",
-    "notice_description": "Isi nama dan NIM penulis melalui pengaturan dokumen sebelum export.",
-    "open_settings": "Pengaturan dokumen",
-    "copy_default_cv": "Ambil CV dan foto default",
-    "copy_default_cv_confirm": "Ganti CV dan foto dokumen ini?",
-    "copy_default_cv_description": "Menyalin CV dan foto dari profil default lokal ke dokumen ini.",
-    "default_cv_empty": "Profil default belum memiliki CV atau foto.",
-    "defaults": {
-      "title": "Tinjau data default",
-      "description": "Pilih data yang ingin disalin ke dokumen ini.",
-      "before": "Saat ini",
-      "after": "Dari profil default",
-      "empty": "Kosong",
-      "empty_hint": "Data default yang mengosongkan nama atau NIP tidak dipilih otomatis. Centang hanya jika memang ingin menghapus nilai sebelumnya.",
-      "save_hint": "Perubahan masuk ke draf pengaturan. Tekan Simpan pada panel dokumen untuk menyimpannya.",
-      "apply": "Terapkan ke draf",
-      "unchanged": "Data dokumen sudah sama dengan profil default. Tidak ada perubahan untuk diterapkan.",
-      "failed": "Profil default belum berhasil dimuat. Silakan coba lagi."
-    }
+    "remove_picture": "Hapus foto",
+    "print_missing": "Data penulis pada profil workspace ini belum lengkap.",
+    "notice_title": "Lengkapi profil penulis workspace",
+    "notice_description": "Isi nama dan NIM penulis di halaman Profil pada jendela utama sebelum ekspor.",
+    "open_settings": "Buka Profil di jendela utama"
   },
   "submission_review": {
     "title": "Submission",
@@ -1214,45 +1302,33 @@
       "invalid_callback": "Callback login tidak cocok dengan transaksi ini.",
       "expired": "Transaksi atau code login sudah kedaluwarsa. Mulai login browser lagi.",
       "session_changed": "Sesi atau server berubah. Mulai login lagi.",
+      "account_in_use": "Akun HighTex ini sudah terhubung ke workspace lain.",
       "canceled": "Login dibatalkan."
     }
   },
   "cloud_cv": {
-    "title": "CV cloud Anda",
+    "title": "Profil akun Cloud",
     "navigation": "CV dan foto profil",
     "edit": "Edit CV dan foto profil",
     "picture_hint": "Gambar dikonversi ke WEBP sebelum diunggah, maksimal 2 MB setelah konversi.",
     "invalid_image": "Gambar tidak dapat diproses atau melebihi 2 MB setelah konversi. Pilih gambar lain.",
-    "description": "Edit CV dan foto akun Anda, lalu simpan perubahan ke server.",
+    "description": "Edit CV dan foto yang dipakai workspace Cloud ini. Tekan Simpan untuk mengirim perubahan ke server.",
     "hint": "Tulis CV dalam satu paragraf. Klik foto untuk menggantinya.",
     "offline": "Sambungkan ke internet untuk memuat atau menyimpan CV dan foto profil."
   },
   "account_profile": {
-    "title": "Profil akun online",
-    "description": "Foto dan CV akun disimpan di server. Perubahan dokumen dilakukan secara terpisah.",
-    "loading": "Memuat profil akun…",
+    "title": "Identitas akun Cloud",
+    "description": "Identitas dan CV/foto pada akun HighTex ini dipakai workspace Cloud ini dan tetap terpisah dari workspace Lokal.",
+    "loading": "Memuat identitas akun Cloud…",
     "no_roles": "Belum ada role akun.",
     "picture": "Foto akun",
     "picture_hint": "PNG, JPG/JPEG atau WEBP, maksimal 2 MB.",
     "cancel_picture": "Batalkan foto baru",
-    "save": "Simpan profil akun",
-    "saved": "Profil akun tersimpan di server.",
-    "apply": "Terapkan ke dokumen lokal",
-    "apply_hint": "Pilih dokumen dan field yang ingin diganti. Data yang belum tersedia tidak menghapus isian dokumen. Simpan perubahan akun terlebih dahulu. Dokumen cloud memakai data akademik otomatis.",
-    "document": "Pilih dokumen lokal",
-    "apply_confirm": "Terapkan field yang dipilih?",
-    "apply_description": "Field yang dicentang akan mengganti data pada “{title}”. Dokumen lain tetap menggunakan datanya sendiri.",
-    "applied": "Field terpilih sudah diterapkan ke dokumen.",
-    "reload_confirm": "Muat ulang dan abaikan perubahan profil yang belum disimpan?",
+    "save": "Simpan CV dan foto",
+    "saved": "CV dan foto tersimpan di akun.",
+    "reload_confirm": "Muat ulang dan abaikan perubahan CV atau foto?",
     "empty": "Kosong",
     "unavailable": "Belum tersedia",
-    "recorded": "Foto tersimpan",
-    "fields": {
-      "name": "Nama penulis",
-      "nim": "NIM / nomor identitas",
-      "cv": "CV",
-      "picture": "Foto dokumen"
-    },
     "errors": {
       "session_changed": "Sesi berubah. Muat ulang profil sebelum melanjutkan.",
       "not_authenticated": "Silakan login untuk membuka profil online.",
@@ -1262,10 +1338,7 @@
       "invalid_image": "Gunakan PNG, JPG/JPEG atau WEBP maksimal 2 MB.",
       "validation": "Periksa field profil yang ditandai.",
       "outcome_unknown": "Hasil penyimpanan belum diketahui. Muat ulang untuk memeriksa profil di server sebelum menyimpan lagi.",
-      "busy": "Perubahan profil sedang diproses.",
-      "cloud_locked": "Penerapan ini hanya untuk dokumen lokal yang belum ditautkan ke cloud.",
-      "editor_open": "Tutup editor dokumen sebelum menerapkan profil.",
-      "document_changed": "Dokumen berubah sejak ditinjau. Pilih dan periksa datanya lagi."
+      "busy": "Perubahan profil sedang diproses."
     },
     "identity": "Nomor identitas",
     "web_settings": "Atur nama dan gelar di web"
@@ -1341,8 +1414,9 @@
     "no_activity": "Belum ada aktivitas",
     "account": "Akun & profil",
     "local_workspace": "Ruang kerja lokal",
+    "cloud_workspace": "Ruang kerja Cloud",
     "login_hint": "Masuk saat kamu membutuhkan penyimpanan cloud dan review.",
-    "offline_login": "Sambungkan ke internet untuk masuk.",
+    "offline_login": "Kamu sedang offline. Dokumen tersimpan tetap bisa dipakai; login saat online untuk memakai Cloud.",
     "offline_ready": "Dokumen lokal tetap bisa digunakan offline.",
     "skip_content": "Langsung ke konten",
     "open_navigation": "Buka navigasi",
@@ -1356,8 +1430,9 @@
   "onboarding": {
     "profile": {
       "title": "Lengkapi profilmu",
-      "description": "Data ini menjadi nilai default untuk dokumen lokal baru. Kamu bisa mengubahnya nanti di halaman Profil.",
+      "description": "Data penulis dikelola di halaman Profil dan dipakai semua dokumen dalam workspace ini.",
       "skip": "Nanti saja",
+      "edit": "Edit di halaman Profil",
       "load_failed": "Profil gagal dimuat. Kamu bisa melengkapinya nanti di halaman Profil.",
       "save_failed": "Profil gagal disimpan. Silakan coba lagi.",
       "dismiss_failed": "Pilihanmu gagal disimpan. Silakan coba lagi."
@@ -1610,7 +1685,7 @@
         "empty": "Belum ada dokumen. Buat atau impor .hightex di halaman Dokumen, lalu buka panduan formulir kembali.",
         "document": {
           "title": "Mulai dari dokumen yang akan digunakan",
-          "description": "Pilih dokumen yang akan dibuatkan formulir. Judul dan identitas mengikuti dokumen tersebut."
+          "description": "Pilih dokumen untuk judul dan data akademik pada preview. Identitas mengikuti profil aktif, sedangkan isian tambahan sudah tersedia bersama."
         },
         "stage": {
           "title": "Pilih sempro atau sidang",
@@ -1621,8 +1696,8 @@
           "description": "Centang formulir untuk dimasukkan ke ZIP. Klik judulnya untuk melihat preview tanpa mengubah centang."
         },
         "data": {
-          "title": "Lengkapi data yang memang belum tersedia",
-          "description": "Buka data administrasi untuk melengkapi isian tambahan. Identitas dan dosen mengikuti profil dokumen; ubah profil di editor jika perlu."
+          "title": "Periksa seluruh data pada satu panel",
+          "description": "Pilih Sempro atau Sidang, lalu periksa data pada satu panel. Buka ringkasan untuk menuju isian yang kosong atau tidak valid. Memilih formulir hanya mengganti preview."
         },
         "preview": {
           "title": "Periksa hasil sebelum dicetak",
@@ -1635,8 +1710,8 @@
         "select_first": "Pilih dokumen untuk melanjutkan. Jika belum ada dokumen, tutup panduan dan buat atau impor dokumen terlebih dahulu."
       },
       "lecturers": {
-        "name": "Memilih dosen dan menyimpan profil default",
-        "summary": "Kelola daftar dosen lokal, pilih pembimbing dan penguji, lalu simpan profil default.",
+        "name": "Kelola profil penulis workspace",
+        "summary": "Kelola daftar dosen lokal dan simpan profil penulis yang dipakai bersama oleh dokumen dalam workspace ini.",
         "advisors": {
           "title": "Pilih pembimbing dari daftar dosen",
           "description": "Cari dosen yang sudah kamu simpan berdasarkan nama atau NIP. Jika belum ada, pilih Tambah dosen. Tambahkan pembimbing kedua jika diperlukan."
@@ -1646,12 +1721,12 @@
           "description": "Buka bagian ini untuk memilih ketua sidang dan kedua penguji. Nama dan NIP mereka ikut tersimpan pada profil."
         },
         "save": {
-          "title": "Simpan profil default untuk digunakan kembali",
-          "description": "Simpan profil default untuk digunakan kembali. Dokumen lama tetap memakai profilnya sendiri; gunakan Ambil data default di editor untuk meninjau dan menerapkan perubahan."
+          "title": "Simpan profil workspace",
+          "description": "Simpan profil penulis sekali. Dokumen dan ekspor di workspace ini memakai data yang sama."
         },
         "identity": {
-          "title": "Isi identitas pada profil default",
-          "description": "Isi nama dan NIM untuk digunakan kembali pada dokumen. Profil ini tersimpan lokal di perangkatmu."
+          "title": "Isi data penulis",
+          "description": "Isi data penulis yang digunakan dokumen dalam workspace Lokal ini. Profil tersimpan di perangkatmu."
         },
         "manage": {
           "title": "Kelola data dosen di perangkatmu",
@@ -1659,20 +1734,24 @@
         }
       },
       "documentProfile": {
-        "name": "Profil penulis dan dosen per dokumen",
-        "summary": "Atur identitas, pembimbing, ketua, dan penguji untuk dokumen ini tanpa mengubah dokumen lain.",
+        "name": "Profil penulis workspace",
+        "summary": "Semua dokumen memakai profil penulis workspace aktif. Ubah profil melalui halaman Profil.",
+        "source": {
+          "title": "Detail profil berasal dari workspace ini",
+          "description": "Dokumen ini menampilkan profil workspace aktif. Gunakan Edit di Profil untuk mengubah data penulis, CV, foto, pembimbing, atau komite."
+        },
         "profile": {
-          "title": "Setiap dokumen menyimpan profilnya sendiri",
-          "description": "Identitas dan dosen pada bagian ini digunakan oleh dokumen serta formulirnya. Pembimbing KP tetap diisi manual."
+          "title": "Data penulis hanya bisa dibaca di sini",
+          "description": "Semua data penulis dan dosen memakai profil workspace aktif. Pengaturan KP tetap menjadi bagian dari dokumen."
         },
         "defaults": {
-          "title": "Ambil default hanya saat kamu membutuhkannya",
-          "description": "Ambil data default menampilkan perubahan untuk dipilih sebelum diterapkan. Default yang kosong tidak menghapus data lama secara otomatis."
+          "title": "Perubahan profil dipakai bersama",
+          "description": "Ubah profil workspace sekali agar nilainya dipakai semua dokumen dan ekspor di workspace ini."
         },
-        "locked": "Identitas dan penugasan dosen pada dokumen ini dikendalikan oleh data akademik cloud. Ambil data default tidak tersedia saat terkunci. Ikuti sumber data server untuk memperbarui data tersebut.",
+        "locked": "Data profil hanya bisa dibaca di editor. Ubah melalui halaman Profil.",
         "save": {
-          "title": "Simpan perubahan profil dokumen",
-          "description": "Perubahan profil masuk ke draf pengaturan terlebih dahulu. Tekan Simpan untuk menerapkannya pada dokumen ini."
+          "title": "Simpan pengaturan dokumen",
+          "description": "Pengaturan seperti judul, kategori, dan tanggal disimpan di sini. Perubahan profil disimpan di halaman Profil."
         }
       }
     },
@@ -1680,11 +1759,11 @@
       "documents": {
         "create": {
           "title": "Buat dokumen dari kategori",
-          "description": "Klik Buat dokumen, lalu pilih kategori dan isi judul. Kategori menentukan susunan bab. Profil lokal disalin ke dokumen baru; profil dokumen bisa diubah sendiri sesudahnya."
+          "description": "Klik Buat dokumen, lalu pilih kategori dan isi judul. Kategori menentukan susunan bab. Dokumen memakai profil workspace aktif."
         },
         "import": {
           "title": "Buka arsip yang sudah ada",
-          "description": "Gunakan Impor untuk memilih file .hightex. Arsip membawa isi bab, profil dokumen, referensi dan asetnya. Bila ID dokumen sudah ada, pilih cara impor di dialog yang muncul."
+          "description": "Gunakan Impor untuk memilih file .hightex. Arsip membawa isi bab, referensi, dan aset; dokumen hasil impor memakai profil workspace aktif. Bila ID dokumen sudah ada, pilih cara impor di dialog yang muncul."
         },
         "open": {
           "title": "Lanjutkan menulis",
@@ -1767,7 +1846,7 @@
         },
         "settings": {
           "title": "Detail khusus dokumen ini",
-          "description": "Tab Pengaturan memuat detail dan profil dokumen yang sedang dibuka. Periksa perubahan lalu simpan dari panel ini. Mengubah profil lokal tidak otomatis mengganti profil dokumen lama."
+          "description": "Tab Pengaturan memuat detail dokumen. Data profil hanya bisa dibaca di sini; ubah melalui halaman Profil."
         }
       },
       "requires_document": "Belum ada dokumen untuk langkah ini. Tutup tur, buat atau impor dokumen, lalu buka panduan lagi dari Bantuan.",

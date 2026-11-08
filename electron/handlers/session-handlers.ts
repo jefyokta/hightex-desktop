@@ -16,6 +16,7 @@ export class SessionHandler {
       if (win.isDestroyed()) continue;
       try {
         win.webContents.send("session:changed", user || false);
+        win.webContents.send("workspaces:changed");
       } catch (err) {
         LoggerService.write(err, "broadcastSession");
       }

@@ -142,16 +142,20 @@ test("preload buffers a cold-start file until the renderer subscribes, including
     invoke: async () => undefined,
   });
   const apis: Record<string, unknown> = {};
-  loadSource("../electron/preload/index.ts", {
-    electron: {
-      ipcRenderer: ipc,
-      contextBridge: {
-        exposeInMainWorld: (name: string, api: unknown) => {
-          apis[name] = api;
+  loadSource(
+    "../electron/preload/index.ts",
+    {
+      electron: {
+        ipcRenderer: ipc,
+        contextBridge: {
+          exposeInMainWorld: (name: string, api: unknown) => {
+            apis[name] = api;
+          },
         },
       },
     },
-  });
+    { process: { argv: [] } },
+  );
   const hightex = apis.hightex as Window["hightex"];
   ipc.emit("file:open", {}, "/downloads/startup.hightex");
   const received: string[] = [];
@@ -258,7 +262,14 @@ test.each(["overwrite", "copy", null] as const)(
         },
       },
       {
+        navigator: { onLine: true },
         window: {
+          workspaces: {
+            state: async () => ({
+              activeId: "local",
+              profiles: [{ id: "local", type: "local" }],
+            }),
+          },
           hightex: {
             onOpenFile: (cb: typeof receive) => {
               receive = cb;
@@ -320,6 +331,7 @@ test("opening documents recreates a closed main window once and waits for its pr
   >("../electron/main/application.ts", {
     "node:path": path,
     "node:url": { fileURLToPath },
+    "../workspaces/runtime": { WorkspaceRuntime: {} },
   });
   const calls: string[] = [];
   const window = {

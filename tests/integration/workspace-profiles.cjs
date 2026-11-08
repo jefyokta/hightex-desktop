@@ -46,6 +46,16 @@ if (process.argv.includes("--startup")) {
     const exports = {};
     modules.set(filename, exports);
     const requireSource = (name) => {
+      // This fixture exercises migration and switch orchestration. The actual
+      // editor/application lifecycle is covered by --startup against the build.
+      if (filename.endsWith("/workspaces/handlers.ts")) {
+        if (name === "../windows/editor-window")
+          return {
+            EditorWindow: { prepareForWorkspaceSwitch: async () => true },
+          };
+        if (name === "../service/auth-service")
+          return { desktopAuth: { cancel() {} } };
+      }
       if (name === "electron" && filename.endsWith("/workspaces/handlers.ts"))
         return {
           app: {
@@ -99,6 +109,7 @@ if (process.argv.includes("--startup")) {
     preload,
     `const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('workspaces',{
+onChange:callback=>{ipcRenderer.on('workspaces:changed',callback);return()=>ipcRenderer.removeListener('workspaces:changed',callback)},
 state:()=>ipcRenderer.invoke('workspaces:state'),create:input=>ipcRenderer.invoke('workspaces:create',input),switch:id=>ipcRenderer.invoke('workspaces:switch',id),
 migrationPreview:snapshot=>ipcRenderer.invoke('workspaces:migration:preview',snapshot),migrate:resolutions=>ipcRenderer.invoke('workspaces:migration:run',resolutions),
 migrationTarget:()=>ipcRenderer.invoke('workspaces:migration:target'),migrationVerified:hash=>ipcRenderer.invoke('workspaces:migration:verified',hash)});`,
@@ -107,13 +118,14 @@ migrationTarget:()=>ipcRenderer.invoke('workspaces:migration:target'),migrationV
 import React from 'react';import {createRoot} from 'react-dom/client';
 import {WorkspaceMigrationPage} from '/src/pages/workspace-migration.tsx';
 import {WorkspaceProfiles} from '/src/components/workspace-profiles.tsx';
+import {AuthModalProvider} from '/src/context/auth-modal-context.tsx';
 import {HighTexDB} from '/src/editor/storage/hightex-db.ts';
 import {captureWorkspaceData} from '/src/workspaces/snapshot.ts';
 import '/src/App.css';
 window.config={get:()=>({language:'id'}),onChange:()=>()=>{}};
 const db=HighTexDB.getInstance();await db.open();window.db=db;window.capture=()=>captureWorkspaceData(db);
 window.mount=target=>createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(WorkspaceMigrationPage,{target})));
-window.mountProfiles=()=>createRoot(document.getElementById('root')).render(React.createElement(WorkspaceProfiles));
+window.mountProfiles=()=>createRoot(document.getElementById('root')).render(React.createElement(AuthModalProvider,null,React.createElement(WorkspaceProfiles)));
 if(location.pathname.endsWith('/target'))window.mount(true);
 window.ready=true;
 </script></body></html>`;
@@ -210,10 +222,12 @@ window.ready=true;
       );
       Object.assign(WorkspaceRuntime, {
         root,
+        serverUrl: "https://cloud.test/api/",
         migrating: true,
         profile: {
           id: "local",
           name: "Local",
+          type: "local",
           serverUrl: null,
           accountId: null,
         },
@@ -221,7 +235,7 @@ window.ready=true;
       const { WorkspaceRegistry } = load(
         path.join(project, "electron/workspaces/registry.ts"),
       );
-      const registry = new WorkspaceRegistry(root);
+      const registry = new WorkspaceRegistry(root, "https://cloud.test/api/");
       assert.equal(registry.read().migrationComplete, false);
       const sqlite = new Database(path.join(root, "hightex.db"));
       const { Snapshot } = load(
@@ -290,6 +304,7 @@ window.ready=true;
       registerWorkspaceHandlers({
         preloadEntry: preload,
         isDev: false,
+        resumePendingOpens: async () => {},
         get window() {
           return sourceWindow;
         },
@@ -455,6 +470,7 @@ window.ready=true;
       // A later startup at the prefixed origin cannot invoke another profile's IPC.
       WorkspaceRuntime.migrating = false;
       WorkspaceRuntime.profile = cloudA;
+      registry.write({ ...registry.read(), activeId: cloudA.id });
       await sourceWindow.loadURL(`hightex://profile.${cloudA.id}/inspect`);
       await until(sourceWindow, "window.ready");
       const otherWindow = new BrowserWindow({

@@ -22,6 +22,7 @@ import { Copy } from "lucide-react";
 import { LocaleProvider } from "@/context/locale-context";
 import { ConfigContextProvider } from "@/context/config-context";
 import { MultiSelectProvider } from "@/context/multi-select-context";
+import { WorkspaceAccessGuard } from "@/components/workspace-access-guard";
 const UPDATER_TOAST_ID = "hightex-updater";
 const mb = (bytes: number) => {
   return (bytes / 1024 / 1024).toFixed(2);
@@ -260,7 +261,9 @@ export const MainLayout = () => {
                       <LogoutModalProvider>
                         <ErrorSlave />
                         <LoginModal />
-                        <Outlet />
+                        <WorkspaceAccessGuard>
+                          <Outlet />
+                        </WorkspaceAccessGuard>
                       </LogoutModalProvider>
                     </AuthModalProvider>
                   </UserProvider>

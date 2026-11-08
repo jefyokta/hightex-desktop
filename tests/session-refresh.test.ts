@@ -29,7 +29,9 @@ const harness = (request: () => Promise<unknown>) => {
           {
             isDestroyed: () => false,
             webContents: {
-              send: (_channel: string, user: unknown) => sent.push(user),
+              send: (channel: string, user: unknown) => {
+                if (channel === "session:changed") sent.push(user);
+              },
             },
           },
         ],

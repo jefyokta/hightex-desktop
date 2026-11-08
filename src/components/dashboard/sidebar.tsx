@@ -41,7 +41,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { isWorkspacePageActive } from "./navigation";
-import { WorkspaceProfiles } from "@/components/workspace-profiles";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 
 type Props = {
@@ -59,10 +58,13 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
   const { openLogin } = useAuthModal();
   const { openLogout } = useLogoutModal();
   const { state: workspaceState } = useWorkspaces();
+  const activeWorkspace = workspaceState?.profiles.find(
+    (profile) => profile.id === workspaceState.activeId,
+  );
   const localProfile =
-    workspaceState?.profiles.find(
-      (profile) => profile.id === workspaceState.activeId,
-    )?.serverUrl === null;
+    !activeWorkspace ||
+    (activeWorkspace.type === "local" && !activeWorkspace.pendingCloudBinding);
+  const cloudWorkspace = !localProfile;
   const cloudActive =
     pathname.startsWith("/dashboard/cloud/") ||
     pathname.startsWith("/dashboard/projects/cloud") ||
@@ -109,7 +111,6 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
         </div>
       </button>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-1 pb-6">
-        <WorkspaceProfiles compact />
         <nav aria-label={t("workspace.primary")} className="space-y-1">
           <p className="workspace-eyebrow px-3 pb-2">{t("workspace.title")}</p>
           {item(
@@ -127,34 +128,31 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
             <UsersRound size={17} />,
             t("lecturers.title"),
           )}
-          <Collapsible open={cloudOpen} onOpenChange={setCloudOpen}>
-            <CollapsibleTrigger className="workspace-nav-item">
-              <Cloud size={17} />
-              <span>{t("workspace.cloud")}</span>
-              <ChevronDown
-                className={`ml-auto size-3.5 transition-transform ${cloudOpen ? "rotate-180" : ""}`}
-              />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="ml-5 border-l pl-2 pt-1 space-y-1">
-                {item(
-                  "/dashboard/projects/cloud",
-                  <Folder size={15} />,
-                  t("workspace.cloud_documents"),
-                )}
-                {item(
-                  "/dashboard/submissions",
-                  <FileText size={15} />,
-                  t("workspace.submissions"),
-                )}
-                {item(
-                  "/dashboard/cloud/cv",
-                  <ContactRound size={15} />,
-                  t("cloud_cv.navigation"),
-                )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          {workspaceState && !localProfile && (
+            <Collapsible open={cloudOpen} onOpenChange={setCloudOpen}>
+              <CollapsibleTrigger className="workspace-nav-item">
+                <Cloud size={17} />
+                <span>{t("workspace.cloud")}</span>
+                <ChevronDown
+                  className={`ml-auto size-3.5 transition-transform ${cloudOpen ? "rotate-180" : ""}`}
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="ml-5 border-l pl-2 pt-1 space-y-1">
+                  {item(
+                    "/dashboard/projects/cloud",
+                    <Folder size={15} />,
+                    t("workspace.cloud_documents"),
+                  )}
+                  {item(
+                    "/dashboard/submissions",
+                    <FileText size={15} />,
+                    t("workspace.submissions"),
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
           {item(
             "/dashboard/snapshots",
             <History size={17} />,
@@ -242,6 +240,11 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
           <span>{t("guide.replay")}</span>
         </button>
         {item("/settings", <Settings size={17} />, t("settings.title"))}
+        {item(
+          "/workspaces",
+          <Folder size={17} />,
+          t("workspace_profiles.title"),
+        )}
         {item("/profile", <ContactRound size={17} />, t("profile.title"))}
         {user ? (
           <DropdownMenu>
@@ -280,7 +283,11 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
         ) : (
           <div className="px-3 py-3">
             <p className="text-xs font-medium">
-              {t("workspace.local_workspace")}
+              {t(
+                cloudWorkspace
+                  ? "workspace.cloud_workspace"
+                  : "workspace.local_workspace",
+              )}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
               {t(
@@ -291,7 +298,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
             </p>
             <button
               type="button"
-              onClick={localProfile ? () => go("/profile") : openLogin}
+              onClick={localProfile ? () => go("/workspaces") : openLogin}
               disabled={!localProfile && !online}
               title={
                 !localProfile && !online

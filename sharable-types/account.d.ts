@@ -8,6 +8,7 @@ declare global {
     | "invalid_callback"
     | "expired"
     | "session_changed"
+    | "account_in_use"
     | "canceled";
   type AuthResult<T> =
     | { ok: true; data: T }

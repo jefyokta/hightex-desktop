@@ -45,6 +45,7 @@ import { LoginGate } from "@/components/login-gate";
 import { exportCloudArtifact } from "@/cloud/academic-data";
 import { withCloudAcademicSource } from "@/utils/cloud-academic";
 import { Link } from "react-router-dom";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 type Commit = CommitListResponse["commits"][number];
 type Task =
@@ -57,7 +58,12 @@ export const RemoteDocuments = () => {
   useAppLanguage();
   const { user } = useUser();
   const online = useOnline();
-  if (!user) return <LoginGate />;
+  const { state } = useWorkspaces();
+  const local =
+    !state ||
+    state.profiles.find((profile) => profile.id === state.activeId)?.type ===
+      "local";
+  if (local || !user) return <LoginGate />;
   return (
     <RemoteDocumentsContent key={`${user.id}:${online}`} online={online} />
   );

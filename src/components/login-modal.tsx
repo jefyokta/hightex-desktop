@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { Modal } from "./modal";
 import { useAuthModal } from "../context/auth-modal-context";
@@ -15,6 +15,10 @@ export const LoginModal = () => {
   const [error, setError] = useState<string>();
   const operation = useRef(false);
   const generation = useRef(0);
+  const completeLogin = useCallback(() => {
+    window.dispatchEvent(new Event("workspaces:changed"));
+    closeLogin();
+  }, [closeLogin]);
   useEffect(() => {
     if (!loginOpen) {
       setPassword("");
@@ -28,7 +32,7 @@ export const LoginModal = () => {
         const next = await window.session.browser.status();
         if (!active) return;
         setBrowser(next);
-        if (next.status === "authenticated") closeLogin();
+        if (next.status === "authenticated") completeLogin();
       } catch {
         if (active) setError(t("desktop_auth.errors.request_failed"));
       }
@@ -40,7 +44,7 @@ export const LoginModal = () => {
       clearInterval(timer);
       generation.current += 1;
     };
-  }, [loginOpen, closeLogin]);
+  }, [loginOpen, completeLogin]);
   const run = async (kind: "direct" | "browser" | "cancel") => {
     if (operation.current) return;
     operation.current = true;
@@ -61,7 +65,7 @@ export const LoginModal = () => {
       if (!result.ok) setError(t(`desktop_auth.errors.${result.error}`));
       else if (kind === "direct") {
         setPassword("");
-        closeLogin();
+        completeLogin();
       } else setBrowser(result.data as BrowserLoginState);
     } catch {
       if (request === generation.current)

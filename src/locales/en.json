@@ -1,26 +1,69 @@
 {
   "workspace_profiles": {
-    "title": "Workspace profiles",
-    "description": "Each profile keeps its documents, account, and cloud connection separate.",
-    "active": "Active profile",
-    "local": "Local · no cloud account",
+    "title": "Workspaces",
+    "description": "Each workspace keeps its documents and cloud account separate.",
+    "create_title": "Create a workspace",
+    "create_description": "Choose a name and whether to connect this workspace to a HighTex account.",
+    "profiles_title": "Your workspaces",
+    "profiles_description": "Each account can be connected to one workspace. Cloud workspaces cannot be changed back to Local.",
+    "active": "Active workspace",
+    "active_badge": "Current",
+    "local": "Local workspace · no cloud account",
+    "local_type": "Local",
+    "cloud_type": "Cloud",
+    "type": "Workspace type",
+    "local_hint": "Documents stay on this device. You can connect this workspace to a HighTex account later.",
+    "cloud_hint": "Sign in to connect this workspace to a HighTex account. Its existing local data stays in this workspace.",
+    "cloud_bound": "Connected to a HighTex account",
+    "cloud_unbound": "Sign in to connect a HighTex account",
+    "cloud_pending": "Waiting for sign-in to connect this workspace",
+    "connect_cloud": "Connect to Cloud",
+    "continue_login": "Continue sign-in",
+    "cancel_cloud": "Keep as Local",
+    "choose_before_profile": "Choose a workspace first",
+    "cloud_login_required": "Connect this workspace to continue",
+    "cloud_login_description": "Sign in with a HighTex account to turn this Local workspace into a Cloud workspace. While offline, you can keep working with its local data.",
+    "manage": "Manage workspaces",
+    "legacy_cloud_unavailable": "This workspace came from an unsupported server. Its documents are kept locally; cloud sync is disabled.",
     "switch": "Switch",
-    "switch_hint": "Close editor, preview, and sharing windows first. Switching restarts HighTex; each profile retains its data and login.",
-    "name": "Profile name",
-    "server": "Cloud server (optional)",
-    "server_hint": "Leave blank for a local profile. A cloud profile binds to the first account you sign in with; use another profile for a different account.",
-    "create": "Create profile",
-    "migration_title": "Organize existing data into profiles",
-    "migration_description": "This update separates your existing library by cloud server and account bindings. Unbound documents go into Local; branches follow their parent. Original storage is retained as a backup. HighTex restarts after verification.",
+    "rename": "Rename workspace",
+    "rename_title": "Rename workspace",
+    "rename_description": "Choose a name that helps you recognize this workspace.",
+    "rename_action": "Save name",
+    "name_taken": "Another workspace already uses this name.",
+    "switch_hint": "HighTex asks whether to save or discard each open editor. Close preview and sharing windows first. Switching restarts HighTex; each workspace retains its data and login.",
+    "name": "Workspace name",
+    "create": "Create workspace",
+    "migration_title": "Organize existing data into workspaces",
+    "migration_description": "This update separates your existing library by supported cloud account bindings. Unbound or unsupported-server documents go into Local; branches follow their parent. Original storage is retained as a backup. HighTex restarts after verification.",
+    "step_summary": "Summary",
+    "step_destinations": "Destinations",
+    "step_transfer": "Transfer",
+    "migration_failed": "Migration could not finish",
+    "destinations_title": "Workspace destinations",
+    "destinations_description": "Review the data assigned to each workspace before starting. The original library stays backed up.",
+    "destination_counts": "{documents} documents · {branches} branches · {assets} assets · {forms} form drafts",
+    "branches": "branches",
+    "assets": "assets",
+    "forms": "form drafts",
+    "review_title": "Review these document families",
+    "review_description": "Choose where each unresolved family belongs. Unsupported or ambiguous cloud bindings must remain in Local.",
+    "progress_copying": "Copying data",
+    "progress_verifying": "Verifying workspace copy",
+    "progress_complete": "Copied and verified",
+    "progress_failed": "Copy failed; source is preserved",
+    "retry": "Retry migration",
     "documents": "documents",
     "conflict": "Resolve this document family: ambiguous cloud bindings stay in Local with their original locks; broken parent links are detached in the migrated copy",
     "choose_destination": "Choose destination",
-    "shared_legacy": "Previously shared references, variables, and lecturer entries are copied into each profile. Form inputs follow their document. Document authors and cloud bindings are preserved; migration does not upload anything.",
+    "shared_legacy": "Previously shared references, variables, and lecturer entries are copied into each workspace. Form inputs follow their document. Safe legacy identities follow the workspace; custom identities and cloud bindings are preserved. Migration does not upload anything.",
     "preparing": "Reading existing storage…",
     "migrate": "Back up and migrate",
     "migrating": "Migrating and verifying…",
-    "local_login": "Create or switch to a cloud profile to sign in.",
-    "switch_blocked": "Close editor, preview, and sharing windows before switching profiles."
+    "local_login": "Create or switch to a Cloud workspace to sign in.",
+    "switch_blocked": "Close preview or export windows before switching workspaces.",
+    "switch_canceled": "Workspace switch canceled. The active workspace has not changed.",
+    "switch_interrupted": "A file or link opened during the switch, so the active workspace was left unchanged."
   },
   "settings": {
     "title": "Settings",
@@ -117,10 +160,12 @@
       }
     },
     "profile": {
-      "label": "Default profile",
-      "description": "Default author details for new documents",
-      "tooltip": "Existing and imported documents keep their own author details. Use document settings to change them.",
-      "loading": "Loading profile...",
+      "label": "Workspace author profile",
+      "description": "The active workspace profile is used by all documents and exports.",
+      "tooltip": "Edit author details here. Documents in this workspace use the same profile.",
+      "loading": "Loading author profile...",
+      "cv_description": "This CV is shared by every document in this Local workspace.",
+      "picture_invalid": "The photo could not be processed. Choose another image.",
       "name": {
         "label": "Name",
         "description": "Your name to be the author of your documents"
@@ -151,11 +196,8 @@
           "description": "Your second advisor's identifier number"
         }
       },
-      "save": "Save Profile",
-      "saving": "Saving...",
-      "cloud_profile": "Prefer Cloud Profile",
-      "cloud_profile_description": "Use cloud profile as primary identity",
-      "cloud_tooltip": "If you enable this, when you connected to the cloud profile, the all documents will using cloud profile"
+      "save": "Save profile",
+      "saving": "Saving..."
     },
     "about": {
       "title": "About",
@@ -377,7 +419,7 @@
     "empty_hint": "Your lecturer list is empty. Add a lecturer to get started.",
     "clear": "Clear selection",
     "refine_search": "Type a name or NIP to narrow the results.",
-    "complete_profile": "Complete lecturer selections in the document profile in the editor. Names and NIPs follow the selected lecturer.",
+    "complete_profile": "Choose advisors and examiners on the Profile page. Their names and staff numbers are shared by documents in this workspace.",
     "title": "Lecturer directory",
     "manage": "Manage lecturers",
     "add": "Add lecturer",
@@ -421,6 +463,10 @@
     "nip_missing": "NIP not filled in",
     "import_format_title": "JSON format",
     "cloud_fetch": "Get from Cloud",
+    "web_download": "Download JSON on the web",
+    "local_web_hint": "Local workspace: sign in on the web, download the lecturer JSON, then choose Import JSON here.",
+    "web_offline": "Connect to download JSON on the web. Files you already have can still be imported offline.",
+    "web_open_failed": "The website could not be opened. Please retry.",
     "cloud_login": "Log in and get lecturers",
     "cloud_loading": "Getting lecturers…",
     "cloud_login_hint": "Log in to get lecturers from the server. Downloaded data stays available offline on this device.",
@@ -428,6 +474,7 @@
     "cloud_offline": "Connect to get lecturers from Cloud. Your saved list remains available offline.",
     "cloud_success": "Added {added} lecturers from Cloud; skipped {skipped} existing entries.",
     "cloud_errors": {
+      "local_workspace": "Direct fetching requires a Cloud workspace. In a Local workspace, download JSON on the web and import it here.",
       "not_authenticated": "Log in to get lecturers from the server. Your saved list is still available.",
       "session_changed": "The account or server changed. Try again from the current account; your saved list is unchanged.",
       "forbidden": "Your account does not have access to this lecturer directory. Your saved list is unchanged.",
@@ -444,7 +491,7 @@
     "optional": "Optional",
     "identity": "Student identity",
     "people": "Advisors and examination committee",
-    "people_hint": "Advisors, examiners, and the chair follow the document profile. Edit them in the editor’s profile section. The program head and dates follow document settings.",
+    "people_hint": "Advisors, examiners, and the chair follow the active workspace profile. Edit them on the Profile page. The program head and dates follow document settings.",
     "italic_hint": "Use _text_ for italic passages in titles.",
     "schedule": "Event schedule",
     "signing": "Signing details",
@@ -461,7 +508,44 @@
     "proposal": "Proposal Seminar",
     "defense": "Final Defense",
     "storage_failed": "Draft could not be saved. Check local storage space.",
-    "autosaved": "Additional input is saved locally per document and stage.",
+    "autosaved": "Additional input is saved in this profile, with a separate schedule for each stage.",
+    "shared_title": "Shared input for this profile",
+    "data_title": "Form data",
+    "data_reset": "Reset input",
+    "data_source_profile": "From profile or academic assignments",
+    "data_source_document": "From the selected document",
+    "data_empty_count": "{count} empty fields",
+    "data_not_set": "Not filled",
+    "data_to_preview": "Go to preview and download",
+    "data_review": "Review form data",
+    "data_review_counts": "{missing} empty fields · {invalid} invalid fields",
+    "data_required_empty": "Required",
+    "data_filled": "All fields filled",
+    "data_error_gpa": "GPA must be a number between 0 and 4.",
+    "data_error_credits": "Credits must be a nonnegative whole number.",
+    "data_error_date": "Use a valid calendar date.",
+    "data_error_time": "Use a time between 00:00 and 23:59.",
+    "data_internship": "Internship data (B1)",
+    "data_open_document": "Open document",
+    "data_output_title": "Preview and download forms",
+    "data_fix_before_export": "Fix invalid fields before previewing or exporting",
+    "shared_hint": "Administrative input stays filled when you switch documents. Schedules and form selections are saved separately for proposal and defense. Identity, title, and available document data still follow their sources. Optional blanks can be filled in on paper.",
+    "reset_shared": "Reset shared input",
+    "reset_confirm": "Reset form input for this profile?",
+    "reset_hint": "Additional input for both stages and form selections will be reset. Your profile, documents, and old drafts will remain saved.",
+    "migration_title": "Choose between different values in old drafts",
+    "migration_hint": "Matching values have been combined. Choose shared values before exporting, or skip the differences to fill them in again.",
+    "choose_legacy_value": "Choose a value…",
+    "apply_legacy_values": "Use selected values",
+    "skip_legacy_conflicts": "Skip different values",
+    "no_selection": "No forms",
+    "recover_legacy": "Recover old form input",
+    "legacy_preserved": "Old document drafts are still saved. Recovery only replaces additional input present in the selected draft, leaving your profile and documents unchanged.",
+    "choose_legacy_draft": "Choose a document and stage…",
+    "restore_legacy": "Use old draft",
+    "restore_confirm": "Use this draft's input for the active profile?",
+    "draft_load_failed": "The form draft could not be read. Saved data has not been overwritten. Try loading it again.",
+    "profile_load_failed": "The profile could not be loaded. Retry before generating forms.",
     "choose_forms": "Choose forms",
     "select_all": "Select all",
     "clear_selection": "Clear selection",
@@ -473,7 +557,7 @@
     "print": "Print",
     "download": "Download PDF",
     "exporting": "Creating PDF…",
-    "complete_identity": "Complete the name, student ID and title, then select at least one form.",
+    "complete_identity": "Complete the name and student ID on the Profile page, give the document a title, and select at least one form.",
     "saved": "PDF saved: {path}",
     "export_failed": "The PDF could not be created. Please retry.",
     "empty_selection": "Select forms to view the preview.",
@@ -483,7 +567,7 @@
     "no_documents": "Create or import a document to start generating forms.",
     "document": "Thesis document",
     "choose_document": "Choose a local document…",
-    "start_hint": "Choose a document to use its title and profile, including advisors, examiners, and chair.",
+    "start_hint": "Choose a document for its title and academic data. Identity follows the active profile, and additional input is shared.",
     "complete_missing": "Complete missing identity details",
     "optional_administration": "Additional administration (optional)",
     "optional_administration_hint": "Only complete what you need. Empty fields can be filled in on paper.",
@@ -496,7 +580,7 @@
     "zip_saved": "ZIP saved: {path}",
     "zip_hint": "Check forms to include in the ZIP. Click a name to preview it.",
     "faculty_blank": "Faculty sections are left blank.",
-    "document_profile_source": "From document profile",
+    "document_profile_source": "From workspace profile",
     "local_profile_source": "From local profile",
     "view_source_data": "View faculty details",
     "all": "All",
@@ -513,8 +597,21 @@
     "indonesian": "Bahasa Indonesia"
   },
   "profile": {
+    "edit_cv": "Edit CV",
+    "back_to_profile": "Back to Profile",
+    "cv_saved": "Workspace CV and photo saved.",
     "title": "Profile",
-    "description": "Manage your account and default author details for new documents."
+    "description": "Manage your account and author identity.",
+    "leave_title": "Discard unsaved profile changes?",
+    "leave_description": "Your profile changes have not been saved. Stay on this page to save them, or discard them before leaving.",
+    "stay": "Stay",
+    "discard": "Discard changes",
+    "save_pending": "Profile operation in progress",
+    "save_pending_description": "Wait for the current operation to finish before leaving this page or closing HighTex.",
+    "cached": "Showing the last saved profile on this device. Connect and sign in to edit or save changes.",
+    "draft_retained": "Your unsaved changes are kept on this page. Reconnect and sign in to save them.",
+    "cache_failed": "The saved profile could not be loaded. Try again.",
+    "cache_empty": "No Cloud profile has been saved on this device yet. Connect and sign in to load it."
   },
   "editor": {
     "branches": {
@@ -540,6 +637,15 @@
       "compare_added": "Added in branch",
       "branch": "Branch",
       "compare_formatting_only": "The chapter structure or formatting changed; the text is the same.",
+      "compare_chapter": "Chapter / section {id}",
+      "compare_previous": "Previous change",
+      "compare_next": "Next change",
+      "compare_changes": "Changes",
+      "compare_text_changes": "View text changes",
+      "compare_readonly": "Read only · red blocks in Main were removed/changed; green blocks in Branch were added/changed.",
+      "compare_render_failed": "The chapter view could not be loaded. Please retry.",
+      "compare_stale": "Main or Branch changed. Refresh to see the latest changes.",
+      "compare_refresh": "Refresh",
       "compare_status": {
         "added": "Added",
         "removed": "Removed",
@@ -1011,37 +1117,19 @@
     "committee_title": "Examiners and chair",
     "committee_hint": "Choose lecturers from the saved directory. Their names and NIPs are filled automatically and saved in this profile.",
     "faculty_officials": "Faculty and Program Officials",
-    "title": "Document profile",
-    "description": "Author identity, advisors, examiners, and chair are saved in this document’s profile. Forms and the approval sheet use the same profile. Save to apply changes.",
-    "missing": "This document has no saved author profile. Enter the author details or review the defaults before saving.",
-    "use_default": "Use default details",
-    "default_hint": "Fills the fields below for review. Save to apply. CV and photo stay with this document.",
+    "title": "Author profile",
+    "workspace_only": "This document uses the active workspace profile. Edit profile details in the main HighTex window.",
+    "edit_in_profile": "Open Profile in main window",
     "campus_advisor": "Campus internship advisor",
     "remove_second_advisor": "Remove second advisor",
-    "cv_hint": "Edit the author’s CV and photo in the Curriculum Vitae chapter.",
-    "cv_title": "CV for this document",
-    "cv_description": "This CV and photo belong to this document and are included in its HighTex export.",
+    "cv_title": "Workspace CV",
+    "cv_description": "The workspace CV and photo are shared by all documents in this workspace.",
     "picture": "Author photo",
-    "print_missing": "Author details are incomplete in this document.",
-    "notice_title": "Complete the document author details",
-    "notice_description": "Set the author name and NIM in the document settings before exporting.",
-    "open_settings": "Document settings",
-    "copy_default_cv": "Use default CV and photo",
-    "copy_default_cv_confirm": "Replace this document’s CV and photo?",
-    "copy_default_cv_description": "Copies the CV and photo from the local default profile into this document.",
-    "default_cv_empty": "The default profile has no CV or photo.",
-    "defaults": {
-      "title": "Review local defaults",
-      "description": "Choose which details to copy into this document.",
-      "before": "Current details",
-      "after": "Local defaults",
-      "empty": "Empty",
-      "empty_hint": "Changes that would clear an existing name or staff number start unchecked. Select them only if you intend to remove the previous value.",
-      "save_hint": "Changes are applied to the settings draft. Use Save in document settings to store them.",
-      "apply": "Apply to draft",
-      "unchanged": "The document already matches your local defaults. There are no changes to apply.",
-      "failed": "Local defaults could not be loaded. Please try again."
-    }
+    "remove_picture": "Remove photo",
+    "print_missing": "Author details are incomplete in this workspace profile.",
+    "notice_title": "Complete the workspace author profile",
+    "notice_description": "Set the author name and NIM on the Profile page in the main window before exporting.",
+    "open_settings": "Open Profile in main window"
   },
   "submission_review": {
     "title": "Submissions",
@@ -1214,45 +1302,33 @@
       "invalid_callback": "The callback does not match this sign-in transaction.",
       "expired": "The sign-in transaction or code expired. Start browser sign-in again.",
       "session_changed": "The session or server changed. Sign in again.",
+      "account_in_use": "This HighTex account is already connected to another workspace.",
       "canceled": "Sign-in canceled."
     }
   },
   "cloud_cv": {
-    "title": "Your cloud CV",
+    "title": "Cloud account profile",
     "navigation": "CV and profile photo",
     "edit": "Edit CV and profile photo",
     "picture_hint": "Images are converted to WEBP before upload, up to 2 MB after conversion.",
     "invalid_image": "The image could not be processed or exceeds 2 MB after conversion. Choose another image.",
-    "description": "Edit your account CV and photo, then save your changes to the server.",
+    "description": "Edit the CV and photo used by this Cloud workspace. Press Save to send changes to the server.",
     "hint": "Write your CV as a single paragraph. Click the photo to replace it.",
     "offline": "Connect to the internet to load or save your CV and profile photo."
   },
   "account_profile": {
-    "title": "Online account profile",
-    "description": "Your account photo and CV are stored on the server. Apply document changes separately.",
-    "loading": "Loading account profile…",
+    "title": "Cloud account identity",
+    "description": "The identity and CV/photo stored on this HighTex account are used by this Cloud workspace and remain separate from Local workspaces.",
+    "loading": "Loading Cloud account identity…",
     "no_roles": "No account roles assigned.",
     "picture": "Account photo",
     "picture_hint": "PNG, JPG/JPEG or WEBP, up to 2 MB.",
     "cancel_picture": "Cancel new photo",
-    "save": "Save account profile",
-    "saved": "Account profile saved on the server.",
-    "apply": "Apply to a local document",
-    "apply_hint": "Choose a document and the fields to replace. Unavailable data does not clear existing values. Save account changes first. Cloud documents use automatic academic data.",
-    "document": "Choose a local document",
-    "apply_confirm": "Apply the selected fields?",
-    "apply_description": "Checked fields will replace data in “{title}”. Other documents keep their own data.",
-    "applied": "Selected fields applied to the document.",
-    "reload_confirm": "Reload and discard unsaved profile changes?",
+    "save": "Save CV and photo",
+    "saved": "CV and photo saved to the account.",
+    "reload_confirm": "Reload and discard unsaved CV or photo changes?",
     "empty": "Empty",
     "unavailable": "Unavailable",
-    "recorded": "Photo recorded",
-    "fields": {
-      "name": "Author name",
-      "nim": "Student / identity number",
-      "cv": "CV",
-      "picture": "Document photo"
-    },
     "errors": {
       "session_changed": "The session changed. Reload the profile before continuing.",
       "not_authenticated": "Sign in to open your online profile.",
@@ -1262,10 +1338,7 @@
       "invalid_image": "Choose PNG, JPG/JPEG or WEBP up to 2 MB.",
       "validation": "Check the highlighted profile fields.",
       "outcome_unknown": "The save result is unknown. Reload to check the server profile before saving again.",
-      "busy": "A profile update is in progress.",
-      "cloud_locked": "This action requires a local document that is not linked to cloud.",
-      "editor_open": "Close the document editor before applying the profile.",
-      "document_changed": "The document changed after review. Select it and check its data again."
+      "busy": "A profile update is in progress."
     },
     "identity": "Identity number",
     "web_settings": "Edit name and degrees on the web"
@@ -1341,8 +1414,9 @@
     "no_activity": "No recent activity",
     "account": "Account & profile",
     "local_workspace": "Local workspace",
+    "cloud_workspace": "Cloud workspace",
     "login_hint": "Sign in when you need cloud storage and review.",
-    "offline_login": "Connect to the internet to sign in.",
+    "offline_login": "You’re offline. Saved documents remain available; sign in when online to use cloud actions.",
     "offline_ready": "Your local documents are available offline.",
     "skip_content": "Skip to content",
     "open_navigation": "Open navigation",
@@ -1356,8 +1430,9 @@
   "onboarding": {
     "profile": {
       "title": "Set up your profile",
-      "description": "These details are used as defaults for new local documents. You can update them later on the Profile page.",
+      "description": "Author details are managed from the Profile page and used by all documents in this workspace.",
       "skip": "Set up later",
+      "edit": "Edit on Profile page",
       "load_failed": "Your profile could not be loaded. You can set it up later on the Profile page.",
       "save_failed": "Your profile could not be saved. Please try again.",
       "dismiss_failed": "Your choice could not be saved. Please try again."
@@ -1610,7 +1685,7 @@
         "empty": "There are no documents yet. Create or import a .hightex file on Documents, then reopen this guide.",
         "document": {
           "title": "Start with the document you need",
-          "description": "Choose the document to prepare forms for. Its title and author details follow your selection."
+          "description": "Choose the document for its title and academic data in the preview. Identity follows the active profile, and additional input is already shared."
         },
         "stage": {
           "title": "Choose proposal or defense",
@@ -1621,8 +1696,8 @@
           "description": "Check the forms to include in the ZIP. Click a title to preview it without changing its checkbox."
         },
         "data": {
-          "title": "Fill in only the missing details",
-          "description": "Expand administration details to fill in additional fields. Author and lecturer details follow the document profile; edit that profile in the editor if needed."
+          "title": "Review all data in one panel",
+          "description": "Choose Proposal or Defense, then review its data in one panel. Open the summary to jump to empty or invalid fields. Choosing a form only changes the preview."
         },
         "preview": {
           "title": "Check the result before printing",
@@ -1635,8 +1710,8 @@
         "select_first": "Choose a document to continue. If you have no documents, close this guide and create or import one first."
       },
       "lecturers": {
-        "name": "Choose lecturers and save a default profile",
-        "summary": "Manage a local lecturer list, choose advisors and examiners, and save your default profile.",
+        "name": "Manage the workspace author profile",
+        "summary": "Manage a local lecturer list and save the author profile shared by documents in this workspace.",
         "advisors": {
           "title": "Choose advisors from the directory",
           "description": "Search your saved lecturers by name or staff number. Choose Add lecturer if someone is missing. Add a second advisor if needed."
@@ -1646,12 +1721,12 @@
           "description": "Expand this section to choose the chair and both examiners. Their names and staff numbers are saved with the profile."
         },
         "save": {
-          "title": "Save defaults for later use",
-          "description": "Save your defaults for later use. Existing documents keep their own profiles; use local defaults in the editor to review and apply changes."
+          "title": "Save the workspace profile",
+          "description": "Save the author profile once. Documents and exports in this workspace use these saved details."
         },
         "identity": {
-          "title": "Enter your default author details",
-          "description": "Enter your name and student number to reuse in documents. This profile is stored locally on your device."
+          "title": "Enter your author details",
+          "description": "Enter the author details used by documents in this Local workspace. The profile is stored on this device."
         },
         "manage": {
           "title": "Manage lecturers on your device",
@@ -1659,20 +1734,24 @@
         }
       },
       "documentProfile": {
-        "name": "Author and lecturer details per document",
-        "summary": "Set the author, advisors, chair, and examiners for this document independently of other documents.",
+        "name": "Workspace author profile",
+        "summary": "Every document uses the active workspace author profile. Make profile changes on the Profile page.",
+        "source": {
+          "title": "Profile details come from this workspace",
+          "description": "This document shows the active workspace profile. Use Edit in Profile to change author details, CV, photo, advisors, or committee."
+        },
         "profile": {
-          "title": "Each document keeps its own profile",
-          "description": "Author and lecturer details here supply this document and its forms. Internship advisors remain manual."
+          "title": "Author details are read-only here",
+          "description": "All author and lecturer details use the active workspace profile. Internship settings remain part of the document."
         },
         "defaults": {
-          "title": "Copy defaults when you need them",
-          "description": "Use local defaults lets you review and select changes before applying them. Empty defaults never clear existing details automatically."
+          "title": "Profile changes are shared",
+          "description": "Edit the workspace profile once and its values apply to documents and exports in this workspace."
         },
-        "locked": "This document uses cloud academic data for author details and lecturer assignments. Use local defaults is unavailable while those fields are locked. Update them through the server data source.",
+        "locked": "Author profile fields are read-only in the editor. Edit them on the Profile page.",
         "save": {
-          "title": "Save the document profile changes",
-          "description": "Profile changes first enter the settings draft. Use Save to apply them to this document."
+          "title": "Save document settings",
+          "description": "Document settings such as title, category, and dates are saved here. Profile changes are saved on the Profile page."
         }
       }
     },
@@ -1680,11 +1759,11 @@
       "documents": {
         "create": {
           "title": "Create a document from a category",
-          "description": "Choose Create document, select a category and enter a title. The category determines the chapter structure. Your local profile is copied into the new document and can be edited separately."
+          "description": "Choose Create document, select a category and enter a title. The category determines the chapter structure. The document uses the active workspace profile."
         },
         "import": {
           "title": "Import an existing archive",
-          "description": "Use Import to select a .hightex file containing chapters, the document profile, references and assets. If its document ID already exists, the import dialog lets you choose how to handle the conflict."
+          "description": "Use Import to select a .hightex file containing chapters, references and assets. Imported documents use the active workspace profile. If its document ID already exists, choose how to handle the conflict."
         },
         "open": {
           "title": "Continue writing",
@@ -1767,7 +1846,7 @@
         },
         "settings": {
           "title": "Details for this document",
-          "description": "The Settings tab contains details and the profile of the open document. Review changes and save them from this panel. Changing your local profile does not automatically replace profiles in existing documents."
+          "description": "The Settings tab contains document details. Author profile fields are read-only here; change them on the Profile page."
         }
       },
       "requires_document": "This step needs a document. Close the tour, create or import a document, then reopen the guide from Help.",

@@ -41,11 +41,13 @@ declare global {
   }
 
   interface ProfileAPI {
-    get: () => Promise<Profile>;
+    cachedCloud(): Promise<Pick<Profile, "name" | "nim" | "cv"> | null>;
+    get: () => Promise<DocumentProfile>;
     set: (profile: Partial<Profile>) => Promise<Profile>;
     reset: () => Promise<void>;
     picture: () => Promise<Uint8Array | false>;
-    setPicture: (blob: Uint8Array) => Promise<any>;
+    setPicture: (blob: Uint8Array | null) => Promise<void>;
+    onChange?: (callback: () => void) => () => void;
   }
   type ConfigShape = {
     language: SupportedLanguage;
@@ -127,6 +129,11 @@ declare global {
     detail: Record<number, { start: number; end: number }>;
   };
   interface Window {
+    application: {
+      setProfileDraftBusy(busy: boolean): Promise<void>;
+      readonly editorDocumentId: string | null;
+      onNavigate(callback: (route: string) => void): () => void;
+    };
     workspaces: WorkspaceAPI;
     account: AccountAPI;
     snapshotPrint: SnapshotPrintAPI;
@@ -329,6 +336,7 @@ declare global {
       snapshot?: EditorArchiveSnapshot,
     ): void;
     open(documentId: string, file?: string): Promise<void>;
+    openProfile(): Promise<void>;
     has(documentId: string): Promise<boolean>;
     flush(documentId: string): Promise<void>;
     save(buffer: Uint8Array, fileName: string): Promise<string | undefined>;

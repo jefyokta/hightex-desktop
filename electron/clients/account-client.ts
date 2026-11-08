@@ -8,6 +8,8 @@ interface AccountTransport {
   ): Promise<{ ok: boolean; status: number; data: unknown }>;
   image(url: string): Promise<{ ok: boolean; type: string; bytes: Uint8Array }>;
   accept(user: User): Promise<void>;
+  cache?(profile: AccountProfileData): void;
+  cachePicture?(session: ReviewSession, picture: Uint8Array | null): void;
   open(url: string): Promise<void>;
 }
 class AccountError extends Error {
@@ -126,9 +128,12 @@ export class AccountClient {
       const response = await this.transport.request("/me");
       this.context(session.sessionId);
       this.check(response);
-      const { profile } = this.parse(response.data, session);
+      const { profile, user } = this.parse(response.data, session);
+      await this.transport.accept(user);
+      this.context(session.sessionId);
       this.cache.clear();
       this.cache.set(session.sessionId, profile);
+      this.transport.cache?.(profile);
       return profile;
     });
   }
@@ -180,6 +185,7 @@ export class AccountClient {
         this.context(session.sessionId);
         this.cache.clear();
         this.cache.set(session.sessionId, profile);
+        this.transport.cache?.(profile);
         return profile;
       } finally {
         this.writing = false;
@@ -193,7 +199,10 @@ export class AccountClient {
       const session = this.context(sessionId);
       const cached = this.cache.get(sessionId);
       if (!cached) throw new AccountError("invalid_response");
-      if (!cached.picturePath) return null;
+      if (!cached.picturePath) {
+        this.transport.cachePicture?.(session, null);
+        return null;
+      }
       const url = new ServerUrl(session.serverUrl).endpoint(
         `${cached.picturePath}`,
       );
@@ -205,6 +214,7 @@ export class AccountClient {
         response.bytes.length > 2 * 1024 * 1024
       )
         throw new AccountError("invalid_image");
+      this.transport.cachePicture?.(session, response.bytes);
       return { bytes: response.bytes, type: response.type };
     });
   }

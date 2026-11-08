@@ -8,10 +8,10 @@ import { ActionCanceled } from "@/exception/action-canceled";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { sortAliases } from "@/utils/sort-aliases";
 import {
-  emptyAuthorProfile,
-  getAuthorDetails,
   getProfileVariables,
   isProfileVariable,
+  getWorkspaceAuthorProfile,
+  resolveAuthorProfile,
 } from "@/utils/document-profile";
 import {
   withCloudAcademicSource,
@@ -30,7 +30,10 @@ export class HighTexDB extends Dexie {
 
   private static instance?: HighTexDB;
 
-  constructor(name = "HighTexDB") {
+  constructor(
+    name = "HighTexDB",
+    private readonly workspaceIdentity = true,
+  ) {
     super(name);
 
     this.version(1).stores({
@@ -104,24 +107,16 @@ export class HighTexDB extends Dexie {
       .delete();
   }
 
-  async updateDocument(
-    document: HighTexDocument,
-    authorDetails?: Omit<Profile, "cv">,
-  ) {
+  async updateDocument(document: HighTexDocument) {
     const updated = await this.transaction("rw", this.documents, async () => {
       const current = await this.documents.get(document.id);
       const profile = current ? current.profile : document.profile;
       const next = migrateDocumentCommittee(
         preserveCloudAcademic(current, {
           ...document,
-          // Metadata changes must not overwrite a profile edited elsewhere.
-          profile: authorDetails
-            ? {
-                ...emptyAuthorProfile(),
-                ...profile,
-                ...getAuthorDetails(authorDetails),
-              }
-            : profile,
+          // Author identity is always resolved from the active workspace.
+          profile,
+          authorProfileMode: "workspace",
           updatedAt: new Date(),
         }),
       );
@@ -132,24 +127,6 @@ export class HighTexDB extends Dexie {
     return updated;
   }
 
-  async updateProfile(documentId: string, patch: Partial<AuthorProfile>) {
-    const updated = await this.transaction("rw", this.documents, async () => {
-      const document = await this.documents.get(documentId);
-      if (!document) throw new Error("Document not found");
-
-      const next = migrateDocumentCommittee(
-        preserveCloudAcademic(document, {
-          ...document,
-          profile: { ...emptyAuthorProfile(), ...document.profile, ...patch },
-          updatedAt: new Date(),
-        }),
-      );
-      await this.documents.put(next);
-      return next;
-    });
-    Manager.app.dispatch("document:updated", { document: updated });
-    return updated;
-  }
   async cacheCloudAcademic(documentId: string, data: CloudAcademicData) {
     if (!data.serverDocumentId) throw new CloudError("cloud_changed");
     const updated = await this.transaction("rw", this.documents, async () => {
@@ -284,24 +261,38 @@ export class HighTexDB extends Dexie {
       this.documentVariables.where("documentId").equals(documentId).toArray(),
       this.documents.get(documentId),
     ]);
+    const profile = document
+      ? resolveAuthorProfile(
+          document,
+          this.workspaceIdentity
+            ? await getWorkspaceAuthorProfile()
+            : undefined,
+        )
+      : undefined;
     return [
       ...variables.filter((variable) => !isProfileVariable(variable.name)),
-      ...Object.entries(getProfileVariables(document?.profile)).map(
-        ([name, value]) => ({
-          documentId,
-          name,
-          value,
-        }),
-      ),
+      ...Object.entries(getProfileVariables(profile)).map(([name, value]) => ({
+        documentId,
+        name,
+        value,
+      })),
     ];
   }
 
   async getVar(name: string, documentId = "global") {
     if (isProfileVariable(name)) {
       const document = await this.documents.get(documentId);
-      const values = getProfileVariables(document?.profile);
+      const profile = document
+        ? resolveAuthorProfile(
+            document,
+            this.workspaceIdentity
+              ? await getWorkspaceAuthorProfile()
+              : undefined,
+          )
+        : undefined;
+      const values = getProfileVariables(profile);
       return name === "cv"
-        ? (document?.profile?.cv ?? "")
+        ? (profile?.cv ?? "")
         : (values[name as keyof typeof values] ?? "");
     }
     const local = await this.documentVariables.get([documentId, name]);

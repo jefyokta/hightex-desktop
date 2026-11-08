@@ -51,6 +51,7 @@ declare global {
     name: LocaleKey;
     summary: LocaleKey;
     scope: GuideScope;
+    workspaceType?: "local" | "cloud";
     steps: GuideStep[];
   }
 

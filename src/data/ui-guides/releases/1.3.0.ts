@@ -8,11 +8,26 @@ export default {
     {
       id: "form-generation",
       welcomeOrder: 1,
-      revision: 1,
+      revision: 2,
       name: "guide.release130.forms.name",
       summary: "guide.release130.forms.summary",
       scope: "workspace",
       steps: [
+        {
+          id: "forms-stage",
+          title: "guide.release130.forms.stage.title",
+          description: "guide.release130.forms.stage.description",
+          selectors: ['[data-tour="forms-stage"]', ...formsFallback],
+          fallbackDescription: "guide.release130.forms.empty",
+          route: formsRoute,
+        },
+        {
+          id: "forms-data",
+          title: "guide.release130.forms.data.title",
+          description: "guide.release130.forms.data.description",
+          selectors: ['[data-tour="forms-inputs"]', ...formsFallback],
+          route: formsRoute,
+        },
         {
           id: "forms-document",
           title: "guide.release130.forms.document.title",
@@ -24,26 +39,10 @@ export default {
           waitingDescription: "guide.release130.forms.select_first",
         },
         {
-          id: "forms-stage",
-          title: "guide.release130.forms.stage.title",
-          description: "guide.release130.forms.stage.description",
-          selectors: ['[data-tour="forms-stage"]', ...formsFallback],
-          fallbackDescription: "guide.release130.forms.empty",
-          route: formsRoute,
-        },
-        {
           id: "forms-selection",
           title: "guide.release130.forms.selection.title",
           description: "guide.release130.forms.selection.description",
           selectors: ['[data-tour="forms-selection"]', ...formsFallback],
-          fallbackDescription: "guide.release130.forms.empty",
-          route: formsRoute,
-        },
-        {
-          id: "forms-data",
-          title: "guide.release130.forms.data.title",
-          description: "guide.release130.forms.data.description",
-          selectors: ['[data-tour="forms-inputs"]', ...formsFallback],
           fallbackDescription: "guide.release130.forms.empty",
           route: formsRoute,
         },
@@ -68,10 +67,11 @@ export default {
     {
       id: "lecturer-directory",
       welcomeOrder: 0,
-      revision: 3,
+      revision: 4,
       name: "guide.release130.lecturers.name",
       summary: "guide.release130.lecturers.summary",
       scope: "workspace",
+      workspaceType: "local",
       steps: [
         {
           id: "profile-identity",
@@ -115,7 +115,7 @@ export default {
     },
     {
       id: "document-author-profile",
-      revision: 1,
+      revision: 3,
       name: "guide.release130.documentProfile.name",
       summary: "guide.release130.documentProfile.summary",
       scope: "editor",
@@ -130,14 +130,10 @@ export default {
           editor: { sidebar: "setting" },
         },
         {
-          id: "document-profile-default",
-          title: "guide.release130.documentProfile.defaults.title",
-          description: "guide.release130.documentProfile.defaults.description",
-          selectors: [
-            '[data-tour="document-profile-default"]',
-            '[data-tour="document-profile"] [data-slot="card-header"]',
-          ],
-          fallbackDescription: "guide.release130.documentProfile.locked",
+          id: "document-profile-source",
+          title: "guide.release130.documentProfile.source.title",
+          description: "guide.release130.documentProfile.source.description",
+          selectors: ['[data-tour="document-profile-source"]'],
           editor: { sidebar: "setting" },
         },
         {

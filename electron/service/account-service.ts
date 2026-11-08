@@ -5,6 +5,8 @@ import { submissionService } from "./submission-service";
 import { SessionService } from "./session-service";
 import { ServerUrl } from "../url/server-url";
 import { SessionHandler } from "../handlers/session-handlers";
+import { ProfileService } from "./profile-service";
+import { WorkspaceRuntime } from "../workspaces/runtime";
 export const accountService = new AccountClient({
   open: (url) => shell.openExternal(url),
   context: () => submissionService.context(),
@@ -41,5 +43,27 @@ export const accountService = new AccountClient({
   accept: async (user) => {
     SessionService.setUser(user);
     await SessionHandler.broadcastSession();
+  },
+  cache: (profile) => {
+    const workspace = WorkspaceRuntime.profile;
+    if (
+      workspace?.type === "cloud" &&
+      workspace.accountId === profile.session.accountId
+    )
+      ProfileService.setCloudProfile({
+        name: profile.name,
+        nim: profile.nim ?? "",
+        cv: profile.cv ?? "",
+      });
+  },
+  cachePicture: (session, picture) => {
+    const workspace = WorkspaceRuntime.profile;
+    if (
+      workspace?.type !== "cloud" ||
+      workspace.accountId !== session.accountId
+    )
+      return;
+    if (picture) ProfileService.setProfilePicture(picture);
+    else ProfileService.clearProfilePicture();
   },
 });

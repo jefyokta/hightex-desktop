@@ -15,6 +15,8 @@ function fixture(
   const windows: FakeWindow[] = [];
   let inspections = 0;
   let updateChecks = 0;
+  let dialogResponse = 0;
+  const dialogs: unknown[] = [];
   class FakeWindow extends EventEmitter {
     loaded = "";
     devToolsOpened = 0;
@@ -37,6 +39,12 @@ function fixture(
   }
   const modules: Record<string, unknown> = {
     electron: {
+      dialog: {
+        showMessageBoxSync: (_window: unknown, options: unknown) => {
+          dialogs.push(options);
+          return dialogResponse;
+        },
+      },
       app: { isPackaged, getAppPath: () => "/fixture" },
       BrowserWindow: FakeWindow,
       Menu: class {
@@ -59,6 +67,13 @@ function fixture(
     fs: { existsSync: (file: string) => file.endsWith("index.mjs") },
     "node:path": path,
     "node:url": { fileURLToPath },
+    "../service/config-service": { ConfigService: { getKey: () => "en" } },
+    "../../src/locales/en.json": JSON.parse(
+      readFileSync(new URL("../src/locales/en.json", import.meta.url), "utf8"),
+    ),
+    "../../src/locales/id.json": JSON.parse(
+      readFileSync(new URL("../src/locales/id.json", import.meta.url), "utf8"),
+    ),
   };
   const process = {
     env: { APP_ENV: appEnv, VITE_DEV_SERVER_URL: rendererUrl },
@@ -114,8 +129,33 @@ function fixture(
     updateChecks: () => updateChecks,
     load,
     modules,
+    dialogs,
+    respondToDialog: (response: number) => {
+      dialogResponse = response;
+    },
   };
 }
+
+test("native profile close keeps unsaved drafts unless discarded and refuses to leave during a pending save", async () => {
+  const f = fixture(true);
+  await f.internal.createWindow();
+  let unloaded = 0;
+  const attempt = () =>
+    f.windows[0].webContents.emit("will-prevent-unload", {
+      preventDefault: () => {
+        unloaded++;
+      },
+    });
+  attempt();
+  expect(unloaded).toBe(0);
+  f.respondToDialog(1);
+  attempt();
+  expect(unloaded).toBe(1);
+  f.application.profileDraftBusy = true;
+  attempt();
+  expect(unloaded).toBe(1);
+  expect(f.dialogs).toHaveLength(3);
+});
 
 test.each([
   { packaged: false, env: undefined, dev: true },
@@ -135,7 +175,7 @@ test.each([
     expect(window.options.webPreferences.devTools).toBe(dev);
     expect(window.devToolsOpened).toBe(dev ? 1 : 0);
     expect(window.loaded).toBe(
-      dev ? "http://localhost:5173/" : "hightex://renderer",
+      dev ? "http://localhost:5173/" : "hightex://renderer/",
     );
     expect(f.application.resolveRendererUrl("document/doc")).toBe(
       dev
@@ -168,7 +208,7 @@ test("development without Vite uses built renderer files while retaining develop
   const f = fixture(false, "development", "");
   await f.internal.createWindow();
   expect(f.Application.isDev).toBe(true);
-  expect(f.windows[0].loaded).toBe("hightex://renderer");
+  expect(f.windows[0].loaded).toBe("hightex://renderer/");
   expect(f.windows[0].devToolsOpened).toBe(1);
   expect(f.application.resolveRendererUrl("document/doc")).toBe(
     "hightex://renderer/document/doc",

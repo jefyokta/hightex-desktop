@@ -104,6 +104,7 @@ export const Dashboard = () => {
         validityDate: new Date(),
         statementDate: new Date(),
       },
+      authorProfileMode: "workspace",
     };
     await db.documents.put(doc);
     Manager.app.dispatch("document:updated", { document: doc });

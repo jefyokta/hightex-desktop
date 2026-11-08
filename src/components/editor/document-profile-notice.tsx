@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Info } from "lucide-react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Manager } from "@/editor/manager";
-import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { t } from "@/utils/lang";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Button } from "../ui/button";
+import { resolveWorkspaceDocumentProfile } from "@/utils/document-profile";
+import { openProfileInMainWindow } from "@/utils/open-profile-in-main-window";
 
 export const DocumentProfileNotice = ({
   documentId,
@@ -14,19 +15,19 @@ export const DocumentProfileNotice = ({
 }) => {
   const [missing, setMissing] = useState(false);
   const [cloud, setCloud] = useState(false);
-  const { setContent, setOpen } = useExpandableSidebar();
 
   useEffect(() => {
     let mounted = true;
-    const update = (document?: HighTexDocument) => {
-      if (mounted) {
-        setCloud(Boolean(document?.cloudAcademic));
-        setMissing(
-          !document?.profile?.name.trim() || !document.profile.nim.trim(),
-        );
-      }
+    const update = async (document?: HighTexDocument) => {
+      const current =
+        document ?? (await HighTexDB.getInstance().documents.get(documentId));
+      if (!current || !mounted) return;
+      const profile = await resolveWorkspaceDocumentProfile(current);
+      if (!mounted) return;
+      setCloud(Boolean(current.cloudAcademic));
+      setMissing(!profile.name.trim() || !profile.nim.trim());
     };
-    void HighTexDB.getInstance().documents.get(documentId).then(update);
+    void update();
     const off = Manager.app.on("document:updated", ({ document }) => {
       if (document.id === documentId) update(document);
     });
@@ -53,10 +54,7 @@ export const DocumentProfileNotice = ({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => {
-            setContent("setting");
-            setOpen(true);
-          }}
+          onClick={() => void openProfileInMainWindow()}
         >
           {t("document_profile.open_settings")}
         </Button>

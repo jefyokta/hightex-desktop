@@ -96,6 +96,14 @@ let loads = 0;
 const fakeWindow = () =>
   Object.assign(new EventTarget(), {
     config: { get: () => ({ language: "en" }) },
+    profile: {
+      get: async () => ({
+        ...academic().author,
+        cv: "<p>Local CV</p>",
+        isCloud: true,
+      }),
+      picture: async () => new Uint8Array([1, 2]),
+    },
     hightex: {
       categories: async () => [{ id: 1, variant: "thesis", chapters: [] }],
       cloud: {
@@ -232,7 +240,7 @@ test("legacy cloud cache is normalized into profile and cannot reintroduce commi
     member_2: "",
   });
   await db.cacheCloudAcademic("local-doc", old);
-  const saved = await db.updateProfile("local-doc", { cv: "Updated CV" });
+  const saved = await db.updateDocument((await db.documents.get("local-doc"))!);
   expect(saved.profile?.committee).toEqual({
     chair: { name: "Legacy Chair", nip: "" },
     examiner1: { name: "Legacy Examiner", nip: "" },
@@ -383,46 +391,51 @@ test("late account switch or foreign document cannot supply another author's dat
   ).rejects.toMatchObject({ code: "cloud_changed" });
 });
 
-test("cloud fields survive stale settings/profile writes while title, CV/photo and dates remain editable", async () => {
+test("cloud assignments and stored CV/photo survive stale settings and attempted profile overrides", async () => {
   const stale = (await db.documents.get("local-doc"))!;
   await db.cacheCloudAcademic("local-doc", academic());
   const editedDate = new Date("2026-11-01T00:00:00Z");
-  const result = await db.updateDocument(
-    {
-      ...stale,
-      title: "Edited title",
-      config: { ...stale.config, validityDate: editedDate },
-    },
-    stale.profile,
-  );
+  const result = await db.updateDocument({
+    ...stale,
+    title: "Edited title",
+    config: { ...stale.config, validityDate: editedDate },
+  });
   expect(result.title).toBe("Edited title");
   expect(result.config.validityDate).toEqual(editedDate);
   expect(result.profile?.name).toBe(academic().author.name);
   expect(result.profile?.committee?.chair?.name).toBe("Chair");
   expect(result.config).not.toHaveProperty("leader");
   const picture = new Blob([new Uint8Array([3, 4])], { type: "image/webp" });
-  const profile = await db.updateProfile("local-doc", {
-    name: "Attempted edit",
-    advisorName: "Wrong advisor",
-    cv: "<p>Edited CV</p>",
-    picture,
+  const profile = await db.updateDocument({
+    ...result,
+    profile: {
+      ...result.profile!,
+      name: "Attempted edit",
+      advisorName: "Wrong advisor",
+      cv: "<p>Edited CV</p>",
+      picture,
+    },
   });
   expect(profile.profile).toMatchObject({
     name: academic().author.name,
     advisorName: academic().author.advisorName,
-    cv: "<p>Edited CV</p>",
+    cv: result.profile!.cv,
   });
-  expect(new Uint8Array(await profile.profile!.picture!.arrayBuffer())).toEqual(
-    new Uint8Array([3, 4]),
+  expect(await profile.profile?.picture?.arrayBuffer()).toEqual(
+    await result.profile?.picture?.arrayBuffer(),
   );
 });
 
-test("local documents stay editable and cloud cache rejects a different owner or server", async () => {
+test("local document metadata remains editable without author overrides and cloud cache rejects a different owner or server", async () => {
   await db.documents.put(document("local-only"));
-  const local = await db.updateProfile("local-only", {
-    name: "Editable author",
+  const original = (await db.documents.get("local-only"))!;
+  const local = await db.updateDocument({
+    ...original,
+    title: "Edited title",
+    profile: { ...original.profile!, name: "Attempted author" },
   });
-  expect(local.profile?.name).toBe("Editable author");
+  expect(local.title).toBe("Edited title");
+  expect(local.profile?.name).toBe(original.profile!.name);
   await db.cacheCloudAcademic("local-doc", academic());
   for (const session of [
     { ...context, accountId: "99" },

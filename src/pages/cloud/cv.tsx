@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LoaderCircle, RefreshCw, Save } from "lucide-react";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { LoginGate } from "@/components/login-gate";
-import { Paper } from "@/components/paper";
+import { ProfileCVPage } from "@/components/profile-cv-page";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useOnline } from "@/hooks/use-online";
 import { useUser } from "@/hooks/use-user";
@@ -10,42 +16,86 @@ import { confirm } from "@/utils/confirm";
 import { t } from "@/utils/lang";
 import { sanitizeCvHtml } from "@/utils/sanitize-cv-html";
 import { toWebPBlob } from "@/utils/images-to-webp";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 type AccountError = Extract<AccountResult<never>, { ok: false }>;
 type IsCurrent = () => boolean;
 
-export const CloudCVEditor = () => {
-    const { user } = useUser();
-    if (!user) return <LoginGate />;
-    return <CloudCVForm key={user.id} />;
+type DraftCallbacks = {
+    onDirtyChange?: (dirty: boolean) => void;
+    onBusyChange?: (busy: boolean) => void;
+};
+export const CloudCVEditor = (callbacks: DraftCallbacks = {}) => {
+    const { state } = useWorkspaces();
+    const local =
+        !state ||
+        state.profiles.find((profile) => profile.id === state.activeId)
+            ?.type === "local";
+    if (local) return null;
+    return <CloudCVForm key={state?.activeId} {...callbacks} />;
 };
 
-const CloudCVForm = () => {
+const CloudCVForm = ({ onDirtyChange, onBusyChange }: DraftCallbacks) => {
+    const { user } = useUser();
+    const userId = user ? String(user.id) : undefined;
     const online = useOnline();
+    const [cached, setCached] = useState<Pick<
+        Profile,
+        "name" | "nim" | "cv"
+    > | null>();
+    const [cachedPicture, setCachedPicture] = useState<Blob>();
+    const [cacheFailed, setCacheFailed] = useState(false);
     const [data, setData] = useState<AccountProfileData>();
     const [cv, setCv] = useState("");
     const [photo, setPhoto] = useState<File>();
     const [serverPhoto, setServerPhoto] = useState<Blob>();
-    const [photoUrl, setPhotoUrl] = useState("");
     const [busy, setBusy] = useState(true);
     const [error, setError] = useState<AccountError["error"]>();
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>(
+        {},
+    );
     const [notice, setNotice] = useState<string>();
     const [reloadError, setReloadError] = useState<AccountError["error"]>();
-    const contentRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
     const operation = useRef(false);
     const revision = useRef(0);
-    const dirty = Boolean(photo) || cv !== (data?.cv ?? "");
-    const editable = Boolean(data) && !busy && !reloadError;
+    const dirty = Boolean(photo) || Boolean(data && cv !== (data.cv ?? ""));
+    const draftDirty = useRef(dirty);
+    draftDirty.current = dirty;
+    const editable =
+        Boolean(data && userId && data.session.accountId === userId) &&
+        online &&
+        !busy &&
+        !reloadError;
     const displayedError = error ?? reloadError;
+    useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange]);
+    useEffect(() => onBusyChange?.(busy && dirty), [busy, dirty, onBusyChange]);
+
+    const loadCache = useCallback(async (current: IsCurrent) => {
+        try {
+            const [profile, bytes] = await Promise.all([
+                window.profile.cachedCloud(),
+                window.profile.picture(),
+            ]);
+            if (!current()) return;
+            setCached(
+                profile ? { ...profile, cv: sanitizeCvHtml(profile.cv) } : null,
+            );
+            setCachedPicture(
+                bytes
+                    ? new Blob([bytes.slice().buffer], { type: "image/webp" })
+                    : undefined,
+            );
+            setCacheFailed(false);
+        } catch {
+            if (current()) setCacheFailed(true);
+        }
+    }, []);
 
     const accept = useCallback((profile: AccountProfileData) => {
         const html = sanitizeCvHtml(profile.cv ?? "");
         setData({ ...profile, cv: html });
         setCv(html);
         setPhoto(undefined);
-        if (contentRef.current) contentRef.current.innerHTML = html;
     }, []);
 
     const showError = useCallback((response: AccountError) => {
@@ -95,8 +145,8 @@ const CloudCVForm = () => {
             setServerPhoto(
                 response.data
                     ? new Blob([response.data.bytes.slice().buffer], {
-                        type: response.data.type,
-                    })
+                          type: response.data.type,
+                      })
                     : undefined,
             );
         },
@@ -104,14 +154,19 @@ const CloudCVForm = () => {
     );
 
     const load = useCallback(
-        async (current: IsCurrent) => {
+        async (current: IsCurrent, preserveDraft = false) => {
             const response = await window.account.load();
             if (!current()) return;
             if (!response.ok) {
                 showError(response);
                 return;
             }
-            accept(response.data);
+            if (preserveDraft)
+                setData({
+                    ...response.data,
+                    cv: sanitizeCvHtml(response.data.cv ?? ""),
+                });
+            else accept(response.data);
             setReloadError(undefined);
             setServerPhoto(undefined);
             await loadPicture(response.data.session.sessionId, current);
@@ -120,34 +175,35 @@ const CloudCVForm = () => {
     );
 
     useEffect(() => {
-        if (navigator.onLine) void run(load);
-        else setBusy(false);
+        let alive = true;
+        void loadCache(() => alive);
+        return () => {
+            alive = false;
+        };
+    }, [loadCache]);
+
+    useEffect(() => {
+        if (online && userId)
+            void run((current) => load(current, draftDirty.current));
+        else if (!operation.current) setBusy(false);
+    }, [online, userId, run, load]);
+
+    useEffect(() => {
         return () => {
             revision.current += 1;
             operation.current = false;
         };
-    }, [load, run]);
-
-    useEffect(() => {
-        const image = photo ?? serverPhoto;
-        if (!image) {
-            setPhotoUrl("");
-            return;
-        }
-        const url = URL.createObjectURL(image);
-        setPhotoUrl(url);
-        return () => URL.revokeObjectURL(url);
-    }, [photo, serverPhoto]);
+    }, []);
 
     const save = () =>
         run(async (current) => {
-            if (!data || !dirty || !online || reloadError) return;
+            if (!data || !userId || !dirty || !online || reloadError) return;
             const image = photo
                 ? {
-                    bytes: new Uint8Array(await photo.arrayBuffer()),
-                    type: photo.type,
-                    name: photo.name,
-                }
+                      bytes: new Uint8Array(await photo.arrayBuffer()),
+                      type: photo.type,
+                      name: photo.name,
+                  }
                 : undefined;
             if (!current()) return;
             const response = await window.account.update({
@@ -167,192 +223,203 @@ const CloudCVForm = () => {
         });
 
     return (
-        <>
-            <PageHeader
-                title={t("cloud_cv.title")}
-                description={t("cloud_cv.description")}
-                actions={
-                    <>
-                        <Button
-                            variant="outline"
-                            disabled={busy || !online}
-                            onClick={() =>
-                                void run(async (current) => {
-                                    if (
-                                        dirty &&
-                                        !(await confirm({
-                                            title: t("account_profile.reload_confirm"),
-                                        }))
-                                    )
-                                        return;
-                                    if (current()) await load(current);
-                                })
-                            }
-                        >
-                            <RefreshCw className="size-4" />
-                            {t("submission_review.refresh")}
-                        </Button>
-                        <Button
-                            disabled={!editable || !online || !dirty}
-                            onClick={() => void save()}
-                        >
-                            {busy ? (
-                                <LoaderCircle className="size-4 animate-spin" />
-                            ) : (
-                                <Save className="size-4" />
-                            )}
-                            {t("account_profile.save")}
-                        </Button>
-                    </>
-                }
-            />
-            <div className="space-y-2 text-sm">
-                {!online && <p role="status">{t("cloud_cv.offline")}</p>}
-                {busy && <p role="status">{t("account_profile.loading")}</p>}
-                {displayedError && (
-                    <p role="alert" className="text-destructive">
-                        {displayedError === "invalid_image"
-                            ? t("cloud_cv.invalid_image")
-                            : t(`account_profile.errors.${displayedError}`)}
-                    </p>
-                )}
-                {Object.entries(fieldErrors).flatMap(([field, messages]) =>
-                    messages.map((message, index) => (
-                        <p
-                            key={`${field}-${index}`}
-                            role="alert"
-                            className="text-destructive"
-                        >
-                            {message}
-                        </p>
-                    )),
-                )}
-                {notice && <p role="status">{notice}</p>}
-                {data && (
-                    <p className="text-muted-foreground">
-                        {data.name} · {data.email}
-                    </p>
-                )}
-                <p id="cloud-cv-hint" className="text-muted-foreground">
-                    {t("cloud_cv.hint")} {t("cloud_cv.picture_hint")}
-                </p>
-                {photo && (
+        <Card>
+            <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4">
+                <div className="space-y-1.5">
+                    <CardTitle>{t("cloud_cv.title")}</CardTitle>
+                    <CardDescription>
+                        {t("cloud_cv.description")}
+                    </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
                     <Button
-                        variant="ghost"
-                        size="sm"
+                        variant="outline"
                         disabled={busy}
-                        onClick={() => setPhoto(undefined)}
-                    >
-                        {t("account_profile.cancel_picture")}
-                    </Button>
-                )}
-            </div>
-            <div className="overflow-x-auto pb-4">
-                <Paper strictHeight className="text-justify" aria-busy={busy}>
-                    <h2
-                        id="cloud-cv-label"
-                        className="mb-[16pt] text-center text-[14pt] font-bold"
-                    >
-                        DAFTAR RIWAYAT HIDUP
-                    </h2>
-                    <input
-                        ref={inputRef}
-                        type="file"
-                        accept="image/*"
-                        aria-label={t("account_profile.picture")}
-                        className="hidden"
-                        disabled={!editable}
-                        onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            event.target.value = "";
-                            if (!file || !editable) return;
+                        onClick={() =>
                             void run(async (current) => {
-                                try {
-                                    const maxBytes = 2 * 1024 * 1024;
-                                    const image = await toWebPBlob(file, { maxBytes });
-                                    if (!current()) return;
-                                    if (
-                                        !image.size ||
-                                        image.size > maxBytes ||
-                                        image.type !== "image/webp"
-                                    ) {
-                                        setError("invalid_image");
-                                        return;
-                                    }
-                                    setPhoto(
-                                        new File(
-                                            [image],
-                                            `${file.name.replace(/\.[^/.]+$/, "")}.webp`,
-                                            {
-                                                type: image.type,
-                                                lastModified: file.lastModified,
-                                            },
+                                if (
+                                    dirty &&
+                                    !(await confirm({
+                                        title: t(
+                                            "account_profile.reload_confirm",
                                         ),
-                                    );
-                                } catch {
-                                    if (current()) setError("invalid_image");
+                                    }))
+                                )
+                                    return;
+                                if (current()) {
+                                    await loadCache(current);
+                                    if (online && userId) await load(current);
                                 }
-                            });
-                        }}
-                    />
-                    <button
-                        type="button"
-                        disabled={!editable}
-                        onClick={() => inputRef.current?.click()}
-                        aria-label={t("account_profile.picture")}
-                        aria-describedby="cloud-cv-hint"
-                        style={{ fontFamily: '"Geist Variable", sans-serif' }}
-                        className="float-left mb-[5pt] mr-[10pt] flex h-[4cm] w-[3cm] items-center justify-center border border-dashed text-center text-xs text-muted-foreground transition enabled:cursor-pointer enabled:hover:bg-muted/50 focus-visible:outline focus-visible:outline-2 disabled:opacity-50"
+                            })
+                        }
                     >
-                        {photoUrl ? (
-                            <img
-                                src={photoUrl}
-                                alt={t("account_profile.picture")}
-                                className="h-full w-full object-cover"
-                            />
+                        <RefreshCw className="size-4" />
+                        {t("submission_review.refresh")}
+                    </Button>
+                    <Button
+                        disabled={!editable || !dirty}
+                        onClick={() => void save()}
+                    >
+                        {busy ? (
+                            <LoaderCircle className="size-4 animate-spin" />
                         ) : (
-                            <span>
-                                {t("account_profile.picture")}
-                                <br />
-                                <b>3×4</b>
-                            </span>
+                            <Save className="size-4" />
                         )}
-                    </button>
-                    <div
-                        ref={contentRef}
-                        role="textbox"
-                        aria-labelledby="cloud-cv-label"
-                        aria-describedby="cloud-cv-hint"
-                        aria-readonly={!editable}
-                        aria-invalid={Boolean(fieldErrors.cv?.length)}
-                        contentEditable={editable}
-                        suppressContentEditableWarning
-                        className="min-h-[4cm] outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-                        onInput={(event) => {
-                            setCv(
-                                event.currentTarget.textContent?.trim()
-                                    ? sanitizeCvHtml(event.currentTarget.innerHTML)
-                                    : "",
-                            );
-                            setNotice(undefined);
-                        }}
-                        onKeyDown={(event) => {
-                            if (event.key === "Enter") event.preventDefault();
-                        }}
-                        onPaste={(event) => {
-                            event.preventDefault();
-                            document.execCommand(
-                                "insertText",
-                                false,
-                                event.clipboardData
-                                    .getData("text/plain")
-                                    .replace(/\r?\n/g, " "),
-                            );
-                        }}
-                        onDrop={(event) => event.preventDefault()}
-                    />
-                </Paper>
-            </div>
-        </>
+                        {t("account_profile.save")}
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2 text-sm">
+                    {(!data || !online || !userId || reloadError) && (
+                        <p role="status" className="text-muted-foreground">
+                            {t(
+                                dirty
+                                    ? "profile.draft_retained"
+                                    : "profile.cached",
+                            )}
+                        </p>
+                    )}
+                    {cacheFailed && (
+                        <p role="alert" className="text-destructive">
+                            {t("profile.cache_failed")}
+                        </p>
+                    )}
+                    {!data && cached === null && (
+                        <p role="status">{t("profile.cache_empty")}</p>
+                    )}
+                    {!data && cached && (
+                        <p>
+                            {cached.name} · {cached.nim}
+                        </p>
+                    )}
+                    {online && !userId && <LoginGate compact />}
+                    {busy && (
+                        <p role="status">{t("account_profile.loading")}</p>
+                    )}
+                    {displayedError && (
+                        <p role="alert" className="text-destructive">
+                            {displayedError === "invalid_image"
+                                ? t("cloud_cv.invalid_image")
+                                : t(`account_profile.errors.${displayedError}`)}
+                        </p>
+                    )}
+                    {Object.entries(fieldErrors).flatMap(([field, messages]) =>
+                        messages.map((message, index) => (
+                            <p
+                                key={`${field}-${index}`}
+                                role="alert"
+                                className="text-destructive"
+                            >
+                                {message}
+                            </p>
+                        )),
+                    )}
+                    {notice && <p role="status">{notice}</p>}
+                    {data && (
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="text-muted-foreground">
+                                <p>
+                                    {data.name} · {data.email}
+                                </p>
+                                <p className="mt-1 text-xs">
+                                    {t("account_profile.identity")}:{" "}
+                                    {data.nim ??
+                                        t("account_profile.unavailable")}
+                                    {data.roles.length
+                                        ? ` · ${data.roles.join(", ")}`
+                                        : ` · ${t("account_profile.no_roles")}`}
+                                </p>
+                            </div>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy || !online || !userId}
+                                onClick={() =>
+                                    void run(async (current) => {
+                                        const response =
+                                            await window.account.settings(
+                                                data.session.sessionId,
+                                            );
+                                        if (current() && !response.ok)
+                                            showError(response);
+                                    })
+                                }
+                            >
+                                {t("account_profile.web_settings")}
+                            </Button>
+                        </div>
+                    )}
+                    <p id="cloud-cv-hint" className="text-muted-foreground">
+                        {editable ? (
+                            <>
+                                {t("cloud_cv.hint")}{" "}
+                                {t("cloud_cv.picture_hint")}
+                            </>
+                        ) : (
+                            t("document_profile.cv_description")
+                        )}
+                    </p>
+                    {photo && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={busy}
+                            onClick={() => setPhoto(undefined)}
+                        >
+                            {t("account_profile.cancel_picture")}
+                        </Button>
+                    )}
+                </div>
+                <ProfileCVPage
+                    id="cloud-cv"
+                    value={data ? cv : (cached?.cv ?? "")}
+                    picture={
+                        photo ??
+                        serverPhoto ??
+                        (!data ? cachedPicture : undefined)
+                    }
+                    editable={editable}
+                    busy={busy}
+                    invalid={Boolean(fieldErrors.cv?.length)}
+                    describedBy="cloud-cv-hint"
+                    onChange={(value) => {
+                        setCv(value);
+                        setNotice(undefined);
+                    }}
+                    onPictureChange={(file) => {
+                        void run(async (current) => {
+                            try {
+                                const maxBytes = 2 * 1024 * 1024;
+                                const image = await toWebPBlob(file, {
+                                    maxBytes,
+                                });
+                                if (!current()) return;
+                                if (
+                                    !image.size ||
+                                    image.size > maxBytes ||
+                                    image.type !== "image/webp"
+                                ) {
+                                    setError("invalid_image");
+                                    return;
+                                }
+                                setPhoto(
+                                    new File(
+                                        [image],
+                                        `${file.name.replace(/\.[^/.]+$/, "")}.webp`,
+                                        {
+                                            type: image.type,
+                                            lastModified: file.lastModified,
+                                        },
+                                    ),
+                                );
+                            } catch {
+                                if (current()) setError("invalid_image");
+                            }
+                        });
+                    }}
+                />
+            </CardContent>
+        </Card>
     );
 };

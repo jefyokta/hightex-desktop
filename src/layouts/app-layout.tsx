@@ -16,6 +16,7 @@ import { isMac } from "@/utils/is-mac";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Manager } from "@/editor/manager";
 import { useOnline } from "@/hooks/use-online";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 import { t, useAppLanguage } from "@/utils/lang";
 import "@/css/workspace.css";
 
@@ -24,9 +25,13 @@ export const AppLayout = () => {
   const guide = useUIGuide();
   const { pathname } = useLocation();
   const online = useOnline();
+  const { state: workspaceState, error: workspaceError } = useWorkspaces();
   const [recent, setRecent] = useState<HighTexDocument[]>([]);
   const [navigationOpen, setNavigationOpen] = useState(false);
 
+  const activeWorkspace = workspaceState?.profiles.find(
+    (profile) => profile.id === workspaceState.activeId,
+  );
   useEffect(() => {
     let alive = true;
     let revision = 0;
@@ -57,6 +62,14 @@ export const AppLayout = () => {
       offDeleted();
     };
   }, []);
+
+  if (!workspaceState) {
+    return (
+      <main className="workspace flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        {workspaceError || t("common.loading")}
+      </main>
+    );
+  }
 
   return (
     <div className="workspace flex h-screen flex-col overflow-hidden bg-background text-foreground">
@@ -101,7 +114,12 @@ export const AppLayout = () => {
               ) : (
                 <WifiOff className="size-3" />
               )}
-              {online ? t("workspace.local_workspace") : t("splash.offline")}
+              {online
+                ? activeWorkspace?.type === "cloud" ||
+                  activeWorkspace?.pendingCloudBinding
+                  ? t("workspace.cloud_workspace")
+                  : t("workspace.local_workspace")
+                : t("splash.offline")}
             </span>
           </header>
           <main

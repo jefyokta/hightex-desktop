@@ -7,7 +7,27 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "/",
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+    strictPort: true,
+  },
   plugins: [
+    {
+      name: "hightex-profile-hmr",
+      apply: "serve",
+      configResolved(config) {
+        if (config.server.hmr === false) return;
+        // The renderer's hightex:// origin cannot resolve a WebSocket host.
+        // Use Vite's configured port, including a CLI --port override.
+        config.server.hmr = {
+          ...(typeof config.server.hmr === "object" ? config.server.hmr : {}),
+          protocol: "ws",
+          host: "127.0.0.1",
+          clientPort: config.server.port ?? 5173,
+        };
+      },
+    },
     react(),
 
     electron({

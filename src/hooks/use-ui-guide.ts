@@ -22,12 +22,14 @@ export function useUIGuide(scope: GuideScope = "workspace"): GuideController {
     let alive = true;
     const api = window.hightex.onboarding;
     if (!api) return;
-    void api
-      .status()
-      .then((value) => {
+    void Promise.all([api.status(), window.workspaces.state()])
+      .then(([value, workspaces]) => {
         if (!alive) return;
         setStatus(value);
-        open(guidePlan(value, scope));
+        const workspaceType = workspaces.profiles.find(
+          (profile) => profile.id === workspaces.activeId,
+        )?.type;
+        open(guidePlan(value, scope, false, undefined, workspaceType));
       })
       .catch(() => {
         /* Onboarding must not block writing. */
@@ -66,9 +68,15 @@ export function useUIGuide(scope: GuideScope = "workspace"): GuideController {
   const replay = useCallback(async () => {
     if (saving.current) return;
     try {
-      const value = await window.hightex.onboarding.status();
+      const [value, workspaces] = await Promise.all([
+        window.hightex.onboarding.status(),
+        window.workspaces.state(),
+      ]);
       setStatus(value);
-      open(guidePlan(value, scope, true));
+      const workspaceType = workspaces.profiles.find(
+        (profile) => profile.id === workspaces.activeId,
+      )?.type;
+      open(guidePlan(value, scope, true, undefined, workspaceType));
     } catch {
       toast.error(t("guide.load_failed"));
     }

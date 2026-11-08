@@ -27,12 +27,67 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 
 contextBridge.exposeInMainWorld("workspaces", {
   state: () => ipcRenderer.invoke("workspaces:state"),
-  create: (input: { name: string; serverUrl: string | null }) => ipcRenderer.invoke("workspaces:create", input),
+  onChange(callback: () => void) {
+    const listener = () => callback();
+    ipcRenderer.on("workspaces:changed", listener);
+    return () => ipcRenderer.removeListener("workspaces:changed", listener);
+  },
+  create: (input: { name: string; type: "local" | "cloud" }) =>
+    ipcRenderer.invoke("workspaces:create", input),
+  beginCloudBinding: (id: string) =>
+    ipcRenderer.invoke("workspaces:cloud:begin", id),
+  cancelCloudBinding: (id: string) =>
+    ipcRenderer.invoke("workspaces:cloud:cancel", id),
+  rename: (id: string, name: string) =>
+    ipcRenderer.invoke("workspaces:rename", id, name),
   switch: (id: string) => ipcRenderer.invoke("workspaces:switch", id),
-  migrationPreview: (snapshot: WorkspaceDataSnapshot) => ipcRenderer.invoke("workspaces:migration:preview", snapshot),
-  migrate: (resolutions: Record<string, string>) => ipcRenderer.invoke("workspaces:migration:run", resolutions),
+  migrationPreview: (snapshot: WorkspaceDataSnapshot) =>
+    ipcRenderer.invoke("workspaces:migration:preview", snapshot),
+  migrate: (resolutions: Record<string, string>) =>
+    ipcRenderer.invoke("workspaces:migration:run", resolutions),
   migrationTarget: () => ipcRenderer.invoke("workspaces:migration:target"),
-  migrationVerified: (hash: string) => ipcRenderer.invoke("workspaces:migration:verified", hash),
+  migrationVerified: (hash: string) =>
+    ipcRenderer.invoke("workspaces:migration:verified", hash),
+  onMigrationProgress(
+    callback: (progress: WorkspaceMigrationProgress) => void,
+  ) {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      progress: WorkspaceMigrationProgress,
+    ) => callback(progress);
+    ipcRenderer.on("workspaces:migration:progress", listener);
+    return () =>
+      ipcRenderer.removeListener("workspaces:migration:progress", listener);
+  },
+});
+
+let pendingApplicationRoute: string | undefined;
+const applicationNavigationListeners = new Set<(route: string) => void>();
+ipcRenderer.on("application:navigate", (_event, route: string) => {
+  if (!applicationNavigationListeners.size) pendingApplicationRoute = route;
+  else applicationNavigationListeners.forEach((listener) => listener(route));
+});
+
+contextBridge.exposeInMainWorld("application", {
+  setProfileDraftBusy: (busy: boolean) =>
+    ipcRenderer.invoke("profile:draft-state", busy),
+  editorDocumentId: (() => {
+    const argument = process.argv.find((value) =>
+      value.startsWith("--hightex-editor-document="),
+    );
+    return argument
+      ? decodeURIComponent(argument.slice("--hightex-editor-document=".length))
+      : null;
+  })(),
+  onNavigate(callback: (route: string) => void) {
+    applicationNavigationListeners.add(callback);
+    if (pendingApplicationRoute) {
+      const route = pendingApplicationRoute;
+      pendingApplicationRoute = undefined;
+      callback(route);
+    }
+    return () => applicationNavigationListeners.delete(callback);
+  },
 });
 
 let progressCallback: ((data: any) => void) | null = null;
@@ -62,6 +117,7 @@ loadConfig();
 
 contextBridge.exposeInMainWorld("hightex", {
   lecturers: {
+    openWebDownload: () => ipcRenderer.invoke("hightex:lecturers:web-download"),
     fetchCloud: () => ipcRenderer.invoke("hightex:lecturers:cloud"),
     list: () => ipcRenderer.invoke("hightex:lecturers:list"),
     save: (input: LecturerDirectoryInput) =>
@@ -336,6 +392,7 @@ contextBridge.exposeInMainWorld("account", {
     ipcRenderer.invoke("account:picture", sessionId),
 });
 contextBridge.exposeInMainWorld("profile", {
+  cachedCloud: () => ipcRenderer.invoke("profile:cloud-cache"),
   get: () => {
     return ipcRenderer.invoke("profile:get");
   },
@@ -350,6 +407,11 @@ contextBridge.exposeInMainWorld("profile", {
   },
   setPicture(blob) {
     return ipcRenderer.invoke("profile:picture.set", blob);
+  },
+  onChange(callback) {
+    const listener = () => callback();
+    ipcRenderer.on("profile:changed", listener);
+    return () => ipcRenderer.removeListener("profile:changed", listener);
   },
 } satisfies Window["profile"]);
 
@@ -439,6 +501,9 @@ contextBridge.exposeInMainWorld("editor", {
   },
   open(documentId: string, file?: string) {
     return ipcRenderer.invoke("editor:open", documentId, file);
+  },
+  openProfile() {
+    return ipcRenderer.invoke("editor:open-profile");
   },
   has(documentId) {
     return ipcRenderer.invoke("editor:has", documentId);

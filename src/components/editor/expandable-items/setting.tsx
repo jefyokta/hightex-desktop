@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileWarningIcon, Save, X } from "lucide-react";
 
 import { useParams } from "react-router-dom";
@@ -26,38 +25,22 @@ import {
 } from "@/components/ui/select";
 import { TabHeader } from "./components/tab-header";
 import { DatePickerInput } from "@/components/ui/date-picker";
-import { emptyAuthorProfile, getAuthorDetails } from "@/utils/document-profile";
+import {
+  getWorkspaceAuthorProfile,
+  resolveAuthorProfile,
+} from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
-import { CommitteeFields } from "@/components/committee-fields";
-import { AdvisorFields } from "@/components/advisor-fields";
 import { documentDrafts } from "@/editor/document-drafts";
-import { DefaultProfilePreview } from "@/components/editor/default-profile-preview";
+import { openProfileInMainWindow } from "@/utils/open-profile-in-main-window";
 
 export const Setting = () => {
   const db = HighTexDB.getInstance();
   const { id } = useParams();
 
   const [doc, setDoc] = useState<HighTexDocument | null>(null);
-
   const [original, setOriginal] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [defaults, setDefaults] = useState<{
-    documentId: string;
-    profile: Omit<Profile, "cv">;
-  } | null>(null);
-  const [loadingDefaults, setLoadingDefaults] = useState(false);
-  const previewRequest = useRef(0);
-  const previewScope = useRef({ cancelled: false });
-  useEffect(() => {
-    const scope = { cancelled: false };
-    previewScope.current = scope;
-    setDefaults(null);
-    setLoadingDefaults(false);
-    return () => {
-      scope.cancelled = true;
-    };
-  }, [id]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [academic, setAcademic] = useState<{ locked: boolean; error?: string }>(
@@ -66,6 +49,7 @@ export const Setting = () => {
 
   useEffect(() => {
     let mounted = true;
+    let profileRevision = 0;
 
     const load = async () => {
       if (!id) return;
@@ -78,13 +62,45 @@ export const Setting = () => {
 
       if (!mounted) return;
 
+      const workspaceProfile = await getWorkspaceAuthorProfile();
+      const resolved = {
+        ...initial,
+        authorProfileMode: "workspace" as const,
+        profile: resolveAuthorProfile(initial, workspaceProfile),
+      };
+      if (!mounted) return;
       setCategories(ct);
       setAcademic(status);
-      setDoc(initial);
-      setOriginal(JSON.stringify(initial));
+      setDoc(resolved);
+      setOriginal(JSON.stringify(resolved));
     };
 
     load();
+    const refreshProfile = () => {
+      const request = ++profileRevision;
+      void getWorkspaceAuthorProfile()
+        .then((profile) => {
+          if (!mounted || request !== profileRevision) return;
+          setDoc((current) =>
+            current && current.id === id
+              ? { ...current, profile: resolveAuthorProfile(current, profile) }
+              : current,
+          );
+          setOriginal((current) => {
+            if (!current) return current;
+            const original = JSON.parse(current) as HighTexDocument;
+            return JSON.stringify({
+              ...original,
+              profile: resolveAuthorProfile(original, profile),
+            });
+          });
+        })
+        .catch((error) =>
+          console.error("Could not refresh workspace profile", error),
+        );
+    };
+    const offProfile = window.profile.onChange?.(refreshProfile);
+    const offSession = window.session.onChange?.(refreshProfile);
     const offCategories = window.hightex.onCategoriesChanged?.(() => {
       void window.hightex
         .categories()
@@ -96,6 +112,8 @@ export const Setting = () => {
 
     return () => {
       mounted = false;
+      offProfile?.();
+      offSession?.();
       offCategories?.();
     };
   }, [db, id]);
@@ -112,35 +130,40 @@ export const Setting = () => {
     setLoading(true);
 
     try {
-      const saved = await db.updateDocument(
-        doc,
-        doc.profile ? getAuthorDetails(doc.profile) : undefined,
-      );
-      setDoc(saved);
-      setOriginal(JSON.stringify(saved));
+      await persistDraft();
     } finally {
       setLoading(false);
     }
   };
+
+  const persistDraft = useCallback(async () => {
+    if (!doc) return;
+    const saved = await db.updateDocument({
+      ...doc,
+      authorProfileMode: "workspace",
+    });
+    const resolved = {
+      ...saved,
+      authorProfileMode: "workspace" as const,
+      profile: resolveAuthorProfile(saved, await getWorkspaceAuthorProfile()),
+    };
+    setDoc(resolved);
+    setOriginal(JSON.stringify(resolved));
+  }, [db, doc]);
 
   useEffect(() => {
     if (!doc || doc.id !== id || !isDirty) return;
     const draft = {
       document: doc,
       commit: async () => {
-        const saved = await db.updateDocument(
-          doc,
-          doc.profile ? getAuthorDetails(doc.profile) : undefined,
-        );
-        setDoc(saved);
-        setOriginal(JSON.stringify(saved));
+        await persistDraft();
       },
     };
     documentDrafts.set(doc.id, draft);
     return () => {
       if (documentDrafts.get(doc.id) === draft) documentDrafts.delete(doc.id);
     };
-  }, [doc, id, isDirty, db]);
+  }, [doc, id, isDirty, db, persistDraft]);
 
   if (!doc || doc.id !== id) return null;
 
@@ -149,34 +172,6 @@ export const Setting = () => {
   );
   const isInternDoc =
     selectedCategory?.variant === "intern" || Boolean(doc.config?.intern);
-
-  const updateProfile = (patch: Partial<Profile>) => {
-    setDoc((previous) =>
-      previous
-        ? {
-            ...previous,
-            profile: { ...emptyAuthorProfile(), ...previous.profile, ...patch },
-          }
-        : previous,
-    );
-  };
-
-  const useDefaultProfile = async () => {
-    const request = ++previewRequest.current;
-    const scope = previewScope.current;
-    setLoadingDefaults(true);
-    try {
-      const profile = await window.profile.get();
-      if (!scope.cancelled && request === previewRequest.current)
-        setDefaults({ documentId: doc.id, profile });
-    } catch {
-      if (!scope.cancelled && request === previewRequest.current)
-        toast.error(t("document_profile.defaults.failed"));
-    } finally {
-      if (!scope.cancelled && request === previewRequest.current)
-        setLoadingDefaults(false);
-    }
-  };
 
   return (
     <div
@@ -297,62 +292,57 @@ export const Setting = () => {
             )}
           </p>
         )}
-        <Section
-          tour="document-profile"
-          disabled={academic.locked}
-          title={t("document_profile.title")}
-        >
-          {!academic.locked && (
-            <>
-              <p className="text-xs text-muted-foreground">
-                {t(
-                  doc.profile
-                    ? "document_profile.description"
-                    : "document_profile.missing",
-                )}
-              </p>
-
-              <Button
-                data-tour="document-profile-default"
-                size="sm"
-                variant="outline"
-                onClick={useDefaultProfile}
-                disabled={loadingDefaults}
-              >
-                {t("document_profile.use_default")}
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                {t("document_profile.default_hint")}
-              </p>
-            </>
-          )}
-
-          <Field
-            label={t("settings.profile.name.label")}
-            value={doc.profile?.name ?? ""}
-            onChange={(name) => updateProfile({ name })}
-          />
-          <Field
-            label={t("settings.profile.nim.label")}
-            value={doc.profile?.nim ?? ""}
-            onChange={(nim) => updateProfile({ nim })}
-          />
-          <AdvisorFields
-            profile={doc.profile ?? emptyAuthorProfile()}
-            onChange={updateProfile}
-            intern={isInternDoc}
-            readOnly={academic.locked}
-          />
-          {!isInternDoc && (
-            <CommitteeFields
-              disabled={academic.locked}
-              value={doc.profile?.committee}
-              onChange={(committee) => updateProfile({ committee })}
-            />
-          )}
+        <Section tour="document-profile" title={t("document_profile.title")}>
           <p className="text-xs text-muted-foreground">
-            {t("document_profile.cv_hint")}
+            {t("document_profile.workspace_only")}
           </p>
+          <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
+            <ProfileValue
+              label={t("settings.profile.name.label")}
+              value={doc.profile?.name}
+            />
+            <ProfileValue
+              label={t("settings.profile.nim.label")}
+              value={doc.profile?.nim}
+            />
+            <ProfileValue
+              label={t("settings.profile.advisor.name.label")}
+              value={doc.profile?.advisorName}
+            />
+            <ProfileValue
+              label={t("settings.profile.advisor.nip.label")}
+              value={doc.profile?.advisorNip}
+            />
+            {doc.profile?.secondAdvisor && (
+              <ProfileValue
+                label={t("settings.profile.second_advisor.name.label")}
+                value={doc.profile.secondAdvisor.name}
+              />
+            )}
+            {Object.entries(doc.profile?.committee ?? {}).map(
+              ([role, person]) => (
+                <ProfileValue
+                  key={role}
+                  label={t(
+                    role === "chair"
+                      ? "editor.expandable.setting.leaded_by"
+                      : role === "examiner1"
+                        ? "editor.expandable.setting.primary_examiner_name"
+                        : "editor.expandable.setting.secondary_examiner_name",
+                  )}
+                  value={person?.name}
+                />
+              ),
+            )}
+          </div>
+          <Button
+            data-tour="document-profile-source"
+            size="sm"
+            variant="outline"
+            onClick={() => void openProfileInMainWindow()}
+          >
+            {t("document_profile.edit_in_profile")}
+          </Button>
         </Section>
 
         <Section title={t("editor.expandable.setting.keywords")}>
@@ -588,21 +578,16 @@ export const Setting = () => {
           </Section>
         )}
       </div>
-      {defaults?.documentId === doc.id && !academic.locked && (
-        <DefaultProfilePreview
-          current={doc.profile}
-          defaults={defaults.profile}
-          intern={isInternDoc}
-          onClose={() => setDefaults(null)}
-          onApply={(patch) => {
-            updateProfile(patch);
-            setDefaults(null);
-          }}
-        />
-      )}
     </div>
   );
 };
+
+const ProfileValue = ({ label, value }: { label: string; value?: string }) => (
+  <div className="min-w-0">
+    <p className="text-xs text-muted-foreground">{label}</p>
+    <p className="truncate text-sm">{value?.trim() || "—"}</p>
+  </div>
+);
 
 const Section = ({
   title,

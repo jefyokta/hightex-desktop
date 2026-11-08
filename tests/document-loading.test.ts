@@ -6,6 +6,7 @@ import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Document } from "../src/editor/document";
 import { CategoryEmpty } from "../src/exception/categories-empty";
 import { Chapter } from "../src/editor/chapter";
+import { emptyAuthorProfile } from "../src/utils/document-profile";
 import { useChapterStore } from "../src/hooks/use-chapter";
 
 const categories: Category[] = [
@@ -35,7 +36,13 @@ const api: {
 beforeAll(async () => {
   Object.defineProperty(globalThis, "window", {
     configurable: true,
-    value: Object.assign(new EventTarget(), { hightex: api }),
+    value: Object.assign(new EventTarget(), {
+      hightex: api,
+      profile: {
+        get: async () => ({ ...emptyAuthorProfile(), isCloud: false }),
+        picture: async () => false,
+      },
+    }),
   });
   await db.open();
 });

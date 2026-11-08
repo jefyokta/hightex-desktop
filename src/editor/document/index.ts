@@ -5,6 +5,10 @@ import { DocumentNotFound } from "../../exception/document-not-found";
 import { Manager } from "../manager";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { Symbols } from "@/utils/symbol";
+import {
+  getWorkspaceAuthorProfile,
+  resolveAuthorProfile,
+} from "@/utils/document-profile";
 
 export class Document {
   static current?: Chapter;
@@ -59,9 +63,19 @@ export class Document {
     );
   }
 
-  async warm({ activate = true }: { activate?: boolean } = {}) {
+  async warm({
+    activate = true,
+    workspaceIdentity = true,
+  }: { activate?: boolean; workspaceIdentity?: boolean } = {}) {
     try {
       this.doc = await this.get();
+      if (workspaceIdentity) {
+        this.doc.profile = resolveAuthorProfile(
+          this.doc,
+          await getWorkspaceAuthorProfile(),
+        );
+        this.doc.authorProfileMode = "workspace";
+      }
       this.scheme = await this.loadSchemeFromExternal();
       this.chapters = this.buildChaptersFromScheme();
       await this.createVars();
@@ -139,6 +153,19 @@ export class Document {
   getDocument(): HighTexDocument {
     if (!this.doc) throw new Error("Document not warmed");
     return this.doc;
+  }
+
+  async refreshWorkspaceIdentity() {
+    if (!this.doc) return;
+    const document = this.doc;
+    const profile = await getWorkspaceAuthorProfile();
+    if (this.doc !== document) return;
+    this.doc = {
+      ...document,
+      authorProfileMode: "workspace",
+      profile: resolveAuthorProfile(document, profile),
+    };
+    Manager.app.dispatch("document:updated", { document: this.doc });
   }
 
   private async loadSchemeFromExternal() {

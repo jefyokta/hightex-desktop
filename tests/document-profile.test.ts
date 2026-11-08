@@ -19,6 +19,7 @@ import {
   resolveDocumentProfile,
   getAuthorDetails,
   normalizeAuthorProfile,
+  invalidateWorkspaceAuthorProfile,
 } from "../src/utils/document-profile";
 import { readProfileEntries } from "../src/utils/htx/profile";
 import { captureDraft } from "../src/utils/htx/draft-transfer";
@@ -48,18 +49,22 @@ const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
 Dexie.dependencies.indexedDB = indexedDB;
 Dexie.dependencies.IDBKeyRange = IDBKeyRange;
 const db = HighTexDB.getInstance();
+let workspace: AuthorProfile = emptyAuthorProfile();
+const setWorkspace = (profile: AuthorProfile) => {
+  workspace = profile;
+  invalidateWorkspaceAuthorProfile();
+};
 
 beforeAll(async () => {
   const fakeWindow = Object.assign(new EventTarget(), {
     config: { get: () => ({ language: "en" }) },
     hightex: { categories: async () => [category] },
     profile: {
-      get: () => {
-        throw new Error("Rendering/import must not read the viewer profile");
-      },
-      picture: () => {
-        throw new Error("Rendering/import must not read the viewer photo");
-      },
+      get: async () => ({ ...workspace, isCloud: false }),
+      picture: async () =>
+        workspace.picture
+          ? new Uint8Array(await workspace.picture.arrayBuffer())
+          : false,
     },
   });
   Object.defineProperty(globalThis, "window", {
@@ -70,6 +75,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  setWorkspace(emptyAuthorProfile());
   await Promise.all(db.tables.map((table) => table.clear()));
 });
 
@@ -81,24 +87,29 @@ afterAll(async () => {
 });
 
 describe("document authors and variables", () => {
-  test("two authors and custom variables stay separate across reopening the database", async () => {
+  test("documents use the active workspace author while custom variables stay separate across reopening", async () => {
     await db.documents.bulkPut([
       makeDocument("a", "Student A"),
       makeDocument("b", "Student B"),
     ]);
+    setWorkspace({
+      ...emptyAuthorProfile(),
+      name: "Workspace writer",
+      nim: "WS",
+    });
     await db.setVar("location", "Company A", "a");
     await db.setVar("location", "Company B", "b");
     await db.setVar("name", "Advisor default", "global");
     db.close();
     await db.open();
 
-    expect(await db.getVar("name", "a")).toBe("Student A");
-    expect(await db.getVar("name", "b")).toBe("Student B");
+    expect(await db.getVar("name", "a")).toBe("Workspace writer");
+    expect(await db.getVar("name", "b")).toBe("Workspace writer");
     expect(await db.getVar("location", "a")).toBe("Company A");
     expect(await db.getVar("location", "b")).toBe("Company B");
     expect(
       (await db.getVars("a")).filter((variable) => variable.name === "name"),
-    ).toEqual([{ name: "name", value: "Student A", documentId: "a" }]);
+    ).toEqual([{ name: "name", value: "Workspace writer", documentId: "a" }]);
   });
 
   test("missing author never falls back to local/global viewer data, including legacy CV", async () => {
@@ -126,18 +137,24 @@ describe("document authors and variables", () => {
     expect(await db.getVar("location", "a")).toBe("Default");
   });
 
-  test("saving stale settings preserves a newly edited CV and photo", async () => {
+  test("saving document settings cannot replace the stored profile, CV or photo", async () => {
     const a = makeDocument("a", "Student A");
     const b = makeDocument("b", "Student B");
     await db.documents.bulkPut([a, b]);
-    await db.updateProfile("a", {
-      cv: "CV A",
-      picture: new Blob(["photo A"], { type: "image/webp" }),
+    await db.documents.update("a", {
+      profile: {
+        ...a.profile!,
+        cv: "CV A",
+        picture: new Blob(["photo A"], { type: "image/webp" }),
+      },
     });
-    await db.updateDocument(a, { ...a.profile!, name: "Updated A" });
+    await db.updateDocument({
+      ...a,
+      profile: { ...a.profile!, name: "Attempted override" },
+    });
 
     const saved = (await db.documents.get("a"))!;
-    expect(saved.profile?.name).toBe("Updated A");
+    expect(saved.profile?.name).toBe("Student A");
     expect(saved.profile?.cv).toBe("CV A");
     expect(await saved.profile?.picture?.text()).toBe("photo A");
     expect((await db.documents.get("b"))?.profile).toEqual(b.profile);
@@ -147,7 +164,9 @@ describe("document authors and variables", () => {
     const old = makeDocument("a", "Old A");
     old.profile!.picture = new Blob(["old photo"], { type: "image/webp" });
     await db.documents.put(old);
-    await db.updateProfile("a", { name: "Updated A", picture: undefined });
+    await db.documents.update("a", {
+      profile: { ...old.profile!, name: "Updated A", picture: undefined },
+    });
     await db.updateDocument({ ...old, title: "Renamed" });
     const saved = (await db.documents.get("a"))!;
     expect(saved.title).toBe("Renamed");
@@ -155,18 +174,23 @@ describe("document authors and variables", () => {
     expect(saved.profile?.picture).toBeUndefined();
   });
 
-  test("concurrent CV/photo writes retain both changes and preserve author identity", async () => {
-    await db.documents.put(makeDocument("a", "Student A"));
+  test("concurrent document writes cannot create per-document CV or photo overrides", async () => {
+    const original = makeDocument("a", "Student A");
+    await db.documents.put(original);
     await Promise.all([
-      db.updateProfile("a", { cv: "New CV" }),
-      db.updateProfile("a", {
-        picture: new Blob(["photo"], { type: "image/webp" }),
+      db.updateDocument({
+        ...original,
+        profile: { ...original.profile!, cv: "Attempted CV" },
+      }),
+      db.updateDocument({
+        ...original,
+        profile: {
+          ...original.profile!,
+          picture: new Blob(["attempted photo"]),
+        },
       }),
     ]);
-    const profile = (await db.documents.get("a"))?.profile;
-    expect(profile?.name).toBe("Student A");
-    expect(profile?.cv).toBe("New CV");
-    expect(await profile?.picture?.text()).toBe("photo");
+    expect((await db.documents.get("a"))?.profile).toEqual(original.profile);
   });
 });
 
@@ -194,6 +218,7 @@ describe("portable author profile", () => {
       examiner2: { id: "e2", name: "Examiner Two", nip: "000456" },
     };
     source.profile!.committee = committee;
+    setWorkspace(source.profile!);
     await db.documents.put(source);
     expect(normalizeAuthorProfile(source.profile)?.committee).toEqual(
       committee,
@@ -211,7 +236,7 @@ describe("portable author profile", () => {
     expect(saved.config).not.toHaveProperty("leader");
     expect(saved.config).not.toHaveProperty("member_1");
     expect((await db.documents.get(source.id))?.config).toEqual({});
-    await db.updateProfile(saved.id, { committee: {} });
+    setWorkspace({ ...workspace, committee: {} });
     const cleared = await new Exporter(saved.id).buildExport();
     expect(parseHighTexV2(cleared.buffer).profile?.committee).toEqual({});
     const reopened = await (
@@ -223,7 +248,7 @@ describe("portable author profile", () => {
     expect(reopened.profile?.committee).toEqual({});
   });
 
-  test("importing an old archive migrates config names without a directory or viewer profile", async () => {
+  test("importing a legacy archive uses the destination workspace identity and preserves document configuration", async () => {
     const entries = {
       "manifest.json": new TextEncoder().encode(
         JSON.stringify({
@@ -250,10 +275,7 @@ describe("portable author profile", () => {
     expect(saved.profile).toMatchObject({
       name: "",
       nim: "",
-      committee: {
-        chair: { name: "Old Chair", nip: "" },
-        examiner1: { name: "Old Examiner", nip: "" },
-      },
+      committee: {},
     });
     expect(saved.profile?.committee?.chair?.id).toBeUndefined();
     expect(saved.config).toMatchObject({
@@ -294,7 +316,8 @@ describe("portable author profile", () => {
     });
     const changedImage = await exporter.exportForPush();
     expect(changedImage.hash).not.toBe(first.hash);
-    await db.updateProfile("a", {
+    setWorkspace({
+      ...workspace,
       picture: new Blob(["photo"], { type: "image/webp" }),
     });
     expect((await exporter.exportForPush()).hash).toBe(changedImage.hash);
@@ -322,6 +345,7 @@ describe("portable author profile", () => {
         validity: new Date("2026-10-21"),
       },
     };
+    setWorkspace(original.profile!);
     await db.documents.put(original);
     await db.chapters.put({
       id: "kp.1",
@@ -355,7 +379,7 @@ describe("portable author profile", () => {
     });
   });
 
-  test("importing an old package removes a previous author instead of preserving a stale one", async () => {
+  test("importing an archive without a profile applies the active workspace without reviving the old writer", async () => {
     await db.documents.put(makeDocument("old", "Previous author"));
     const { entries } = await new Exporter("old").buildExport();
     delete entries["files/profile.json"];
@@ -363,8 +387,10 @@ describe("portable author profile", () => {
     const file = new File([new Uint8Array(zipSync(entries))], "old.hightex");
     const importer = await HighTexImporter.create(file, "/test/old.hightex");
     const imported = await importer.import();
-    expect(imported.profile).toBeUndefined();
-    expect((await db.documents.get("old"))?.profile).toBeUndefined();
+    expect(imported.profile).toMatchObject(emptyAuthorProfile());
+    expect((await db.documents.get("old"))?.profile).toMatchObject(
+      emptyAuthorProfile(),
+    );
     expect(await db.getVar("name", "old")).toBe("");
   });
 
@@ -473,7 +499,12 @@ test("v2 database upgrade migrates each document's own committee and never refil
     expect(
       (await migrated.documents.get("cleared"))?.profile?.committee,
     ).toEqual({});
-    await migrated.updateProfile("a", { committee: {} });
+    await migrated.documents.update("a", {
+      profile: {
+        ...(await migrated.documents.get("a"))!.profile!,
+        committee: {},
+      },
+    });
     migrated.close();
     await migrated.open();
     expect((await migrated.documents.get("a"))?.profile?.committee).toEqual({});
@@ -614,7 +645,7 @@ test("import as copy remaps document data and assets without changing the existi
   expect(copy.id).not.toBe("original");
   expect(copy.title).toBe("Document original (Copy)");
   expect(copy.file).toBeUndefined();
-  expect(copy.profile?.name).toBe("Student A");
+  expect(copy.profile?.name).toBe(workspace.name);
   expect(await captureDraft(db, "original")).toEqual(before);
   expect(
     await db.cite.where("documentId").equals("original").toArray(),

@@ -8,6 +8,18 @@ export const OpenFileSlave = () => {
   useEffect(() => {
     const off = window.hightex.onOpenFile(async (path) => {
       try {
+        const workspaces = await window.workspaces.state();
+        const active = workspaces.profiles.find(
+          (profile) => profile.id === workspaces.activeId,
+        );
+        if (
+          navigator.onLine &&
+          (active?.pendingCloudBinding ||
+            (active?.type === "cloud" && !active.accountId))
+        ) {
+          toast.error(t("workspace_profiles.cloud_login_required"));
+          return;
+        }
         const buffer = await window.hightex.readFile(path);
 
         const uint8 = new Uint8Array(buffer);

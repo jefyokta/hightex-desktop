@@ -24,6 +24,7 @@ declare global {
     skipped: number;
   }
   type LecturerCloudError =
+    | "local_workspace"
     | "not_authenticated"
     | "session_changed"
     | "forbidden"
@@ -34,6 +35,7 @@ declare global {
     | { ok: true; result: LecturerDirectoryImportResult }
     | { ok: false; error: LecturerCloudError };
   interface LecturerDirectoryAPI {
+    openWebDownload(): Promise<void>;
     fetchCloud(): Promise<LecturerCloudResult>;
     list(): Promise<LecturerDirectoryState>;
     save(input: LecturerDirectoryInput): Promise<

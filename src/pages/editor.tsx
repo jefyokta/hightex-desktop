@@ -90,6 +90,21 @@ export const Editor: React.FC = () => {
     });
   }, []);
 
+  useEffect(
+    () => {
+      const refreshIdentity = () => {
+        void Document.instance?.refreshWorkspaceIdentity();
+      };
+      const offProfile = window.profile.onChange?.(refreshIdentity);
+      const offSession = window.session.onChange?.(refreshIdentity);
+      return () => {
+        offProfile?.();
+        offSession?.();
+      };
+    },
+    [],
+  );
+
   useEffect(() => {
     let alive = true;
 

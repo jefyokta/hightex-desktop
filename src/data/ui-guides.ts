@@ -26,10 +26,18 @@ export function availableGuides(
   version: string,
   scope: GuideScope,
   catalog: GuideRelease[] = GUIDE_RELEASES,
+  workspaceType?: "local" | "cloud",
 ): AvailableGuide[] {
   return availableReleases(version, catalog).flatMap(({ version, guides }) =>
     guides
-      .filter((guide) => guide.scope === scope && guide.steps.length > 0)
+      .filter(
+        (guide) =>
+          guide.scope === scope &&
+          guide.steps.length > 0 &&
+          (!workspaceType ||
+            !guide.workspaceType ||
+            guide.workspaceType === workspaceType),
+      )
       .map((guide) => ({ ...guide, version })),
   );
 }
@@ -39,8 +47,14 @@ export function guidePlan(
   scope: GuideScope,
   replay = false,
   catalog: GuideRelease[] = GUIDE_RELEASES,
+  workspaceType?: "local" | "cloud",
 ): GuidePlan | null {
-  const guides = availableGuides(status.currentVersion, scope, catalog).filter(
+  const guides = availableGuides(
+    status.currentVersion,
+    scope,
+    catalog,
+    workspaceType,
+  ).filter(
     (guide) => replay || (status.seenGuides[guide.id] ?? 0) < guide.revision,
   );
   if (!guides.length) return null;

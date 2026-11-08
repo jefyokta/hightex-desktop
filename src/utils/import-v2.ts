@@ -10,6 +10,10 @@ import {
   type DraftState,
 } from "./htx/draft-transfer";
 import { archiveSha256, readImportModel } from "./htx/import-model";
+import {
+  getWorkspaceAuthorProfile,
+  resolveAuthorProfile,
+} from "./document-profile";
 import { t } from "./lang";
 
 export type ImportMode = "overwrite" | "copy";
@@ -58,6 +62,11 @@ export class HighTexImporter {
         documentId,
         categories,
         `local_${documentId}_${this.hash.slice(0, 16)}_`,
+      );
+      prepared.state.document.authorProfileMode = "workspace";
+      prepared.state.document.profile = resolveAuthorProfile(
+        prepared.state.document,
+        await getWorkspaceAuthorProfile(),
       );
       if (mode === "copy") {
         prepared.state.document.title = t("open_file.copy_title", {

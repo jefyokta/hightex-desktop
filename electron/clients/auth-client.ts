@@ -77,6 +77,12 @@ export class AuthClient {
     this.state = { status: "failed", error };
     return { ok: false, error };
   }
+  private errorCode(cause: unknown): AuthErrorCode {
+    return cause instanceof Error &&
+      cause.message === "This account already has a workspace"
+      ? "account_in_use"
+      : "request_failed";
+  }
   async start(): Promise<AuthResult<BrowserLoginState>> {
     this.cancel();
     const generation = this.generation,
@@ -193,9 +199,9 @@ export class AuthClient {
       this.state = { status: "authenticated" };
       await this.transport.broadcast();
       return { ok: true, data: user };
-    } catch {
+    } catch (cause) {
       return this.current(generation, server)
-        ? this.failure("request_failed")
+        ? this.failure(this.errorCode(cause))
         : { ok: false, error: "canceled" };
     }
   }
@@ -233,9 +239,9 @@ export class AuthClient {
       this.state = { status: "authenticated" };
       await this.transport.broadcast();
       return { ok: true, data: user };
-    } catch {
+    } catch (cause) {
       return this.current(generation, server)
-        ? this.failure("request_failed")
+        ? this.failure(this.errorCode(cause))
         : { ok: false, error: "canceled" };
     }
   }

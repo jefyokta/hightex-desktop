@@ -1,6 +1,10 @@
 import { ApplicationRuntime } from "../main/application-runtime";
 import "dotenv/config";
 import { WorkspaceRuntime } from "../workspaces/runtime";
+import {
+  normalizeWorkspaceServer,
+  workspaceServerForEnvironment,
+} from "../../src/workspaces/identity";
 
 export class ServerUrl {
   public readonly url: URL;
@@ -9,9 +13,10 @@ export class ServerUrl {
   constructor(base?: string | URL) {
     this.url = new URL(
       base ??
-        (ApplicationRuntime.isDev
-          ? process.env["LOCAL_SERVER"] || "http://127.0.0.1:8000"
-          : "https://hightex.jefyokta.dev"),
+        workspaceServerForEnvironment(
+          ApplicationRuntime.isDev,
+          process.env["LOCAL_SERVER"],
+        ),
     );
     if (
       !["http:", "https:"].includes(this.url.protocol) ||
@@ -23,9 +28,14 @@ export class ServerUrl {
   }
 
   public static get instance(): ServerUrl {
-    return (this._instance ??= new ServerUrl(
-      WorkspaceRuntime.profile?.serverUrl ?? undefined,
-    ));
+    const configured = (this._instance ??= new ServerUrl());
+    const profile = WorkspaceRuntime.profile;
+    if (
+      profile?.type === "cloud" &&
+      profile.serverUrl !== normalizeWorkspaceServer(configured.api.href)
+    )
+      throw new Error("This workspace is bound to an unsupported cloud host");
+    return configured;
   }
 
   /**

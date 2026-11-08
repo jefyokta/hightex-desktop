@@ -108,10 +108,13 @@ test("fresh installs skip migration; updates with legacy stores require it exact
 });
 
 test("profile identity survives rename/logout and rejects replacing a bound cloud account", () => {
-  const registry = new WorkspaceRegistry(directory());
+  const registry = new WorkspaceRegistry(
+    directory(),
+    "https://cloud.test/api/",
+  );
   const state = registry.create({
     name: "University",
-    serverUrl: "https://cloud.test",
+    type: "cloud",
   });
   const cloud = state.profiles[1];
   registry.write({ ...state, activeId: cloud.id });

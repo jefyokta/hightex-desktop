@@ -4,10 +4,15 @@ import { IPCMain } from "../utilities/ipc-main";
 import { WorkspaceRuntime } from "./runtime";
 import { WorkspaceRegistry } from "./registry";
 import { WorkspaceMigration } from "./migration";
+import { EditorWindow } from "../windows/editor-window";
+import { desktopAuth } from "../service/auth-service";
 
 export function registerWorkspaceHandlers(application: Application) {
   if (!WorkspaceRuntime.root) return;
-  const registry = new WorkspaceRegistry(WorkspaceRuntime.root);
+  const registry = new WorkspaceRegistry(
+    WorkspaceRuntime.root,
+    WorkspaceRuntime.serverUrl,
+  );
   const migration = new WorkspaceMigration(registry, application);
   const legacy = (event: Electron.IpcMainInvokeEvent) => {
     const url = new URL(event.senderFrame?.url ?? "about:blank");
@@ -33,9 +38,45 @@ export function registerWorkspaceHandlers(application: Application) {
     app.relaunch();
     app.quit();
   };
+  const broadcastWorkspaceChange = () => {
+    BrowserWindow.getAllWindows().forEach((window) => {
+      if (!window.isDestroyed())
+        window.webContents.send("workspaces:changed");
+    });
+  };
   IPCMain.handle("workspaces:state", () => registry.read());
-  IPCMain.handle("workspaces:create", (_, input) => registry.create(input));
-  IPCMain.handle("workspaces:switch", (event, id: string) => {
+  IPCMain.handle("workspaces:create", (_, input) => {
+    const state = registry.create(input);
+    broadcastWorkspaceChange();
+    return state;
+  });
+  IPCMain.handle("workspaces:cloud:begin", (_, id: string) => {
+    const state = registry.beginCloudBinding(id);
+    if (state.activeId === id) {
+      WorkspaceRuntime.profile = state.profiles.find(
+        (profile) => profile.id === id,
+      );
+    }
+    broadcastWorkspaceChange();
+    return state;
+  });
+  IPCMain.handle("workspaces:cloud:cancel", (_, id: string) => {
+    if (registry.read().activeId === id) desktopAuth.cancel();
+    const state = registry.cancelCloudBinding(id);
+    if (WorkspaceRuntime.profile?.id === id) {
+      WorkspaceRuntime.profile = state.profiles.find(
+        (profile) => profile.id === id,
+      );
+    }
+    broadcastWorkspaceChange();
+    return state;
+  });
+  IPCMain.handle("workspaces:rename", (_, id: string, name: string) => {
+    const state = registry.rename(id, name);
+    broadcastWorkspaceChange();
+    return state;
+  });
+  IPCMain.handle("workspaces:switch", async (event, id: string) => {
     const state = registry.read();
     if (
       !state.migrationComplete ||
@@ -45,17 +86,31 @@ export function registerWorkspaceHandlers(application: Application) {
     const sender = senderWindow(event);
     if (sender !== application.window)
       throw Error("Switch profiles from the workspace dashboard");
-    // Switching restarts all service singletons. Let existing close guards resolve first.
-    if (
-      BrowserWindow.getAllWindows().some(
-        (window) => window !== sender && !window.isDestroyed(),
+    if (WorkspaceRuntime.switching) throw Error("Workspace switch in progress");
+    if (id === state.activeId) return;
+    WorkspaceRuntime.switching = true;
+    WorkspaceRuntime.switchInterrupted = false;
+    try {
+      if (!(await EditorWindow.prepareForWorkspaceSwitch()))
+        throw Error("Workspace switch canceled; an editor remains open.");
+      if (WorkspaceRuntime.switchInterrupted)
+        throw Error("Workspace switch canceled because a file or link was opened.");
+      if (
+        BrowserWindow.getAllWindows().some(
+          (window) => window !== sender && !window.isDestroyed(),
+        )
       )
-    )
-      throw Error(
-        "Close editor, preview, and sharing windows before switching profiles.",
-      );
-    registry.write({ ...state, activeId: id });
-    restart();
+        throw Error(
+          "Close preview or export windows before switching workspaces.",
+        );
+      registry.write({ ...state, activeId: id });
+      restart();
+    } catch (error) {
+      WorkspaceRuntime.switching = false;
+      WorkspaceRuntime.switchInterrupted = false;
+      void application.resumePendingOpens();
+      throw error;
+    }
   });
   IPCMain.handle(
     "workspaces:migration:preview",

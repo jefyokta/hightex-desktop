@@ -1,14 +1,74 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CloudDownload, Loader2 } from "lucide-react";
+import { CloudDownload, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthModal } from "@/context/auth-modal-context";
 import { useUser } from "@/hooks/use-user";
 import { useOnline } from "@/hooks/use-online";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 import { fetchCloudLecturers } from "@/hooks/use-lecturer-directory";
 import { t } from "@/utils/lang";
 import { Button } from "./ui/button";
 
 export function LecturerCloudButton({ disabled }: { disabled: boolean }) {
+  const { state, error } = useWorkspaces();
+  const active = state?.profiles.find(
+    (profile) => profile.id === state.activeId,
+  );
+  if (!active)
+    return (
+      <p role="status" className="text-xs text-muted-foreground">
+        {error || t("common.loading")}
+      </p>
+    );
+  return active.type === "local" ? (
+    <LecturerWebDownload />
+  ) : (
+    <AuthenticatedLecturerCloudButton disabled={disabled} />
+  );
+}
+
+function LecturerWebDownload() {
+  const online = useOnline();
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  return (
+    <div
+      className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4"
+      data-lecturer-web-download
+    >
+      <Button
+        type="button"
+        variant="ghost"
+        disabled={!online || busy}
+        onClick={() => {
+          setBusy(true);
+          setFailed(false);
+          void window.hightex.lecturers
+            .openWebDownload()
+            .catch(() => setFailed(true))
+            .finally(() => setBusy(false));
+        }}
+      >
+        {busy ? <Loader2 className="animate-spin" /> : <ExternalLink />}
+        {t("lecturers.web_download")}
+      </Button>
+      <p
+        className="max-w-xl text-xs leading-relaxed text-muted-foreground"
+        role={failed ? "alert" : "status"}
+      >
+        {t(
+          failed
+            ? "lecturers.web_open_failed"
+            : !online
+              ? "lecturers.web_offline"
+              : "lecturers.local_web_hint",
+        )}
+      </p>
+    </div>
+  );
+}
+
+function AuthenticatedLecturerCloudButton({ disabled }: { disabled: boolean }) {
   const { user } = useUser();
   const { loginOpen, openLogin } = useAuthModal();
   const online = useOnline();

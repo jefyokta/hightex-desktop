@@ -25,6 +25,10 @@ const fixture = () => {
   const accepted: User[] = [],
     images: string[] = [],
     opened: string[] = [];
+  const cachedPictures: { accountId: string; bytes: Uint8Array | null }[] = [];
+  let imageResponder:
+    | (() => Promise<{ ok: boolean; type: string; bytes: Uint8Array }>)
+    | undefined;
   const client = new AccountClient({
     open: async (url) => {
       opened.push(url);
@@ -41,7 +45,11 @@ const fixture = () => {
     },
     image: async (url) => {
       images.push(url);
+      if (imageResponder) return imageResponder();
       return { ok: true, type: "image/webp", bytes: new Uint8Array([1, 2]) };
+    },
+    cachePicture: (session, bytes) => {
+      cachedPictures.push({ accountId: session.accountId, bytes });
     },
     accept: async (user) => {
       accepted.push(user);
@@ -53,6 +61,10 @@ const fixture = () => {
     accepted,
     images,
     opened,
+    cachedPictures,
+    respondImage: (next: NonNullable<typeof imageResponder>) => {
+      imageResponder = next;
+    },
     session: () => session,
     user: () => user,
     setUser: (next: typeof user) => {
@@ -161,4 +173,39 @@ test("web profile settings use the current account server and reject stale sessi
   f.switch();
   expect((await f.client.settings("session-a")).ok).toBe(false);
   expect(f.opened).toHaveLength(1);
+});
+
+test("verified account photos are cached for offline documents and removed when the account has no photo", async () => {
+  const f = fixture();
+  f.setUser({
+    ...f.user(),
+    picture: { path: "profile-pictures/profile-12.webp" },
+  });
+  await f.client.load();
+  expect((await f.client.picture("session-a")).ok).toBe(true);
+  expect(f.cachedPictures).toEqual([
+    { accountId: "12", bytes: new Uint8Array([1, 2]) },
+  ]);
+  f.setUser({ ...f.user(), picture: null });
+  await f.client.load();
+  expect(await f.client.picture("session-a")).toEqual({ ok: true, data: null });
+  expect(f.cachedPictures[1]).toEqual({ accountId: "12", bytes: null });
+});
+
+test("a photo response from a stale account never replaces the workspace picture", async () => {
+  const f = fixture();
+  f.setUser({
+    ...f.user(),
+    picture: { path: "profile-pictures/profile-12.webp" },
+  });
+  await f.client.load();
+  f.respondImage(async () => {
+    f.switch();
+    return { ok: true, type: "image/webp", bytes: new Uint8Array([7]) };
+  });
+  expect(await f.client.picture("session-a")).toMatchObject({
+    ok: false,
+    error: "session_changed",
+  });
+  expect(f.cachedPictures).toHaveLength(0);
 });

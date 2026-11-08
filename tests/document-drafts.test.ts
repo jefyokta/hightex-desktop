@@ -16,7 +16,7 @@ const current: HighTexDocument = {
     picture: new Blob(["current picture"]),
   },
 };
-test("previewing a settings draft includes metadata and committee without persisting or reverting CV/photos", () => {
+test("previewing a settings draft includes metadata without accepting per-document profile overrides", () => {
   const draft: HighTexDocument = {
     ...current,
     title: "Draft title",
@@ -29,7 +29,7 @@ test("previewing a settings draft includes metadata and committee without persis
   };
   const preview = previewDocumentDraft(current, draft);
   expect(preview.title).toBe("Draft title");
-  expect(preview.profile?.committee?.chair?.nip).toBe("00002");
+  expect(preview.profile).toBe(current.profile);
   expect(preview.profile?.cv).toBe("Current CV");
   expect(preview.profile?.picture).toBe(current.profile?.picture);
   expect(current.title).toBe("Saved title");

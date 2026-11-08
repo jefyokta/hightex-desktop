@@ -16,11 +16,17 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { SubmissionSnapshotViewer } from "./snapshot-viewer";
 import { AdvisorSubmissions } from "./advisor-submissions";
 import { StudentSubmission } from "./student-submission";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 export const SubmissionListView = () => {
   useAppLanguage();
   const { user } = useUser();
   const online = useOnline();
+  const { state } = useWorkspaces();
+  const local =
+    !state ||
+    state.profiles.find((profile) => profile.id === state.activeId)?.type ===
+      "local";
   const [result, setResult] = useState<SubmissionList>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -35,7 +41,7 @@ export const SubmissionListView = () => {
     setResult(undefined);
     setError(undefined);
     snapshotCache.clear();
-    if (!user || !online) {
+    if (local || !user || !online) {
       setLoading(false);
       return;
     }
@@ -59,7 +65,7 @@ export const SubmissionListView = () => {
       canceled = true;
       snapshotCache.clear();
     };
-  }, [user, online, revision]);
+  }, [local, user, online, revision]);
 
   useEffect(
     () => () => {
@@ -94,6 +100,8 @@ export const SubmissionListView = () => {
       if (request === localRequest.current) setOpening(false);
     }
   };
+
+  if (local || !user) return <LoginGate />;
 
   if (snapshot)
     return (

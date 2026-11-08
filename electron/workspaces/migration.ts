@@ -86,18 +86,56 @@ export class WorkspaceMigration {
     this.plan = planWorkspaceMigration(
       snapshot.tables.documents as unknown as HighTexDocument[],
       bindings,
+      this.registry.cloudServerUrl,
     );
     const session = readJson(
       path.join(this.registry.root, "config.json"),
     ).session;
     if (session?.serverUrl && session?.user?.id) {
-      const profile = cloudWorkspace(
-        session.serverUrl,
-        String(session.user.id),
-      );
-      if (!this.plan.profiles.some((item) => item.id === profile.id))
-        this.plan.profiles.push(profile);
+      try {
+        const profile = cloudWorkspace(
+          session.serverUrl,
+          String(session.user.id),
+          this.registry.cloudServerUrl,
+        );
+        if (!this.plan.profiles.some((item) => item.id === profile.id))
+          this.plan.profiles.push({
+            ...profile,
+            name: `Cloud ${this.plan.profiles.filter((item) => item.type === "cloud").length + 1}`,
+          });
+      } catch {
+        // Unsupported legacy sessions remain in the untouched source backup.
+      }
     }
+    this.plan.summary = Object.fromEntries(
+      this.plan.profiles.map((profile) => {
+        const documents = Object.entries(this.plan!.assignments)
+          .filter(([, target]) => target === profile.id)
+          .map(([id]) => id);
+        const selected = selectWorkspaceData(
+          snapshot,
+          this.plan!.assignments,
+          profile.id,
+        );
+        return [
+          profile.id,
+          {
+            documents: documents.length,
+            branches: documents.filter((id) =>
+              Boolean(
+                (snapshot.tables.documents as unknown as HighTexDocument[]).find(
+                  (document) => document.id === id,
+                )?.parentId,
+              ),
+            ).length,
+            assets: selected.tables.images?.length ?? 0,
+            forms: Object.keys(selected.localStorage).filter((key) =>
+              key.startsWith("hightex:forms:v1:"),
+            ).length,
+          },
+        ];
+      }),
+    );
     this.snapshot = snapshot;
     return this.plan;
   }
@@ -159,6 +197,7 @@ export class WorkspaceMigration {
     this.running = true;
     const backup = path.join(this.registry.root, "workspace-migration-v1");
     mkdirSync(backup, { recursive: true });
+    let currentProfileId = "";
     try {
       // Source data is retained. A failed attempt only overwrites inactive targets.
       writeFileSync(path.join(backup, "source.bin"), serialize(snapshot), {
@@ -202,12 +241,24 @@ export class WorkspaceMigration {
       };
       writeJson(path.join(backup, "journal.json"), journal);
       for (const profile of plan.profiles) {
+        currentProfileId = profile.id;
+        this.progress(profile.id, "copying");
         const directory = this.registry.directory(profile.id);
         mkdirSync(directory, { recursive: true });
         this.copyMainData(profile, assignments, legacyConfig, backup);
         if (existsSync(sqliteBackup))
           this.copySqlite(profile, assignments, sqliteBackup);
         const selected = selectWorkspaceData(snapshot, assignments, profile.id);
+        selected.tables.documents = selected.tables.documents.map((row) => {
+          const document = row as unknown as HighTexDocument;
+          return this.canFollowWorkspaceIdentity(
+            document,
+            profile,
+            legacyConfig,
+          )
+            ? { ...row, authorProfileMode: "workspace" }
+            : { ...row, authorProfileMode: "document" };
+        });
         const brokenRoots = new Set(
           plan.conflicts
             .filter((conflict) => conflict.reason.includes("parent"))
@@ -238,7 +289,9 @@ export class WorkspaceMigration {
                   ? 1
                   : 0,
             );
+        this.progress(profile.id, "verifying");
         await this.restore(profile, selected);
+        this.progress(profile.id, "complete");
         journal.completed.push(profile.id);
         writeJson(path.join(backup, "journal.json"), journal);
       }
@@ -249,9 +302,62 @@ export class WorkspaceMigration {
         activeId: "local",
         migrationComplete: true,
       });
+    } catch (error) {
+      if (currentProfileId) this.progress(currentProfileId, "failed");
+      throw error;
     } finally {
       this.running = false;
     }
+  }
+
+  private progress(
+    profileId: string,
+    status: WorkspaceMigrationProgress["status"],
+  ) {
+    this.application.window?.webContents.send("workspaces:migration:progress", {
+      profileId,
+      status,
+    } satisfies WorkspaceMigrationProgress);
+  }
+
+  private canFollowWorkspaceIdentity(
+    document: HighTexDocument,
+    profile: WorkspaceProfile,
+    legacy: LegacyData,
+  ) {
+    const author = document.profile;
+    const oldAccount =
+      profile.type === "cloud" &&
+      String(legacy.session?.user?.id ?? "") === profile.accountId
+        ? legacy.session?.user
+        : undefined;
+    const expectedName =
+      profile.type === "local"
+        ? legacy.profile?.name ?? ""
+        : oldAccount?.name ?? "";
+    const expectedNim =
+      profile.type === "local"
+        ? legacy.profile?.nim ?? ""
+        : oldAccount?.identity_number ?? "";
+    const expectedCv =
+      profile.type === "local" ? legacy.profile?.cv ?? "" : "";
+    if (
+      (author?.name && author.name !== expectedName) ||
+      (author?.nim && author.nim !== expectedNim) ||
+      (author?.cv && author.cv !== expectedCv)
+    )
+      return false;
+
+    const picture = author?.picture as
+      | { __hightexWorkspaceBlob?: boolean; bytes?: Uint8Array }
+      | undefined;
+    if (!picture) return true;
+    if (!picture.__hightexWorkspaceBlob || !(picture.bytes instanceof Uint8Array))
+      return false;
+    if (profile.type !== "local") return false;
+    const defaultPicture = path.join(this.registry.root, "images", "profile_picture.webp");
+    if (!existsSync(defaultPicture)) return false;
+    return Buffer.from(picture.bytes).equals(readFileSync(defaultPicture));
   }
 
   private copyImportedFile(file: string, profile: WorkspaceProfile): string {

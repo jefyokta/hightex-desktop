@@ -12,9 +12,21 @@ const fixture = (
   const modules: Record<string, unknown> = {
     electron: { app: { isPackaged } },
     "dotenv/config": {},
+    "../../src/workspaces/identity": {
+      normalizeWorkspaceServer: (value: string) =>
+        `${new URL(value).origin}/api/`,
+      workspaceServerForEnvironment: (isDev: boolean, localServer?: string) =>
+        `${new URL(
+          isDev
+            ? localServer || "http://127.0.0.1:8000"
+            : "https://hightex.jefyokta.dev",
+        ).origin}/api/`,
+    },
     "../workspaces/runtime": {
       WorkspaceRuntime: {
-        profile: workspaceServer ? { serverUrl: workspaceServer } : undefined,
+        profile: workspaceServer
+          ? { type: "cloud", serverUrl: workspaceServer }
+          : undefined,
       },
     },
   };
@@ -66,7 +78,7 @@ const fixture = (
 
 test("packaged builds use the production server even with LOCAL_SERVER configured", () => {
   const ServerUrl = fixture(true, "http://localhost:9000");
-  expect(ServerUrl.instance.url.href).toBe("https://hightex.jefyokta.dev/");
+  expect(ServerUrl.instance.url.href).toBe("https://hightex.jefyokta.dev/api/");
   expect(ServerUrl.instance.api.href).toBe("https://hightex.jefyokta.dev/api/");
   expect(ServerUrl.instance).toBe(ServerUrl.instance);
 });
@@ -90,19 +102,14 @@ test("APP_ENV cannot override Electron's packaging status", () => {
   ).toBe("https://hightex.jefyokta.dev/api/");
 });
 
-test("cloud profile selects its configured server without prefixing the remote host", () => {
+test("cloud workspaces cannot override the server configured for this build", () => {
   const ServerUrl = fixture(
     true,
     "http://localhost:9000",
     undefined,
     "https://university.test:8443/api/",
   );
-  expect(ServerUrl.instance.endpoint("/me").href).toBe(
-    "https://university.test:8443/api/me",
-  );
-  expect(ServerUrl.instance.resolve("/profile").href).toBe(
-    "https://university.test:8443/profile",
-  );
+  expect(() => ServerUrl.instance).toThrow("unsupported cloud host");
 });
 
 test("API routes retain the API prefix, nested paths and encoded query values", () => {

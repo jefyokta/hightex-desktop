@@ -9,8 +9,10 @@ import { ConfigService } from "../service/config-service";
 import { LoggerService } from "../service/logger-service";
 import en from "../../src/locales/en.json";
 import id from "../../src/locales/id.json";
+import { isEditorDocumentPath } from "../../src/workspaces/editor-navigation";
 export class EditorWindow {
   private static windows = new Map<string, EditorWindowState>();
+  private static closeGuards = new Map<string, EditorCloseGuard>();
 
   static async open(
     documentId: string,
@@ -39,10 +41,24 @@ export class EditorWindow {
         : {}),
 
       webPreferences: {
+        additionalArguments: [
+          `--hightex-editor-document=${encodeURIComponent(documentId)}`,
+        ],
         preload: Application.instance.preloadEntry,
         contextIsolation: true,
         devTools: Application.isDev,
       },
+    });
+
+    window.webContents.on("will-navigate", (event, target) => {
+      const url = new URL(target);
+      const editorUrl = new URL(Application.instance.resolveRendererUrl());
+      if (
+        url.protocol !== editorUrl.protocol ||
+        url.host !== editorUrl.host ||
+        !isEditorDocumentPath(url.pathname, documentId)
+      )
+        event.preventDefault();
     });
 
     const state: EditorWindowState = {
@@ -115,9 +131,11 @@ export class EditorWindow {
           });
       },
     });
-    window.on("close", (event) => guard.request(event));
+    this.closeGuards.set(documentId, guard);
+    window.on("close", (event) => void guard.request(event));
 
     window.once("closed", () => {
+      this.closeGuards.delete(documentId);
       if (this.windows.get(documentId)?.window === window) {
         this.windows.delete(documentId);
       }
@@ -149,6 +167,45 @@ export class EditorWindow {
     return Array.from(this.windows).find(
       ([, state]) => state.window === window,
     )?.[1];
+  }
+
+  static async prepareForWorkspaceSwitch(): Promise<boolean> {
+    const states = Array.from(this.windows.entries());
+    const prepared: EditorCloseGuard[] = [];
+    for (const [documentId, state] of states) {
+      if (state.window.isDestroyed()) continue;
+      const guard = this.closeGuards.get(documentId);
+      if (!guard || !(await guard.prepareForWorkspaceSwitch())) {
+        prepared.forEach((item) => item.cancelWorkspaceSwitchClose());
+        return false;
+      }
+      prepared.push(guard);
+    }
+
+    const closing = states
+      .filter(([, state]) => !state.window.isDestroyed())
+      .map(([, state]) => this.waitForClosed(state.window));
+    prepared.forEach((guard) => guard.commitWorkspaceSwitchClose());
+    const results = await Promise.all(closing);
+    return results.every(Boolean);
+  }
+
+  private static waitForClosed(window: BrowserWindow): Promise<boolean> {
+    if (window.isDestroyed()) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      let finished = false;
+      let onClosed = () => {};
+      const finish = (closed: boolean) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        window.removeListener("closed", onClosed);
+        resolve(closed);
+      };
+      onClosed = () => finish(true);
+      const timer = setTimeout(() => finish(false), 10000);
+      window.once("closed", onClosed);
+    });
   }
 
   static async flush(documentId: string, timeout = 30000): Promise<void> {

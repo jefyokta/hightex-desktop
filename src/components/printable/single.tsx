@@ -9,7 +9,7 @@ import { Chapter } from "@/editor/chapter";
 import { cn } from "@/lib/utils";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
 import { Document } from "@/editor/document";
-import { resolveDocumentProfile } from "@/utils/document-profile";
+import { resolveWorkspaceDocumentProfile } from "@/utils/document-profile";
 
 Paged.registerHandlers(BaseHandler);
 
@@ -40,7 +40,7 @@ export const Single = () => {
 
     await engine
       .withConfig({
-        profile: resolveDocumentProfile(document.getDocument()),
+        profile: await resolveWorkspaceDocumentProfile(document.getDocument()),
         paged: {
           content: pagedRef.current,
           renderTo: renderRef.current,

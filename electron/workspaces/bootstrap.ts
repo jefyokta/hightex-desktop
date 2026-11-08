@@ -2,6 +2,7 @@ import { app, protocol } from "electron";
 import { mkdirSync } from "node:fs";
 import { WorkspaceRegistry } from "./registry";
 import { WorkspaceRuntime } from "./runtime";
+import { ServerUrl } from "../url/server-url";
 
 export function initializeWorkspace() {
   protocol.registerSchemesAsPrivileged([
@@ -17,7 +18,9 @@ export function initializeWorkspace() {
   ]);
   WorkspaceRuntime.protocolRegistered = true;
   const root = app.getPath("userData");
-  const registry = new WorkspaceRegistry(root);
+  const cloudServerUrl = new ServerUrl().api.href;
+  WorkspaceRuntime.serverUrl = cloudServerUrl;
+  const registry = new WorkspaceRegistry(root, cloudServerUrl);
   const state = registry.read();
   WorkspaceRuntime.root = root;
   WorkspaceRuntime.migrating = !state.migrationComplete;
