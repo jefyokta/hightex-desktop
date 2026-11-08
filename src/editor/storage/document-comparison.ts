@@ -1,6 +1,7 @@
 import type { DocumentNode, ImportedHighTexV2 } from "@hightex/importer";
 import { Exporter } from "@/utils/htx/exporter";
 import { readImportModel } from "@/utils/htx/import-model";
+import { textOf } from "@/utils/text-of";
 import { HighTexDB } from "./hightex-db";
 
 export type CompareStatus = "added" | "removed" | "modified";
@@ -107,6 +108,16 @@ const normalizeBib = (bib: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
+const aliasMap = (model: ImportedHighTexV2) => {
+  const prefix = `${model.document.id}.`;
+  return new Map(
+    model.aliases.map(({ key, value }) => [
+      key.startsWith(prefix) ? key.slice(prefix.length) : key,
+      value,
+    ]),
+  );
+};
+
 const referenceMaps = (model: ImportedHighTexV2) => {
   const keyToIdentity = new Map<string, string>();
   const records = new Map<string, unknown>();
@@ -143,21 +154,6 @@ const normalizeNode = (
       : {}),
   };
 };
-
-const textOf = (nodes: DocumentNode[]): string =>
-  nodes
-    .map((node) => {
-      if (node.type === "text") return node.text ?? "";
-      if (node.type === "hardBreak") return "\n";
-      const text = textOf(node.content ?? []);
-      return ["paragraph", "heading", "listItem", "tableRow"].includes(
-        node.type,
-      )
-        ? `${text}\n`
-        : text;
-    })
-    .join("")
-    .trim();
 
 const imageIdentities = async (model: ImportedHighTexV2) => {
   const identities = new Map<string, string>();
@@ -201,8 +197,12 @@ const chapterDiff = (
         serialized(beforeContent) === serialized(afterContent)
       )
         return [];
-      const beforeText = textOf(before?.content ?? []);
-      const afterText = textOf(after?.content ?? []);
+      const beforeText = textOf(before?.content ?? [], {
+        preserveBlockBreaks: true,
+      });
+      const afterText = textOf(after?.content ?? [], {
+        preserveBlockBreaks: true,
+      });
       return [
         {
           key,
@@ -328,10 +328,7 @@ export async function compareDocumentBranch(
     },
     {
       key: "aliases",
-      entries: compareMaps(
-        new Map(mainModel.aliases.map(({ key, value }) => [key, value])),
-        new Map(branchModel.aliases.map(({ key, value }) => [key, value])),
-      ),
+      entries: compareMaps(aliasMap(mainModel), aliasMap(branchModel)),
     },
     {
       key: "references",
