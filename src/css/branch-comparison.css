@@ -1,0 +1,22 @@
+.comparison-chapter .page {
+  overflow: visible;
+}
+.comparison-chapter [data-compare-change="removed"] {
+  background: rgb(239 68 68 / 0.07);
+  outline: 2px solid rgb(239 68 68 / 0.5);
+  outline-offset: 3px;
+}
+.comparison-chapter [data-compare-change="added"] {
+  background: rgb(16 185 129 / 0.07);
+  outline: 2px solid rgb(16 185 129 / 0.5);
+  outline-offset: 3px;
+}
+.comparison-chapter .tiptap [data-type="grid"] {
+  border: 0;
+}
+.comparison-chapter .tiptap cite {
+  font-style: normal;
+}
+.comparison-chapter abbr {
+  text-decoration: underline dotted;
+}

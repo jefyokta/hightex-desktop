@@ -14,11 +14,17 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { t } from "@/utils/lang";
 import { SubmissionReviewResult } from "@/components/submission/review-result";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 export const Review = () => {
   const { documentId, submissionId } = useParams();
   const { user } = useUser();
   const online = useOnline();
+  const { state } = useWorkspaces();
+  const local =
+    !state ||
+    state.profiles.find((profile) => profile.id === state.activeId)?.type ===
+      "local";
   const navigate = useNavigate();
   const [snapshot, setSnapshot] = useState<SnapshotReadModel>();
   const [error, setError] = useState<string>();
@@ -35,7 +41,7 @@ export const Review = () => {
     setSnapshot(undefined);
     setError(undefined);
     setAccessDenied(false);
-    if (!user || !online || !documentId || !submissionId) return;
+    if (local || !user || !online || !documentId || !submissionId) return;
     const load = async () => {
       const context = await window.hightex.submission.context();
       if (canceled) return;
@@ -104,16 +110,16 @@ export const Review = () => {
     return () => {
       canceled = true;
     };
-  }, [user, online, documentId, submissionId]);
+  }, [local, user, online, documentId, submissionId]);
 
   useEffect(() => {
-    if (!user || !online) snapshotCache.clear();
+    if (local || !user || !online) snapshotCache.clear();
     return () => {
       snapshotCache.clear();
     };
-  }, [user, online]);
+  }, [local, user, online]);
 
-  if (!user) return <LoginGate />;
+  if (local || !user) return <LoginGate />;
   if (!online)
     return (
       <Alert>

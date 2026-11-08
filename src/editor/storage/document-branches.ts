@@ -108,6 +108,7 @@ export async function createDocumentBranch(
   prepared.state.document.parentId = rootId;
   prepared.state.document.branchName = name;
   prepared.state.document.parentRevision = parentRevision;
+  prepared.state.document.authorProfileMode = "workspace";
   delete prepared.state.document.file;
   delete prepared.state.document.cloudAcademic;
   await installDraft(db, prepared, before);

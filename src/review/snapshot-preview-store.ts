@@ -42,7 +42,7 @@ export const createSnapshotPreviewStore = async (
     class PreviewStore extends HighTexDB {
       async warm() {}
     }
-    db = new PreviewStore(`SubmissionPreview-${crypto.randomUUID()}`);
+    db = new PreviewStore(`SubmissionPreview-${crypto.randomUUID()}`, false);
   } finally {
     Dexie.dependencies.indexedDB = originalIndexedDB;
     Dexie.dependencies.IDBKeyRange = originalRange;

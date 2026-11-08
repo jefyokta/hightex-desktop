@@ -405,6 +405,12 @@ figure thead th {
 figure thead td {
   border-bottom: 1px solid black;
 }
+.content figure th,
+.content figure .table-header-like,
+.attachment figure th,
+.attachment figure .table-header-like {
+  border-bottom: 1px solid black;
+}
 
 .foreword {
   width: 100% !important;

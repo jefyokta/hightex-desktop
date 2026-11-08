@@ -31,14 +31,30 @@ import { Extension } from "@tiptap/core";
 import { Comment } from "../extensions/comment";
 import { Note } from "../extensions/note";
 
+type ChapterExtensionContext = Pick<
+  Chapter,
+  "frozen" | "title" | "getChapter"
+> & {
+  query: Pick<Chapter["query"], "isNormalChapter">;
+};
+
 export class ChapterExtensions {
-  constructor(private chapter: Chapter) {}
+  constructor(private chapter: ChapterExtensionContext) {}
   public placeHolder: Record<string, string> = {
     "abstract-en": "200 words maximum",
     abstract: "Maksimal 200 kata",
     presentation: "Maksimal 1 halam",
     foreword: "Maksimal 2 halaman",
   };
+  /** Schema serialization reuses editor nodes without creating a live editor or its plugins. */
+  static contentSchema(chapterName: string) {
+    return new ChapterExtensions({
+      frozen: false,
+      title: "",
+      getChapter: () => chapterName,
+      query: { isNormalChapter: () => false },
+    }).get(false);
+  }
   get(enableAliasHint = false) {
     if (this.chapter.frozen) return [];
     const isNonChapter = [
@@ -87,13 +103,11 @@ export class ChapterExtensions {
       //   tableHeader: false,
       //   tableRow: false,
       //   table: false,
-        
+
       // }),
       Table.extend({
         // isolating: true,
-      
-      })
-      .configure({resizable:true}),
+      }).configure({ resizable: true }),
 
       MathInline,
       MathBlock,

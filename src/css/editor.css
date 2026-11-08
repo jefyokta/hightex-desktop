@@ -129,6 +129,13 @@ th {
   border-bottom: 1px solid black;
   position: relative;
 }
+.page figure[data-type="figureTable"] table {
+  border-collapse: collapse;
+}
+.page figure[data-type="figureTable"] th,
+.page figure[data-type="figureTable"] .table-header-like {
+  border-bottom: 1px solid currentColor;
+}
 .page table td,
 .page table th {
   position: relative;

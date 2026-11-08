@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
+import { NativeSelect } from "@/components/ui/native-select";
+import { ComparisonChapter } from "./comparison-chapter";
+import { changedChapterBlocks } from "@/editor/storage/comparison-blocks";
 import type { DocumentComparison } from "@/editor/storage/document-comparison";
-import { compareDocumentBranch } from "@/editor/storage/document-comparison";
+import { openDocumentComparison } from "@/editor/storage/comparison-session";
 import { t } from "@/utils/lang";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,157 +67,309 @@ export function BranchComparisonDialog({
 }) {
   const [comparison, setComparison] = useState<DocumentComparison>();
   const [loading, setLoading] = useState(false);
-
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [stale, setStale] = useState(false);
   useEffect(() => {
+    setComparison(undefined);
+    setIndex(0);
+    setStale(false);
     if (!open || !branchId) return;
     let alive = true;
+    const controller = new AbortController();
     setLoading(true);
-    setComparison(undefined);
-    void compareDocumentBranch(branchId)
-      .then((value) => {
-        if (alive) setComparison(value);
+    setFailed(false);
+    void openDocumentComparison(
+      branchId,
+      () => {
+        if (alive) setStale(true);
+      },
+      controller.signal,
+    )
+      .then(({ comparison }) => {
+        if (alive) setComparison(comparison);
       })
       .catch((error) => {
-        console.error("Could not compare branch with main", error);
-        if (alive) toast.error(t("editor.branches.compare_failed"));
+        if (alive) {
+          console.error("Could not compare branch with main", error);
+          setFailed(true);
+        }
       })
       .finally(() => {
         if (alive) setLoading(false);
       });
     return () => {
       alive = false;
+      controller.abort();
     };
-  }, [open, branchId]);
-
-  const total = comparison
-    ? Object.values(comparison.summary).reduce((sum, count) => sum + count, 0)
-    : 0;
-
+  }, [open, branchId, retry]);
+  const entries = useMemo(
+    () =>
+      comparison
+        ? [
+            ...comparison.sections.filter(
+              (section) => section.key === "chapters",
+            ),
+            ...comparison.sections.filter(
+              (section) => section.key !== "chapters",
+            ),
+          ].flatMap((section) =>
+            section.entries.map((entry) => ({ section: section.key, entry })),
+          )
+        : [],
+    [comparison],
+  );
+  const actualIndex = Math.min(index, Math.max(0, entries.length - 1));
+  const selected = entries[actualIndex];
+  const blocks = useMemo(
+    () =>
+      selected?.section === "chapters"
+        ? changedChapterBlocks(
+            JSON.parse(selected.entry.before ?? "[]"),
+            JSON.parse(selected.entry.after ?? "[]"),
+          )
+        : { main: [], branch: [] },
+    [selected],
+  );
+  const label = (item: typeof selected) =>
+    item.section === "chapters"
+      ? t("editor.branches.compare_chapter", { id: item.entry.key })
+      : `${sectionLabel(item.section)} · ${item.section === "images" ? item.entry.key.slice(0, 10) : item.entry.key}`;
+  const branchName =
+    comparison?.branch.branchName || t("editor.branches.branch");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] gap-0 overflow-hidden p-0 sm:max-w-5xl">
-        <DialogHeader className="border-b px-6 py-5">
+      <DialogContent className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[96vw]">
+        <DialogHeader className="shrink-0 border-b px-6 py-4">
           <DialogTitle>
             {comparison
-              ? t("editor.branches.compare_title", {
-                  name: comparison.branch.branchName || comparison.branch.title,
-                })
+              ? t("editor.branches.compare_title", { name: branchName })
               : t("editor.branches.compare")}
           </DialogTitle>
           <DialogDescription>
             {t("editor.branches.compare_description")}
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[76dvh] space-y-4 overflow-y-auto p-5">
-          {loading ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              {t("editor.branches.comparing")}
-            </p>
-          ) : comparison && total === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              {t("editor.branches.compare_no_changes")}
-            </p>
-          ) : comparison ? (
-            <>
-              <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm">
-                {t("editor.branches.compare_summary", {
-                  added: comparison.summary.added,
-                  removed: comparison.summary.removed,
-                  modified: comparison.summary.modified,
-                })}
+        {stale && comparison && !loading && (
+          <div
+            className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b bg-amber-500/10 px-5 py-2"
+            data-comparison-stale
+            role="status"
+          >
+            <p className="text-xs">{t("editor.branches.compare_stale")}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRetry((value) => value + 1)}
+            >
+              <RefreshCw className="size-3.5" />
+              {t("editor.branches.compare_refresh")}
+            </Button>
+          </div>
+        )}
+        {loading ? (
+          <p
+            role="status"
+            className="flex-1 p-10 text-center text-sm text-muted-foreground"
+          >
+            {t("editor.branches.comparing")}
+          </p>
+        ) : failed ? (
+          <div
+            role="alert"
+            className="flex flex-1 flex-col items-center justify-center gap-3"
+          >
+            <p>{t("editor.branches.compare_failed")}</p>
+            <Button
+              variant="outline"
+              onClick={() => setRetry((value) => value + 1)}
+            >
+              <RefreshCw className="size-4" />
+              {t("forms.retry")}
+            </Button>
+          </div>
+        ) : comparison && !entries.length ? (
+          <p
+            role="status"
+            className="flex-1 p-10 text-center text-sm text-muted-foreground"
+          >
+            {t("editor.branches.compare_no_changes")}
+          </p>
+        ) : comparison && selected ? (
+          <>
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
+              <p className="text-xs text-muted-foreground">
+                {t("editor.branches.compare_summary", comparison.summary)}
               </p>
-              {comparison.sections.some(
-                (section) => section.key === "chapters",
-              ) && (
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm bg-red-500/20" />
-                    {t("editor.branches.compare_removed")}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm bg-emerald-500/20" />
-                    {t("editor.branches.compare_added")}
-                  </span>
-                </div>
-              )}
-              {comparison.sections.map((section) => (
-                <details key={section.key} className="group rounded-xl border">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl bg-muted/40 px-4 py-3 font-medium">
-                    <span>{sectionLabel(section.key)}</span>
-                    <span className="rounded-full bg-background px-2 py-1 text-xs text-muted-foreground">
-                      {section.entries.length}
-                    </span>
-                  </summary>
-                  <div className="space-y-3 p-3">
-                    {section.entries.map((entry) => (
-                      <article
-                        key={entry.key}
-                        className="overflow-hidden rounded-lg border"
+              <div
+                className="flex items-center gap-2"
+                data-comparison-navigation
+              >
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={actualIndex === 0}
+                  aria-label={t("editor.branches.compare_previous")}
+                  onClick={() => setIndex(actualIndex - 1)}
+                >
+                  <ArrowLeft className="size-4" />
+                </Button>
+                <span className="min-w-14 text-center text-xs" role="status">
+                  {actualIndex + 1} / {entries.length}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={actualIndex === entries.length - 1}
+                  aria-label={t("editor.branches.compare_next")}
+                  onClick={() => setIndex(actualIndex + 1)}
+                >
+                  <ArrowRight className="size-4" />
+                </Button>
+              </div>
+              <NativeSelect
+                wrapperClassName="w-full md:hidden"
+                aria-label={t("editor.branches.compare_changes")}
+                value={actualIndex}
+                onChange={(event) => setIndex(Number(event.target.value))}
+              >
+                {entries.map((item, i) => (
+                  <option key={`${item.section}:${item.entry.key}`} value={i}>
+                    {label(item)}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+            <div className="flex min-h-0 flex-1">
+              <nav
+                aria-label={t("editor.branches.compare_changes")}
+                className="hidden w-56 shrink-0 space-y-1 overflow-y-auto border-r p-2 md:block"
+              >
+                {entries.map((item, i) => (
+                  <button
+                    key={`${item.section}:${item.entry.key}`}
+                    type="button"
+                    aria-current={i === actualIndex ? "true" : undefined}
+                    className={`flex w-full flex-col items-start gap-2 rounded-lg p-3 text-left text-xs hover:bg-muted/60 ${i === actualIndex ? "bg-muted" : ""}`}
+                    onClick={() => setIndex(i)}
+                  >
+                    <span className="break-all font-medium">{label(item)}</span>
+                    <Status status={item.entry.status} />
+                  </button>
+                ))}
+              </nav>
+              <section
+                className="min-w-0 flex-1 overflow-y-auto"
+                aria-label={label(selected)}
+                data-comparison-entry
+              >
+                <header className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+                  <h3 className="font-medium">{label(selected)}</h3>
+                  <Status status={selected.entry.status} />
+                </header>
+                {selected.entry.textUnchanged && (
+                  <p className="border-b bg-amber-500/10 px-4 py-3 text-xs">
+                    {t("editor.branches.compare_formatting_only")}
+                  </p>
+                )}
+                <div className="grid min-w-0 divide-y lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+                  {(["main", "branch"] as const).map((side) => (
+                    <div key={side} className="min-w-0">
+                      <header
+                        className={`space-y-1 border-b px-4 py-3 ${side === "main" ? "bg-red-500/5" : "bg-emerald-500/5"}`}
                       >
-                        <header className="flex items-center justify-between gap-3 border-b px-3 py-2">
-                          <p className="min-w-0 truncate text-sm font-medium">
-                            {section.key === "images" && entry.key.length > 24
-                              ? `${t("editor.branches.image_asset")} ${entry.key.slice(0, 10)}`
-                              : entry.key}
-                          </p>
-                          <Status status={entry.status} />
-                        </header>
-                        {section.key === "chapters" ? (
-                          <>
-                            <div className="overflow-x-auto bg-background p-4">
-                              <InlineDiff
-                                before={entry.beforeText ?? ""}
-                                after={entry.afterText ?? ""}
-                              />
-                            </div>
-                            {entry.textUnchanged && (
-                              <details className="border-t">
-                                <summary className="cursor-pointer px-4 py-3 text-xs text-muted-foreground">
-                                  {t("editor.branches.compare_formatting_only")}
-                                </summary>
-                                <div className="grid divide-y md:grid-cols-2 md:divide-x md:divide-y-0">
-                                  <ValuePane
-                                    title={t("editor.branches.main")}
-                                    value={entry.before}
-                                  />
-                                  <ValuePane
-                                    title={
-                                      comparison.branch.branchName ||
-                                      t("editor.branches.branch")
-                                    }
-                                    value={entry.after}
-                                  />
-                                </div>
-                              </details>
-                            )}
-                          </>
+                        <p className="text-sm font-semibold">
+                          {side === "main"
+                            ? t("editor.branches.main")
+                            : branchName}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {side === "main"
+                            ? comparison.main.title
+                            : comparison.branch.title}
+                        </p>
+                      </header>
+                      {selected.section === "chapters" ? (
+                        (
+                          side === "main"
+                            ? selected.entry.beforeNodes
+                            : selected.entry.afterNodes
+                        ) ? (
+                          <ComparisonChapter
+                            model={comparison.sources[side]}
+                            nodes={
+                              (side === "main"
+                                ? selected.entry.beforeNodes
+                                : selected.entry.afterNodes)!
+                            }
+                            chapterId={selected.entry.key}
+                            side={side}
+                            changed={blocks[side]}
+                          />
                         ) : (
-                          <div className="grid divide-y md:grid-cols-2 md:divide-x md:divide-y-0">
-                            <ValuePane
-                              title={t("editor.branches.main")}
-                              value={entry.before}
-                            />
-                            <ValuePane
-                              title={
-                                comparison.branch.branchName ||
-                                t("editor.branches.branch")
-                              }
-                              value={entry.after}
-                            />
-                          </div>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                </details>
-              ))}
-            </>
-          ) : null}
-        </div>
-        <div className="flex justify-end border-t p-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("common.close")}
-          </Button>
+                          <p className="p-8 text-center text-sm text-muted-foreground">
+                            {t("editor.branches.compare_empty")}
+                          </p>
+                        )
+                      ) : (
+                        <ValuePane
+                          title={
+                            side === "main"
+                              ? t("editor.branches.main")
+                              : branchName
+                          }
+                          value={
+                            side === "main"
+                              ? selected.entry.before
+                              : selected.entry.after
+                          }
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {selected.section === "chapters" &&
+                  !selected.entry.textUnchanged && (
+                    <details className="border-t p-4">
+                      <summary className="cursor-pointer text-xs font-medium">
+                        {t("editor.branches.compare_text_changes")}
+                      </summary>
+                      <div className="mt-4">
+                        <InlineDiff
+                          before={selected.entry.beforeText ?? ""}
+                          after={selected.entry.afterText ?? ""}
+                        />
+                      </div>
+                    </details>
+                  )}
+              </section>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1" />
+        )}
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t p-3">
+          <p className="text-xs text-muted-foreground">
+            {t("editor.branches.compare_readonly")}
+          </p>
+          <div className="flex items-center gap-2">
+            {comparison && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t("editor.branches.compare_refresh")}
+                title={t("editor.branches.compare_refresh")}
+                disabled={loading}
+                onClick={() => setRetry((value) => value + 1)}
+              >
+                <RefreshCw className="size-4" />
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t("common.close")}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -14,6 +14,8 @@ export type DocumentCompareEntry = {
   beforeText?: string;
   afterText?: string;
   textUnchanged?: boolean;
+  beforeNodes?: DocumentNode[];
+  afterNodes?: DocumentNode[];
 };
 
 export type DocumentCompareSection = {
@@ -26,6 +28,7 @@ export type DocumentComparison = {
   branch: HighTexDocument;
   sections: DocumentCompareSection[];
   summary: Record<CompareStatus, number>;
+  sources: { main: ImportedHighTexV2; branch: ImportedHighTexV2 };
 };
 
 const canonical = (value: unknown): unknown => {
@@ -216,6 +219,8 @@ const chapterDiff = (
           beforeText,
           afterText,
           textUnchanged: !!before && !!after && beforeText === afterText,
+          beforeNodes: before?.content,
+          afterNodes: after?.content,
         },
       ];
     });
@@ -344,5 +349,11 @@ export async function compareDocumentBranch(
   sections.forEach((section) =>
     section.entries.forEach((entry) => summary[entry.status]++),
   );
-  return { main, branch, sections, summary };
+  return {
+    main,
+    branch,
+    sections,
+    summary,
+    sources: { main: mainModel, branch: branchModel },
+  };
 }

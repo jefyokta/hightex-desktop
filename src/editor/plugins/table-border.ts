@@ -18,6 +18,20 @@ interface TableCell {
   index: number;
 }
 
+/** Rowspan boundaries shared by the live editor and static comparison rendering. */
+export function headerLikeRowIndexes(
+  rows: readonly (readonly { header: boolean; rowspan: number }[])[],
+): number[] {
+  const indexes = new Set<number>();
+  rows.forEach((row, index) =>
+    row.forEach((cell) => {
+      const end = index + Math.max(1, cell.rowspan) - 1;
+      if (cell.header && end > index && end < rows.length) indexes.add(end);
+    }),
+  );
+  return [...indexes];
+}
+
 export function createTableBorderPlugin() {
   return new Plugin<DecorationSet>({
     key: tableBorderPluginKey,
@@ -64,32 +78,15 @@ function decorateTable(
   decorations: Decoration[],
 ) {
   const rows = getRows(table, tablePos);
-
-  for (const row of rows) {
-    const cells = getCells(row);
-
-    for (const cell of cells) {
-      if (cell.node.type.name !== "tableHeader") {
-        continue;
-      }
-
-      const rowspan = Math.max(1, Number(cell.node.attrs.rowspan ?? 1));
-
-      if (rowspan <= 1) {
-        continue;
-      }
-
-      const targetRowIndex = row.index + rowspan - 1;
-
-      const targetRow = rows[targetRowIndex];
-
-      if (!targetRow) {
-        continue;
-      }
-
-      decorateRow(targetRow, decorations);
-    }
-  }
+  const indexes = headerLikeRowIndexes(
+    rows.map((row) =>
+      getCells(row).map((cell) => ({
+        header: cell.node.type.name === "tableHeader",
+        rowspan: Number(cell.node.attrs.rowspan ?? 1),
+      })),
+    ),
+  );
+  for (const index of indexes) decorateRow(rows[index], decorations);
 }
 
 function decorateRow(row: TableRow, decorations: Decoration[]) {
