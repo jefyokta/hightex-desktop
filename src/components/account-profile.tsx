@@ -29,10 +29,15 @@ import {
   SelectValue,
 } from "./ui/select";
 import { LoginGate } from "./login-gate";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 export const AccountProfile = () => {
   const { user } = useUser();
   const online = useOnline();
+  const { state } = useWorkspaces();
+  const local =
+    state?.profiles.find((profile) => profile.id === state.activeId)
+      ?.serverUrl === null;
   return (
     <Card>
       <CardHeader>
@@ -45,7 +50,11 @@ export const AccountProfile = () => {
             <Link to="/dashboard/cloud/cv">{t("cloud_cv.edit")}</Link>
           </Button>
         )}
-        {!user ? (
+        {local ? (
+          <p className="text-sm text-muted-foreground">
+            {t("workspace_profiles.local_login")}
+          </p>
+        ) : !user ? (
           <LoginGate compact />
         ) : !online ? (
           <p className="text-sm text-muted-foreground">

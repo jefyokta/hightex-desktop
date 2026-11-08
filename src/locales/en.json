@@ -1,4 +1,27 @@
 {
+  "workspace_profiles": {
+    "title": "Workspace profiles",
+    "description": "Each profile keeps its documents, account, and cloud connection separate.",
+    "active": "Active profile",
+    "local": "Local · no cloud account",
+    "switch": "Switch",
+    "switch_hint": "Close editor, preview, and sharing windows first. Switching restarts HighTex; each profile retains its data and login.",
+    "name": "Profile name",
+    "server": "Cloud server (optional)",
+    "server_hint": "Leave blank for a local profile. A cloud profile binds to the first account you sign in with; use another profile for a different account.",
+    "create": "Create profile",
+    "migration_title": "Organize existing data into profiles",
+    "migration_description": "This update separates your existing library by cloud server and account bindings. Unbound documents go into Local; branches follow their parent. Original storage is retained as a backup. HighTex restarts after verification.",
+    "documents": "documents",
+    "conflict": "Resolve this document family: ambiguous cloud bindings stay in Local with their original locks; broken parent links are detached in the migrated copy",
+    "choose_destination": "Choose destination",
+    "shared_legacy": "Previously shared references, variables, and lecturer entries are copied into each profile. Form inputs follow their document. Document authors and cloud bindings are preserved; migration does not upload anything.",
+    "preparing": "Reading existing storage…",
+    "migrate": "Back up and migrate",
+    "migrating": "Migrating and verifying…",
+    "local_login": "Create or switch to a cloud profile to sign in.",
+    "switch_blocked": "Close editor, preview, and sharing windows before switching profiles."
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your application preferences",

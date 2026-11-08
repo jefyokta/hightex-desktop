@@ -4,11 +4,16 @@ import { Button, buttonVariants } from "./ui/button";
 import { useOnline } from "@/hooks/use-online";
 import { useAuthModal } from "@/context/auth-modal-context";
 import { t, useAppLanguage } from "@/utils/lang";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 export const LoginGate = ({ compact = false }: { compact?: boolean }) => {
   useAppLanguage();
   const online = useOnline();
   const { openLogin } = useAuthModal();
+  const { state } = useWorkspaces();
+  const local =
+    state?.profiles.find((profile) => profile.id === state.activeId)
+      ?.serverUrl === null;
   return (
     <section
       className={`mx-auto flex max-w-xl flex-col items-center justify-center px-5 text-center ${compact ? "py-5" : "min-h-[55vh] py-12"}`}
@@ -20,16 +25,28 @@ export const LoginGate = ({ compact = false }: { compact?: boolean }) => {
         {t(compact ? "workspace.account" : "workspace.cloud_title")}
       </h1>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
-        {t(compact ? "workspace.account_login_hint" : "workspace.cloud_hint")}
+        {t(
+          local
+            ? "workspace_profiles.local_login"
+            : compact
+              ? "workspace.account_login_hint"
+              : "workspace.cloud_hint",
+        )}
       </p>
-      <Button
-        className="workspace-primary mt-6"
-        onClick={openLogin}
-        disabled={!online}
-      >
-        <LogIn />
-        {t("common.login")}
-      </Button>
+      {local ? (
+        <Button asChild className="mt-6">
+          <Link to="/profile">{t("workspace_profiles.title")}</Link>
+        </Button>
+      ) : (
+        <Button
+          className="workspace-primary mt-6"
+          onClick={openLogin}
+          disabled={!online}
+        >
+          <LogIn />
+          {t("common.login")}
+        </Button>
+      )}
       {!online && (
         <p role="status" className="mt-3 text-xs text-muted-foreground">
           {t("workspace.offline_login")}

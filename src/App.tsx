@@ -37,12 +37,15 @@ import { Submission } from "./pages/submission";
 import { Review } from "./pages/review";
 import { SubmissionPrint } from "./pages/submission-print";
 import { CloudCVEditor } from "./pages/cloud/cv";
+import { WorkspaceMigrationPage } from "./pages/workspace-migration";
 const config = plugins.config.get("@csl");
 config.locales.add("id-ID", xml);
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/profiles/migration" element={<WorkspaceMigrationPage />} />
+        <Route path="/profiles/migration/target" element={<WorkspaceMigrationPage target />} />
         <Route path="/forms/print" element={<FormsPrint />} />
         <Route path="/submission/print/:id" element={<SubmissionPrint />} />
         <Route element={<MainLayout />}>

@@ -1,4 +1,27 @@
 {
+  "workspace_profiles": {
+    "title": "Profil workspace",
+    "description": "Setiap profil menyimpan dokumen, akun, dan koneksi cloud secara terpisah.",
+    "active": "Profil aktif",
+    "local": "Lokal · tanpa akun cloud",
+    "switch": "Ganti",
+    "switch_hint": "Tutup jendela editor, preview, dan sharing terlebih dahulu. Pergantian memulai ulang HighTex; data dan login setiap profil tetap tersimpan.",
+    "name": "Nama profil",
+    "server": "Server cloud (opsional)",
+    "server_hint": "Kosongkan untuk profil lokal. Profil cloud terikat pada akun pertama yang login; gunakan profil lain untuk akun berbeda.",
+    "create": "Buat profil",
+    "migration_title": "Kelompokkan data lama ke profil",
+    "migration_description": "Update ini memisahkan pustaka lama berdasarkan binding server dan akun cloud. Dokumen tanpa binding masuk ke Lokal; branch mengikuti induknya. Penyimpanan asli tetap dipertahankan sebagai cadangan. HighTex dimulai ulang setelah verifikasi.",
+    "documents": "dokumen",
+    "conflict": "Tentukan tujuan keluarga dokumen ini: binding cloud yang ambigu tetap di Lokal beserta pengunciannya; hubungan induk yang rusak dilepas pada salinan hasil migrasi",
+    "choose_destination": "Pilih tujuan",
+    "shared_legacy": "Referensi, variabel, dan data dosen yang sebelumnya bersama disalin ke setiap profil. Input form mengikuti dokumennya. Penulis dokumen dan binding cloud dipertahankan; migrasi tidak mengunggah data.",
+    "preparing": "Membaca penyimpanan lama…",
+    "migrate": "Cadangkan dan migrasikan",
+    "migrating": "Memigrasikan dan memverifikasi…",
+    "local_login": "Buat atau pilih profil cloud untuk login.",
+    "switch_blocked": "Tutup jendela editor, preview, dan sharing sebelum mengganti profil."
+  },
   "settings": {
     "title": "Pengaturan",
     "subtitle": "Kelola preferensi aplikasi kamu",

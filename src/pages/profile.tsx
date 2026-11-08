@@ -2,6 +2,7 @@ import { AccountProfile } from "@/components/account-profile";
 import { DefaultProfileSection } from "@/components/default-profile-section";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { t } from "@/utils/lang";
+import { WorkspaceProfiles } from "@/components/workspace-profiles";
 
 export const Profile = () => (
   <>
@@ -9,6 +10,7 @@ export const Profile = () => (
       title={t("profile.title")}
       description={t("profile.description")}
     />
+    <WorkspaceProfiles />
     <AccountProfile />
     <DefaultProfileSection />
   </>

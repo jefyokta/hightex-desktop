@@ -75,6 +75,7 @@ function fixture(
       exports: {} as T,
       require: (name: string) => modules[name] ?? {},
       process,
+      URL,
     };
     vm.runInNewContext(
       ts.transpileModule(source, {
@@ -92,6 +93,7 @@ function fixture(
     "../electron/main/application-runtime.ts",
   );
   modules["./application-runtime"] = runtime;
+  modules["../workspaces/runtime"] = { WorkspaceRuntime: {} };
   const { Application } = load<typeof import("../electron/main/application")>(
     "../electron/main/application.ts",
   );
@@ -171,6 +173,17 @@ test("development without Vite uses built renderer files while retaining develop
   expect(f.application.resolveRendererUrl("document/doc")).toBe(
     "hightex://renderer/document/doc",
   );
+});
+
+test("legacy dev migration reads the old Vite origin without doubling path slashes", async () => {
+  const f = fixture(false, "development");
+  Object.assign(
+    (f.modules["../workspaces/runtime"] as { WorkspaceRuntime: object })
+      .WorkspaceRuntime,
+    { migrating: true, profile: { id: "local" } },
+  );
+  await f.internal.createWindow();
+  expect(f.windows[0].loaded).toBe("http://localhost:5173/profiles/migration");
 });
 
 test.each([false, true])(

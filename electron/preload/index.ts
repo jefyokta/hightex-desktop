@@ -25,6 +25,16 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   // ...
 });
 
+contextBridge.exposeInMainWorld("workspaces", {
+  state: () => ipcRenderer.invoke("workspaces:state"),
+  create: (input: { name: string; serverUrl: string | null }) => ipcRenderer.invoke("workspaces:create", input),
+  switch: (id: string) => ipcRenderer.invoke("workspaces:switch", id),
+  migrationPreview: (snapshot: WorkspaceDataSnapshot) => ipcRenderer.invoke("workspaces:migration:preview", snapshot),
+  migrate: (resolutions: Record<string, string>) => ipcRenderer.invoke("workspaces:migration:run", resolutions),
+  migrationTarget: () => ipcRenderer.invoke("workspaces:migration:target"),
+  migrationVerified: (hash: string) => ipcRenderer.invoke("workspaces:migration:verified", hash),
+});
+
 let progressCallback: ((data: any) => void) | null = null;
 let cachedConfigPromise: Promise<any> | null = null;
 let cachedConfig: any = null;

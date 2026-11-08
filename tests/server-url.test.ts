@@ -7,10 +7,16 @@ const fixture = (
   isPackaged: boolean,
   localServer?: string,
   appEnv?: string,
+  workspaceServer?: string,
 ) => {
   const modules: Record<string, unknown> = {
     electron: { app: { isPackaged } },
     "dotenv/config": {},
+    "../workspaces/runtime": {
+      WorkspaceRuntime: {
+        profile: workspaceServer ? { serverUrl: workspaceServer } : undefined,
+      },
+    },
   };
   const sandbox = {
     exports: {} as typeof import("../electron/url/server-url"),
@@ -82,6 +88,21 @@ test("APP_ENV cannot override Electron's packaging status", () => {
   expect(
     fixture(true, "http://localhost:9000", "development").instance.api.href,
   ).toBe("https://hightex.jefyokta.dev/api/");
+});
+
+test("cloud profile selects its configured server without prefixing the remote host", () => {
+  const ServerUrl = fixture(
+    true,
+    "http://localhost:9000",
+    undefined,
+    "https://university.test:8443/api/",
+  );
+  expect(ServerUrl.instance.endpoint("/me").href).toBe(
+    "https://university.test:8443/api/me",
+  );
+  expect(ServerUrl.instance.resolve("/profile").href).toBe(
+    "https://university.test:8443/profile",
+  );
 });
 
 test("API routes retain the API prefix, nested paths and encoded query values", () => {

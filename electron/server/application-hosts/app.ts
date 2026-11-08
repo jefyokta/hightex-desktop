@@ -6,6 +6,12 @@ import { net } from "electron";
 import { pathToFileURL } from "url";
 export class AppHost extends Router {
   async handle(url: URL): Promise<Response> {
+    if (Application.isDev && process.env.VITE_DEV_SERVER_URL) {
+      const target = new URL(process.env.VITE_DEV_SERVER_URL);
+      target.pathname = url.pathname;
+      target.search = url.search;
+      return net.fetch(target.href);
+    }
     let pathname = decodeURIComponent(url.pathname);
     if (pathname === "" || pathname === "/") {
       pathname = "/index.html";

@@ -127,6 +127,7 @@ declare global {
     detail: Record<number, { start: number; end: number }>;
   };
   interface Window {
+    workspaces: WorkspaceAPI;
     account: AccountAPI;
     snapshotPrint: SnapshotPrintAPI;
     session: {

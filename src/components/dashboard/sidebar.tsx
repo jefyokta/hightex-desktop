@@ -41,6 +41,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { isWorkspacePageActive } from "./navigation";
+import { WorkspaceProfiles } from "@/components/workspace-profiles";
+import { useWorkspaces } from "@/hooks/use-workspaces";
 
 type Props = {
   recent?: HighTexDocument[];
@@ -56,6 +58,11 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
   const online = useOnline();
   const { openLogin } = useAuthModal();
   const { openLogout } = useLogoutModal();
+  const { state: workspaceState } = useWorkspaces();
+  const localProfile =
+    workspaceState?.profiles.find(
+      (profile) => profile.id === workspaceState.activeId,
+    )?.serverUrl === null;
   const cloudActive =
     pathname.startsWith("/dashboard/cloud/") ||
     pathname.startsWith("/dashboard/projects/cloud") ||
@@ -102,6 +109,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
         </div>
       </button>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-1 pb-6">
+        <WorkspaceProfiles compact />
         <nav aria-label={t("workspace.primary")} className="space-y-1">
           <p className="workspace-eyebrow px-3 pb-2">{t("workspace.title")}</p>
           {item(
@@ -275,17 +283,25 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
               {t("workspace.local_workspace")}
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              {t("workspace.login_hint")}
+              {t(
+                localProfile
+                  ? "workspace_profiles.local_login"
+                  : "workspace.login_hint",
+              )}
             </p>
             <button
               type="button"
-              onClick={openLogin}
-              disabled={!online}
-              title={!online ? t("workspace.offline_login") : undefined}
+              onClick={localProfile ? () => go("/profile") : openLogin}
+              disabled={!localProfile && !online}
+              title={
+                !localProfile && !online
+                  ? t("workspace.offline_login")
+                  : undefined
+              }
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border py-2 text-xs font-medium hover:bg-muted disabled:opacity-50"
             >
               <LogIn size={14} />
-              {t("common.login")}
+              {t(localProfile ? "workspace_profiles.title" : "common.login")}
             </button>
           </div>
         )}

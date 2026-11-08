@@ -14,6 +14,7 @@ const fixture = () => {
     unref(): void;
   }[] = [];
   const modules: Record<string, unknown> = {
+    "../workspaces/runtime": { WorkspaceRuntime: {} },
     "electron-store": {
       default: class {
         get(key: string) {

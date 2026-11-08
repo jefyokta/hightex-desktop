@@ -3,6 +3,7 @@ import { app, safeStorage } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { ServerUrl } from "../url/server-url";
+import { WorkspaceRuntime } from "../workspaces/runtime";
 
 export class SessionService {
   private static cachedToken: string | null = null;
@@ -36,6 +37,12 @@ export class SessionService {
   }
 
   static getToken(): string | undefined {
+    if (
+      WorkspaceRuntime.profile &&
+      !WorkspaceRuntime.migrating &&
+      !WorkspaceRuntime.profile.serverUrl
+    )
+      return undefined;
     const expiry = this.store.get("session.expiresAt") as string | undefined;
     const server = this.store.get("session.serverUrl") as string | undefined;
     if (

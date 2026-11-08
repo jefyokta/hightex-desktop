@@ -32,6 +32,8 @@ import { appEvent } from "@main/event";
 import { WindowHandler } from "@main/handlers/window-handler";
 import { DeepLinkService } from "@main/service/deep-link-service";
 import { ApplicationRuntime } from "./application-runtime";
+import { WorkspaceRuntime } from "../workspaces/runtime";
+import { registerWorkspaceHandlers } from "../workspaces/handlers";
 
 type UpdaterStatus =
   | { status: "disabled"; reason: string; manual: boolean }
@@ -235,13 +237,24 @@ export class Application {
       this.win?.webContents.send("win:maximize", false);
     });
 
-    if (this.isDev && process.env.VITE_DEV_SERVER_URL) {
-      await this.win.loadURL(process.env.VITE_DEV_SERVER_URL);
+    this.server.start();
+    if (
+      this.isDev &&
+      process.env.VITE_DEV_SERVER_URL &&
+      (!WorkspaceRuntime.profile || WorkspaceRuntime.migrating)
+    ) {
+      await this.win.loadURL(
+        WorkspaceRuntime.migrating
+          ? new URL("/profiles/migration", process.env.VITE_DEV_SERVER_URL).href
+          : process.env.VITE_DEV_SERVER_URL,
+      );
       return;
     }
 
-    this.server.start();
-    await this.win.loadURL(this.server.url);
+    await this.win.loadURL(
+      this.server.url +
+        (WorkspaceRuntime.migrating ? "/profiles/migration" : ""),
+    );
   }
 
   public async openDocumentFile(filePath: string) {
@@ -276,7 +289,7 @@ export class Application {
     for (const url of this.pendingLinks.splice(0))
       await this.handleDeepLink(url);
     this.fileOpen?.flush();
-    this.checkForUpdates();
+    if (!WorkspaceRuntime.migrating) this.checkForUpdates();
   }
 
   public async prepareCliMode() {
@@ -359,6 +372,7 @@ export class Application {
   }
 
   private registerHandlers() {
+    registerWorkspaceHandlers(this);
     ConfigHandler.register();
     SessionHandler.register();
     ProfileHandler.register();
@@ -520,7 +534,11 @@ export class Application {
   }
 
   public resolveRendererUrl(route = "/") {
-    if (this.isDev && process.env.VITE_DEV_SERVER_URL) {
+    if (
+      this.isDev &&
+      process.env.VITE_DEV_SERVER_URL &&
+      !WorkspaceRuntime.profile
+    ) {
       return `${process.env.VITE_DEV_SERVER_URL}${route}`;
     }
 

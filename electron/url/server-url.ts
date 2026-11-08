@@ -1,5 +1,6 @@
 import { ApplicationRuntime } from "../main/application-runtime";
 import "dotenv/config";
+import { WorkspaceRuntime } from "../workspaces/runtime";
 
 export class ServerUrl {
   public readonly url: URL;
@@ -22,7 +23,9 @@ export class ServerUrl {
   }
 
   public static get instance(): ServerUrl {
-    return (this._instance ??= new ServerUrl());
+    return (this._instance ??= new ServerUrl(
+      WorkspaceRuntime.profile?.serverUrl ?? undefined,
+    ));
   }
 
   /**

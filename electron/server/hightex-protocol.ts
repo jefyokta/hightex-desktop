@@ -1,6 +1,8 @@
 import { protocol } from "electron";
 import { LoggerService } from "@main/service/logger-service";
 import { Controller } from "./application-hosts/controller";
+import { WorkspaceRuntime } from "../workspaces/runtime";
+import { workspaceHost } from "../../src/workspaces/identity";
 
 export class HightexProtocol {
   static readonly SCHEME = "hightex";
@@ -9,6 +11,7 @@ export class HightexProtocol {
   private started = false;
 
   static registerSchemesAsPrivileged() {
+    if (WorkspaceRuntime.protocolRegistered) return;
     protocol.registerSchemesAsPrivileged([
       {
         scheme: HightexProtocol.SCHEME,
@@ -20,10 +23,16 @@ export class HightexProtocol {
         },
       },
     ]);
+    WorkspaceRuntime.protocolRegistered = true;
   }
 
   public get url() {
-    return `${HightexProtocol.SCHEME}://${HightexProtocol.HOST}`;
+    const profile = WorkspaceRuntime.profile;
+    const host =
+      profile && !WorkspaceRuntime.migrating
+        ? workspaceHost(profile.id)
+        : HightexProtocol.HOST;
+    return `${HightexProtocol.SCHEME}://${host}`;
   }
 
   public start() {
