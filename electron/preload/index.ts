@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld("workspaces", {
     ipcRenderer.invoke("workspaces:cloud:cancel", id),
   rename: (id: string, name: string) =>
     ipcRenderer.invoke("workspaces:rename", id, name),
+  delete: (id: string) => ipcRenderer.invoke("workspaces:delete", id),
   switch: (id: string) => ipcRenderer.invoke("workspaces:switch", id),
   migrationPreview: (snapshot: WorkspaceDataSnapshot) =>
     ipcRenderer.invoke("workspaces:migration:preview", snapshot),

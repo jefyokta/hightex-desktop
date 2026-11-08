@@ -1,6 +1,7 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, session } from "electron";
 import type { Application } from "../main/application";
 import { IPCMain } from "../utilities/ipc-main";
+import { workspaceHost } from "../../src/workspaces/identity";
 import { WorkspaceRuntime } from "./runtime";
 import { WorkspaceRegistry } from "./registry";
 import { WorkspaceMigration } from "./migration";
@@ -75,6 +76,30 @@ export function registerWorkspaceHandlers(application: Application) {
     const state = registry.rename(id, name);
     broadcastWorkspaceChange();
     return state;
+  });
+  IPCMain.handle("workspaces:delete", async (event, id: string) => {
+    const sender = senderWindow(event);
+    if (sender !== application.window)
+      throw Error("Delete workspaces from the workspace dashboard");
+    if (WorkspaceRuntime.switching) throw Error("Workspace switch in progress");
+    if (
+      BrowserWindow.getAllWindows().some(
+        (window) => window !== sender && !window.isDestroyed(),
+      )
+    )
+      throw Error("Close other windows before deleting a workspace");
+    WorkspaceRuntime.switching = true;
+    try {
+      registry.assertCanDelete(id);
+      await session.defaultSession.clearStorageData({
+        origin: `hightex://${workspaceHost(id)}`,
+      });
+      const state = registry.delete(id);
+      broadcastWorkspaceChange();
+      return state;
+    } finally {
+      WorkspaceRuntime.switching = false;
+    }
   });
   IPCMain.handle("workspaces:switch", async (event, id: string) => {
     const state = registry.read();

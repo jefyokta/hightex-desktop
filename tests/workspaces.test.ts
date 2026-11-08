@@ -1,5 +1,11 @@
 import { afterEach, expect, test } from "bun:test";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
@@ -126,6 +132,26 @@ test("profile identity survives rename/logout and rejects replacing a bound clou
   expect(registry.read().profiles[1].id).toBe(cloud.id);
   registry.write({ ...registry.read(), activeId: "local" });
   expect(() => registry.bindAccount("user-1")).toThrow();
+});
+
+test("deleting a workspace removes its local data and protects active/default profiles", () => {
+  const root = directory();
+  const registry = new WorkspaceRegistry(root);
+  const created = registry.create({ name: "Research", type: "local" });
+  const workspaceId = created.profiles[1].id;
+  registry.write({ ...created, activeId: workspaceId });
+  expect(() => registry.delete(workspaceId)).toThrow(
+    "The active workspace cannot be deleted",
+  );
+  expect(() => registry.delete("local")).toThrow(
+    "The default workspace cannot be deleted",
+  );
+
+  mkdirSync(path.join(registry.directory(workspaceId), "data"));
+  registry.write({ ...created, activeId: "local" });
+  const next = registry.delete(workspaceId);
+  expect(next.profiles.map((profile) => profile.id)).toEqual(["local"]);
+  expect(existsSync(registry.directory(workspaceId))).toBe(false);
 });
 
 test("migration groups by host/account and keeps branches with their parent", () => {

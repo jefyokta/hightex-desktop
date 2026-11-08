@@ -43,6 +43,7 @@ declare global {
     beginCloudBinding(id: string): Promise<WorkspaceState>;
     cancelCloudBinding(id: string): Promise<WorkspaceState>;
     rename(id: string, name: string): Promise<WorkspaceState>;
+    delete(id: string): Promise<WorkspaceState>;
     switch(id: string): Promise<void>;
     migrationPreview(
       snapshot: WorkspaceDataSnapshot,

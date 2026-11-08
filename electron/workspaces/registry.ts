@@ -4,6 +4,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   renameSync,
   writeFileSync,
 } from "node:fs";
@@ -216,6 +217,25 @@ export class WorkspaceRegistry {
     if (!profile) throw Error("Unknown workspace");
     this.assertNameAvailable(state, name.trim(), id);
     profile.name = name.trim();
+    this.write(state);
+    return state;
+  }
+
+  assertCanDelete(id: string): WorkspaceState {
+    const state = this.read();
+    if (!state.profiles.some((profile) => profile.id === id))
+      throw Error("Unknown workspace");
+    if (id === "local") throw Error("The default workspace cannot be deleted");
+    if (id === state.activeId) throw Error("The active workspace cannot be deleted");
+    if (state.profiles.length <= 1)
+      throw Error("At least one workspace must remain");
+    return state;
+  }
+
+  delete(id: string): WorkspaceState {
+    const state = this.assertCanDelete(id);
+    rmSync(this.directory(id), { recursive: true, force: true });
+    state.profiles = state.profiles.filter((profile) => profile.id !== id);
     this.write(state);
     return state;
   }

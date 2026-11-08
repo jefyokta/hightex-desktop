@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { ArrowRightLeft, Check, Cloud, Laptop, Pencil, Plus } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Check,
+  Cloud,
+  Laptop,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useAuthModal } from "@/context/auth-modal-context";
 import { useOnline } from "@/hooks/use-online";
@@ -32,6 +40,7 @@ export function WorkspaceProfiles() {
   const [createOpen, setCreateOpen] = useState(false);
   const [renameId, setRenameId] = useState<string>();
   const [renameName, setRenameName] = useState("");
+  const [deleteId, setDeleteId] = useState<string>();
   const [busy, setBusy] = useState(false);
 
   if (!state?.migrationComplete) return null;
@@ -49,6 +58,9 @@ export function WorkspaceProfiles() {
         ),
         "Close preview or export windows before switching workspaces.": t(
           "workspace_profiles.switch_blocked",
+        ),
+        "Close other windows before deleting a workspace": t(
+          "workspace_profiles.delete_blocked",
         ),
         "Workspace switch canceled because a file or link was opened.": t(
           "workspace_profiles.switch_interrupted",
@@ -84,6 +96,14 @@ export function WorkspaceProfiles() {
       setState(await window.workspaces.rename(renameId, renameName));
       window.dispatchEvent(new Event("workspaces:changed"));
       setRenameId(undefined);
+    });
+
+  const deleteWorkspace = () =>
+    run(async () => {
+      if (!deleteId) return;
+      setState(await window.workspaces.delete(deleteId));
+      window.dispatchEvent(new Event("workspaces:changed"));
+      setDeleteId(undefined);
     });
 
   const connectWorkspace = (profile: WorkspaceProfile) =>
@@ -166,6 +186,11 @@ export function WorkspaceProfiles() {
                           : t("workspace_profiles.cloud_unbound")
                         : t("workspace_profiles.local")}
                   </p>
+                  {active && profile.id !== "local" && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t("workspace_profiles.delete_active_hint")}
+                    </p>
+                  )}
                   {profile.legacyCloudBinding && (
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t("workspace_profiles.legacy_cloud_unavailable")}
@@ -185,6 +210,20 @@ export function WorkspaceProfiles() {
                     <Pencil />
                     <span className="sr-only">{t("workspace_profiles.rename")}</span>
                   </Button>
+                  {!active && profile.id !== "local" && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      disabled={busy}
+                      onClick={() => setDeleteId(profile.id)}
+                    >
+                      <Trash2 />
+                      <span className="sr-only">
+                        {t("workspace_profiles.delete")}
+                      </span>
+                    </Button>
+                  )}
                   {!active && (
                     <Button
                       size="sm"
@@ -387,6 +426,49 @@ export function WorkspaceProfiles() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(deleteId)}
+        onOpenChange={(open) => !open && setDeleteId(undefined)}
+      >
+        <DialogContent className="workspace sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("workspace_profiles.delete_title")}</DialogTitle>
+            <DialogDescription>
+              {t("workspace_profiles.delete_description", {
+                name: state.profiles.find((profile) => profile.id === deleteId)
+                  ?.name,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setDeleteId(undefined)}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={busy || !deleteId}
+              onClick={() => void deleteWorkspace()}
+            >
+              <Trash2 />
+              {busy
+                ? t("common.loading")
+                : t("workspace_profiles.delete_action")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
