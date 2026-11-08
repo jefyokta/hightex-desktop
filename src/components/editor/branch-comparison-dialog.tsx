@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -140,7 +141,10 @@ export function BranchComparisonDialog({
     comparison?.branch.branchName || t("editor.branches.branch");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[96vw]">
+      <DialogContent
+        data-tour="branch-comparison-dialog"
+        className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[96vw]"
+      >
         <DialogHeader className="shrink-0 border-b px-6 py-4">
           <DialogTitle>
             {comparison
@@ -331,17 +335,18 @@ export function BranchComparisonDialog({
                 </div>
                 {selected.section === "chapters" &&
                   !selected.entry.textUnchanged && (
-                    <details className="border-t p-4">
-                      <summary className="cursor-pointer text-xs font-medium">
-                        {t("editor.branches.compare_text_changes")}
-                      </summary>
+                    <Disclosure
+                      className="border-t p-4"
+                      triggerClassName="cursor-pointer text-xs font-medium"
+                      label={t("editor.branches.compare_text_changes")}
+                    >
                       <div className="mt-4">
                         <InlineDiff
                           before={selected.entry.beforeText ?? ""}
                           after={selected.entry.afterText ?? ""}
                         />
                       </div>
-                    </details>
+                    </Disclosure>
                   )}
               </section>
             </div>

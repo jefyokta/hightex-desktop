@@ -561,12 +561,11 @@ export const Settings = () => {
 
                 for (const doc of docs) {
                   toast.loading(
-                    t("settings.data.clear_data.deleting.start", {
+                    t("settings.data.clear_data.deleting.progress", {
                       deleted: deleted + 1,
                       total: docs.length,
                       identifier: doc.title || doc.id,
                     }),
-                    // `Deleting ${deleted + 1}/${docs.length}: ${doc.title || doc.id}`,
                     { id },
                   );
 
@@ -576,7 +575,7 @@ export const Settings = () => {
                 }
 
                 toast.success(
-                  t("settings.data.clear_data.deleting.done", { deleted }),
+                  t("settings.data.clear_data.deleting.done", { total: deleted }),
                   {
                     id,
                   },

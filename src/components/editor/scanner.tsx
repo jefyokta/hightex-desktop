@@ -1,12 +1,6 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { useMemo, useState, type ReactNode } from "react";
-import {
-  Ban,
-  ChevronRight,
-  Loader2,
-  RotateCcw,
-  ScanText,
-  X,
-} from "lucide-react";
+import { Ban, Loader2, RotateCcw, ScanText, X } from "lucide-react";
 import { textOf } from "@/utils/text-of";
 import {
   plugins,
@@ -70,15 +64,18 @@ const ChapterGroup = ({
   issues: PunctuationIssue[];
   diagnostics: Map<string, ScanDiagnostic>;
 }) => (
-  <details className="group rounded-lg border">
-    <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-xs [&::-webkit-details-marker]:hidden">
-      <ChevronRight
-        size={14}
-        className="shrink-0 transition-transform group-open:rotate-90"
-      />
-      <span className="flex-1 truncate font-medium">{chapter.title}</span>
-      <Badge>{issues.length}</Badge>
-    </summary>
+  <Disclosure
+    className="rounded-lg border"
+    triggerClassName="px-3 py-2 text-xs"
+    label={
+      <span className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 truncate font-medium">
+          {chapter.title}
+        </span>
+        <Badge>{issues.length}</Badge>
+      </span>
+    }
+  >
     <ul className="divide-y border-t">
       {issues.map((issue, i) => (
         <PunctuationRow
@@ -95,7 +92,7 @@ const ChapterGroup = ({
         />
       ))}
     </ul>
-  </details>
+  </Disclosure>
 );
 
 const PunctuationRow = ({

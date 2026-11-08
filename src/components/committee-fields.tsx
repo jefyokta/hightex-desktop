@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { t } from "@/utils/lang";
 import { LecturerPicker } from "./lecturer-picker";
 
@@ -17,10 +18,12 @@ export function CommitteeFields({
   disabled?: boolean;
 }) {
   return (
-    <details data-tour="profile-committee" className="rounded-md border p-3">
-      <summary className="cursor-pointer text-sm font-medium">
-        {t("document_profile.committee_title")}
-      </summary>
+    <Disclosure
+      data-tour="profile-committee"
+      className="rounded-md border p-3"
+      triggerClassName="cursor-pointer text-sm font-medium"
+      label={t("document_profile.committee_title")}
+    >
       <div className="mt-4 space-y-4">
         <p className="text-xs text-muted-foreground">
           {t("document_profile.committee_hint")}
@@ -35,6 +38,6 @@ export function CommitteeFields({
           />
         ))}
       </div>
-    </details>
+    </Disclosure>
   );
 }

@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { useId, useState } from "react";
 import { FileUp } from "lucide-react";
 import { toast } from "sonner";
@@ -104,10 +105,12 @@ function LecturerImportDialog({ onClose }: { onClose(): void }) {
             </p>
           )}
         </div>
-        <details className="space-y-2 text-xs text-muted-foreground">
-          <summary className="cursor-pointer">
-            {t("lecturers.import_format_title")}
-          </summary>
+        <Disclosure
+          contentClassName="space-y-2"
+          className="space-y-2 text-xs text-muted-foreground"
+          triggerClassName="cursor-pointer"
+          label={t("lecturers.import_format_title")}
+        >
           <p>{t("lecturers.import_format")}</p>
           <pre className="overflow-x-auto rounded-lg bg-muted p-3">
             {
@@ -115,7 +118,7 @@ function LecturerImportDialog({ onClose }: { onClose(): void }) {
             }
           </pre>
           <p>{t("lecturers.import_duplicates")}</p>
-        </details>
+        </Disclosure>
         <DialogFooter>
           <Button
             type="button"

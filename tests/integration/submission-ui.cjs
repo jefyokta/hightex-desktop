@@ -487,7 +487,9 @@ app
     await until(
       `document.getElementById('cloud-doc-select') && !Array.from(document.querySelectorAll('button')).find(button=>button.textContent.trim()==='Simpan versi')?.disabled`,
     );
-    await execute(`document.querySelector('details').open=true`);
+    await execute(
+      `document.querySelector('[data-cloud-force-push] [data-slot=collapsible-trigger]').click()`,
+    );
     await clickText("Force push dokumen lokal");
     await until(`Boolean(document.querySelector('[role="dialog"]'))`);
     await clickText("Cancel");

@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { t, useAppLanguage } from "@/utils/lang";
 import { CloudError } from "@/exception/cloud-error";
@@ -771,10 +772,12 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
               </Button>
             </div>
             {current && (
-              <details className="rounded-xl border border-amber-200 p-4 dark:border-amber-900">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Timpa versi cloud (Force push)
-                </summary>
+              <Disclosure
+                data-cloud-force-push
+                className="rounded-xl border border-amber-200 p-4 dark:border-amber-900"
+                triggerClassName="cursor-pointer text-sm font-medium"
+                label={<> Timpa versi cloud (Force push) </>}
+              >
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
                   Gunakan jika versi lokal harus menggantikan cloud meskipun
                   terjadi konflik. Seluruh isi cloud diganti; versi cloud
@@ -795,7 +798,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   )}
                   Force push dokumen lokal
                 </Button>
-              </details>
+              </Disclosure>
             )}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm">
               <p className="text-muted-foreground">

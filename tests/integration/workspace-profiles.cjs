@@ -1,4 +1,5 @@
 // Opt-in: env -u ELECTRON_RUN_AS_NODE electron tests/integration/workspace-profiles.cjs
+// Add --interactive to inspect the migration screen with the legacy fixture.
 // Exercises real Chromium origins, IndexedDB/Blob transfer and SQLite models in temp storage.
 if (process.argv.includes("--startup")) {
   require("./workspace-profile-startup.cjs");
@@ -18,6 +19,7 @@ if (process.argv.includes("--startup")) {
   const assert = require("node:assert/strict");
   const ts = require("typescript");
   const Database = require("better-sqlite3");
+  const interactive = process.argv.includes("--interactive");
   const root = mkdtempSync(
     path.join(os.tmpdir(), "hightex-profile-isolation-"),
   );
@@ -37,7 +39,7 @@ if (process.argv.includes("--startup")) {
     server,
     sourceWindow,
     restarts = 0;
-  let migrateRun;
+  let testExitCode = 0;
   const modules = new Map();
   const project = path.resolve(__dirname, "../..");
   function load(filename) {
@@ -61,6 +63,10 @@ if (process.argv.includes("--startup")) {
           app: {
             relaunch: () => {
               restarts++;
+              if (interactive)
+                console.log(
+                  "Migration complete. Restart is simulated in this fixture; close the window when done.",
+                );
             },
             quit() {},
           },
@@ -112,7 +118,8 @@ contextBridge.exposeInMainWorld('workspaces',{
 onChange:callback=>{ipcRenderer.on('workspaces:changed',callback);return()=>ipcRenderer.removeListener('workspaces:changed',callback)},
 state:()=>ipcRenderer.invoke('workspaces:state'),create:input=>ipcRenderer.invoke('workspaces:create',input),switch:id=>ipcRenderer.invoke('workspaces:switch',id),
 migrationPreview:snapshot=>ipcRenderer.invoke('workspaces:migration:preview',snapshot),migrate:resolutions=>ipcRenderer.invoke('workspaces:migration:run',resolutions),
-migrationTarget:()=>ipcRenderer.invoke('workspaces:migration:target'),migrationVerified:hash=>ipcRenderer.invoke('workspaces:migration:verified',hash)});`,
+migrationTarget:()=>ipcRenderer.invoke('workspaces:migration:target'),migrationVerified:hash=>ipcRenderer.invoke('workspaces:migration:verified',hash),
+onMigrationProgress:callback=>{const listener=(_event,progress)=>callback(progress);ipcRenderer.on('workspaces:migration:progress',listener);return()=>ipcRenderer.removeListener('workspaces:migration:progress',listener)}});`,
   );
   const fixture = `<!doctype html><html><body><div id="root"></div><script type="module">
 import React from 'react';import {createRoot} from 'react-dom/client';
@@ -286,7 +293,7 @@ window.ready=true;
       const { registerWorkspaceHandlers } = load(
         path.join(project, "electron/workspaces/handlers.ts"),
       );
-      let failVerification = true;
+      let failVerification = !interactive;
       const originalHandle = ipcMain.handle.bind(ipcMain);
       ipcMain.handle = (channel, handler) =>
         originalHandle(
@@ -339,18 +346,122 @@ window.ready=true;
     window.original=await capture();window.mount(false);
   `,
       );
-      await until(sourceWindow, "document.querySelector('button')");
+      await until(
+        sourceWindow,
+        "document.querySelector('[data-workspace-migration][data-state=ready]')",
+      );
+      const screenshot = async (name) => {
+        await execute(
+          sourceWindow,
+          "await document.fonts.ready;document.getAnimations().forEach(animation=>animation.finish());await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))",
+        );
+        writeFileSync(
+          path.join(root, name + ".png"),
+          (await sourceWindow.webContents.capturePage()).toPNG(),
+        );
+      };
       assert.equal(
         await execute(
           sourceWindow,
-          "return document.body.textContent.includes('Kelompokkan data lama')",
+          "return document.body.textContent.includes(" +
+            JSON.stringify("v" + require("../../package.json").version) +
+            ")",
+        ),
+        true,
+        "Migration shows the version of this app build",
+      );
+      await screenshot("migration-review");
+      if (interactive) {
+        await until(
+          sourceWindow,
+          "document.body.textContent.includes('Pindahkan dokumen lama')",
+        );
+        sourceWindow.show();
+        sourceWindow.focus();
+        console.log(
+          "Interactive migration. Migration runs normally; app restart is simulated. Close the window when done.",
+        );
+        console.log("Temporary userData:", root);
+        await new Promise((resolve) => sourceWindow.once("closed", resolve));
+        sqlite.close();
+        return;
+      }
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.body.textContent.includes('Pindahkan dokumen lama')",
         ),
         true,
       );
-      await assert.rejects(
-        execute(sourceWindow, "return window.workspaces.migrate({})"),
-        /verification failed/,
+      await execute(
+        sourceWindow,
+        "document.querySelector('[data-slot=collapsible-trigger]').focus()",
       );
+      sourceWindow.webContents.sendInputEvent({
+        type: "keyDown",
+        keyCode: "Space",
+      });
+      sourceWindow.webContents.sendInputEvent({
+        type: "keyUp",
+        keyCode: "Space",
+      });
+      await until(
+        sourceWindow,
+        "document.querySelector('[data-slot=collapsible-trigger]').getAttribute('aria-expanded') === 'true'",
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "const trigger=document.querySelector('[data-slot=collapsible-trigger]');return document.getElementById(trigger.getAttribute('aria-controls')).checkVisibility()",
+        ),
+        true,
+      );
+      await execute(
+        sourceWindow,
+        "document.querySelector('[data-slot=collapsible-trigger]').click()",
+      );
+      await until(
+        sourceWindow,
+        "document.querySelector('[data-slot=collapsible-trigger]').getAttribute('aria-expanded') === 'false'",
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.querySelector('[data-slot=collapsible-content]').checkVisibility()",
+        ),
+        false,
+      );
+      await sourceWindow.setSize(480, 800);
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.documentElement.scrollWidth <= innerWidth",
+        ),
+        true,
+      );
+      await screenshot("migration-mobile");
+      await sourceWindow.setSize(1100, 850);
+      await execute(
+        sourceWindow,
+        "document.documentElement.classList.add('dark')",
+      );
+      await screenshot("migration-dark");
+      await execute(
+        sourceWindow,
+        "document.documentElement.classList.remove('dark');document.querySelector('[data-migration-start]').click()",
+      );
+      await until(
+        sourceWindow,
+        "document.querySelector('[data-workspace-migration][data-state=error]') && document.querySelector('[role=alert]').textContent.includes('verification failed')",
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.querySelector('[data-migration-start]').disabled",
+        ),
+        false,
+      );
+      await screenshot("migration-retry");
       assert.equal(
         registry.read().migrationComplete,
         false,
@@ -358,11 +469,44 @@ window.ready=true;
       );
       assert.equal(restarts, 0);
       assert.equal(snapshots.get().length, 3);
-      migrateRun = execute(
+      await execute(
         sourceWindow,
-        "return window.workspaces.migrate({})",
+        "document.querySelector('[data-migration-start]').click()",
       );
-      await migrateRun;
+      await until(
+        sourceWindow,
+        "document.querySelector('[data-workspace-migration][data-state=complete]')",
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.querySelector('[data-workspace-migration]').getAttribute('aria-busy')",
+        ),
+        "false",
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return Boolean(document.querySelector('[data-workspace-migration] .animate-spin, [data-migration-start]'))",
+        ),
+        false,
+        "Successful migration stops loading and cannot be run twice",
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.body.textContent.includes('Jika halaman ini masih terbuka, tutup lalu buka kembali HighTex.')",
+        ),
+        true,
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return document.querySelectorAll('[data-migration-profile][data-status=complete]').length",
+        ),
+        3,
+      );
+      await screenshot("migration-complete");
       assert.equal(restarts, 1);
       assert.equal(registry.read().migrationComplete, true);
       const state = registry.read();
@@ -385,6 +529,14 @@ window.ready=true;
           "return (await db.documents.toArray()).map(doc=>doc.id)",
         ),
         ["a", "b", "branch", "offline"],
+      );
+      assert.equal(
+        await execute(
+          sourceWindow,
+          "return JSON.stringify(await capture()) === JSON.stringify(window.original)",
+        ),
+        true,
+        "Migration and its UI leave the legacy source unchanged",
       );
       const inspect = async (profile) => {
         const window = new BrowserWindow({
@@ -509,18 +661,18 @@ window.ready=true;
       assert.equal(registry.read().activeId, "local");
       sqlite.close();
       console.log(
-        "PASS: update migration, failed verification and retry without duplicates, fresh-install detection (unit), per-profile origins, documents/branches/photos/assets/forms, model-based SQLite migration, encrypted-session scope, IPC isolation and switch guard.",
+        "PASS: migration UI review, responsive/dark layouts, failed verification and UI retry, completed state without loading and manual restart hint; update migration without duplicates, per-profile origins, documents/branches/photos/assets/forms, model-based SQLite migration, encrypted-session scope, IPC isolation and switch guard.",
       );
       console.log("Artifacts:", root);
     })
     .catch((error) => {
       console.error(error);
-      process.exitCode = 1;
+      testExitCode = 1;
     })
     .finally(async () => {
       BrowserWindow.getAllWindows().forEach((window) => window.destroy());
       if (server) await new Promise((resolve) => server.close(resolve));
       if (vite) await vite.close();
-      app.exit(process.exitCode || 0);
+      app.exit(testExitCode);
     });
 }

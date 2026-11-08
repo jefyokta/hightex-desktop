@@ -253,7 +253,7 @@ app
       794,
     );
     await until(
-      `document.querySelector('[data-comparison-side=main]').scrollHeight>700`,
+      `document.querySelector('[data-comparison-side=main]')?.scrollHeight>700`,
     );
     await execute(
       `(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(image=>image.decode().catch(()=>{})))})()`,

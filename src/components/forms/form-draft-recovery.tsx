@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -125,10 +126,10 @@ export function FormDraftRecovery({
         </div>
       )}
       {legacy.length > 0 && (
-        <details>
-          <summary className="cursor-pointer text-xs font-medium">
-            {t("forms.recover_legacy")}
-          </summary>
+        <Disclosure
+          triggerClassName="cursor-pointer text-xs font-medium"
+          label={t("forms.recover_legacy")}
+        >
           <div className="mt-3 space-y-3">
             <p className="text-xs text-muted-foreground">
               {t("forms.legacy_preserved")}
@@ -181,7 +182,7 @@ export function FormDraftRecovery({
               </Button>
             </div>
           </div>
-        </details>
+        </Disclosure>
       )}
     </div>
   );

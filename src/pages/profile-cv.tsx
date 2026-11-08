@@ -30,15 +30,19 @@ export function ProfileCV() {
         }
       />
       {active?.type === "local" ? (
-        <LocalCVEditor
-          onDirtyChange={draft.onDirtyChange}
-          onBusyChange={draft.onBusyChange}
-        />
+        <div data-tour="workspace-cv-editor">
+          <LocalCVEditor
+            onDirtyChange={draft.onDirtyChange}
+            onBusyChange={draft.onBusyChange}
+          />
+        </div>
       ) : active?.type === "cloud" ? (
-        <CloudCVEditor
-          onDirtyChange={draft.onDirtyChange}
-          onBusyChange={draft.onBusyChange}
-        />
+        <div data-tour="workspace-cv-editor">
+          <CloudCVEditor
+            onDirtyChange={draft.onDirtyChange}
+            onBusyChange={draft.onBusyChange}
+          />
+        </div>
       ) : null}
       {draft.guard}
     </>

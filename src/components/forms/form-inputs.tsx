@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import { type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -223,19 +224,24 @@ export function FormInputs({
           </Button>
         </div>
       </header>
-      <details
-        open={invalid > 0}
+      <Disclosure
+        key={invalid > 0 ? "invalid" : "valid"}
+        defaultOpen={invalid > 0}
         className="rounded-lg border bg-muted/20 p-3"
         data-form-data-review
         aria-label={t("forms.data_review")}
+        triggerClassName="cursor-pointer text-xs font-medium"
+        label={
+          <>
+            {" "}
+            {invalid
+              ? t("forms.data_review_counts", { missing, invalid })
+              : missing
+                ? t("forms.data_empty_count", { count: missing })
+                : t("forms.data_filled")}{" "}
+          </>
+        }
       >
-        <summary className="cursor-pointer text-xs font-medium">
-          {invalid
-            ? t("forms.data_review_counts", { missing, invalid })
-            : missing
-              ? t("forms.data_empty_count", { count: missing })
-              : t("forms.data_filled")}
-        </summary>
         {issues.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             {issues.map(({ row, problem }) => (
@@ -257,7 +263,7 @@ export function FormInputs({
             ))}
           </div>
         )}
-      </details>
+      </Disclosure>
       <Group
         title={t("forms.identity")}
         actions={

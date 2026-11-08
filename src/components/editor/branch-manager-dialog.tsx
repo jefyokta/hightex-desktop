@@ -178,7 +178,10 @@ export function BranchManagerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-xl">
+      <DialogContent
+        data-tour="branch-manager-dialog"
+        className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-xl"
+      >
         <DialogHeader className="border-b px-6 py-5">
           <DialogTitle>{t("editor.branches.title")}</DialogTitle>
           <DialogDescription>
@@ -200,7 +203,11 @@ export function BranchManagerDialog({
             }}
             disabled={busy}
           />
-          <Button onClick={() => void create()} disabled={busy || !name.trim()}>
+          <Button
+            data-tour="branch-create"
+            onClick={() => void create()}
+            disabled={busy || !name.trim()}
+          >
             {busy ? t("editor.branches.creating") : t("editor.branches.create")}
           </Button>
         </div>
@@ -238,6 +245,7 @@ export function BranchManagerDialog({
                 {!isMain && (
                   <>
                     <Button
+                      data-tour="branch-compare-action"
                       variant="ghost"
                       size="icon-sm"
                       title={t("editor.branches.compare")}

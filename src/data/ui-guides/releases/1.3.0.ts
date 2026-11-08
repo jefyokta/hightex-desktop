@@ -101,7 +101,9 @@ export default {
           id: "profile-committee",
           title: "guide.release130.lecturers.committee.title",
           description: "guide.release130.lecturers.committee.description",
-          selectors: ['[data-tour="profile-committee"] > summary'],
+          selectors: [
+            '[data-tour="profile-committee"] [data-slot="collapsible-trigger"]',
+          ],
           route: profileRoute,
         },
         {

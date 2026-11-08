@@ -34,32 +34,41 @@
     "switch_hint": "HighTex asks whether to save or discard each open editor. Close preview and sharing windows first. Switching restarts HighTex; each workspace retains its data and login.",
     "name": "Workspace name",
     "create": "Create workspace",
-    "migration_title": "Organize existing data into workspaces",
-    "migration_description": "This update separates your existing library by supported cloud account bindings. Unbound or unsupported-server documents go into Local; branches follow their parent. Original storage is retained as a backup. HighTex restarts after verification.",
+    "migration_title": "Set up your workspaces",
+    "migration_description": "Documents will be grouped by Cloud account. Anything without an account stays in Local.",
     "step_summary": "Summary",
     "step_destinations": "Destinations",
     "step_transfer": "Transfer",
     "migration_failed": "Migration could not finish",
-    "destinations_title": "Workspace destinations",
+    "destinations_title": "Where your documents go",
     "destinations_description": "Review the data assigned to each workspace before starting. The original library stays backed up.",
     "destination_counts": "{documents} documents · {branches} branches · {assets} assets · {forms} form drafts",
     "branches": "branches",
     "assets": "assets",
     "forms": "form drafts",
-    "review_title": "Review these document families",
-    "review_description": "Choose where each unresolved family belongs. Unsupported or ambiguous cloud bindings must remain in Local.",
-    "progress_copying": "Copying data",
-    "progress_verifying": "Verifying workspace copy",
-    "progress_complete": "Copied and verified",
-    "progress_failed": "Copy failed; source is preserved",
+    "review_title": "Choose where these documents go",
+    "review_description": "Documents with an unclear account stay in Local. Their branches follow the same choice.",
+    "progress_copying": "Copying…",
+    "progress_verifying": "Checking…",
+    "progress_complete": "Ready",
+    "progress_failed": "Incomplete",
     "retry": "Retry migration",
     "documents": "documents",
     "conflict": "Resolve this document family: ambiguous cloud bindings stay in Local with their original locks; broken parent links are detached in the migrated copy",
     "choose_destination": "Choose destination",
     "shared_legacy": "Previously shared references, variables, and lecturer entries are copied into each workspace. Form inputs follow their document. Safe legacy identities follow the workspace; custom identities and cloud bindings are preserved. Migration does not upload anything.",
+    "migration_complete": "Migration complete",
+    "migration_complete_description": "Your data has been copied and checked. HighTex will restart to open your new workspaces.",
+    "migration_restart_hint": "If HighTex hasn’t restarted automatically, close it and open it again.",
+    "migration_backup_hint": "A copy of your original data is kept.",
+    "migration_verified_count": "{count} of {total} workspaces ready",
+    "migration_update": "App update · {version}",
+    "migration_on_device": "On this device",
+    "migration_details": "Data details",
+    "account_id": "Account {id}",
     "preparing": "Reading existing storage…",
-    "migrate": "Back up and migrate",
-    "migrating": "Migrating and verifying…",
+    "migrate": "Start migration",
+    "migrating": "Moving data…",
     "local_login": "Create or switch to a Cloud workspace to sign in.",
     "switch_blocked": "Close preview or export windows before switching workspaces.",
     "switch_canceled": "Workspace switch canceled. The active workspace has not changed.",
@@ -88,7 +97,7 @@
         "description": "Remove temporary stored data",
         "progress": {
           "clean_unused": "Cleaning unused data",
-          "start": "Cleaning: 0/{chaptesCount} chapters, 0/${imageCount} images",
+          "start": "Cleaning: 0/{chaptersCount} chapters, 0/{imagesCount} images",
           "deleting": "Deleting {name}: {index}/{total}",
           "done": "Cleanup completed. {deletedChapters} chapters and {deletedImages} images deleted",
           "failed": "Clean Up failed!"
@@ -1753,6 +1762,74 @@
           "title": "Save document settings",
           "description": "Document settings such as title, category, and dates are saved here. Profile changes are saved on the Profile page."
         }
+      }
+    },
+    "release140": {
+      "workspace": {
+        "name": "Manage workspaces and author profile",
+        "summary": "Create separate Local and Cloud workspaces, then manage the author identity and CV for each one.",
+        "list": {
+          "title": "Workspaces keep data separate",
+          "description": "Each workspace has its own documents, data, and account binding. The active badge shows which workspace is open."
+        },
+        "create": {
+          "title": "Create or switch workspaces",
+          "description": "Create a Local workspace for this device or a Cloud workspace for your HighTex account. Rename or switch from a workspace row; switching safely closes open editors first."
+        },
+        "profile": {
+          "title": "Author identity belongs to this workspace",
+          "description": "The Profile page shows the author identity used by documents in the active workspace. Use Edit CV to manage the shared CV and photo."
+        },
+        "cv": {
+          "title": "Edit the shared CV and photo",
+          "description": "CV and photo are managed separately from workspace setup. Cloud changes are sent only when you save; Local changes stay on this device."
+        }
+      },
+      "forms": {
+        "name": "Use shared form data",
+        "summary": "Keep administration inputs and form choices together across documents and proposal or defense stages.",
+        "empty": "Choose a document to see its form data. If no documents are listed, close this guide and create or import one first.",
+        "stage": {
+          "title": "Choose the active stage",
+          "description": "Proposal and defense have separate schedules and form choices. General administration inputs are shared across both stages and documents."
+        },
+        "values": {
+          "title": "Review shared form inputs",
+          "description": "Additional values are stored once for this workspace. Profile and document values take priority when available; editing one field does not clear other saved values."
+        },
+        "validation": {
+          "title": "Review missing or invalid values",
+          "description": "Open the summary to jump to a field that needs attention. Export stays unavailable while required identity or invalid values remain."
+        },
+        "select_document": "Choose a document so its form inputs can load. The guide will continue when the data panel is available."
+      },
+      "branch": {
+        "name": "Compare document branches",
+        "summary": "Review one branch change at a time without editing either document or applying a merge.",
+        "manager": {
+          "title": "Open the branch manager",
+          "description": "Use the branch control in the editor toolbar to create, switch, compare, or merge document branches. The tour will continue after you open it."
+        },
+        "open_manager": "Open the branch control in the editor toolbar to continue.",
+        "create": {
+          "title": "Create a separate branch",
+          "description": "A branch is a separate working copy. Create one if needed; changes are not merged into Main unless you choose the merge action."
+        },
+        "compare": {
+          "title": "Choose Compare for a branch",
+          "description": "Select the Compare button beside a branch. If you have not created a branch yet, create one, reopen the branch manager, and then choose Compare."
+        },
+        "compare_fallback": "Create a branch first, or reopen the branch manager and choose Compare beside an existing branch.",
+        "open_comparison": "Choose Compare beside a branch. The comparison opens without changing either document.",
+        "navigation": {
+          "title": "Move through changed items",
+          "description": "Use Previous, Next, or the change picker to review another changed chapter or metadata item. The comparison is a read-only snapshot."
+        },
+        "content": {
+          "title": "Read both sides side by side",
+          "description": "Main changes are marked red and branch changes green. Formatting-only differences remain visible; nothing is applied until you leave comparison and explicitly merge."
+        },
+        "no_changes": "No changed item is available to highlight yet. The comparison stays read-only; close it and choose a branch with saved changes to review."
       }
     },
     "walkthrough": {

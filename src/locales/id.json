@@ -34,32 +34,41 @@
     "switch_hint": "HighTex akan menanyakan apakah perubahan di setiap editor disimpan atau dibuang. Tutup jendela preview dan sharing terlebih dahulu. Pergantian memulai ulang HighTex; data dan login setiap workspace tetap tersimpan.",
     "name": "Nama workspace",
     "create": "Buat workspace",
-    "migration_title": "Kelompokkan data lama ke workspace",
-    "migration_description": "Update ini memisahkan pustaka lama berdasarkan binding akun Cloud yang didukung. Dokumen tanpa binding atau dari server yang tidak didukung masuk ke Lokal; branch mengikuti induknya. Penyimpanan asli tetap dipertahankan sebagai cadangan. HighTex dimulai ulang setelah verifikasi.",
+    "migration_title": "Pindahkan dokumen lama",
+    "migration_description": "Mulai versi ini, setiap workspace menyimpan dokumen dan akun secara terpisah. Berikut pembagian dokumenmu.",
     "step_summary": "Ringkasan",
     "step_destinations": "Tujuan",
     "step_transfer": "Pemindahan",
-    "migration_failed": "Migrasi belum selesai",
-    "destinations_title": "Tujuan workspace",
+    "migration_failed": "Data belum selesai dipindahkan",
+    "destinations_title": "Workspace tujuan",
     "destinations_description": "Periksa data pada setiap workspace sebelum memulai. Pustaka asli tetap dicadangkan.",
     "destination_counts": "{documents} dokumen · {branches} branch · {assets} aset · {forms} draft formulir",
     "branches": "branch",
     "assets": "aset",
     "forms": "draft formulir",
-    "review_title": "Tinjau keluarga dokumen ini",
-    "review_description": "Pilih tujuan untuk setiap keluarga yang belum pasti. Binding Cloud yang tidak didukung atau ambigu harus tetap di Lokal.",
-    "progress_copying": "Menyalin data",
-    "progress_verifying": "Memverifikasi salinan workspace",
-    "progress_complete": "Berhasil disalin dan diverifikasi",
-    "progress_failed": "Penyalinan gagal; sumber tetap tersimpan",
-    "retry": "Coba migrasi lagi",
+    "review_title": "Pilih workspace untuk dokumen ini",
+    "review_description": "Dokumen dengan akun yang belum jelas tetap disimpan di Lokal. Branch mengikuti workspace dokumen induknya.",
+    "progress_copying": "Menyalin data…",
+    "progress_verifying": "Memeriksa data…",
+    "progress_complete": "Selesai",
+    "progress_failed": "Perlu dicoba lagi",
+    "retry": "Coba lagi",
     "documents": "dokumen",
     "conflict": "Tentukan tujuan keluarga dokumen ini: binding cloud yang ambigu tetap di Lokal beserta pengunciannya; hubungan induk yang rusak dilepas pada salinan hasil migrasi",
     "choose_destination": "Pilih tujuan",
-    "shared_legacy": "Referensi, variabel, dan data dosen yang sebelumnya bersama disalin ke setiap workspace. Input form mengikuti dokumennya. Identitas lama yang aman mengikuti workspace; identitas khusus dan binding Cloud dipertahankan. Migrasi tidak mengunggah data.",
+    "shared_legacy": "Referensi, variabel, dan data dosen akan tersedia di setiap workspace. Isian formulir mengikuti dokumennya. Identitas penulis yang berbeda tetap dipertahankan.",
+    "migration_complete": "Dokumen sudah siap",
+    "migration_complete_description": "Dokumen sudah tersedia di workspace masing-masing. HighTex akan dimulai ulang untuk membuka workspace baru.",
+    "migration_restart_hint": "Jika halaman ini masih terbuka, tutup lalu buka kembali HighTex.",
+    "migration_backup_hint": "Data asli tetap tersimpan sebagai cadangan.",
+    "migration_verified_count": "{count} dari {total} workspace selesai",
+    "migration_update": "Pembaruan · {version}",
+    "migration_on_device": "Di perangkat ini",
+    "migration_details": "Data yang ikut dipindahkan",
+    "account_id": "Akun {id}",
     "preparing": "Membaca penyimpanan lama…",
-    "migrate": "Cadangkan dan migrasikan",
-    "migrating": "Memigrasikan dan memverifikasi…",
+    "migrate": "Lanjutkan",
+    "migrating": "Memindahkan data…",
     "local_login": "Buat atau pilih workspace Cloud untuk login.",
     "switch_blocked": "Tutup jendela preview atau ekspor sebelum mengganti workspace.",
     "switch_canceled": "Pergantian workspace dibatalkan. Workspace aktif tidak berubah.",
@@ -88,7 +97,7 @@
         "description": "Hapus data sementara yang tersimpan",
         "progress": {
           "clean_unused": "Membersihkan data yang tidak terpakai",
-          "start": "Membersihkan: 0/{chaptesCount} bab, 0/${imageCount} gambar",
+          "start": "Membersihkan: 0/{chaptersCount} bab, 0/{imagesCount} gambar",
           "deleting": "Menghapus {name}: {index}/{total}",
           "done": "Pembersihan selesai. {deletedChapters} bab dan {deletedImages} gambar sudah dihapus",
           "failed": "Pembersihan gagal!"
@@ -1753,6 +1762,74 @@
           "title": "Simpan pengaturan dokumen",
           "description": "Pengaturan seperti judul, kategori, dan tanggal disimpan di sini. Perubahan profil disimpan di halaman Profil."
         }
+      }
+    },
+    "release140": {
+      "workspace": {
+        "name": "Workspace, profil, dan CV",
+        "summary": "Pisahkan dokumen tiap akun dan atur profil penulis dari satu tempat.",
+        "list": {
+          "title": "Satu workspace untuk setiap akun",
+          "description": "Dokumen dan akun Cloud disimpan terpisah di setiap workspace. Label Aktif menunjukkan workspace yang sedang kamu gunakan."
+        },
+        "create": {
+          "title": "Tambah atau ganti workspace",
+          "description": "Pilih Lokal untuk bekerja tanpa akun, atau Cloud untuk masuk dengan akun HighTex. Gunakan Ganti untuk membuka workspace lain. Jika ada editor yang masih terbuka, HighTex akan menanyakan apakah perubahan ingin disimpan."
+        },
+        "profile": {
+          "title": "Atur profil penulis di sini",
+          "description": "Profil ini digunakan oleh dokumen dalam workspace yang sama. Untuk mengubah riwayat hidup atau foto, pilih Edit CV."
+        },
+        "cv": {
+          "title": "Satu CV untuk seluruh dokumen",
+          "description": "Ubah riwayat hidup dan foto, lalu pilih Simpan. Di workspace Cloud, perubahan akan dikirim ke akun HighTex. Di Lokal, perubahan disimpan di perangkat ini."
+        }
+      },
+      "forms": {
+        "name": "Isi formulir tanpa mengulang data",
+        "summary": "Isi data yang sama sekali saja, lalu gunakan untuk formulir dari dokumen lain dalam workspace ini.",
+        "empty": "Pilih dokumen untuk melihat isian formulirnya. Jika belum ada dokumen, tutup panduan lalu buat atau impor dokumen terlebih dahulu.",
+        "stage": {
+          "title": "Pilih Sempro atau Sidang",
+          "description": "Pilihan tahap menentukan jadwal dan formulir yang ditampilkan. Data umum tetap tersedia saat kamu berganti tahap atau dokumen."
+        },
+        "values": {
+          "title": "Lengkapi data formulir",
+          "description": "Isi data tambahan di panel ini. Nama penulis dan judul diambil dari profil serta dokumen yang dipilih, sehingga tidak perlu diisi ulang."
+        },
+        "validation": {
+          "title": "Lihat isian yang perlu diperbaiki",
+          "description": "Buka ringkasan lalu pilih nama isian untuk langsung menuju ke kolomnya. Lengkapi data wajib dan perbaiki nilai yang salah sebelum mengekspor formulir."
+        },
+        "select_document": "Pilih dokumen untuk melanjutkan ke isian formulir."
+      },
+      "branch": {
+        "name": "Lihat perbedaan antarversi dokumen",
+        "summary": "Bandingkan Main dan branch dengan tampilan yang sama seperti editor.",
+        "manager": {
+          "title": "Kelola versi dokumen",
+          "description": "Buka menu branch di toolbar editor. Dari sini kamu bisa membuat versi kerja lain, membukanya, atau membandingkannya dengan Main."
+        },
+        "open_manager": "Buka menu branch di toolbar untuk melanjutkan.",
+        "create": {
+          "title": "Buat versi kerja baru",
+          "description": "Branch menyimpan perubahan secara terpisah dari Main. Gunakan branch untuk mencoba revisi, lalu pilih Gabungkan saat revisinya siap."
+        },
+        "compare": {
+          "title": "Bandingkan dengan Main",
+          "description": "Pilih Bandingkan di samping branch yang ingin diperiksa. Jika belum ada branch, buat terlebih dahulu lalu buka lagi menu ini."
+        },
+        "compare_fallback": "Buat branch terlebih dahulu, lalu pilih Bandingkan di samping namanya.",
+        "open_comparison": "Pilih Bandingkan untuk melihat perbedaannya dengan Main.",
+        "navigation": {
+          "title": "Periksa perubahan satu per satu",
+          "description": "Gunakan panah Sebelumnya dan Berikutnya, atau pilih perubahan dari daftar. Kamu bisa melihat perubahan isi bab maupun data dokumen."
+        },
+        "content": {
+          "title": "Bandingkan kedua versi berdampingan",
+          "description": "Merah menandai perbedaan di Main, sedangkan hijau menandai perbedaan di branch. Tampilan ini hanya untuk melihat perubahan. Jika dokumen diedit di jendela lain, pilih Refresh untuk memperbaruinya."
+        },
+        "no_changes": "Belum ada perbedaan yang bisa ditampilkan. Ubah dan simpan isi branch terlebih dahulu, lalu bandingkan lagi."
       }
     },
     "walkthrough": {

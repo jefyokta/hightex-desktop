@@ -174,6 +174,7 @@ export const NavBar: React.FC = () => {
                       ? t("editor.branches.active", { name: activeBranchName })
                       : t("editor.branches.title")
                   }
+                  data-tour="branch-manager-trigger"
                   className="flex h-8 max-w-40 items-center gap-1.5 rounded-md px-2 text-xs text-neutral-700 transition hover:bg-neutral-200 dark:text-neutral-200 dark:hover:bg-neutral-700"
                   onClick={() => setOpenBranchDialog(true)}
                 >
@@ -577,11 +578,10 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
         
         text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
+        ${active
+              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+              : ""
+            }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

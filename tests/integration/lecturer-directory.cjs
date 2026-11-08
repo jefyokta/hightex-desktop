@@ -410,7 +410,9 @@ app
       "manual",
     );
     await clickText("Profil", "nav a");
-    await execute("document.querySelector('details').open=true");
+    await execute(
+      "document.querySelector('[data-tour=profile-committee] [data-slot=collapsible-trigger]').click()",
+    );
     await choose(labels.chair, "Beta", "Lecturer Beta");
     await choose(labels.examiner, "000123", "Lecturer Alpha");
     assert.equal(

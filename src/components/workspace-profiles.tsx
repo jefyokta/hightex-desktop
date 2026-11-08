@@ -122,7 +122,11 @@ export function WorkspaceProfiles() {
               {t("workspace_profiles.profiles_description")}
             </CardDescription>
           </div>
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
+          <Button
+            data-tour="workspace-create"
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+          >
             <Plus />
             {t("workspace_profiles.create")}
           </Button>
@@ -206,7 +210,7 @@ export function WorkspaceProfiles() {
                         >
                           <Cloud />
                           {t(
-                              "workspace_profiles.continue_login",
+                            "workspace_profiles.continue_login",
                           )}
                         </Button>
                         <Button
