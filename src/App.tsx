@@ -56,7 +56,7 @@ function MainWindowNavigation() {
 
   useEffect(
     () =>
-      window.application.onNavigate((route) => {
+      window.application?.onNavigate((route) => {
         if (route === "/profile") navigate(route);
       }),
     [navigate],
@@ -97,7 +97,7 @@ function EditorWindowRoutes({ documentId }: { documentId: string }) {
 }
 
 function App() {
-  const editorDocumentId = window.application.editorDocumentId;
+  const editorDocumentId = window.application?.editorDocumentId;
   if (editorDocumentId)
     return (
       <BrowserRouter>

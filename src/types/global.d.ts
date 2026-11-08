@@ -131,7 +131,7 @@ declare global {
   interface Window {
     application: {
       setProfileDraftBusy(busy: boolean): Promise<void>;
-      readonly editorDocumentId: string | null;
+      readonly editorDocumentId?: string | null;
       onNavigate(callback: (route: string) => void): () => void;
     };
     workspaces: WorkspaceAPI;
