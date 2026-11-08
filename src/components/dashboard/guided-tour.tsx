@@ -93,11 +93,11 @@ export function GuidedTour({
       };
       setBox((previous) =>
         previous &&
-        Object.keys(next).every(
-          (key) =>
-            previous[key as keyof GuideTargetBox] ===
-            next[key as keyof GuideTargetBox],
-        )
+          Object.keys(next).every(
+            (key) =>
+              previous[key as keyof GuideTargetBox] ===
+              next[key as keyof GuideTargetBox],
+          )
           ? previous
           : next,
       );
@@ -137,26 +137,45 @@ export function GuidedTour({
     };
     const find = () => {
       if (disposed) return;
-      setPaused(Boolean(externalPopup()));
-      setCanAdvance(
-        !step.advanceWhen ||
-          Array.from(
-            document.querySelectorAll<HTMLElement>(step.advanceWhen),
-          ).some(isVisible),
+      const expected = step.advanceWhen
+        ? Array.from(
+          document.querySelectorAll<HTMLElement>(step.advanceWhen),
+        ).find(isVisible) ?? null
+        : null;
+      const popup = externalPopup();
+      const expectedPopup = Boolean(
+        popup &&
+        expected &&
+        (popup === expected ||
+          popup.contains(expected) ||
+          expected.contains(popup)),
       );
-      const candidates: string[] = JSON.parse(selectors);
+      setCanAdvance(!step.advanceWhen || Boolean(expected));
+      const candidates: string[] = expectedPopup
+        ? []
+        : JSON.parse(selectors);
       let found: HTMLElement | null = null;
       let foundIndex = -1;
-      for (const [candidateIndex, selector] of candidates.entries()) {
-        found =
-          Array.from(document.querySelectorAll<HTMLElement>(selector)).find(
-            isVisible,
-          ) ?? null;
-        if (found) {
-          foundIndex = candidateIndex;
-          break;
+      if (expectedPopup) {
+        found = expected;
+      } else {
+        for (const [candidateIndex, selector] of candidates.entries()) {
+          found =
+            Array.from(document.querySelectorAll<HTMLElement>(selector)).find(
+              isVisible,
+            ) ?? null;
+          if (found) {
+            foundIndex = candidateIndex;
+            break;
+          }
         }
       }
+      const popupContainsTarget = Boolean(
+        popup &&
+        found &&
+        (popup === found || popup.contains(found) || found.contains(popup)),
+      );
+      setPaused(Boolean(popup && !expectedPopup && !popupContainsTarget));
       if (found !== target.current) {
         offPosition?.();
         target.current = found;
@@ -237,7 +256,7 @@ export function GuidedTour({
               ? choices.length - 1
               : 0
             : (active + (event.shiftKey ? -1 : 1) + choices.length) %
-              choices.length;
+            choices.length;
         choices[next].focus();
       }
       if (

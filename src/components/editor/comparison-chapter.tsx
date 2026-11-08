@@ -44,7 +44,7 @@ export function ComparisonChapter({
     try {
       const name =
         ({ id: "abstract", en: "abstract-en" } as Record<string, string>)[
-          chapterId
+        chapterId
         ] ?? chapterId;
       const extensions = ChapterExtensions.contentSchema(name).filter(
         (extension) => extension.name !== "note",
@@ -201,14 +201,14 @@ export function ComparisonChapter({
           element.textContent =
             element.getAttribute("manual") === "true"
               ? formatManual(
-                  element.getAttribute("text") ?? "",
-                  element.getAttribute("year") ?? "",
-                  element.hasAttribute("citea"),
-                )
+                element.getAttribute("text") ?? "",
+                element.getAttribute("year") ?? "",
+                element.hasAttribute("citea"),
+              )
               : formatInTextCitation(
-                  keys.map((key) => ({ key, bib: model.references[key] })),
-                  element.hasAttribute("citea"),
-                ).inText;
+                keys.map((key) => ({ key, bib: model.references[key] })),
+                element.hasAttribute("citea"),
+              ).inText;
         } catch {
           element.textContent = `[${keys.join("; ") || "?"}]`;
         }
@@ -306,7 +306,7 @@ export function ComparisonChapter({
       >
         <div
           ref={paper}
-          className={`page ${staticChapter ? "static-chapter" : chapterId === "attachment" ? "attachment-chapter" : "ch"} bg-white dark:bg-neutral-900`}
+          className={`page ${staticChapter ? "static-chapter" : chapterId === "attachment" ? "attachment-chapter" : "ch"}`}
           style={
             {
               "--start-counter": Number.isFinite(Number(chapterId))

@@ -1,5 +1,8 @@
 .comparison-chapter .page {
   overflow: visible;
+  background: #fff;
+  color: #171717;
+  color-scheme: light;
 }
 .comparison-chapter [data-compare-change="removed"] {
   background: rgb(239 68 68 / 0.07);
