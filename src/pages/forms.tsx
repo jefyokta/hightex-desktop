@@ -1,81 +1,50 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { liveQuery } from "dexie";
-import { Check, Download, FileStack, Loader2, RefreshCw } from "lucide-react";
+import { Download, FileStack, Loader2, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { FormInputs } from "@/components/forms/form-inputs";
+import {
+  FormInputs,
+  type FormInputContext,
+} from "@/components/forms/form-inputs";
+import { formPackageProblems } from "@/forms/fields";
+import { FormDraftRecovery } from "@/components/forms/form-draft-recovery";
+import { useFormDraft } from "@/forms/use-form-draft";
+import {
+  emptyWorkspaceFormDraft,
+  formDraftData,
+  formDraftSelection,
+  updateFormDraft,
+  type WorkspaceFormDraft,
+} from "@/forms/draft";
+import { confirm } from "@/utils/confirm";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { ParsedItalic, parseItalic } from "@/utils/parse-italic";
-import { name } from "@/utils/name";
+import { parseItalic } from "@/utils/parse-italic";
 import { t, useAppLanguage } from "@/utils/lang";
 import {
   FORM_CATALOG,
-  PERSON_LABELS,
   buildFormSheets,
   buildFormFiles,
-  committee,
   defaultSelection,
   documentFormData,
-  emptyFormData,
   formLabel,
   formTitle,
   resolveFormData,
   type FormCode,
-  type FormData,
   type FormPrintInput,
   type FormSelection,
   type FormStage,
 } from "@/forms/model";
 
-interface FormDraft {
-  version: 2;
-  stage: FormStage;
-  internId: string;
-  inputs: Partial<Record<FormStage, Partial<FormData>>>;
-  choices: Partial<Record<FormStage, FormSelection[]>>;
-}
-const draftKey = (id: string) => `hightex:forms:v1:${id}`;
-function readDraft(id: string): FormDraft {
-  const empty: FormDraft = {
-    version: 2,
-    stage: "proposal",
-    internId: "",
-    inputs: {},
-    choices: {},
-  };
-  try {
-    const saved = JSON.parse(localStorage.getItem(draftKey(id)) ?? "null");
-    if (
-      ![1, 2].includes(saved?.version) ||
-      !["proposal", "defense"].includes(saved.stage)
-    )
-      return empty;
-    const inputs: FormDraft["inputs"] = {};
-    const choices: FormDraft["choices"] = {};
-    for (const stage of ["proposal", "defense"] as const) {
-      // Migrate only administrative fields; faculty input in old drafts is discarded.
-      if (saved.inputs?.[stage])
-        inputs[stage] = resolveFormData(emptyFormData(), saved.inputs[stage]);
-      if (Array.isArray(saved.choices?.[stage]))
-        choices[stage] = defaultSelection(stage).filter((item) =>
-          saved.choices[stage].some(
-            (choice: FormSelection) => choice?.code === item.code,
-          ),
-        );
-    }
-    return {
-      ...empty,
-      stage: saved.stage,
-      internId: typeof saved.internId === "string" ? saved.internId : "",
-      inputs,
-      choices,
-    };
-  } catch {
-    return empty;
-  }
-}
 function PreviewFrame({
   input,
   index,
@@ -164,11 +133,15 @@ function PDFPreview({ input }: { input: FormPrintInput }) {
   useEffect(() => {
     const timer = setTimeout(
       () =>
-        setPreview((state) => ({
-          input,
-          index: actualIndex,
-          revision: state.revision + 1,
-        })),
+        setPreview((state) =>
+          state.input === input && state.index === actualIndex
+            ? state
+            : {
+                input,
+                index: actualIndex,
+                revision: state.revision + 1,
+              },
+        ),
       250,
     );
     return () => clearTimeout(timer);
@@ -207,37 +180,24 @@ function PDFPreview({ input }: { input: FormPrintInput }) {
 }
 function FormWorkspace({
   document,
-  documents,
-  defaultProfile,
+  context,
+  draft,
+  setDraft,
+  busy,
+  setBusy,
 }: {
   document: HighTexDocument;
-  documents: HighTexDocument[];
-  defaultProfile?: Profile;
+  context: FormInputContext;
+  draft: WorkspaceFormDraft;
+  setDraft: Dispatch<SetStateAction<WorkspaceFormDraft>>;
+  busy: boolean;
+  setBusy(busy: boolean): void;
 }) {
-  const [draft, setDraft] = useState(() => readDraft(document.id));
   const [activeCode, setActiveCode] = useState<FormCode>("TA07");
-  const [busy, setBusy] = useState(false);
   const exporting = useRef(false);
   const [message, setMessage] = useState("");
-  const [storageError, setStorageError] = useState(false);
-  const source = useMemo(
-    () =>
-      documentFormData(
-        document,
-        documents.find((doc) => doc.id === draft.internId),
-        draft.stage,
-        defaultProfile,
-      ),
-    [document, documents, draft.internId, draft.stage, defaultProfile],
-  );
-  const data = useMemo(
-    () => resolveFormData(source, draft.inputs[draft.stage]),
-    [source, draft.inputs, draft.stage],
-  );
-  const selection = useMemo(
-    () => draft.choices[draft.stage] ?? defaultSelection(draft.stage),
-    [draft.choices, draft.stage],
-  );
+  const { source, data } = context;
+  const selection = useMemo(() => formDraftSelection(draft), [draft]);
   const forms = FORM_CATALOG.filter((form) =>
     form.stages.includes(draft.stage),
   );
@@ -253,46 +213,30 @@ function FormWorkspace({
     [input, current],
   );
   const sheets = buildFormSheets(input);
-  const ready = Boolean(
-    data.name.trim() && data.nim.trim() && data.title.trim() && sheets.length,
+  const problems = formPackageProblems(
+    data,
+    draft.stage,
+    selection.map((item) => item.code),
   );
-  useEffect(() => {
-    try {
-      localStorage.setItem(draftKey(document.id), JSON.stringify(draft));
-      setStorageError(false);
-    } catch {
-      setStorageError(true);
-    }
-  }, [document.id, draft]);
-  const updateData = (next: FormData) => {
-    const extra = structuredClone(next);
-    delete extra.secondAdvisor;
-    for (const key of Object.keys(source) as (keyof FormData)[])
-      if (
-        typeof source[key] === "string" &&
-        String(source[key]).trim() &&
-        !["program", "city"].includes(key)
-      )
-        Object.assign(extra, { [key]: "" });
-    for (const role of Object.keys(
-      PERSON_LABELS,
-    ) as (keyof FormData["people"])[]) {
-      if (!["head", "internAdvisor"].includes(role)) {
-        extra.people[role] = { name: "", nip: "" };
-        continue;
-      }
-      if (source.people[role].name.trim()) extra.people[role].name = "";
-      if (source.people[role].nip.trim()) extra.people[role].nip = "";
-    }
-    setDraft((state) => ({
-      ...state,
-      inputs: { ...state.inputs, [state.stage]: extra },
-    }));
-  };
+  const invalid = problems.filter((item) => item.problem !== "missing");
+  const ready = Boolean(
+    source.name.trim() &&
+    source.nim.trim() &&
+    source.title.trim() &&
+    sheets.length &&
+    !draft.conflicts.length &&
+    !invalid.length,
+  );
   const choose = (next: FormSelection[]) =>
     setDraft((state) => ({
       ...state,
-      choices: { ...state.choices, [state.stage]: next },
+      values: {
+        ...state.values,
+        [`${state.stage}.choices`]: JSON.stringify(next),
+      },
+      conflicts: state.conflicts.filter(
+        (conflict) => conflict.field !== `${state.stage}.choices`,
+      ),
     }));
   const exportArchive = async () => {
     if (exporting.current || !ready) return;
@@ -321,25 +265,6 @@ function FormWorkspace({
       }}
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div
-          data-tour="forms-stage"
-          className="flex rounded-lg bg-muted/50 p-1"
-          role="group"
-          aria-label={t("forms.stage")}
-        >
-          {(["proposal", "defense"] as const).map((stage) => (
-            <Button
-              type="button"
-              key={stage}
-              disabled={busy}
-              variant={draft.stage === stage ? "outline" : "ghost"}
-              aria-pressed={draft.stage === stage}
-              onClick={() => setDraft((state) => ({ ...state, stage }))}
-            >
-              {t(stage === "proposal" ? "forms.proposal" : "forms.defense")}
-            </Button>
-          ))}
-        </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">
             {t("forms.zip_count", { count: sheets.length })}
@@ -354,44 +279,26 @@ function FormWorkspace({
           </Button>
         </div>
       </div>
-      <div className="rounded-xl border px-4 py-3">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <Check className="size-4 text-muted-foreground" />
-          <strong>{data.name || t("forms.identity")}</strong>
-          <span className="text-muted-foreground">{data.nim}</span>
-          <span className="text-xs text-muted-foreground">
-            {t(
-              document.profile
-                ? "forms.document_profile_source"
-                : "forms.local_profile_source",
-            )}
-          </span>
+      {(invalid.length > 0 ||
+        !source.name.trim() ||
+        !source.nim.trim() ||
+        !source.title.trim() ||
+        !sheets.length) && (
+        <div
+          data-form-package-review
+          className="rounded-lg border p-3 text-xs"
+          role="status"
+        >
+          {invalid.length > 0 ? (
+            <p className="text-destructive">
+              {t("forms.data_fix_before_export")}:{" "}
+              {invalid.map((item) => item.field.label).join(", ")}
+            </p>
+          ) : (
+            <p>{t("forms.complete_identity")}</p>
+          )}
         </div>
-        <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-muted-foreground">
-            {t("forms.view_source_data")}
-          </summary>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {t("forms.people_hint")}
-          </p>
-          <dl className="mt-3 grid gap-x-6 gap-y-2 text-xs sm:grid-cols-2">
-            {committee(data)
-              .concat("head")
-              .filter((role) => data.people[role].name)
-              .map((role) => (
-                <div key={role}>
-                  <dt className="text-muted-foreground">
-                    {PERSON_LABELS[role]}
-                  </dt>
-                  <dd className="mt-0.5">
-                    {name(data.people[role].name)}
-                    {data.people[role].nip && ` · ${data.people[role].nip}`}
-                  </dd>
-                </div>
-              ))}
-          </dl>
-        </details>
-      </div>
+      )}
       <div className="grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
         <fieldset
           data-tour="forms-selection"
@@ -473,24 +380,6 @@ function FormWorkspace({
               {t("forms.faculty_blank")}
             </p>
           </div>
-          <fieldset data-tour="forms-inputs" disabled={busy}>
-            <FormInputs
-              code={current}
-              data={data}
-              source={source}
-              documents={documents.filter((doc) => doc.id !== document.id)}
-              internId={draft.internId}
-              onInternChange={(internId) =>
-                setDraft((state) => ({ ...state, internId }))
-              }
-              onChange={updateData}
-            />
-          </fieldset>
-          {!ready && (
-            <p className="text-xs text-muted-foreground">
-              {t("forms.complete_identity")}
-            </p>
-          )}
           {message && (
             <p
               role="status"
@@ -499,13 +388,14 @@ function FormWorkspace({
               {message}
             </p>
           )}
-          {storageError && (
-            <p role="alert" className="text-xs text-destructive">
-              {t("forms.storage_failed")}
-            </p>
-          )}
           <div data-tour="forms-preview">
-            <PDFPreview input={preview} />
+            {invalid.length ? (
+              <p className="rounded-lg border p-5 text-sm text-muted-foreground">
+                {t("forms.data_fix_before_export")}
+              </p>
+            ) : (
+              <PDFPreview input={preview} />
+            )}
           </div>
         </div>
       </div>
@@ -514,9 +404,19 @@ function FormWorkspace({
 }
 export function Forms() {
   useAppLanguage();
+  const {
+    draft,
+    setDraft,
+    legacy,
+    failed: draftFailed,
+    saveFailed,
+    retry: retryDraft,
+  } = useFormDraft();
+  const [busy, setBusy] = useState(false);
   const [documents, setDocuments] = useState<HighTexDocument[]>([]);
   const [documentId, setDocumentId] = useState("");
-  const [profile, setProfile] = useState<Profile>();
+  const [profile, setProfile] = useState<DocumentProfile>();
+  const [profileFailed, setProfileFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -525,15 +425,20 @@ export function Forms() {
     setLoading(true);
     setError(false);
     const refreshProfile = () => {
+      setProfileFailed(false);
       void window.profile
         ?.get()
         .then((profile) => {
           if (active) setProfile(profile);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (active) setProfileFailed(true);
+        });
     };
     refreshProfile();
     window.addEventListener("focus", refreshProfile);
+    const offProfile = window.profile.onChange?.(refreshProfile);
+    const offSession = window.session?.onChange?.(refreshProfile);
     const subscription = liveQuery(() =>
       HighTexDB.getMainDocuments(),
     ).subscribe({
@@ -559,9 +464,23 @@ export function Forms() {
       active = false;
       subscription.unsubscribe();
       window.removeEventListener("focus", refreshProfile);
+      offProfile?.();
+      offSession?.();
     };
   }, [retry]);
   const document = documents.find((doc) => doc.id === documentId);
+  const contexts = useMemo(() => {
+    if (!draft) return;
+    const intern = documents.find((doc) => doc.id === draft.values.internId);
+    const resolve = (stage: FormStage): FormInputContext => {
+      const source = documentFormData(document, intern, stage, profile);
+      return {
+        source,
+        data: resolveFormData(source, formDraftData({ ...draft, stage })),
+      };
+    };
+    return { proposal: resolve("proposal"), defense: resolve("defense") };
+  }, [document, documents, draft, profile]);
   return (
     <div className="space-y-6">
       <PageHeader
@@ -569,6 +488,31 @@ export function Forms() {
         title={t("forms.title")}
         description={t("forms.subtitle")}
       />
+      {(draftFailed || saveFailed) && (
+        <div role="alert" className="rounded-lg border p-3 text-sm space-y-2">
+          <p>
+            {t(
+              draftFailed ? "forms.draft_load_failed" : "forms.storage_failed",
+            )}
+          </p>
+          {draftFailed && (
+            <Button variant="outline" onClick={retryDraft}>
+              {t("forms.retry")}
+            </Button>
+          )}
+        </div>
+      )}
+      {profileFailed && (
+        <div role="alert" className="space-y-2 rounded-lg border p-3 text-sm">
+          <p>{t("forms.profile_load_failed")}</p>
+          <Button
+            variant="outline"
+            onClick={() => setRetry((value) => value + 1)}
+          >
+            {t("forms.retry")}
+          </Button>
+        </div>
+      )}
       {loading ? (
         <p
           role="status"
@@ -587,14 +531,6 @@ export function Forms() {
             {t("forms.retry")}
           </Button>
         </div>
-      ) : !documents.length ? (
-        <div
-          data-tour="forms-empty"
-          className="rounded-xl border p-8 text-center"
-        >
-          <FileStack className="mx-auto mb-3 size-8 text-muted-foreground" />
-          <p className="text-sm">{t("forms.no_documents")}</p>
-        </div>
       ) : (
         <>
           <div className="space-y-2">
@@ -604,6 +540,7 @@ export function Forms() {
             <NativeSelect
               id="forms-document"
               value={documentId}
+              disabled={busy}
               onChange={(event) => setDocumentId(event.target.value)}
             >
               <option value="">{t("forms.choose_document")}</option>
@@ -615,27 +552,109 @@ export function Forms() {
                 </option>
               ))}
             </NativeSelect>
-            {document && (
-              <p className="text-xs text-muted-foreground">
-                <ParsedItalic text={document.title} />
-              </p>
-            )}
           </div>
-          {document ? (
-            <FormWorkspace
-              key={document.id}
-              document={document}
-              documents={documents}
-              defaultProfile={profile}
-            />
-          ) : (
-            <div className="flex min-h-64 flex-col items-center justify-center gap-3 text-center">
-              <FileStack className="size-9 text-muted-foreground" />
-              <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-                {t("forms.start_hint")}
-              </p>
-            </div>
-          )}
+          {draft && contexts && profile && !profileFailed ? (
+            <>
+              <fieldset disabled={busy} className="min-w-0 space-y-5">
+                <div
+                  data-tour="forms-stage"
+                  className="flex w-fit rounded-lg bg-muted/50 p-1"
+                  role="group"
+                  aria-label={t("forms.stage")}
+                >
+                  {(["proposal", "defense"] as const).map((stage) => (
+                    <Button
+                      type="button"
+                      key={stage}
+                      disabled={busy}
+                      variant={draft.stage === stage ? "outline" : "ghost"}
+                      aria-pressed={draft.stage === stage}
+                      onClick={() => setDraft((state) => ({ ...state, stage }))}
+                    >
+                      {t(`forms.${stage}`)}
+                    </Button>
+                  ))}
+                </div>
+                <FormDraftRecovery
+                  draft={draft}
+                  legacy={legacy}
+                  documents={documents}
+                  onChange={setDraft}
+                />
+                <FormInputs
+                  onReset={() =>
+                    void (async () => {
+                      if (
+                        await confirm({
+                          title: t("forms.reset_confirm"),
+                          desc: t("forms.reset_hint"),
+                        })
+                      )
+                        setDraft((state) => ({
+                          ...emptyWorkspaceFormDraft(),
+                          stage: state.stage,
+                        }));
+                    })()
+                  }
+                  contexts={contexts}
+                  stage={draft.stage}
+                  documents={documents}
+                  selectedDocument={document}
+                  internId={draft.values.internId ?? ""}
+                  onInternChange={(internId) =>
+                    setDraft((state) => ({
+                      ...state,
+                      values: { ...state.values, internId },
+                      conflicts: state.conflicts.filter(
+                        (conflict) => conflict.field !== "internId",
+                      ),
+                    }))
+                  }
+                  onChange={(stage, next) =>
+                    setDraft((state) => ({
+                      ...updateFormDraft(
+                        { ...state, stage },
+                        contexts[stage].data,
+                        next,
+                      ),
+                      stage: state.stage,
+                    }))
+                  }
+                />
+              </fieldset>
+              <section id="forms-output" className="scroll-mt-5 space-y-4">
+                <h2 className="text-base font-semibold">
+                  {t("forms.data_output_title")}
+                </h2>
+                {document ? (
+                  <FormWorkspace
+                    document={document}
+                    context={contexts[draft.stage]}
+                    draft={draft}
+                    setDraft={setDraft}
+                    busy={busy}
+                    setBusy={setBusy}
+                  />
+                ) : (
+                  <div
+                    data-tour="forms-empty"
+                    className="space-y-3 rounded-xl border p-6 text-center"
+                  >
+                    <FileStack className="mx-auto size-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {t(
+                        documents.length
+                          ? "forms.start_hint"
+                          : "forms.no_documents",
+                      )}
+                    </p>
+                  </div>
+                )}
+              </section>
+            </>
+          ) : !profile && !profileFailed ? (
+            <p role="status">{t("settings.profile.loading")}</p>
+          ) : null}
         </>
       )}
     </div>

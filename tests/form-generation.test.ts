@@ -90,15 +90,16 @@ describe("local form generation", () => {
       }).people.chair.name,
     ).toBe("");
   });
-  test("uses authoritative document profile/config and local fallback only for legacy documents", () => {
+  test("uses the active workspace author for current and legacy documents", () => {
     const fallback = {
       ...profile,
+      isCloud: false,
       name: "Default author",
       advisorName: "Default advisor",
     };
     expect(
       documentFormData(document, undefined, "proposal", fallback).name,
-    ).toBe(profile.name);
+    ).toBe(fallback.name);
     const legacy = { ...document, profile: undefined };
     const data = documentFormData(legacy, undefined, "proposal", fallback);
     expect(data.name).toBe(fallback.name);
@@ -106,7 +107,7 @@ describe("local form generation", () => {
     expect(data.people.chair.name).toBe("Chair");
     const own = { ...document, profile: { ...profile, name: "" } };
     expect(documentFormData(own, undefined, "proposal", fallback).name).toBe(
-      "",
+      fallback.name,
     );
   });
   test("fills dates from the selected stage's config", () => {

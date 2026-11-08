@@ -1,3 +1,5 @@
+import { resolveAuthorProfile } from "../utils/author-profile";
+
 export type FormStage = "proposal" | "defense";
 export type FormCode =
   | "B0"
@@ -191,21 +193,21 @@ export function emptyFormData(): FormData {
   };
 }
 
-/** Legacy documents may use the existing local default profile. A document's
- * own author profile always remains authoritative, including intentionally
- * missing fields; data from different authors must never be mixed. */
+/** The active workspace supplies author-profile values for every document. */
 export function documentFormData(
-  document: HighTexDocument,
+  document: HighTexDocument | undefined,
   intern?: HighTexDocument,
   stage: FormStage = "proposal",
-  defaultProfile?: Profile,
+  defaultProfile?: DocumentProfile,
 ): FormData {
   const data = emptyFormData();
-  const profile = document.profile ?? defaultProfile;
-  const config = document.config ?? {};
+  const profile = defaultProfile
+    ? resolveAuthorProfile(document ?? {}, defaultProfile)
+    : document?.profile;
+  const config = document?.config ?? {};
   data.name = profile?.name ?? "";
   data.nim = profile?.nim ?? "";
-  data.title = document.title;
+  data.title = document?.title ?? "";
   data.secondAdvisor = profile?.secondAdvisor;
   data.people.advisor1 = {
     name: profile?.advisorName ?? "",
@@ -232,9 +234,12 @@ export function documentFormData(
   data.signDate = data.eventDate;
   if (intern) {
     data.internTitle = intern.title;
+    const internProfile = defaultProfile
+      ? resolveAuthorProfile(intern, defaultProfile)
+      : intern.profile;
     data.people.internAdvisor = {
-      name: intern.profile?.advisorName ?? "",
-      nip: intern.profile?.advisorNip ?? "",
+      name: internProfile?.advisorName ?? "",
+      nip: internProfile?.advisorNip ?? "",
     };
     data.internDate = dateInput(
       intern.config?.intern?.validity ?? intern.config?.validityDate,

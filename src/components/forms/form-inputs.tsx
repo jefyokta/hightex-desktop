@@ -1,254 +1,321 @@
-import { useId, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { RotateCcw } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { ParsedItalic, parseItalic } from "@/utils/parse-italic";
 import { t } from "@/utils/lang";
+import { displayDate, type FormData, type FormStage } from "@/forms/model";
 import {
-  committee,
-  formRecipients,
-  PERSON_LABELS,
-  type FormCode,
-  type FormData,
-  type PersonKey,
-} from "@/forms/model";
+  GENERAL_FORM_FIELDS,
+  IDENTITY_FORM_FIELDS,
+  INTERNSHIP_FORM_FIELDS,
+  SCHEDULE_FORM_FIELDS,
+  facultyFormFields,
+  formFieldValue,
+  formFieldProblem,
+  changeFormField,
+  type FormField,
+} from "@/forms/fields";
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  multiline = false,
-  italic = false,
-  required = false,
+export type FormInputContext = { source: FormData; data: FormData };
+type Row = {
+  field: FormField;
+  id: string;
+  data: FormData;
+  stage: FormStage;
+  locked: boolean;
+  stageLabel?: string;
+};
+const inputId = (id: string) => `forms-field-${id.replace(/\./g, "-")}`;
+function Group({
+  title,
+  children,
+  actions,
 }: {
-  label: string;
-  value: string;
-  onChange(value: string): void;
-  type?: string;
-  multiline?: boolean;
-  italic?: boolean;
-  required?: boolean;
+  title: string;
+  children: ReactNode;
+  actions?: ReactNode;
 }) {
-  const id = useId();
   return (
-    <div className="min-w-0 space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium">
-        {label}
-      </label>
-      {multiline ? (
-        <Textarea
-          id={id}
-          aria-label={label}
-          value={value}
-          required={required}
-          maxLength={1000}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      ) : (
-        <Input
-          id={id}
-          aria-label={label}
-          type={type}
-          value={value}
-          required={required}
-          maxLength={300}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      )}
-      {italic && value && (
-        <p className="text-xs text-muted-foreground">
-          <ParsedItalic text={value} />
-        </p>
-      )}
-    </div>
+    <section className="space-y-4 rounded-xl border p-4 sm:p-5">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold">{title}</h3>
+        {actions}
+      </header>
+      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+    </section>
   );
-}
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold">{title}</p>
-      <div className="grid gap-3 sm:grid-cols-2">{children}</div>
-    </div>
-  );
-}
-function rolesFor(code: FormCode, data: FormData): PersonKey[] {
-  if (["TA01", "TA07", "TA08", "TA09", "TA10"].includes(code))
-    return [
-      ...committee(data),
-      ...(["TA09", "TA10"].includes(code) ? ["head" as const] : []),
-    ];
-  if (code === "B1") return ["internAdvisor", "head"];
-  if (code === "TA04") return ["chair"];
-  return formRecipients(code, data);
 }
 
-/** All staff-owned fields remain on paper. Supplemental administration is
- * optional and progressively disclosed for the currently viewed form only. */
+/** One data panel for the entire workspace package, independent of the previewed PDF. */
 export function FormInputs({
-  code,
-  data,
-  source,
+  contexts,
+  stage,
   documents,
+  selectedDocument,
   internId,
   onInternChange,
   onChange,
+  onReset,
 }: {
-  code: FormCode;
-  data: FormData;
-  source: FormData;
+  contexts: Record<FormStage, FormInputContext>;
+  stage: FormStage;
   documents: HighTexDocument[];
+  selectedDocument?: HighTexDocument;
   internId: string;
   onInternChange(id: string): void;
-  onChange(data: FormData): void;
+  onChange(stage: FormStage, data: FormData): void;
+  onReset(): void;
 }) {
-  const set = (key: keyof FormData, value: string) =>
-    onChange({ ...data, [key]: value });
-  const field = (
-    key: keyof FormData,
-    label: string,
-    type = "text",
-    required = false,
-  ) =>
-    source[key] && !["program", "city"].includes(key) ? null : (
-      <Field
-        key={key}
-        label={label}
-        value={String(data[key] ?? "")}
-        onChange={(value) => set(key, value)}
-        type={type}
-        required={required}
-        multiline={key === "title" || key === "internTitle"}
-        italic={key === "title" || key === "internTitle"}
-      />
-    );
-  const missingIdentity =
-    !source.name.trim() || !source.nim.trim() || !source.title.trim();
-  const missingPeople = rolesFor(code, data).filter(
-    (role) =>
-      ["head", "internAdvisor"].includes(role) &&
-      (!source.people[role].name.trim() || !source.people[role].nip.trim()),
-  );
-  const missingProfilePeople = rolesFor(code, data).some(
-    (role) =>
-      !["head", "internAdvisor"].includes(role) &&
-      (!source.people[role].name.trim() || !source.people[role].nip.trim()),
-  );
-  const schedule = ["TA01", "TA07", "TA08"].includes(code);
-  const signing = !["B0", "B2"].includes(code);
-  return (
-    <div className="space-y-3">
-      {missingIdentity && (
-        <div className="rounded-lg border p-4">
-          <Group title={t("forms.complete_missing")}>
-            {field("name", "Nama mahasiswa", "text", true)}
-            {field("nim", "NIM", "text", true)}
-            {field("title", "Judul tugas akhir", "text", true)}
-          </Group>
-        </div>
-      )}
-      <details
-        className="rounded-lg border"
-        key={code}
-        data-form-administration
-      >
-        <summary className="cursor-pointer px-4 py-3 text-xs font-medium">
-          {t("forms.optional_administration")}
-        </summary>
-        <div className="space-y-5 border-t p-4">
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {t("forms.optional_administration_hint")}
+  const active = contexts[stage];
+  const rows = (
+    fields: FormField[],
+    kind: "identity" | "general" | "intern" | "faculty" | FormStage,
+  ): Row[] =>
+    fields.map((field) => {
+      const fieldStage =
+        kind === "proposal" || kind === "defense" ? kind : stage;
+      const { data, source } = contexts[fieldStage];
+      const external = kind === "identity" || kind === "faculty";
+      const fromSource =
+        Boolean(formFieldValue(source, field.key).trim()) &&
+        !["program", "city"].includes(field.key);
+      return {
+        field,
+        id: `${kind === "proposal" || kind === "defense" ? kind + "." : ""}${field.key}`,
+        data,
+        stage: fieldStage,
+        locked: external || fromSource,
+        stageLabel:
+          kind === "proposal" || kind === "defense"
+            ? t(`forms.${kind}`)
+            : undefined,
+      };
+    });
+  const identity = rows(IDENTITY_FORM_FIELDS, "identity");
+  const general = rows(GENERAL_FORM_FIELDS, "general");
+  const intern =
+    stage === "proposal" ? rows(INTERNSHIP_FORM_FIELDS, "intern") : [];
+  const schedule = rows(SCHEDULE_FORM_FIELDS, stage);
+  const faculty = rows(facultyFormFields(active.data), "faculty");
+  const all = [...identity, ...general, ...intern, ...schedule, ...faculty];
+  const issues = all.flatMap((row) => {
+    const problem = formFieldProblem(row.field, row.data);
+    return problem ? [{ row, problem }] : [];
+  });
+  const missing = issues.filter((issue) => issue.problem === "missing").length;
+  const invalid = issues.length - missing;
+  const render = (row: Row) => {
+    const { field, data, locked, stage: fieldStage } = row;
+    const value = formFieldValue(data, field.key);
+    const problem = formFieldProblem(field, data);
+    const invalid = problem && problem !== "missing";
+    const id = inputId(row.id);
+    const label = field.label + (row.stageLabel ? ` · ${row.stageLabel}` : "");
+    const isTitle = field.key === "title" || field.key === "internTitle";
+    if (locked)
+      return (
+        <div
+          key={row.id}
+          data-form-field={row.id}
+          className={`min-w-0 space-y-1.5 ${isTitle ? "sm:col-span-2" : ""}`}
+        >
+          <p className="text-xs text-muted-foreground">{field.label}</p>
+          <p
+            id={id}
+            tabIndex={-1}
+            aria-label={label}
+            className="min-h-8 break-words rounded-sm text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            {value ? (
+              isTitle ? (
+                <ParsedItalic text={value} />
+              ) : field.type === "date" && !invalid ? (
+                displayDate(value)
+              ) : (
+                value
+              )
+            ) : (
+              <span className="text-muted-foreground">
+                {t("forms.data_not_set")}
+              </span>
+            )}
           </p>
-          {schedule && (
-            <Group title={t("forms.schedule")}>
-              {field("eventDate", "Tanggal kegiatan", "date")}
-              {field("eventTime", "Waktu kegiatan", "time")}
-              {field("eventPlace", "Tempat kegiatan")}
-            </Group>
-          )}
-          {signing && (
-            <Group title={t("forms.signing")}>
-              {field("signDate", "Tanggal penandatanganan", "date")}
-              {field("city", "Kota penandatanganan")}
-            </Group>
-          )}
-          {code === "B1" && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="forms-intern-document"
-                  className="text-xs font-medium"
-                >
-                  {t("forms.intern_document")}
-                </label>
-                <NativeSelect
-                  id="forms-intern-document"
-                  value={internId}
-                  onChange={(event) => onInternChange(event.target.value)}
-                >
-                  <option value="">{t("forms.manual_intern")}</option>
-                  {documents.map((doc) => (
-                    <option key={doc.id} value={doc.id}>
-                      {parseItalic(doc.title)
-                        .map((part) => part.text)
-                        .join("")}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </div>
-              <Group title="Data laporan KP">
-                {field("internTitle", "Judul laporan KP")}
-                {field("internDate", "Tanggal persetujuan laporan KP", "date")}
-                {field("gpa", "IPK")}
-                {field("credits", "Jumlah SKS")}
-              </Group>
-            </div>
-          )}
-          {missingPeople.length > 0 && (
-            <details>
-              <summary className="cursor-pointer text-xs font-medium">
-                {t("forms.missing_lecturers")}
-              </summary>
-              <div className="mt-4 space-y-4">
-                {missingPeople.map((role) => (
-                  <Group key={role} title={PERSON_LABELS[role]}>
-                    {(["name", "nip"] as const)
-                      .filter((key) => !source.people[role][key].trim())
-                      .map((key) => (
-                        <Field
-                          key={key}
-                          label={`${key === "name" ? "Nama" : "NIP/NIK"} ${PERSON_LABELS[role]}`}
-                          value={data.people[role][key]}
-                          onChange={(value) =>
-                            onChange({
-                              ...data,
-                              people: {
-                                ...data.people,
-                                [role]: { ...data.people[role], [key]: value },
-                              },
-                            })
-                          }
-                        />
-                      ))}
-                  </Group>
-                ))}
-              </div>
-            </details>
-          )}
-          {missingProfilePeople && (
-            <p className="text-xs text-muted-foreground">
-              {t("lecturers.complete_profile")}
+          {invalid && (
+            <p className="text-xs text-destructive">
+              {t(`forms.data_error_${problem}`)}
             </p>
           )}
-          {["B0", "B1", "B3", "TA02", "TA03", "TA04", "TA09", "TA10"].includes(
-            code,
-          ) && (
-            <Group title={t("forms.other_details")}>
-              {field("program", "Program studi")}
-            </Group>
-          )}
         </div>
+      );
+    return (
+      <div
+        key={row.id}
+        data-form-field={row.id}
+        className="min-w-0 space-y-1.5"
+      >
+        <label htmlFor={id} className="text-xs font-medium">
+          {field.label}
+          {field.required && (
+            <span className="ml-1 text-muted-foreground" aria-hidden="true">
+              *
+            </span>
+          )}
+        </label>
+        <Input
+          id={id}
+          value={value}
+          aria-label={label}
+          aria-invalid={Boolean(invalid)}
+          aria-describedby={invalid ? `${id}-hint` : undefined}
+          placeholder={t(
+            field.required ? "forms.data_required_empty" : "forms.optional",
+          )}
+          type={field.type ?? "text"}
+          inputMode={
+            field.key === "gpa"
+              ? "decimal"
+              : field.key === "credits"
+                ? "numeric"
+                : undefined
+          }
+          maxLength={isTitle ? 1000 : 300}
+          onChange={(event) =>
+            onChange(
+              fieldStage,
+              changeFormField(data, field.key, event.target.value),
+            )
+          }
+        />
+        {isTitle && value.includes("_") && (
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            <ParsedItalic text={value} />
+          </p>
+        )}
+        {invalid && (
+          <p id={`${id}-hint`} className="text-xs text-destructive">
+            {t(`forms.data_error_${problem}`)}
+            {field.type && ` (${value})`}
+          </p>
+        )}
+      </div>
+    );
+  };
+  return (
+    <section
+      className="space-y-5"
+      data-tour="forms-inputs"
+      data-form-data-panel
+    >
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold">{t("forms.data_title")}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onReset}>
+            <RotateCcw className="size-3.5" />
+            {t("forms.data_reset")}
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href="#forms-output">{t("forms.data_to_preview")}</a>
+          </Button>
+        </div>
+      </header>
+      <details
+        open={invalid > 0}
+        className="rounded-lg border bg-muted/20 p-3"
+        data-form-data-review
+        aria-label={t("forms.data_review")}
+      >
+        <summary className="cursor-pointer text-xs font-medium">
+          {invalid
+            ? t("forms.data_review_counts", { missing, invalid })
+            : missing
+              ? t("forms.data_empty_count", { count: missing })
+              : t("forms.data_filled")}
+        </summary>
+        {issues.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {issues.map(({ row, problem }) => (
+              <button
+                key={row.id}
+                type="button"
+                className={`rounded-md border bg-background px-2 py-1 text-left text-xs hover:bg-muted ${problem !== "missing" ? "border-destructive/50 text-destructive" : "text-muted-foreground"}`}
+                onClick={() => {
+                  const field = document.getElementById(inputId(row.id));
+                  field?.scrollIntoView({
+                    block: "center",
+                    behavior: "smooth",
+                  });
+                  field?.focus({ preventScroll: true });
+                }}
+              >
+                {row.field.label}
+              </button>
+            ))}
+          </div>
+        )}
       </details>
-    </div>
+      <Group
+        title={t("forms.identity")}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/profile">{t("profile.title")}</Link>
+            </Button>
+            {selectedDocument && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  window.editor.open(selectedDocument.id, selectedDocument.file)
+                }
+              >
+                {t("forms.data_open_document")}
+              </Button>
+            )}
+          </div>
+        }
+      >
+        {identity.map(render)}
+      </Group>
+      <Group title={t("forms.other_details")}>{general.map(render)}</Group>
+      <Group title={`${t("forms.schedule")} · ${t("forms.optional")}`}>
+        {schedule.map(render)}
+      </Group>
+      {stage === "proposal" && (
+        <section className="space-y-4 rounded-xl border p-4 sm:p-5">
+          <h3 className="text-sm font-semibold">
+            {t("forms.data_internship")}
+          </h3>
+          <div className="max-w-xl space-y-1.5">
+            <label
+              htmlFor="forms-intern-document"
+              className="text-xs font-medium"
+            >
+              {t("forms.intern_document")}
+            </label>
+            <NativeSelect
+              id="forms-intern-document"
+              value={internId}
+              onChange={(event) => onInternChange(event.target.value)}
+            >
+              <option value="">{t("forms.manual_intern")}</option>
+              {documents.map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {parseItalic(doc.title)
+                    .map((part) => part.text)
+                    .join("")}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">{intern.map(render)}</div>
+        </section>
+      )}
+      <Group title={t("forms.people")}>{faculty.map(render)}</Group>
+    </section>
   );
 }

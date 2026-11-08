@@ -20,16 +20,17 @@ setTimeout(() => {
   app.exit(1);
 }, 180000).unref();
 const fixture = `<!doctype html><html><body style="margin:0"><main id="root"></main><script type="module">
-import React from 'react';import {createRoot} from 'react-dom/client';import {MemoryRouter,Routes,Route} from 'react-router-dom';import {AppLayout} from '/src/layouts/app-layout.tsx';import {UserContext} from '/src/context/user-context.tsx';import {AuthModalProvider} from '/src/context/auth-modal-context.tsx';import {TooltipProvider} from '/src/components/ui/tooltip.tsx';import {Forms} from '/src/pages/forms.tsx';import {HighTexDB} from '/src/editor/storage/hightex-db.ts';import {documentFormData,defaultSelection} from '/src/forms/model.ts';import '/src/App.css';import '/src/css/workspace.css';
-window.config={get:()=>({language:'id'})};window.hightex={};window.profile={get:async()=>({name:'Local Student',nim:'LOCAL123',advisorName:'Local Advisor',advisorNip:'LOCALNIP',cv:''})};
+import React from 'react';import {createRoot} from 'react-dom/client';import {MemoryRouter,Routes,Route} from 'react-router-dom';import {AppLayout} from '/src/layouts/app-layout.tsx';import {UserContext} from '/src/context/user-context.tsx';import {AuthModalProvider} from '/src/context/auth-modal-context.tsx';import {TooltipProvider} from '/src/components/ui/tooltip.tsx';import {Forms} from '/src/pages/forms.tsx';import {ConfirmProvider} from '/src/context/confrim-context.tsx';import {HighTexDB} from '/src/editor/storage/hightex-db.ts';import {documentFormData,defaultSelection} from '/src/forms/model.ts';import '/src/App.css';import '/src/css/workspace.css';
+window.config={get:()=>({language:'id'})};window.hightex={};window.workspaces={state:async()=>({activeId:'fixture',profiles:[{id:'fixture',name:'Fixture',type:'cloud'}]}),onChange:()=>()=>{}};window.profile={get:async()=>({name:'Student A',nim:'123456',cv:'',isCloud:true})};
 const db=HighTexDB.getInstance();await db.open();
 const doc={id:'doc-a',title:'Implementasi _machine learning_ untuk klasifikasi',altTitle:'',category:'1',keywords:{indonesian:[],english:[]},profile:{name:'Student A',nim:'123456',advisorName:'Advisor One',advisorNip:'NIP-A',secondAdvisor:{name:'Advisor Two',nip:'NIP-B'},cv:'',committee:{chair:{id:'chair',name:'Chair Person',nip:'NIP-C'},examiner1:{id:'examiner-1',name:'Examiner One',nip:'NIP-E1'},examiner2:{id:'examiner-2',name:'Examiner Two',nip:'NIP-E2'}}},config:{kaprodi:{name:'Head Person',nip:'NIP-H'},consentDate:new Date(2026,10,2),validityDate:new Date(2026,10,3)}};
 const legacy={...doc,id:'legacy',title:'Legacy document',profile:undefined,config:{}};
 const kp={...doc,id:'kp',title:'Laporan _internship_ KP',profile:{...doc.profile,advisorName:'KP Advisor'},config:{intern:{validity:new Date(2026,10,2)}}};
 await db.documents.bulkPut([doc,legacy,kp]);window.db=db;window.original=JSON.stringify(await db.documents.toArray());
-localStorage.setItem('hightex:forms:v1:doc-a',JSON.stringify({version:1,stage:'proposal',internId:'kp',choices:{},inputs:{proposal:{scores:{'TA02:advisor1':['100']},minutesComment:'INJECTED COMMENT',revisions:{advisor1:{changes:'INJECTED REVISION',comment:'INJECTED COMMENT'}}}}}));
+localStorage.setItem('hightex:forms:v1:doc-a',JSON.stringify({version:1,stage:'proposal',internId:'kp',choices:{},inputs:{proposal:{eventPlace:'Ruang Lama A',city:'Kota Bersama',scores:{'TA02:advisor1':['100']},minutesComment:'INJECTED COMMENT',revisions:{advisor1:{changes:'INJECTED REVISION',comment:'INJECTED COMMENT'}}}}}));
+localStorage.setItem('hightex:forms:v1:legacy',JSON.stringify({version:2,stage:'proposal',inputs:{proposal:{eventPlace:'Ruang Lama B',city:'Kota Bersama'}}}));window.legacyDrafts=[localStorage.getItem('hightex:forms:v1:doc-a'),localStorage.getItem('hightex:forms:v1:legacy')];
 window.fixtureInput=stage=>({documentId:doc.id,stage,data:documentFormData(doc,kp,stage),selection:defaultSelection(stage)});
-createRoot(document.querySelector('#root')).render(React.createElement(UserContext.Provider,{value:{user:false,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,{initialEntries:['/dashboard/forms']},React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(AppLayout)},React.createElement(Route,{path:'/dashboard/forms',element:React.createElement(Forms)}))))))));
+createRoot(document.querySelector('#root')).render(React.createElement(UserContext.Provider,{value:{user:false,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(ConfirmProvider,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,{initialEntries:['/dashboard/forms']},React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(AppLayout)},React.createElement(Route,{path:'/dashboard/forms',element:React.createElement(Forms)})))))))));
 </script></body></html>`;
 const printHTML = `<!doctype html><html><body><main id="root"></main><script type="module">import React from 'react';import {createRoot} from 'react-dom/client';import {FormsPrint} from '/src/pages/forms-print.tsx';createRoot(document.querySelector('#root')).render(React.createElement(React.StrictMode,null,React.createElement(FormsPrint)));</script></body></html>`;
 const preload = path.join(profile, "preload.cjs");
@@ -131,7 +132,12 @@ app
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
     console.log("SERVER", origin);
-    const model = load(path.resolve(__dirname, "../../src/forms/model.ts"), {});
+    const model = load(path.resolve(__dirname, "../../src/forms/model.ts"), {
+      "../utils/author-profile": load(
+        path.resolve(__dirname, "../../src/utils/author-profile.ts"),
+        {},
+      ),
+    });
     const { FormArchiveService } = load(
       path.resolve(__dirname, "../../electron/service/form-archive-service.ts"),
       {
@@ -189,12 +195,146 @@ app
     await until(
       "document.querySelectorAll('#forms-document option').length===4",
     );
+    await until("document.querySelector('[data-form-data-panel]')");
+    assert.equal(
+      await execute("return document.querySelector('#forms-document').value"),
+      "",
+    );
+    assert.equal(
+      await execute(
+        "return Boolean(document.querySelector('[data-form-field=\"gpa\"] input') && document.querySelector('[data-form-field=\"proposal.eventPlace\"] input') && !document.querySelector('[data-form-field=\"defense.eventPlace\"] input'))",
+      ),
+      true,
+      "Shared data and only the selected stage are available before choosing a document",
+    );
+    await setValue('[data-form-field="gpa"] input', "3,75");
+    await setValue('[data-form-field="credits"] input', "120");
+    await execute(
+      "[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='Sidang Akhir').click()",
+    );
+    await until(
+      "document.querySelector('[data-form-field=\"defense.eventTime\"] input') && !document.querySelector('[data-form-field=\"proposal.eventTime\"]') && !document.querySelector('[data-form-field=\"gpa\"]')",
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-form-field=\"defense.eventDate\"] input').required",
+      ),
+      false,
+      "Schedule dates remain optional",
+    );
+    await setValue('[data-form-field="defense.eventTime"] input', "14:30");
+    assert.equal(
+      await execute(
+        "return JSON.parse(localStorage.getItem('hightex:forms:workspace:v1')).values['defense.eventTime']",
+      ),
+      "14:30",
+    );
+    await execute(
+      "[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='Seminar Proposal').click()",
+    );
+    await until(
+      "document.querySelector('[data-form-field=\"proposal.eventTime\"] input') && !document.querySelector('[data-form-field=\"defense.eventTime\"]')",
+    );
+    assert.equal(
+      await execute(
+        "return JSON.parse(localStorage.getItem('hightex:forms:workspace:v1')).stage",
+      ),
+      "proposal",
+      "Returning to proposal restores the proposal output stage",
+    );
     await setValue("#forms-document", "doc-a");
     console.log("DOCUMENT selected");
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Advisor One.')",
     );
     console.log("PREVIEW loaded");
+    assert.equal(
+      await execute(
+        "return document.querySelector('#forms-field-title em')?.textContent",
+      ),
+      "machine learning",
+      "Document title preserves parsed italic formatting",
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-form-field=\"internTitle\"] em')?.textContent",
+      ),
+      "internship",
+      "Automatically loaded internship titles also preserve italic formatting",
+    );
+    assert.equal(
+      await execute(
+        'return Boolean(document.querySelector(\'[data-form-field="title"] input,[data-form-field="title"] textarea\'))',
+      ),
+      false,
+      "Source title is displayed as text, not an input",
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-form-field=\"title\"]').classList.contains('sm:col-span-2')",
+      ),
+      true,
+      "Long titles use the full summary width",
+    );
+    assert.equal(
+      await execute(
+        "return Boolean(document.querySelector('[data-form-data-panel] .lucide-lock-keyhole'))",
+      ),
+      false,
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('button[type=submit]').disabled",
+      ),
+      true,
+      "Conflicting legacy values must be resolved before export",
+    );
+    await execute(
+      "[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='Lewati nilai yang berbeda').click()",
+    );
+    await until(
+      "!document.body.innerText.includes('Pilih isian dari draft lama yang berbeda')",
+    );
+    await setValue('[data-form-field="gpa"] input', "5");
+    await until(
+      "document.querySelector('[data-form-field=\"gpa\"] input').getAttribute('aria-invalid')==='true' && document.querySelector('button[type=submit]').disabled && !document.querySelector('iframe')",
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('[data-form-package-review]').textContent.includes('IPK')",
+      ),
+      true,
+      "Package review catches invalid B1 data even while TA07 is selected",
+    );
+    await execute(
+      "[...document.querySelectorAll('[data-form-data-review] button')].find(button=>button.textContent.includes('IPK')).click()",
+    );
+    assert.equal(
+      await execute(
+        "return document.activeElement===document.querySelector('[data-form-field=\"gpa\"] input')",
+      ),
+      true,
+    );
+    await setValue('[data-form-field="gpa"] input', "3,75");
+    await until(
+      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('BERITA ACARA')",
+    );
+    await until(
+      "!document.querySelector('[data-form-preview] [role=status]') && document.querySelector('iframe')?.contentDocument?.images.length===1",
+    );
+    await execute(
+      "window.dataFieldIds=[...document.querySelectorAll('[data-form-field]')].map(field=>field.dataset.formField)",
+    );
+    writeFileSync(
+      path.join(profile, "all-form-data.png"),
+      (await win.webContents.capturePage()).toPNG(),
+    );
+    assert.equal(
+      await execute(
+        "return JSON.parse(localStorage.getItem('hightex:forms:workspace:v1')).values.city",
+      ),
+      "Kota Bersama",
+    );
     assert.equal(
       await execute(
         `const doc=document.querySelector('iframe').contentDocument;return doc.querySelectorAll('img').length===1 && doc.querySelector('img').src.includes('logo-uin')`,
@@ -232,14 +372,16 @@ app
       await execute(
         "return [...document.querySelectorAll('input[type=text],input[type=date],input[type=time],textarea')].filter(e=>!e.closest('details:not([open])') && e.checkVisibility()).length",
       ),
-      0,
-      "Default UX must not show an input wall",
+      await execute(
+        "return document.querySelectorAll('[data-form-data-panel] input,[data-form-data-panel] textarea').length",
+      ),
+      "All form data is visible in the central panel",
     );
     assert.equal(
       await execute(
-        "return !!document.querySelector('[aria-label=\"Nama mahasiswa\"]')",
+        "return document.querySelector('[aria-label=\"Nama mahasiswa\"]').tagName==='P'",
       ),
-      false,
+      true,
     );
     assert.equal(
       await execute(
@@ -301,6 +443,10 @@ app
       `const buttons=[...document.querySelectorAll('button')];buttons.find(button=>button.textContent.trim()==='Sidang Akhir').click()`,
     );
     await until("document.querySelector('[data-view-form=TA10]')");
+    await setValue(
+      '[data-form-field="defense.eventPlace"] input',
+      "Ruang Sidang",
+    );
     assert.equal(
       await execute(
         "return !!document.querySelector('[data-view-form=B0],[data-view-form=B1]')",
@@ -318,24 +464,30 @@ app
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('BUKTI PERBAIKAN')",
     );
+    assert.deepEqual(
+      await execute(
+        "return [...document.querySelectorAll('[data-form-field]')].map(field=>field.dataset.formField)",
+      ),
+      await execute("return window.dataFieldIds"),
+      "Choosing another form only changes the preview, never the available inputs",
+    );
     assert.equal(
-      await execute("return document.querySelectorAll('textarea').length"),
+      await execute(
+        "return document.querySelectorAll('[data-form-data-panel] textarea').length",
+      ),
       0,
     );
     await click('[data-view-form="TA07"]');
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('BERITA ACARA')",
     );
-    await execute(
-      "document.querySelector('[data-form-administration]').open=true",
+    await setValue(
+      '[data-form-field="proposal.eventPlace"] input',
+      "Ruang Lokal",
     );
-    await setValue('[aria-label="Tempat kegiatan"]', "Ruang Lokal");
-    await setValue('[aria-label="Waktu kegiatan"]', "09:00");
+    await setValue('[data-form-field="proposal.eventTime"] input', "09:00");
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Ruang Lokal')",
-    );
-    await execute(
-      "document.querySelector('[data-form-administration]').open=false",
     );
     writeFileSync(
       path.join(profile, "desktop.png"),
@@ -400,19 +552,50 @@ app
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Advisor Updated.') && document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Examiner Updated.')",
     );
     await setValue("#forms-document", "legacy");
-    await until("document.body.innerText.includes('Local Student')");
     await until(
-      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Local Advisor.')",
+      "document.querySelector('[aria-label=\"Nama mahasiswa\"]')?.textContent==='Student A'",
+    );
+    await until(
+      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Legacy document')",
+    );
+    await until(
+      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Ruang Lokal')",
     );
     assert.equal(
       await execute(
-        "return !!document.querySelector('[aria-label=\"Nama mahasiswa\"]')",
+        "return document.querySelector('[data-form-field=\"proposal.eventPlace\"] input').value",
       ),
-      false,
+      "Ruang Lokal",
+      "Shared proposal input survives switching documents",
+    );
+    assert.equal(
+      await execute(
+        "return document.querySelector('[aria-label=\"Nama mahasiswa\"]').tagName==='P'",
+      ),
+      true,
     );
     await setValue("#forms-document", "doc-a");
     await until(
       "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Ruang Lokal')",
+    );
+    await execute(
+      "[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='Sidang Akhir').click()",
+    );
+    await until(
+      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Ruang Sidang')",
+    );
+    await execute(
+      "[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='Seminar Proposal').click()",
+    );
+    await until(
+      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Ruang Lokal')",
+    );
+    assert.deepEqual(
+      await execute(
+        "return [localStorage.getItem('hightex:forms:v1:doc-a'),localStorage.getItem('hightex:forms:v1:legacy')]",
+      ),
+      await execute("return window.legacyDrafts"),
+      "Migration never overwrites old drafts",
     );
     await win.setSize(500, 950);
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -446,8 +629,28 @@ app
     assert(!defenseFiles["B1.pdf"]);
     assert(!defenseFiles["TA-09.pdf"]);
     writeFileSync(path.join(profile, "defense.zip"), defense);
+    await win.loadURL(origin + "/fixture");
+    await until("document.querySelector('#forms-document')");
+    await setValue("#forms-document", "legacy");
+    await until(
+      "document.querySelector('iframe')?.contentDocument?.body?.innerText?.includes('Ruang Lokal')",
+    );
+    await execute(
+      "[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='Reset isian').click()",
+    );
+    await until("document.querySelector('[role=dialog]')");
+    await execute(
+      "[...document.querySelectorAll('[role=dialog] button')].find(button=>button.textContent.trim()==='Confirm').click()",
+    );
+    await until(
+      "Object.keys(JSON.parse(localStorage.getItem('hightex:forms:workspace:v1')).values).length===0",
+    );
+    assert.equal(
+      await execute("return !!localStorage.getItem('hightex:forms:v1:doc-a')"),
+      true,
+    );
     console.log(
-      "PASS: minimal optional administration, blank faculty fields, local legacy profile, live profile committee/NIP updates, name utility, native HTML printing, original paper size, separate PDFs in ZIP, source preservation, responsive UI, aligned long TA07 names, bounded workspace and preview scrolling, proposal-only B0/B1.",
+      "PASS: one complete data panel before document selection; only the chosen stage visible; optional dates; package-wide missing/invalid review and direct field focus; form selection only changes preview; shared data across documents/reload; migration/reset; native PDF/ZIP output; source preservation; responsive layout.",
     );
     console.log("Artifacts:", profile);
   })
