@@ -325,7 +325,16 @@ function InlineDiff({ before, after }: { before: string; after: string }) {
       </p>
     );
   return (
-    <p className="whitespace-pre-wrap break-words text-sm leading-7">
+    <p
+      className="whitespace-pre-wrap break-words"
+      style={{
+        fontFamily: '"Times New Roman", serif',
+        fontSize: "12pt",
+        lineHeight: 1.5,
+        textAlign: "justify",
+        textIndent: "1.27cm",
+      }}
+    >
       {segments.map((segment, index) =>
         segment.type === "added" ? (
           <ins
