@@ -1,68 +1,74 @@
-# Localization
+# Language and Locale
 
-Avoid hardcoded user-facing text. Use the localization system instead.
+All user-facing renderer text must use the localization system. The supported
+languages are English (`en`) and Indonesian (`id`).
 
-## Locale Files
+## Locale files and keys
 
-Locale files are stored in:
+Locale messages live in:
 
 ```text
-src/locale/{lang}.json
+src/locales/en.json
+src/locales/id.json
 ```
 
-Currently available languages:
+Both files must have the same keys and matching interpolation parameters. Use
+descriptive, hierarchical keys grouped by feature, such as
+`workspace_profiles.migration_title`.
 
-- `id` — Indonesian
-- `eng` — English
+The `LocaleKey` type in `src/utils/lang.ts` is derived from the English locale,
+so known keys are checked by TypeScript. Do not add a visible string directly
+to a component when it should be translated.
 
-Each locale file should contain the same translation keys.
+## Use translations
 
-## Using Translations
-
-Import the `t` function from `@/utils/lang`:
+Import `t` from `@/utils/lang`:
 
 ```tsx
 import { t } from "@/utils/lang";
 
-const MyComponent = () => {
-  return <>{t("my_component.keys")}</>;
-};
-```
-
-Use the translation key instead of writing user-facing text directly in the component.
-
-### Interpolation
-
-If a translation contains a dynamic value, use `{interpolate}` in the locale file.
-
-For example:
-
-```json
-{
-  "key": "I need a {interpolate}"
+export function SaveButton() {
+  return <button>{t("common.save")}</button>;
 }
 ```
 
-Then pass the value as the second argument to `t`:
+Use `{name}` placeholders for dynamic values. Pass the value as the second
+argument instead of assembling a translated sentence in code:
 
-```ts
-t("key", {
-  interpolate: "bunch of cigarettes",
-});
+```json
+{
+  "greeting": "Hello, {name}"
+}
 ```
 
-This keeps dynamic content separate from the translated text and allows the surrounding sentence to be localized properly.
+```ts
+t("example.greeting", { name: userName });
+```
 
-## Rules
+Keep interpolation names aligned between both locales. Values are converted to
+strings by the translation helper; `null` and `undefined` values render as an
+empty string.
 
-- Do not hardcode user-facing text in components.
-- Add new translations to both `id.json` and `eng.json`.
-- Use descriptive, hierarchical translation keys, for example:
+## Add or change a message
 
-  ```text
-  my_component.title
-  my_component.description
-  my_component.save
-  ```
+1. Add the same key to `src/locales/en.json` and `src/locales/id.json`.
+2. Keep the translations natural in each language and preserve the same
+   `{placeholder}` names.
+3. Use `t` at the call site and provide every required interpolation value.
+4. Run the focused locale tests:
 
-- Use interpolation for dynamic values instead of constructing translated sentences in code.
+   ```sh
+   bun test tests/locales.test.ts
+   ```
+
+The locale tests check key parity, interpolation parity and required
+interpolation arguments at statically recognizable call sites. They do not
+replace a review of translation meaning or runtime checks for dynamically
+constructed keys and values.
+
+## Language preference
+
+The application configuration stores the selected language. Use the existing
+language helpers and context rather than creating component-local locale
+state. Keep contributor-facing documentation in English; user guides remain
+in the language appropriate to their audience.

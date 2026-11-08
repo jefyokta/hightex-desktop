@@ -108,7 +108,7 @@ Steps may declare an `advanceWhen` CSS selector and a localized
 that selector matches a visible element. This is a read-only readiness check;
 it never selects or creates data on the user's behalf.
 
-## Planned 1.3.0 guides
+## 1.3.0 guides
 
 `src/data/ui-guides/releases/1.3.0.ts` registers three features (the local lecturer directory is revision 3):
 
@@ -139,6 +139,23 @@ instead of an unavailable default-copy action. Internship advisors remain manual
 Both languages explain that local directory edits do not rewrite stored profiles,
 default profile changes do not rewrite existing documents, B0/B1 are proposal-only,
 and assessment/comment/correction/signature fields stay blank for faculty.
+
+## 1.4.0 guides
+
+`src/data/ui-guides/releases/1.4.0.ts` registers three features:
+
+| Guide ID               | Scope     | Steps | Content                                                                                                                                                            |
+| ---------------------- | --------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `workspace-management` | Workspace |     4 | Workspace list and creation, author-profile entry point, and CV editing.                                                                                           |
+| `shared-form-data`     | Workspace |     3 | Form stage, shared form values, and data review. The tour waits for a selected document where required and explains the empty state when no document is available. |
+| `branch-comparison`    | Editor    |     5 | Branch manager, branch creation, comparison action, navigation, and changed content. Fallback selectors explain when a comparison has no changes.                  |
+
+These features are eligible at application version `1.4.0`. The form guide
+does not select a document or change form values for the user. The branch guide
+waits for the user to open the manager and comparison dialog; it does not create
+branches or alter document content. When adding targets, keep their
+`data-tour`/comparison selectors stable and update integration coverage if the
+underlying UI changes.
 
 ## Editor writing tours
 

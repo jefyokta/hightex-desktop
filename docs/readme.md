@@ -1,5 +1,4 @@
-## Documentation
+# Documentation
 
-for [contributor](./contributors/readme.md) \
-
-for [user](./users/readme.md)
+- [Contributor documentation](./contributors/index.md)
+- [User documentation](./users/readme.md)

@@ -1,69 +1,62 @@
-# confirm
+# Frontend Utilities
 
-confirm modal return `Promise<boolean>`
-ex:
+Use shared helpers for common renderer interactions rather than introducing
+another dialog or duplicating small formatting behavior.
 
-```ts
-const confirmed = await confirm({
-  title: "are u sure",
-  desc: "will execute a danger action",
-});
-if (confirmed) {
-  runDangerFunction();
-}
-```
+## Confirmation dialogs
 
-for method u can also use decoration/annotation
+`confirm` from `@/utils/confirm` returns `Promise<boolean>`:
 
 ```ts
-class MyClass {
-  @Confrim({
-    title: "are u sure",
-    desc: "will delete ...",
+import { confirm } from "@/utils/confirm";
+import { t } from "@/utils/lang";
+
+if (
+  await confirm({
+    title: t("example.delete_title"),
+    desc: t("example.delete_description"),
   })
-  public myDangerAction() {
-    deleteSomething();
-  }
+) {
+  await deleteItem();
 }
-
-const myClass = new MyClass();
-//automatically triger confrimation
-myclass.myDangerAction();
 ```
 
-# ask
+Use localized text for dialog titles, descriptions, and button labels. A
+cancelled confirmation resolves to `false`.
 
-ask modal, retrun `Promise<string>`, and throw error `ActionCanceled`.
+For operations that need a third result, use `confirmWithAlternative`; it
+returns `true`, `false`, or `"alternative"`. The `@Confirm` method decorator is
+also available for methods that return a promise. Check existing call sites and
+the decorator's behavior before using it: declining returns `undefined` without
+calling the decorated method.
+
+These helpers require the application confirmation provider to be mounted.
+They throw an error if used outside that application context.
+
+## Ask dialogs
+
+`ask` from `@/utils/ask` displays the shared text-entry dialog and resolves to
+`string | undefined`. `undefined` means the request was cancelled:
 
 ```ts
-const name = await ask("what is your name?");
-console.log(name);
+import { ask } from "@/utils/ask";
+
+const value = await ask({
+  title: t("example.enter_name"),
+  placeholder: t("example.name_placeholder"),
+});
+if (value === undefined) return;
 ```
 
-# truncate
+Use the options form when a placeholder, default value, custom button text, or
+hidden input is needed. The provider must be mounted, or `ask` throws.
 
-slice string
-ex:
+## Small formatting helpers
 
-```ts
-truncate(
-  "a dynamic text that we dont know how long is it",
-  5, // max chars (optional)
-); //a dyna...
-```
+- `truncate(text, max?)` shortens text longer than `max` and appends `...`.
+  The default maximum is 30 characters.
+- `name(value)` returns an empty string for an empty value and otherwise ensures
+  the value ends with a period.
 
-# name
-
-auto dotted name
-ex:
-
-```ts
-name("jepi okta mipa"); //jepi okta mipa.
-name("jepi."); //jepi.
-```
-
-# italic parser
-
-## `<ParseItalic text=""/>`
-
-turn string like `"_italic_"` into _italic_. react component
+Check the implementation and types in `src/utils/` before relying on a helper
+for special Unicode, punctuation, or formatting requirements.

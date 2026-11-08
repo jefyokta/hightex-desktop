@@ -39,7 +39,10 @@ bun install
 bun run dev
 ```
 
-See [package.json](./package.json) for the available scripts and [contributor documentation](./docs/contributors/readme.md) for additional project notes. Check those notes against the current implementation when working in an unfamiliar area.
+See [package.json](./package.json) for the available scripts and the
+[contributor documentation index](./docs/contributors/index.md) for the source
+map and domain-specific engineering notes. Check those notes against the
+current implementation when working in an unfamiliar area.
 
 ## Implementation Guidelines
 
