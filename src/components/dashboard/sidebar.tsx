@@ -234,6 +234,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
           <span>{t("guide.replay")}</span>
         </button>
         {item("/settings", <Settings size={17} />, t("settings.title"))}
+        {item("/profile", <ContactRound size={17} />, t("profile.title"))}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -257,8 +258,8 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-52">
-              <DropdownMenuItem onSelect={() => go("/settings")}>
-                <Settings />
+              <DropdownMenuItem onSelect={() => go("/profile")}>
+                <ContactRound />
                 {t("workspace.account")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />

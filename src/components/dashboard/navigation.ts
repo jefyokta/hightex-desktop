@@ -11,6 +11,7 @@ export const workspacePages: Array<{ path: string; label: LocaleKey }> = [
   { path: "/dashboard/splitter", label: "workspace.splitter" },
   { path: "/dashboard/present", label: "workspace.present" },
   { path: "/dashboard/forms", label: "workspace.forms" },
+  { path: "/profile", label: "profile.title" },
   { path: "/settings", label: "settings.title" },
 ];
 

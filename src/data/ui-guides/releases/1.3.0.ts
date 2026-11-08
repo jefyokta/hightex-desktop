@@ -1,5 +1,5 @@
 const formsRoute = "/dashboard/forms";
-const profileRoute = "/settings";
+const profileRoute = "/profile";
 const formsFallback = ["#forms-document", '[data-tour="forms-empty"]'];
 
 export default {

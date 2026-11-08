@@ -15,6 +15,7 @@ import { Dashboard } from "./pages/local";
 import { RemoteDocuments } from "./pages/remote";
 import { Citation } from "./pages/citation";
 import { Settings } from "./pages/settings";
+import { Profile } from "./pages/profile";
 import { Lecturers } from "./pages/lecturers";
 import { Editor } from "./pages/editor";
 import { FullDocument } from "./components/printable";
@@ -73,6 +74,7 @@ function App() {
             <Route path="/dashboard/cloud/cv" element={<CloudCVEditor />} />
 
             <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
             <Route
               path="/dashboard/snapshots/:id"
               element={<SnapshotViewer />}
