@@ -582,6 +582,8 @@
     "no_documents": "Buat atau impor dokumen terlebih dahulu untuk mulai membuat formulir.",
     "document": "Dokumen tugas akhir",
     "choose_document": "Pilih dokumen lokal…",
+    "document_empty": "Belum ada dokumen",
+    "browse_documents": "Buka halaman Dokumen",
     "start_hint": "Pilih dokumen untuk memakai judul dan data akademiknya. Identitas mengikuti profil aktif dan isian tambahan dipakai bersama.",
     "complete_missing": "Lengkapi identitas yang belum tersedia",
     "optional_administration": "Lengkapi data administrasi (opsional)",

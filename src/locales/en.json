@@ -582,6 +582,8 @@
     "no_documents": "Create or import a document to start generating forms.",
     "document": "Thesis document",
     "choose_document": "Choose a local document…",
+    "document_empty": "No documents yet",
+    "browse_documents": "Go to Documents",
     "start_hint": "Choose a document for its title and academic data. Identity follows the active profile, and additional input is shared.",
     "complete_missing": "Complete missing identity details",
     "optional_administration": "Additional administration (optional)",

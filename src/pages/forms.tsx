@@ -7,6 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 import { liveQuery } from "dexie";
+import { Link } from "react-router-dom";
 import { Download, FileStack, Loader2, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import {
@@ -451,6 +452,9 @@ export function Forms() {
               new Date(a.updatedAt ?? 0).getTime(),
           ),
         );
+        setDocumentId((selected) =>
+          docs.some((document) => document.id === selected) ? selected : "",
+        );
         setLoading(false);
       },
       error: () => {
@@ -540,10 +544,16 @@ export function Forms() {
             <NativeSelect
               id="forms-document"
               value={documentId}
-              disabled={busy}
+              disabled={busy || documents.length === 0}
               onChange={(event) => setDocumentId(event.target.value)}
             >
-              <option value="">{t("forms.choose_document")}</option>
+              <option value="">
+                {t(
+                  documents.length
+                    ? "forms.choose_document"
+                    : "forms.document_empty",
+                )}
+              </option>
               {documents.map((doc) => (
                 <option key={doc.id} value={doc.id}>
                   {parseItalic(doc.title)
@@ -648,6 +658,13 @@ export function Forms() {
                           : "forms.no_documents",
                       )}
                     </p>
+                    {!documents.length && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link to="/dashboard">
+                          {t("forms.browse_documents")}
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 )}
               </section>
