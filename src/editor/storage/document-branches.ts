@@ -4,11 +4,76 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
 import { Exporter } from "@/utils/htx/exporter";
 import { archiveSha256, readImportModel } from "@/utils/htx/import-model";
+import { contentFingerprint } from "@/utils/htx/content-fingerprint";
+import { getWorkspaceAuthorProfile } from "@/utils/document-profile";
+import { writeProfileEntries } from "@/utils/htx/profile";
+import { zipSync } from "fflate";
 import {
   captureDraft,
   installDraft,
   prepareDraftImport,
 } from "@/utils/htx/draft-transfer";
+
+const REVISION_PREFIX = "document-v1:";
+const documentRevision = async (buffer: Uint8Array) => {
+  const model = readImportModel(buffer);
+  const workspace = await getWorkspaceAuthorProfile();
+  const { title, altTitle, category, keywords } = model.document;
+  // Workspace identity changes apply to both versions. Cloud academic
+  // assignments remain document data and must still participate in conflicts.
+  const profile = model.profile;
+  const revision = {
+    title,
+    altTitle,
+    category,
+    keywords,
+    content: await contentFingerprint(model),
+    academic: workspace.isCloud
+      ? {
+          advisorName: profile?.advisorName,
+          advisorNip: profile?.advisorNip,
+          secondAdvisor: profile?.secondAdvisor,
+          committee: profile?.committee,
+        }
+      : undefined,
+  };
+  return (
+    REVISION_PREFIX +
+    (await archiveSha256(new TextEncoder().encode(JSON.stringify(revision))))
+  );
+};
+
+const matchesLegacyRevision = async (
+  archive: Awaited<ReturnType<Exporter["buildExport"]>>,
+  branch: HighTexDocument,
+) => {
+  if ((await archiveSha256(archive.buffer)) === branch.parentRevision)
+    return true;
+  if (!branch.profile) return false;
+  const workspace = await getWorkspaceAuthorProfile();
+  const profile = workspace.isCloud
+    ? {
+        ...archive.document.profile!,
+        name: branch.profile.name,
+        nim: branch.profile.nim,
+        cv: branch.profile.cv,
+        picture: branch.profile.picture,
+      }
+    : branch.profile;
+  // Older branches retain their original author snapshot. Reconstruct only
+  // identity entries and still require the complete archive to match its hash.
+  const entries = { ...archive.entries };
+  delete entries["files/profile.json"];
+  delete entries["files/assets/profile.webp"];
+  Object.assign(entries, await writeProfileEntries(profile));
+  const buffer = zipSync(
+    Object.fromEntries(
+      Object.entries(entries).sort(([a], [b]) => a.localeCompare(b)),
+    ),
+    { level: 9, mtime: new Date(1980, 0, 1) },
+  );
+  return (await archiveSha256(buffer)) === branch.parentRevision;
+};
 
 export async function listDocumentBranches(
   documentId: string,
@@ -94,7 +159,7 @@ export async function createDocumentBranch(
     });
 
   const { buffer } = await new Exporter(sourceDocumentId).buildExport();
-  const parentRevision = await archiveSha256(buffer);
+  const parentRevision = await documentRevision(buffer);
   const model = readImportModel(buffer);
   const id = crypto.randomUUID();
   const before = await captureDraft(db, id);
@@ -141,8 +206,11 @@ export async function mergeDocumentBranch(branchId: string) {
     });
   }
 
-  const { buffer } = await new Exporter(main.id).buildExport();
-  if ((await archiveSha256(buffer)) !== branch.parentRevision) {
+  const mainArchive = await new Exporter(main.id).buildExport();
+  const matches = branch.parentRevision.startsWith(REVISION_PREFIX)
+    ? (await documentRevision(mainArchive.buffer)) === branch.parentRevision
+    : await matchesLegacyRevision(mainArchive, branch);
+  if (!matches) {
     throw new ShouldNotified({
       message: t("editor.branches.merge_conflict"),
       description: t("editor.branches.merge_conflict_description"),
@@ -168,7 +236,7 @@ export async function mergeDocumentBranch(branchId: string) {
 
   const mergedArchive = await new Exporter(main.id).buildExport();
   await db.documents.update(branch.id, {
-    parentRevision: await archiveSha256(mergedArchive.buffer),
+    parentRevision: await documentRevision(mergedArchive.buffer),
   });
   Manager.app.dispatch("document:updated", {
     document: prepared.state.document,

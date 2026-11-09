@@ -96,7 +96,7 @@ declare global {
     /** Null for a main document; child documents are local branches. */
     parentId?: string | null;
     branchName?: string;
-    /** Archive hash of the parent at the point this branch was created/merged. */
+    /** Versioned document revision (or legacy archive hash) at creation/merge. */
     parentRevision?: string;
     category: string;
     title: string;
