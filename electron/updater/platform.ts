@@ -5,13 +5,36 @@ import { MacUpdateInstaller } from "./mac-installer";
 import type { InstallContext, PlatformUpdater } from "./types";
 
 export class NativePlatformUpdater implements PlatformUpdater {
+  private cancelled = false;
   constructor(readonly client: AppUpdater) {}
-  async install(context: InstallContext): Promise<"quitting"> {
-    context.quitting();
-    this.client.quitAndInstall(false, true);
+  async install(context: InstallContext): Promise<"quitting" | "cancelled"> {
+    this.cancelled = false;
+    if (
+      context.profileSaving() ||
+      !(await context.prepareEditors()) ||
+      this.cancelled ||
+      context.profileSaving()
+    )
+      return "cancelled";
+    // BaseUpdater reports synchronous installation failures via an event
+    // instead of throwing them from quitAndInstall.
+    let failure: Error | undefined;
+    const onError = (error: Error) => {
+      failure = error;
+    };
+    this.client.on("error", onError);
+    try {
+      context.quitting();
+      this.client.quitAndInstall(false, true);
+      if (failure) throw failure;
+    } finally {
+      this.client.removeListener("error", onError);
+    }
     return "quitting";
   }
-  cancel() {}
+  cancel() {
+    this.cancelled = true;
+  }
   didQuit() {}
   async acknowledgeStartup() {
     return undefined;
@@ -34,7 +57,9 @@ export class MacPlatformUpdater implements PlatformUpdater {
       if (
         this.installer.wasCancelled ||
         context.profileSaving() ||
-        !(await context.prepareEditors())
+        !(await context.prepareEditors()) ||
+        this.installer.wasCancelled ||
+        context.profileSaving()
       ) {
         this.installer.cancel();
         return "cancelled";

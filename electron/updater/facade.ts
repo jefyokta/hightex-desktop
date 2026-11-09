@@ -57,6 +57,10 @@ export class UpdaterFacade {
       this.send({ status: "downloaded", info, manual: this.manual });
     });
     updater.on("error", (error) => {
+      if (this.phase === "quitting") {
+        this.platform.cancel();
+        this.phase = "idle";
+      }
       LoggerService.write(error, "updater:error");
       this.send({
         status: "error",
@@ -146,6 +150,7 @@ export class UpdaterFacade {
       return { ok: true };
     } catch (error) {
       this.platform.cancel();
+      this.phase = "idle";
       LoggerService.write(error, "updater:install");
       return {
         ok: false,

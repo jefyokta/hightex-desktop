@@ -18,7 +18,9 @@ function fixture(os: NodeJS.Platform = "darwin") {
   let canClose = true,
     failPrepare = false,
     profileSaving = false;
+  let nativeFailure: "throw" | "event" | undefined;
   let launch: () => Promise<void> = async () => {};
+  let beforeEditors: () => void = () => {};
   let quitting: () => void = () => {
     app.emit("quit");
   };
@@ -38,6 +40,9 @@ function fixture(os: NodeJS.Platform = "darwin") {
     }
     quitAndInstall() {
       calls.push("native-install");
+      if (nativeFailure === "throw") throw Error("Native installer failed");
+      if (nativeFailure === "event")
+        this.emit("error", Error("Native installer failed"));
     }
     async downloadUpdate() {
       calls.push("download");
@@ -128,6 +133,7 @@ function fixture(os: NodeJS.Platform = "darwin") {
     profileSaving: () => profileSaving,
     prepareEditors: async () => {
       calls.push("close-editors");
+      beforeEditors();
       return canClose;
     },
   });
@@ -141,6 +147,12 @@ function fixture(os: NodeJS.Platform = "darwin") {
     app,
     calls,
     statuses,
+    beforeEditors: (callback: () => void) => {
+      beforeEditors = callback;
+    },
+    nativeFailure: (value: typeof nativeFailure) => {
+      nativeFailure = value;
+    },
     install: (from: unknown = sender) =>
       handlers.get("updater:install")!({ sender: from }),
     profileSaving: (value: boolean) => {
@@ -234,7 +246,45 @@ for (const os of ["win32", "linux"] as const)
   test(`${os} uses the native adapter through the same non-optional facade`, async () => {
     const f = fixture(os);
     expect((await f.install()).ok).toBe(true);
-    expect(f.calls).toEqual(["native-install"]);
+    expect(f.calls).toEqual(["close-editors", "native-install"]);
     await f.facade.acknowledgeStartup();
     expect(f.calls).not.toContain("startup");
   });
+
+for (const failure of ["throw", "event"] as const)
+  test(`native installer ${failure} failure restores readiness and permits retry`, async () => {
+    const f = fixture("win32");
+    f.nativeFailure(failure);
+    expect(await f.install()).toMatchObject({
+      ok: false,
+      message: "Native installer failed",
+    });
+    expect(f.statuses[f.statuses.length - 1]).toMatchObject({
+      status: "downloaded",
+      retry: true,
+    });
+    f.nativeFailure(undefined);
+    expect(await f.install()).toMatchObject({ ok: true });
+  });
+
+test("native installation waits for editor approval before starting the installer", async () => {
+  const f = fixture("win32");
+  f.canClose(false);
+  expect(await f.install()).toMatchObject({ ok: false, cancelled: true });
+  expect(f.calls).not.toContain("native-install");
+});
+
+for (const os of ["darwin", "win32"] as const)
+  test.each(["cancel", "saving"])(
+    `${os} rechecks %s after editor preparation`,
+    async (reason) => {
+      const f = fixture(os);
+      f.beforeEditors(() => {
+        if (reason === "cancel") f.facade.cancelInstall();
+        else f.profileSaving(true);
+      });
+      expect(await f.install()).toMatchObject({ ok: false, cancelled: true });
+      expect(f.calls).not.toContain("native-install");
+      expect(f.calls).not.toContain("quit");
+    },
+  );
