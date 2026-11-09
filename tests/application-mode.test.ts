@@ -109,6 +109,20 @@ function fixture(
   );
   modules["./application-runtime"] = runtime;
   modules["../workspaces/runtime"] = { WorkspaceRuntime: {} };
+  modules["../updater/facade"] = {
+    UpdaterFacade: class {
+      constructor(private context: { isDev(): boolean }) {}
+      register() {}
+      cancelInstall() {}
+      async acknowledgeStartup() {}
+      async check() {
+        if (this.context.isDev() || !isPackaged) return { status: "disabled" };
+        updateChecks++;
+        return { status: "not-available" };
+      }
+    },
+  };
+
   const { Application } = load<typeof import("../electron/main/application")>(
     "../electron/main/application.ts",
   );
@@ -117,7 +131,7 @@ function fixture(
     server: { url: string; start(): void };
     createWindow(): Promise<void>;
     registerContextMenu(): void;
-    checkForUpdates(manual: boolean): Promise<{ status: string }>;
+    updater: { check(manual: boolean): Promise<{ status: string }> };
   };
   internal.server = { url: "hightex://renderer", start() {} };
   return {
@@ -260,7 +274,7 @@ test.each([false, true])(
   "updater eligibility still requires a packaged build (%s)",
   async (packaged) => {
     const f = fixture(packaged, "production");
-    const result = await f.internal.checkForUpdates(true);
+    const result = await f.internal.updater.check(true);
     expect(result.status).toBe(packaged ? "not-available" : "disabled");
     expect(f.updateChecks()).toBe(packaged ? 1 : 0);
   },

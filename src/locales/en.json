@@ -228,6 +228,17 @@
       "source": "View source code"
     },
     "updater": {
+      "download_failed": "The update could not be downloaded. Please try again.",
+      "unavailable": "Updates are unavailable for this app build",
+      "available_description": "Download the latest HighTex version to install it later.",
+      "later": "Later",
+      "current_version": "Current version: {version}",
+      "mac_install_hint": "HighTex will check the installer and ask about unsaved changes before closing. The app will open again after installation. macOS may ask for permission to replace the application.",
+      "install_hint": "Save your work before continuing. HighTex will close and open again after installing the update.",
+      "preparing_hint": "Keep HighTex open until the installer has been checked.",
+      "check_failed": "Unable to check for updates",
+      "installing": "Preparing installation…",
+      "install_failed": "The update could not be installed. Please try again.",
       "label": "Software Update",
       "checking": "Checking for updates...",
       "up_to_date": "HighTex is up to date",

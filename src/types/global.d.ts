@@ -232,7 +232,11 @@ declare global {
     };
     updater: {
       check(): Promise<UpdaterStatus>;
-      install(): Promise<{ ok: boolean; message?: string }>;
+      install(): Promise<{
+        ok: boolean;
+        cancelled?: boolean;
+        message?: string;
+      }>;
       onStatus(cb: (status: UpdaterStatus) => void): () => void;
       download(): Promise<void>;
     };
@@ -246,7 +250,13 @@ declare global {
     | { status: "available"; info: UpdaterInfo; manual: boolean }
     | { status: "not-available"; info: UpdaterInfo; manual: boolean }
     | { status: "downloading"; progress: UpdaterProgress; manual: boolean }
-    | { status: "downloaded"; info: UpdaterDownloadedInfo; manual: boolean }
+    | {
+        status: "downloaded";
+        info: UpdaterDownloadedInfo;
+        manual: boolean;
+        retry?: boolean;
+      }
+    | { status: "installing"; manual: boolean }
     | { status: "error"; message: string; manual: boolean };
 
   interface UpdaterInfo {

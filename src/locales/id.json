@@ -228,6 +228,17 @@
       "source": "Lihat source code"
     },
     "updater": {
+      "download_failed": "Pembaruan gagal diunduh. Coba lagi.",
+      "unavailable": "Pembaruan belum tersedia untuk aplikasi ini",
+      "available_description": "Unduh versi terbaru HighTex untuk memasangnya nanti.",
+      "later": "Nanti",
+      "current_version": "Versi saat ini: {version}",
+      "mac_install_hint": "HighTex akan memeriksa installer, lalu menanyakan perubahan yang belum disimpan sebelum ditutup. Setelah dipasang, aplikasi akan terbuka kembali. macOS mungkin meminta izin untuk mengganti aplikasi.",
+      "install_hint": "Simpan pekerjaanmu sebelum melanjutkan. HighTex akan ditutup dan dibuka kembali setelah pembaruan dipasang.",
+      "preparing_hint": "Biarkan HighTex terbuka sampai pemeriksaan installer selesai.",
+      "check_failed": "Pembaruan belum bisa diperiksa",
+      "installing": "Menyiapkan pemasangan…",
+      "install_failed": "Pembaruan belum bisa dipasang. Coba lagi.",
       "label": "Pembaruan Perangkat Lunak",
       "checking": "Memeriksa pembaruan...",
       "up_to_date": "HighTex sudah versi terbaru",
@@ -235,7 +246,7 @@
       "download": "Unduh",
       "downloading": "Mengunduh... {percent}%",
       "ready": "Versi {version} siap dipasang",
-      "restart_install": "Restart & Pasang",
+      "restart_install": "Pasang dan buka ulang",
       "check": "Cek Pembaruan"
     },
     "categories": {

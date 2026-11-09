@@ -575,7 +575,9 @@ export const Settings = () => {
                 }
 
                 toast.success(
-                  t("settings.data.clear_data.deleting.done", { total: deleted }),
+                  t("settings.data.clear_data.deleting.done", {
+                    total: deleted,
+                  }),
                   {
                     id,
                   },
@@ -685,7 +687,9 @@ const AppInfoSection = () => {
   };
 
   const handleInstall = async () => {
-    await window.updater?.install();
+    const result = await window.updater?.install();
+    if (result && !result.ok && !result.cancelled)
+      toast.error(result.message || t("settings.updater.install_failed"));
   };
 
   const renderUpdateStatus = () => {
@@ -753,6 +757,17 @@ const AppInfoSection = () => {
               {t("settings.updater.restart_install")}
             </Button>
           </div>
+        );
+
+      case "installing":
+        return (
+          <p
+            role="status"
+            className="flex items-center gap-2 text-xs text-muted-foreground"
+          >
+            <Loader2 size={12} className="animate-spin" />
+            {t("settings.updater.installing")}
+          </p>
         );
 
       case "error":
@@ -871,7 +886,8 @@ const AppInfoSection = () => {
               checking ||
               status?.status === "checking" ||
               status?.status === "downloading" ||
-              status?.status === "downloaded"
+              status?.status === "downloaded" ||
+              status?.status === "installing"
             }
             onClick={handleCheck}
             className="gap-2"

@@ -3,12 +3,6 @@ import { app, BrowserWindow, Menu, MenuItem, dialog } from "electron";
 import { ConfigService } from "../service/config-service";
 import en from "../../src/locales/en.json";
 import id from "../../src/locales/id.json";
-import {
-  autoUpdater,
-  type ProgressInfo,
-  type UpdateDownloadedEvent,
-  type UpdateInfo,
-} from "electron-updater";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -26,7 +20,6 @@ import { LoggerService } from "@main/service/logger-service";
 import { CLIService } from "@main/service/cli-service";
 import { getCliArgs, isCliInvocation } from "./cli-args";
 import { HightexProtocol } from "@main/server/hightex-protocol";
-import { IPCMain } from "@main/utilities/ipc-main";
 import { firstInstalled } from "@main/utilities/first-installed";
 import { DocumentErrorHandler } from "@main/handlers/document-error-handler";
 import { FileSystemHandler } from "@main/handlers/file-system-handler";
@@ -37,15 +30,8 @@ import { DeepLinkService } from "@main/service/deep-link-service";
 import { ApplicationRuntime } from "./application-runtime";
 import { WorkspaceRuntime } from "../workspaces/runtime";
 import { registerWorkspaceHandlers } from "../workspaces/handlers";
-
-type UpdaterStatus =
-  | { status: "disabled"; reason: string; manual: boolean }
-  | { status: "checking"; manual: boolean }
-  | { status: "available"; info: UpdateInfo; manual: boolean }
-  | { status: "not-available"; info: UpdateInfo; manual: boolean }
-  | { status: "downloading"; progress: ProgressInfo; manual: boolean }
-  | { status: "downloaded"; info: UpdateDownloadedEvent; manual: boolean }
-  | { status: "error"; message: string; manual: boolean };
+import { EditorWindow } from "../windows/editor-window";
+import { UpdaterFacade } from "../updater/facade";
 
 export class Application {
   public profileDraftBusy = false;
@@ -57,10 +43,7 @@ export class Application {
   private pendingLinks: string[] = [];
   private pendingDocumentFiles: string[] = [];
   private linksReady = false;
-  private updaterReady = false;
-  private updateDownloaded = false;
-  private checkingForUpdatesManually = false;
-  private lastUpdaterStatus: UpdaterStatus | null = null;
+  private readonly updater: UpdaterFacade;
 
   private readonly __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -76,6 +59,13 @@ export class Application {
 
   constructor() {
     Application.instance = this;
+    this.updater = new UpdaterFacade({
+      storageRoot: () => WorkspaceRuntime.root ?? app.getPath("userData"),
+      isDev: () => this.isDev,
+      window: () => this.win,
+      profileSaving: () => this.profileDraftBusy,
+      prepareEditors: () => EditorWindow.prepareForWorkspaceSwitch(),
+    });
   }
 
   private get appRoot() {
@@ -227,6 +217,7 @@ export class Application {
       const messages = (ConfigService.getKey("language") === "id" ? id : en)
         .profile;
       if (this.profileDraftBusy) {
+        this.updater.cancelInstall();
         dialog.showMessageBoxSync(mainWindow, {
           type: "info",
           message: messages.save_pending,
@@ -245,9 +236,11 @@ export class Application {
         noLink: true,
       });
       if (response === 1) event.preventDefault();
+      else this.updater.cancelInstall();
     });
 
     this.win.webContents.on("did-finish-load", () => {
+      void this.updater.acknowledgeStartup();
       if (this.windowOptions.show) {
         this.win?.show();
       }
@@ -328,20 +321,20 @@ export class Application {
     });
     EditorHandler.register(this);
     WindowHandler.register();
-    this.registerUpdater();
+    this.updater.register();
     await this.createWindow();
     this.registerContextMenu();
     this.linksReady = true;
     for (const url of this.pendingLinks.splice(0))
       await this.handleDeepLink(url);
     this.fileOpen?.flush();
-    if (!WorkspaceRuntime.migrating) this.checkForUpdates();
+    if (!WorkspaceRuntime.migrating) this.updater.check();
   }
 
   public async prepareCliMode() {
     await this.prepareCoreServices();
     this.registerHandlers();
-    this.registerUpdater();
+    this.updater.register();
 
     await this.createWindow({ show: false });
   }
@@ -441,155 +434,6 @@ export class Application {
     DocumentErrorHandler.register();
     SharingHandler.register();
     FileSystemHandler.register();
-  }
-
-  private registerUpdater() {
-    if (this.updaterReady) {
-      return;
-    }
-
-    this.updaterReady = true;
-    autoUpdater.autoDownload = false;
-    autoUpdater.logger = {
-      info: (message) => LoggerService.write(message, "updater:info"),
-      warn: (message) => LoggerService.write(message, "updater:warn"),
-      error: (message) => LoggerService.write(message, "updater:error"),
-      debug: (message) => LoggerService.write(message, "updater:debug"),
-    };
-
-    autoUpdater.on("checking-for-update", () => {
-      this.sendUpdaterStatus({
-        status: "checking",
-        manual: this.checkingForUpdatesManually,
-      });
-    });
-
-    autoUpdater.on("update-available", (info) => {
-      this.sendUpdaterStatus({
-        status: "available",
-        info,
-        manual: this.checkingForUpdatesManually,
-      });
-    });
-
-    autoUpdater.on("update-not-available", (info) => {
-      this.sendUpdaterStatus({
-        status: "not-available",
-        info,
-        manual: this.checkingForUpdatesManually,
-      });
-    });
-
-    autoUpdater.on("download-progress", (progress) => {
-      this.sendUpdaterStatus({
-        status: "downloading",
-        progress,
-        manual: this.checkingForUpdatesManually,
-      });
-    });
-
-    autoUpdater.on("update-downloaded", (info) => {
-      this.updateDownloaded = true;
-      this.sendUpdaterStatus({
-        status: "downloaded",
-        info,
-        manual: this.checkingForUpdatesManually,
-      });
-    });
-
-    autoUpdater.on("error", (error) => {
-      LoggerService.write(error, "updater:error");
-      this.sendUpdaterStatus({
-        status: "error",
-        message: error.message,
-        manual: this.checkingForUpdatesManually,
-      });
-    });
-
-    IPCMain.handle("updater:check", () => this.checkForUpdates(true));
-    IPCMain.handle("updater:status", () => this.lastUpdaterStatus);
-    IPCMain.handle("updater:download", () => autoUpdater.downloadUpdate());
-    IPCMain.handle("updater:install", () => {
-      if (!this.updateDownloaded) {
-        return {
-          ok: false,
-          message: "The update has not finished downloading.",
-        };
-      }
-
-      autoUpdater.quitAndInstall(false, true);
-      return { ok: true };
-    });
-  }
-
-  private async checkForUpdates(manual = false): Promise<UpdaterStatus> {
-    if (this.isDev) {
-      const status = {
-        status: "disabled",
-        reason: "Auto updater is only available in packaged builds.",
-        manual,
-      } satisfies UpdaterStatus;
-
-      if (manual) {
-        this.sendUpdaterStatus(status);
-      }
-
-      return status;
-    }
-
-    try {
-      this.checkingForUpdatesManually = manual;
-      const result = await autoUpdater.checkForUpdates();
-
-      if (!result) {
-        const status = {
-          status: "error",
-          message: "Updater did not return a check result.",
-          manual,
-        } satisfies UpdaterStatus;
-
-        this.sendUpdaterStatus(status);
-        return status;
-      }
-
-      const status = result?.isUpdateAvailable
-        ? ({
-            status: "available",
-            info: result.updateInfo,
-            manual,
-          } satisfies UpdaterStatus)
-        : ({
-            status: "not-available",
-            info: result.updateInfo,
-            manual,
-          } satisfies UpdaterStatus);
-
-      if (manual) {
-        this.sendUpdaterStatus(status);
-      }
-
-      return status;
-    } catch (error) {
-      LoggerService.write(error, "updater:check");
-      const status = {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to check for app updates.",
-        manual,
-      } satisfies UpdaterStatus;
-
-      this.sendUpdaterStatus(status);
-      return status;
-    } finally {
-      this.checkingForUpdatesManually = false;
-    }
-  }
-
-  private sendUpdaterStatus(status: UpdaterStatus) {
-    this.lastUpdaterStatus = status;
-    this.win?.webContents.send("updater:status", status);
   }
 
   public resolveRendererUrl(route = "/") {
