@@ -43,29 +43,60 @@ let workspaceAuthorProfile: Promise<WorkspaceAuthorProfile> | undefined;
 let subscribedWindow: Window | undefined;
 let unsubscribeProfile: (() => void) | undefined;
 let unsubscribeSession: (() => void) | undefined;
+let unsubscribeFrame: (() => void) | undefined;
 
 export const invalidateWorkspaceAuthorProfile = () => {
   workspaceAuthorProfile = undefined;
 };
 
+const getProfileWindow = (): Window => {
+  if (window.profile) return window;
+  // Preview frames have no Electron preload. Same-origin access keeps the
+  // profile scoped to the editor's host; a different origin cannot read it.
+  try {
+    if (window.parent !== window && window.parent.profile) return window.parent;
+  } catch {
+    // Cross-origin parents cannot provide this workspace's identity.
+  }
+  throw Error("Workspace profile API is not available.");
+};
+
+const unsubscribeWorkspaceProfile = () => {
+  unsubscribeProfile?.();
+  unsubscribeSession?.();
+  unsubscribeFrame?.();
+  unsubscribeProfile = undefined;
+  unsubscribeSession = undefined;
+  unsubscribeFrame = undefined;
+  subscribedWindow = undefined;
+  invalidateWorkspaceAuthorProfile();
+};
+
 export const getWorkspaceAuthorProfile =
-  (): Promise<WorkspaceAuthorProfile> => {
-    if (subscribedWindow !== window) {
-      unsubscribeProfile?.();
-      unsubscribeSession?.();
-      subscribedWindow = window;
-      invalidateWorkspaceAuthorProfile();
-      unsubscribeProfile = window.profile.onChange?.(
+  async (): Promise<WorkspaceAuthorProfile> => {
+    const profileWindow = getProfileWindow();
+    if (subscribedWindow !== profileWindow) {
+      unsubscribeWorkspaceProfile();
+      subscribedWindow = profileWindow;
+      unsubscribeProfile = profileWindow.profile.onChange?.(
         invalidateWorkspaceAuthorProfile,
       );
-      unsubscribeSession = window.session?.onChange?.(
+      unsubscribeSession = profileWindow.session?.onChange?.(
         invalidateWorkspaceAuthorProfile,
       );
+      if (profileWindow !== window) {
+        const frame = window;
+        frame.addEventListener("pagehide", unsubscribeWorkspaceProfile, {
+          once: true,
+        });
+        unsubscribeFrame = () =>
+          frame.removeEventListener("pagehide", unsubscribeWorkspaceProfile);
+      }
     }
     if (workspaceAuthorProfile) return workspaceAuthorProfile;
     const pending = (async () => {
-      const profile = (await window.profile.get()) as DocumentProfile;
-      const bytes = await window.profile.picture();
+      const profile = (await profileWindow.profile.get()) as DocumentProfile;
+      const bytes = await profileWindow.profile.picture();
       return {
         name: profile.name,
         nim: profile.nim,
