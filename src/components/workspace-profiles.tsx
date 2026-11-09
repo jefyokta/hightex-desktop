@@ -161,7 +161,7 @@ export function WorkspaceProfiles() {
             return (
               <div
                 key={profile.id}
-                className={`flex flex-wrap items-center gap-3 rounded-xl border p-4 ${active ? "border-primary/40 bg-primary/[0.04]" : "bg-card"}`}
+                className={`flex flex-wrap items-center gap-3 rounded-xl border p-4 ${active ? "border-primary/40 bg-primary/4" : "bg-card"}`}
                 data-workspace-profile={profile.id}
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
