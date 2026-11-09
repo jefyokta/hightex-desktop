@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import type { BrowserWindow } from "electron";
+import type { UpdateInfo } from "electron-updater";
 import type { UpdaterStatus } from "../electron/updater/types";
 
 function fixture(os: NodeJS.Platform = "darwin") {
@@ -18,6 +19,16 @@ function fixture(os: NodeJS.Platform = "darwin") {
   let canClose = true,
     failPrepare = false,
     profileSaving = false;
+  let checkResult: { isUpdateAvailable: boolean; updateInfo: UpdateInfo } = {
+    isUpdateAvailable: false,
+    updateInfo: {
+      version: "1.0.0",
+      path: "HighTex-fixture",
+      sha512: "fixture-only",
+      files: [],
+      releaseDate: "2026-01-01T00:00:00.000Z",
+    },
+  };
   let nativeFailure: "throw" | "event" | undefined;
   let launch: () => Promise<void> = async () => {};
   let beforeEditors: () => void = () => {};
@@ -49,7 +60,7 @@ function fixture(os: NodeJS.Platform = "darwin") {
     }
     async checkForUpdates() {
       calls.push("check");
-      return { isUpdateAvailable: false, updateInfo: { version: "1.0.0" } };
+      return checkResult;
     }
   }
   class Installer {
@@ -164,6 +175,12 @@ function fixture(os: NodeJS.Platform = "darwin") {
     failPrepare: () => {
       failPrepare = true;
     },
+    checkResult: (result: {
+      isUpdateAvailable: boolean;
+      updateInfo: UpdateInfo;
+    }) => {
+      checkResult = result;
+    },
     launch: (action: typeof launch) => {
       launch = action;
     },
@@ -172,6 +189,29 @@ function fixture(os: NodeJS.Platform = "darwin") {
     },
   };
 }
+
+test("manual update check reports a newer fixture version without downloading it", async () => {
+  const updateFixture = JSON.parse(
+    readFileSync(
+      new URL("./fixtures/updater/latest.json", import.meta.url),
+      "utf8",
+    ),
+  ) as { isUpdateAvailable: true; updateInfo: UpdateInfo };
+  const f = fixture();
+  f.checkResult(updateFixture);
+
+  expect(await f.facade.check(true)).toMatchObject({
+    status: "available",
+    info: { version: "1.4.2" },
+    manual: true,
+  });
+  expect(f.statuses).toContainEqual({
+    status: "available",
+    info: updateFixture.updateInfo,
+    manual: true,
+  });
+  expect(f.calls).toEqual(["check"]);
+});
 
 test("only the main window can install; pending profile saves do not close anything", async () => {
   const f = fixture();

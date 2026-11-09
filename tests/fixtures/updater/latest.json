@@ -1,0 +1,15 @@
+{
+  "isUpdateAvailable": true,
+  "updateInfo": {
+    "version": "1.4.2",
+    "releaseDate": "2026-11-09T00:00:00.000Z",
+    "releaseName": "Updater test fixture",
+    "releaseNotes": "Local test fixture only; not a published release.",
+    "files": [
+      {
+        "url": "HighTex-Mac-1.4.2-Installer.dmg",
+        "sha512": "fixture-only-not-a-real-checksum"
+      }
+    ]
+  }
+}
