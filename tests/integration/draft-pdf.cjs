@@ -28,6 +28,7 @@ writeFileSync(
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('config',{get:()=>({language:'en'})});
 contextBridge.exposeInMainWorld('hightex',{categories:()=>ipcRenderer.invoke('test:categories'),cloud:{academic:{locked:async()=>false}}});
+contextBridge.exposeInMainWorld('profile',{get:()=>ipcRenderer.invoke('test:profile'),picture:async()=>false,onChange:callback=>{const listener=()=>callback();ipcRenderer.on('test:profile:changed',listener);return()=>ipcRenderer.removeListener('test:profile:changed',listener)}});
 contextBridge.exposeInMainWorld('ipcRenderer',{send:(...args)=>ipcRenderer.send(...args),on:(...args)=>ipcRenderer.on(...args),off:(...args)=>ipcRenderer.off(...args)});
 `,
 );
@@ -36,6 +37,7 @@ let server,
   category,
   mutateOnCategory = false;
 let flushes = 0;
+let workspaceAuthor;
 const metrics = new Map();
 const diagnostics = [];
 app.on("browser-window-created", (_event, win) => {
@@ -68,12 +70,12 @@ app.on("browser-window-created", (_event, win) => {
 });
 async function databaseOperation(body) {
   return seedWindow.webContents.executeJavaScript(`(async()=>{
-    const db=await new Promise((resolve,reject)=>{const request=indexedDB.open('HighTexDB',20);request.onupgradeneeded=()=>{
+    const db=await new Promise((resolve,reject)=>{const request=indexedDB.open('HighTexDB',40);request.onupgradeneeded=()=>{
       const tables={documents:'id',chapters:'id',cite:'key',chapterGraphs:'id',images:'id',variables:'name',aliases:'key',file:'filePath',documentVariables:['documentId','name']};
       for(const [name,keyPath]of Object.entries(tables)){
         const table=request.result.createObjectStore(name,{keyPath});
         if(['cite','images','variables','aliases','file','documentVariables'].includes(name))table.createIndex('documentId','documentId');
-        if(name==='documentVariables')table.createIndex('name','name');
+        if(name==='documentVariables')table.createIndex('name','name');if(name==='documents')table.createIndex('parentId','parentId');
       }
     };request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
     try{return await (async()=>{${body}})()}finally{db.close()}
@@ -114,6 +116,7 @@ async function seed(variant) {
       cv: "<p>Original biography</p>",
     },
   };
+  workspaceAuthor = { ...document.profile, isCloud: false };
   await databaseOperation(`
     const tx=db.transaction(Array.from(db.objectStoreNames),'readwrite');
     for(const name of Array.from(db.objectStoreNames))tx.objectStore(name).clear();
@@ -180,10 +183,18 @@ app
       webPreferences: { preload, contextIsolation: true },
     });
     await seedWindow.loadURL(base + "/seed");
+    ipcMain.handle("test:profile", () => workspaceAuthor);
     ipcMain.handle("test:categories", async () => {
       if (mutateOnCategory) {
         mutateOnCategory = false;
         await mutate();
+        workspaceAuthor = {
+          ...workspaceAuthor,
+          name: "CHANGED WORKSPACE AUTHOR",
+          cv: "CHANGED WORKSPACE CV",
+        };
+        for (const window of BrowserWindow.getAllWindows())
+          window.webContents.send("test:profile:changed");
       }
       return [category];
     });

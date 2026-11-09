@@ -2,9 +2,14 @@ import Dexie from "dexie";
 import { IDBFactory, IDBKeyRange } from "fake-indexeddb";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { contentAssets } from "@/utils/content-assets";
+import { resolveAuthorProfile } from "@/utils/document-profile";
+import type { WorkspaceAuthorProfile } from "@/utils/author-profile";
 
 /** Capture one database revision, then keep all compiler writes in memory. */
-export async function createDocumentPrintStore(documentId: string) {
+export async function createDocumentPrintStore(
+  documentId: string,
+  workspaceProfile?: WorkspaceAuthorProfile,
+) {
   const source = HighTexDB.getInstance();
   const snapshot = await source.transaction("r", source.tables, async () => {
     const document = await source.documents.get(documentId);
@@ -15,7 +20,11 @@ export async function createDocumentPrintStore(documentId: string) {
       .toArray();
     const assets = contentAssets(chapters);
     return {
-      document,
+      document: {
+        ...document,
+        authorProfileMode: "document" as const,
+        profile: resolveAuthorProfile(document, workspaceProfile),
+      },
       chapters,
       references: await source.cite
         .filter(
@@ -54,7 +63,7 @@ export async function createDocumentPrintStore(documentId: string) {
     class PrintStore extends HighTexDB {
       async warm() {}
     }
-    db = new PrintStore(`DocumentPrint-${crypto.randomUUID()}`);
+    db = new PrintStore(`DocumentPrint-${crypto.randomUUID()}`, false);
   } finally {
     Dexie.dependencies.indexedDB = indexedDB;
     Dexie.dependencies.IDBKeyRange = keyRange;

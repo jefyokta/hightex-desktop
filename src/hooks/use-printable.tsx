@@ -3,9 +3,11 @@ import { useParams } from "react-router-dom";
 import { getStrictContext } from "@/lib/get-strict-context";
 import { Document } from "@/editor/document";
 import {
+  getWorkspaceAuthorProfile,
   resolveDocumentProfile,
   resolveWorkspaceDocumentProfile,
 } from "@/utils/document-profile";
+import type { WorkspaceAuthorProfile } from "@/utils/author-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { createDocumentPrintStore } from "@/compiler/print-store";
 import { HighTexDB } from "@/editor/storage/hightex-db";
@@ -102,8 +104,10 @@ export const PrintableProvider = ({
         if (refreshAcademic) await refreshCloudAcademic(id, api);
         if (!mounted) return;
 
+        let frozenProfile: WorkspaceAuthorProfile | undefined;
         if (freezeSource) {
-          const store = await createDocumentPrintStore(id);
+          frozenProfile = await getWorkspaceAuthorProfile();
+          const store = await createDocumentPrintStore(id, frozenProfile);
           if (!mounted) {
             await store.delete();
             return;
@@ -116,7 +120,7 @@ export const PrintableProvider = ({
         const nextDocument = new Document(id);
         await nextDocument.warm({
           activate: false,
-          workspaceIdentity: refreshAcademic,
+          workspaceIdentity: refreshAcademic && !freezeSource,
         });
 
         if (!mounted) {
@@ -126,9 +130,13 @@ export const PrintableProvider = ({
         nextDocument.activate();
         setDocument(nextDocument);
         setProfile(
-          refreshAcademic
-            ? await resolveWorkspaceDocumentProfile(nextDocument.getDocument())
-            : resolveDocumentProfile(nextDocument.getDocument()),
+          freezeSource
+            ? resolveDocumentProfile(nextDocument.getDocument(), frozenProfile)
+            : refreshAcademic
+              ? await resolveWorkspaceDocumentProfile(
+                  nextDocument.getDocument(),
+                )
+              : resolveDocumentProfile(nextDocument.getDocument()),
         );
         setReady(true);
       } catch (error) {

@@ -161,3 +161,28 @@ test("missing draft fails before creating a print store", async () => {
     "Document not found",
   );
 });
+
+test("print identity and variables use the captured workspace profile without reading the live bridge", async () => {
+  const store = await createDocumentPrintStore("draft", {
+    name: "Workspace author at export",
+    nim: "WS001",
+    cv: "Captured workspace CV",
+    isCloud: false,
+  });
+  stores.push(store);
+  expect((await store.documents.get("draft"))?.profile?.name).toBe(
+    "Workspace author at export",
+  );
+  // These reads must succeed even without any live window.profile API.
+  expect(await store.getVar("name", "draft")).toBe(
+    "Workspace author at export",
+  );
+  expect(await store.getVar("cv", "draft")).toBe("Captured workspace CV");
+  expect(
+    (await store.getVars("draft")).find((variable) => variable.name === "nim")
+      ?.value,
+  ).toBe("WS001");
+  expect((await source.documents.get("draft"))?.profile?.name).toBe(
+    "Original author",
+  );
+});
