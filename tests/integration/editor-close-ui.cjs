@@ -14,6 +14,11 @@ const profile = fs.mkdtempSync(path.join(os.tmpdir(), "hightex-editor-close-"));
 app.setPath("userData", profile);
 app.on("window-all-closed", () => {});
 let vite, server, win, EditorWindow;
+app.on("browser-window-created", (_event, window) => {
+  window.webContents.on("console-message", (event) => {
+    if (event.level === "error") console.error("EDITOR:", event.message);
+  });
+});
 let prompts = 0,
   errors = 0,
   saveDialogs = 0;
@@ -49,6 +54,8 @@ import{getEditorChapter}from'/src/editor/event/index.ts';
 import'/src/App.css';
 const config={language:'id',theme:'light',editor:{scrollBar:true,spellCheck:false},export:{saveDialog:true}};
 window.config={get:()=>config,onChange:()=>()=>{}};
+window.session={onChange:()=>()=>{}};
+window.profile={get:async()=>({name:'Writer',nim:'123',advisorName:'Advisor',advisorNip:'00001',cv:'',isCloud:false}),picture:async()=>false,onChange:()=>()=>{}};
 window.hightex={categories:async()=>[{id:1,name:'Thesis',variant:'thesis',chapters:[{chapter:'1',title:'Introduction'}]}],cloud:{academic:{locked:async()=>false}}};
 window.db=HighTexDB.getInstance();await window.db.open();
 const id=location.pathname.split('/').at(-1);
@@ -134,7 +141,7 @@ async function closeAndStay() {
       cacheDir: path.join(profile, "vite"),
       plugins: [react(), tailwind()],
       resolve: { alias: { "@": path.join(root, "src") } },
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: false },
       appType: "custom",
     });
     server = createServer(async (req, res) => {
@@ -180,6 +187,9 @@ async function closeAndStay() {
           },
         },
       },
+      "../../src/workspaces/editor-navigation": load(
+        "src/workspaces/editor-navigation.ts",
+      ),
       "../utilities/archive-fingerprint": archive,
       "../utilities/editor-close-guard": guard,
       "../service/config-service": { ConfigService: { getKey: () => "id" } },
@@ -257,7 +267,7 @@ async function closeAndStay() {
     assert.equal(prompts, previousPrompts);
     await open("dirty", savePath);
     await execute(
-      'const doc=await window.db.documents.get("dirty");await window.db.documents.update("dirty",{profile:{...doc.profile,committee:{chair:{name:"Updated Chair",nip:"00002"}}}})',
+      'const doc=await window.db.documents.get("dirty");await window.db.documents.update("dirty",{config:{...doc.config,kaprodi:{name:"Updated Head",nip:"00002"}}})',
     );
     choice = 1;
     win.close();
@@ -323,7 +333,7 @@ async function closeAndStay() {
     await until(() => win.isDestroyed(), "draft clean reopen");
     assert.equal(prompts, count);
     console.log(
-      "PASS: real editor flushes pending text, clean close, cancel confirmation/file chooser, failed write retry, save-on-close path persistence, clean reopen, profile-only changes, discard, missing archive recovery and unsaved settings drafts.",
+      "PASS: real editor flushes pending text, clean close, cancel confirmation/file chooser, failed write retry, save-on-close path persistence, clean reopen, document configuration changes, discard, missing archive recovery and unsaved settings drafts.",
     );
     console.log("Fixture profile: " + profile);
   } catch (error) {

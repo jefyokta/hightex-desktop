@@ -332,6 +332,7 @@ test("opening documents recreates a closed main window once and waits for its pr
     "node:path": path,
     "node:url": { fileURLToPath },
     "../workspaces/runtime": { WorkspaceRuntime: {} },
+    "../updater/facade": { UpdaterFacade: class {} },
   });
   const calls: string[] = [];
   const window = {
