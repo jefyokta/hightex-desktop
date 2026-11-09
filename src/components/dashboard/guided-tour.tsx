@@ -7,14 +7,7 @@ import {
   offset,
   shift,
 } from "@floating-ui/react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CircleHelp,
-  Focus,
-  Loader2,
-  X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleHelp, Focus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { t, useAppLanguage } from "@/utils/lang";
@@ -27,7 +20,9 @@ const externalPopup = () =>
     document.querySelectorAll<HTMLElement>(
       '[role="dialog"]:not([data-tour-panel]):not([data-state="closed"]),[role="menu"][data-state="open"],[role="listbox"][data-state="open"],[data-guide-popup]',
     ),
-  ).find(isVisible);
+  )
+    .reverse()
+    .find(isVisible);
 const isVisible = (element: HTMLElement) =>
   element.getClientRects().length > 0 &&
   getComputedStyle(element).visibility !== "hidden";
@@ -57,13 +52,14 @@ export function GuidedTour({
   const descriptionId = useId();
   const panel = useRef<HTMLDivElement>(null);
   const target = useRef<HTMLElement | null>(null);
+  const tourPopups = useRef(new WeakSet<HTMLElement>());
   const [box, setBox] = useState<GuideTargetBox | null>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
   );
   const [fallback, setFallback] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [canAdvance, setCanAdvance] = useState(false);
+  const [stepReady, setStepReady] = useState(false);
   const headerInset = Math.max(
     0,
     document.querySelector("[data-editor-titlebar]")?.getBoundingClientRect()
@@ -93,11 +89,11 @@ export function GuidedTour({
       };
       setBox((previous) =>
         previous &&
-          Object.keys(next).every(
-            (key) =>
-              previous[key as keyof GuideTargetBox] ===
-              next[key as keyof GuideTargetBox],
-          )
+        Object.keys(next).every(
+          (key) =>
+            previous[key as keyof GuideTargetBox] ===
+            next[key as keyof GuideTargetBox],
+        )
           ? previous
           : next,
       );
@@ -138,9 +134,9 @@ export function GuidedTour({
     const find = () => {
       if (disposed) return;
       const expected = step.advanceWhen
-        ? Array.from(
-          document.querySelectorAll<HTMLElement>(step.advanceWhen),
-        ).find(isVisible) ?? null
+        ? (Array.from(
+            document.querySelectorAll<HTMLElement>(step.advanceWhen),
+          ).find(isVisible) ?? null)
         : null;
       const popup = externalPopup();
       const expectedPopup = Boolean(
@@ -150,10 +146,8 @@ export function GuidedTour({
           popup.contains(expected) ||
           expected.contains(popup)),
       );
-      setCanAdvance(!step.advanceWhen || Boolean(expected));
-      const candidates: string[] = expectedPopup
-        ? []
-        : JSON.parse(selectors);
+      setStepReady(!step.advanceWhen || Boolean(expected));
+      const candidates: string[] = expectedPopup ? [] : JSON.parse(selectors);
       let found: HTMLElement | null = null;
       let foundIndex = -1;
       if (expectedPopup) {
@@ -175,7 +169,9 @@ export function GuidedTour({
         found &&
         (popup === found || popup.contains(found) || found.contains(popup)),
       );
-      setPaused(Boolean(popup && !expectedPopup && !popupContainsTarget));
+      if (popup && (expectedPopup || popupContainsTarget))
+        tourPopups.current.add(popup);
+      setPaused(Boolean(popup && !tourPopups.current.has(popup)));
       if (found !== target.current) {
         offPosition?.();
         target.current = found;
@@ -197,7 +193,7 @@ export function GuidedTour({
           offPosition = autoUpdate(found, card, update);
         }
       }
-      setFallback(foundIndex > 0);
+      setFallback(!found || foundIndex > 0);
       if (found) update();
     };
     const observer = new MutationObserver(() => {
@@ -256,7 +252,7 @@ export function GuidedTour({
               ? choices.length - 1
               : 0
             : (active + (event.shiftKey ? -1 : 1) + choices.length) %
-            choices.length;
+              choices.length;
         choices[next].focus();
       }
       if (
@@ -265,7 +261,7 @@ export function GuidedTour({
           'input,select,textarea,[contenteditable="true"]',
         )
       ) {
-        if (event.key === "ArrowRight" && current && canAdvance) {
+        if (event.key === "ArrowRight") {
           if (index < steps.length - 1) {
             event.preventDefault();
             onIndex(index + 1);
@@ -294,7 +290,7 @@ export function GuidedTour({
     onPreviousGuide,
     onNextGuide,
     steps.length,
-    canAdvance,
+    stepReady,
   ]);
 
   return createPortal(
@@ -421,7 +417,7 @@ export function GuidedTour({
             <code>{step.example}</code>
           </pre>
         )}
-        {!canAdvance && step.waitingDescription && (
+        {!stepReady && box && !fallback && step.waitingDescription && (
           <p
             role="status"
             className="mt-3 text-xs leading-relaxed text-muted-foreground"
@@ -434,8 +430,7 @@ export function GuidedTour({
             role="status"
             className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
           >
-            <Loader2 className="size-3 animate-spin" />
-            {t("guide.waiting")}
+            {t("guide.target_unavailable")}
           </p>
         )}
         {box && (
@@ -484,7 +479,7 @@ export function GuidedTour({
               type="button"
               size="sm"
               className="guide-primary"
-              disabled={!box || !canAdvance}
+              data-tour-next
               onClick={() =>
                 index < steps.length - 1
                   ? onIndex(index + 1)
@@ -496,7 +491,9 @@ export function GuidedTour({
               {t(
                 index === steps.length - 1 && !onNextGuide
                   ? "guide.done"
-                  : "guide.next",
+                  : !box || !stepReady
+                    ? "guide.skip_step"
+                    : "guide.next",
               )}
               <ArrowRight />
             </Button>

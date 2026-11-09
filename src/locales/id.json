@@ -1496,6 +1496,8 @@
         "description": "Tombol ini membuka atau menutup panel samping. Buka panel untuk melihat tab Bab, Pratinjau, Referensi, Pengaturan dan Variabel. Langkah berikutnya menunjukkan kegunaan beberapa tab."
       }
     },
+    "skip_step": "Lewati langkah",
+    "target_unavailable": "Bagian ini belum tersedia. Kamu bisa melewati langkah ini.",
     "waiting": "Menunggu kontrol tampil…",
     "focus_control": "Fokus ke kontrol",
     "done": "Selesai",
@@ -1700,7 +1702,7 @@
       "forms": {
         "name": "Membuat paket formulir",
         "summary": "Siapkan formulir sempro atau sidang dari dokumenmu, periksa preview, lalu unduh PDF terpisah dalam ZIP.",
-        "empty": "Belum ada dokumen. Buat atau impor .hightex di halaman Dokumen, lalu buka panduan formulir kembali.",
+        "empty": "Belum ada dokumen. Isian umum tetap bisa diisi, dan panduan ini bisa dilanjutkan.",
         "document": {
           "title": "Mulai dari dokumen yang akan digunakan",
           "description": "Pilih dokumen untuk judul dan data akademik pada preview. Identitas mengikuti profil aktif, sedangkan isian tambahan sudah tersedia bersama."
@@ -1725,7 +1727,7 @@
           "title": "Unduh PDF terpisah dalam satu ZIP",
           "description": "Unduh ZIP berisi PDF terpisah untuk setiap formulir terpilih. Lengkapi nama/NIM dan pilih setidaknya satu formulir agar tombol aktif."
         },
-        "select_first": "Pilih dokumen untuk melanjutkan. Jika belum ada dokumen, tutup panduan dan buat atau impor dokumen terlebih dahulu."
+        "select_first": "Pilih dokumen yang tersedia untuk melihat formulirnya, atau lewati langkah ini."
       },
       "lecturers": {
         "name": "Kelola profil penulis workspace",
@@ -1797,7 +1799,7 @@
       "forms": {
         "name": "Isi formulir tanpa mengulang data",
         "summary": "Isi data yang sama sekali saja, lalu gunakan untuk formulir dari dokumen lain dalam workspace ini.",
-        "empty": "Pilih dokumen untuk melihat isian formulirnya. Jika belum ada dokumen, tutup panduan lalu buat atau impor dokumen terlebih dahulu.",
+        "empty": "Belum ada dokumen. Isian umum tetap bisa diisi, dan panduan ini bisa dilanjutkan.",
         "stage": {
           "title": "Pilih Sempro atau Sidang",
           "description": "Pilihan tahap menentukan jadwal dan formulir yang ditampilkan. Data umum tetap tersedia saat kamu berganti tahap atau dokumen."
@@ -1822,7 +1824,7 @@
         "open_manager": "Buka menu branch di toolbar untuk melanjutkan.",
         "create": {
           "title": "Buat versi kerja baru",
-          "description": "Branch menyimpan perubahan secara terpisah dari Main. Gunakan branch untuk mencoba revisi, lalu pilih Gabungkan saat revisinya siap."
+          "description": "Pilih Buat untuk menambahkan branch dan tetap di daftar ini. Pilih Buat dan buka untuk langsung menulis di branch baru. Perubahan di branch tetap terpisah dari Main."
         },
         "compare": {
           "title": "Bandingkan dengan Main",

@@ -1496,6 +1496,8 @@
         "description": "This button opens or closes the side panel. Open it to see Chapters, Preview, References, Settings and Variables. The following steps explain several tabs."
       }
     },
+    "skip_step": "Skip step",
+    "target_unavailable": "This section is not available yet. You can skip this step.",
     "waiting": "Waiting for the control to appear…",
     "focus_control": "Focus this control",
     "done": "Done",
@@ -1700,7 +1702,7 @@
       "forms": {
         "name": "Generate a form package",
         "summary": "Prepare proposal or defense forms from your document, check the preview, and download separate PDFs in a ZIP.",
-        "empty": "There are no documents yet. Create or import a .hightex file on Documents, then reopen this guide.",
+        "empty": "No documents yet. You can still fill in shared data and continue this guide.",
         "document": {
           "title": "Start with the document you need",
           "description": "Choose the document for its title and academic data in the preview. Identity follows the active profile, and additional input is already shared."
@@ -1725,7 +1727,7 @@
           "title": "Download separate PDFs in one ZIP",
           "description": "Download ZIP creates separate PDFs for the selected forms. Fill in the author name/student number and select at least one form to enable it."
         },
-        "select_first": "Choose a document to continue. If you have no documents, close this guide and create or import one first."
+        "select_first": "Choose an available document to view its forms, or skip this step."
       },
       "lecturers": {
         "name": "Manage the workspace author profile",
@@ -1797,7 +1799,7 @@
       "forms": {
         "name": "Use shared form data",
         "summary": "Keep administration inputs and form choices together across documents and proposal or defense stages.",
-        "empty": "Choose a document to see its form data. If no documents are listed, close this guide and create or import one first.",
+        "empty": "No documents yet. You can still fill in shared data and continue this guide.",
         "stage": {
           "title": "Choose the active stage",
           "description": "Proposal and defense have separate schedules and form choices. General administration inputs are shared across both stages and documents."
@@ -1822,7 +1824,7 @@
         "open_manager": "Open the branch control in the editor toolbar to continue.",
         "create": {
           "title": "Create a separate branch",
-          "description": "A branch is a separate working copy. Create one if needed; changes are not merged into Main unless you choose the merge action."
+          "description": "Choose Create to add a branch and stay in this list. Choose Create and open to start writing in the new branch. Its changes stay separate from Main."
         },
         "compare": {
           "title": "Choose Compare for a branch",

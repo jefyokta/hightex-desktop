@@ -1,6 +1,9 @@
 const formsRoute = "/dashboard/forms";
 const profileRoute = "/profile";
-const formsFallback = ["#forms-document", '[data-tour="forms-empty"]'];
+const formsFallback = [
+  "#forms-document:not(:disabled)",
+  '[data-tour="forms-empty"]',
+];
 
 export default {
   version: "1.3.0",

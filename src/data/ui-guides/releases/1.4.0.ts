@@ -2,7 +2,10 @@ const workspacesRoute = "/workspaces";
 const profileRoute = "/profile";
 const cvRoute = "/profile/cv";
 const formsRoute = "/dashboard/forms";
-const formsFallback = ["#forms-document", '[data-tour="forms-empty"]'];
+const formsFallback = [
+  "#forms-document:not(:disabled)",
+  '[data-tour="forms-empty"]',
+];
 
 export default {
   version: "1.4.0",
@@ -65,8 +68,6 @@ export default {
           description: "guide.release140.forms.values.description",
           selectors: ['[data-tour="forms-inputs"]', ...formsFallback],
           fallbackDescription: "guide.release140.forms.empty",
-          advanceWhen: '[data-tour="forms-inputs"]',
-          waitingDescription: "guide.release140.forms.select_document",
           route: formsRoute,
         },
         {
