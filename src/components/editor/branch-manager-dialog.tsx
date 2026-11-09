@@ -14,6 +14,7 @@ import {
 import { getEditorChapter } from "@/editor/event";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
+import { useDialogViewport } from "@/hooks/use-dialog-viewport";
 import { BranchComparisonDialog } from "./branch-comparison-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export function BranchManagerDialog({
   const [busy, setBusy] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<HighTexDocument>();
   const [compareBranchId, setCompareBranchId] = useState<string>();
+  const viewport = useDialogViewport();
 
   const refresh = useCallback(async () => {
     try {
@@ -61,7 +63,12 @@ export function BranchManagerDialog({
   }, [open, refresh]);
 
   const flushCurrent = async () => {
-    if (editor.isDestroyed || getEditorChapter(editor) !== chapter) return;
+    if (
+      editor.isDestroyed ||
+      !editor.isEditable ||
+      getEditorChapter(editor) !== chapter
+    )
+      throw Error("Editor is not ready");
     await Manager.emit("update", { editor });
     await Storage.instance.waitForDocument(chapter.getDocumentId());
   };
@@ -81,15 +88,23 @@ export function BranchManagerDialog({
     }
   };
 
-  const create = async () => {
+  const create = async (openBranch: boolean) => {
     setBusy(true);
     try {
       await flushCurrent();
       const branch = await createDocumentBranch(chapter.getDocumentId(), name);
       setName("");
-      onOpenChange(false);
-      await window.editor.open(branch.id, branch.file);
+      await refresh();
       toast.success(t("editor.branches.created", { name: branch.branchName }));
+      if (openBranch) {
+        try {
+          await window.editor.open(branch.id, branch.file);
+          onOpenChange(false);
+        } catch (error) {
+          console.error("Branch created but could not open its editor", error);
+          toast.error(t("editor.branches.switch_failed"));
+        }
+      }
     } catch (error) {
       console.error("Could not create document branch", error);
       if (error instanceof ShouldNotified)
@@ -177,41 +192,63 @@ export function BranchManagerDialog({
     : t("editor.branches.main");
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!busy) onOpenChange(next);
+      }}
+    >
       <DialogContent
         data-tour="branch-manager-dialog"
-        className="max-h-[85dvh] gap-0 overflow-hidden p-0 sm:max-w-xl"
+        className="flex max-h-[85dvh] flex-col gap-0 overflow-y-auto p-0 sm:max-w-xl"
+        style={viewport}
+        showCloseButton={!busy}
       >
-        <DialogHeader className="border-b px-6 py-5">
+        <DialogHeader className="shrink-0 border-b px-6 py-5 pr-12">
           <DialogTitle>{t("editor.branches.title")}</DialogTitle>
           <DialogDescription>
             {t("editor.branches.description")}
           </DialogDescription>
-          <p className="pt-2 text-sm">
+          <p className="break-words pt-2 text-sm [overflow-wrap:anywhere]">
             {t("editor.branches.current_branch")}:{" "}
             <strong>{currentBranchName}</strong>
           </p>
         </DialogHeader>
-        <div className="flex gap-2 border-b p-5">
+        <div className="shrink-0 space-y-3 border-b p-5">
           <Input
             maxLength={64}
             value={name}
             placeholder={t("editor.branches.name_placeholder")}
             onChange={(event) => setName(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !busy && name.trim()) void create();
+              if (event.key === "Enter" && !busy && name.trim()) {
+                event.preventDefault();
+                void create(false);
+              }
             }}
             disabled={busy}
           />
-          <Button
-            data-tour="branch-create"
-            onClick={() => void create()}
-            disabled={busy || !name.trim()}
-          >
-            {busy ? t("editor.branches.creating") : t("editor.branches.create")}
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              data-tour="branch-create"
+              variant="outline"
+              onClick={() => void create(false)}
+              disabled={busy || !name.trim()}
+            >
+              {busy
+                ? t("editor.branches.creating")
+                : t("editor.branches.create")}
+            </Button>
+            <Button
+              data-tour="branch-create-open"
+              onClick={() => void create(true)}
+              disabled={busy || !name.trim()}
+            >
+              {t("editor.branches.create_and_open")}
+            </Button>
+          </div>
         </div>
-        <div className="max-h-[52dvh] space-y-2 overflow-y-auto p-5">
+        <div className="min-h-24 flex-1 space-y-2 overflow-y-auto p-5">
           {branches.map((branch) => {
             const isCurrent = branch.id === currentBranchId;
             const isMain = !branch.parentId;

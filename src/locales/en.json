@@ -697,6 +697,7 @@
       "create_description": "Start a separate version from the current document.",
       "name_placeholder": "Branch name",
       "create": "Create branch",
+      "create_and_open": "Create and open",
       "creating": "Creating…",
       "created": "Branch ‘{name}’ created",
       "create_failed": "Could not create branch. Please try again.",

@@ -7,6 +7,7 @@ import { changedChapterBlocks } from "@/editor/storage/comparison-blocks";
 import type { DocumentComparison } from "@/editor/storage/document-comparison";
 import { openDocumentComparison } from "@/editor/storage/comparison-session";
 import { t } from "@/utils/lang";
+import { useDialogViewport } from "@/hooks/use-dialog-viewport";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -72,6 +73,7 @@ export function BranchComparisonDialog({
   const [retry, setRetry] = useState(0);
   const [index, setIndex] = useState(0);
   const [stale, setStale] = useState(false);
+  const viewport = useDialogViewport();
   useEffect(() => {
     setComparison(undefined);
     setIndex(0);
@@ -143,15 +145,16 @@ export function BranchComparisonDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-tour="branch-comparison-dialog"
-        className="flex h-[92dvh] max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[96vw]"
+        className="flex h-[92dvh] w-[calc(100vw-24px)] max-w-none flex-col gap-0 overflow-y-auto p-0 sm:max-w-[96vw]"
+        style={viewport}
       >
-        <DialogHeader className="shrink-0 border-b px-6 py-4">
-          <DialogTitle>
+        <DialogHeader className="shrink-0 border-b px-5 py-4 pr-12">
+          <DialogTitle className="break-words leading-snug [overflow-wrap:anywhere]">
             {comparison
               ? t("editor.branches.compare_title", { name: branchName })
               : t("editor.branches.compare")}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="[@media(max-height:600px)]:sr-only">
             {t("editor.branches.compare_description")}
           </DialogDescription>
         </DialogHeader>
@@ -203,11 +206,11 @@ export function BranchComparisonDialog({
         ) : comparison && selected ? (
           <>
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
-              <p className="text-xs text-muted-foreground">
+              <p className="hidden text-xs text-muted-foreground md:block">
                 {t("editor.branches.compare_summary", comparison.summary)}
               </p>
               <div
-                className="flex items-center gap-2"
+                className="order-2 flex items-center gap-2"
                 data-comparison-navigation
               >
                 <Button
@@ -233,7 +236,7 @@ export function BranchComparisonDialog({
                 </Button>
               </div>
               <NativeSelect
-                wrapperClassName="w-full md:hidden"
+                wrapperClassName="min-w-0 flex-1 md:hidden"
                 aria-label={t("editor.branches.compare_changes")}
                 value={actualIndex}
                 onChange={(event) => setIndex(Number(event.target.value))}
@@ -245,7 +248,7 @@ export function BranchComparisonDialog({
                 ))}
               </NativeSelect>
             </div>
-            <div className="flex min-h-0 flex-1">
+            <div className="flex min-h-24 min-w-0 flex-1">
               <nav
                 aria-label={t("editor.branches.compare_changes")}
                 className="hidden w-56 shrink-0 space-y-1 overflow-y-auto border-r p-2 md:block"
@@ -354,7 +357,10 @@ export function BranchComparisonDialog({
         ) : (
           <div className="flex-1" />
         )}
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t p-3">
+        <div
+          data-comparison-footer
+          className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t p-3"
+        >
           <p className="text-xs text-muted-foreground">
             {t("editor.branches.compare_readonly")}
           </p>

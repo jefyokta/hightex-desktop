@@ -697,6 +697,7 @@
       "create_description": "Mulai versi terpisah dari dokumen saat ini.",
       "name_placeholder": "Nama branch",
       "create": "Buat branch",
+      "create_and_open": "Buat dan buka",
       "creating": "Membuat…",
       "created": "Branch ‘{name}’ dibuat",
       "create_failed": "Branch tidak dapat dibuat. Coba lagi.",

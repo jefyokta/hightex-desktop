@@ -23,3 +23,9 @@
 .comparison-chapter abbr {
   text-decoration: underline dotted;
 }
+
+/* Notifications from the underlying editor must not cover comparison controls. */
+body:has([data-tour="branch-comparison-dialog"][data-state="open"])
+  [data-sonner-toaster] {
+  z-index: 40;
+}
