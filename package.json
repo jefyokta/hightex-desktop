@@ -6,7 +6,7 @@
     "type": "module",
     "author": {
         "name": "Jepi Okta Mipa",
-        "email": "jefyokta@gmail.com"
+        "email": "jefyokta50@gmail.com"
     },
     "scripts": {
         "dev": "bun vite",
