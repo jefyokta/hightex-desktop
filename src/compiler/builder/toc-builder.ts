@@ -124,32 +124,30 @@ export class TocBuilder {
   static fillLeaders(): Promise<void> {
     return new Promise((resolve) => {
       const run = () => {
-        document
-          .querySelectorAll<HTMLElement>(".toc-row.sub, .toc-row.subsub")
-          .forEach((row) => {
-            const text = row.querySelector<HTMLElement>(".toc-text");
-            const dots = row.querySelector<HTMLElement>(".toc-dots");
-            const page = row.querySelector<HTMLElement>(".toc-page");
-            if (!text || !dots || !page) return;
+        document.querySelectorAll<HTMLElement>(".toc-row").forEach((row) => {
+          const text = row.querySelector<HTMLElement>(".toc-text");
+          const dots = row.querySelector<HTMLElement>(".toc-dots");
+          const page = row.querySelector<HTMLElement>(".toc-page");
+          if (!text || !dots || !page) return;
 
-            dots.textContent = "";
+          dots.textContent = "";
 
-            const textRects = text.getClientRects();
-            if (!textRects.length) return;
+          const textRects = text.getClientRects();
+          if (!textRects.length) return;
 
-            const lastLine = textRects[textRects.length - 1];
-            const pageRect = page.getBoundingClientRect();
-            const available = pageRect.left - lastLine.right - 6;
+          const lastLine = textRects[textRects.length - 1];
+          const pageRect = page.getBoundingClientRect();
+          const available = pageRect.left - lastLine.right - 6;
 
-            if (available <= 4) return;
+          if (available <= 4) return;
 
-            dots.textContent = ".";
-            const dotW = dots.getBoundingClientRect().width;
-            dots.textContent = "";
+          dots.textContent = ".";
+          const dotW = dots.getBoundingClientRect().width;
+          dots.textContent = "";
 
-            const n = Math.floor(available / dotW);
-            if (n > 0) dots.textContent = ".".repeat(n);
-          });
+          const n = Math.floor(available / dotW);
+          if (n > 0) dots.textContent = ".".repeat(n);
+        });
 
         resolve();
       };

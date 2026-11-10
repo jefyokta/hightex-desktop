@@ -14,7 +14,7 @@ export class CVPageBuilder {
       height: engine.isInFrame() ? "297mm" : "auto",
       breakBefore: "page",
       maxWidth: "210mm",
-      padding: "3cm 3cm 4cm 3cm",
+      padding: "3cm",
       fontFamily: "'Times New Roman', serif",
       textAlign: "justify",
       fontSize: "12pt",
