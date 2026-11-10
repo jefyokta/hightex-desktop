@@ -112,8 +112,8 @@ test.each(["title", "content"])(
     );
   },
 );
-test("a changed cloud document advisor still prevents branch merge", async () => {
-  profile = { ...profile, isCloud: true };
+test("a changed server workspace advisor still prevents branch merge", async () => {
+  profile = { ...profile, isCloud: true, advisorName: "Original advisor" };
   invalidateWorkspaceAuthorProfile();
   await db.documents.update("main", {
     profile: { ...emptyAuthorProfile(), advisorName: "Original advisor" },
@@ -122,6 +122,8 @@ test("a changed cloud document advisor still prevents branch merge", async () =>
   await db.documents.update("main", {
     profile: { ...emptyAuthorProfile(), advisorName: "Changed advisor" },
   });
+  profile = { ...profile, advisorName: "Changed advisor" };
+  invalidateWorkspaceAuthorProfile();
   await expect(mergeDocumentBranch(branch.id)).rejects.toThrow();
 });
 
@@ -162,7 +164,7 @@ test.each([false, true])(
 test.each([false, true])(
   "legacy cloud revision restores only global identity (academic changed: %s)",
   async (changed) => {
-    profile = { ...profile, isCloud: true };
+    profile = { ...profile, isCloud: true, advisorName: "Original advisor" };
     invalidateWorkspaceAuthorProfile();
     await db.documents.update("main", {
       profile: { ...emptyAuthorProfile(), advisorName: "Original advisor" },
@@ -175,12 +177,8 @@ test.each([false, true])(
     profile = { ...profile, name: "Changed global author" };
     invalidateWorkspaceAuthorProfile();
     if (changed) {
-      await db.documents.update("main", {
-        profile: {
-          ...emptyAuthorProfile(),
-          advisorName: "New academic advisor",
-        },
-      });
+      profile = { ...profile, advisorName: "New academic advisor" };
+      invalidateWorkspaceAuthorProfile();
       await expect(mergeDocumentBranch(branch.id)).rejects.toThrow();
     } else {
       await mergeDocumentBranch(branch.id);

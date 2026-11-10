@@ -20,7 +20,7 @@ const documentRevision = async (buffer: Uint8Array) => {
   const workspace = await getWorkspaceAuthorProfile();
   const { title, altTitle, category, keywords } = model.document;
   // Workspace identity changes apply to both versions. Cloud academic
-  // assignments remain document data and must still participate in conflicts.
+  // assignment changes still participate in conflicts through the exported profile.
   const profile = model.profile;
   const revision = {
     title,

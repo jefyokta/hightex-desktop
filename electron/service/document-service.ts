@@ -9,6 +9,8 @@ import { SessionService } from "./session-service";
 import { CategoryService } from "./category-service";
 import { ServerUrl } from "../url/server-url";
 import { CloudAcademicClient } from "../clients/cloud-academic-client";
+import { parseAccountUser } from "../clients/auth-client";
+import { SessionHandler } from "../handlers/session-handlers";
 
 // Legacy global hashes/aliases are retained in their original store as backups.
 const store = new Store<{ bindings: Record<string, CloudBinding> }>({
@@ -54,6 +56,10 @@ export const documentService: CloudSyncClient = new CloudSyncClient({
 export const cloudAcademicService: CloudAcademicClient =
   new CloudAcademicClient({
     context: () => documentService.context(),
+    accept: (user) => {
+      SessionService.setUser(parseAccountUser(user));
+      void SessionHandler.broadcastSession();
+    },
     request: (endpoint) =>
       ServerService.documentSyncRequest(
         endpoint,

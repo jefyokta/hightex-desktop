@@ -6,7 +6,7 @@ import fs from "fs";
 export class ProfileService {
   static store = new Store<{
     profile: Profile | LegacyProfile;
-    cloudProfile?: Pick<Profile, "name" | "nim" | "cv">;
+    cloudProfile?: Pick<Profile, "name" | "nim" | "cv"> & Partial<Profile>;
   }>();
 
   private static default(): Profile {
@@ -51,7 +51,7 @@ export class ProfileService {
   }
 
   /** Cache account identity in this Cloud workspace for offline document use. */
-  static setCloudProfile(profile: Pick<Profile, "name" | "nim" | "cv">) {
+  static setCloudProfile(profile: Profile) {
     this.store.set("cloudProfile", profile);
     this.broadcastIdentityChange();
   }

@@ -253,7 +253,8 @@ test("legacy cloud cache is normalized into profile and cannot reintroduce commi
   );
   const config = JSON.parse(strFromU8(entries["files/config.json"]));
   const profile = JSON.parse(strFromU8(entries["files/profile.json"]));
-  expect(profile.committee).toEqual(saved.profile?.committee);
+  // The current workspace projection supersedes this older document cache.
+  expect(profile.committee).toEqual(academic().author.committee);
   for (const key of ["leader", "member_1", "member_2"]) {
     expect(saved.config).not.toHaveProperty(key);
     expect(saved.cloudAcademic?.committee).not.toHaveProperty(key);
@@ -302,8 +303,12 @@ test("ambiguous roles, mismatched thesis student and malformed university data f
 
 test("loader binds /me and owned server document to the current session", async () => {
   const paths: string[] = [];
+  const accepted: unknown[] = [];
   const client = new CloudAcademicClient({
     context: () => context,
+    accept: (user) => {
+      accepted.push(user);
+    },
     request: async (path) => {
       paths.push(path);
       return {
@@ -325,6 +330,7 @@ test("loader binds /me and owned server document to the current session", async 
     }),
   ).toEqual(academic());
   expect(paths.sort()).toEqual(["/document", "/me", "/university-data"]);
+  expect(accepted).toEqual([me().message]);
   await expect(
     client.load({ sessionId: "old-session", serverDocumentId: "server-doc" }),
   ).rejects.toMatchObject({ code: "session_changed" });
@@ -334,6 +340,7 @@ test("loader binds /me and owned server document to the current session", async 
       serverDocumentId: "another-doc",
     }),
   ).rejects.toMatchObject({ code: "cloud_changed" });
+  expect(accepted).toHaveLength(1); // Scope failures cannot update the workspace cache.
   // A web document can exist before its first desktop cloud commit.
   expect(
     (
@@ -347,8 +354,12 @@ test("loader binds /me and owned server document to the current session", async 
 
 test("late account switch or foreign document cannot supply another author's data", async () => {
   let session = context;
+  const accepted: unknown[] = [];
   const client = new CloudAcademicClient({
     context: () => session,
+    accept: (user) => {
+      accepted.push(user);
+    },
     request: async (path) => {
       if (path === "/me")
         session = { ...context, sessionId: "new-session", accountId: "99" };
@@ -370,6 +381,7 @@ test("late account switch or foreign document cannot supply another author's dat
       serverDocumentId: "server-doc",
     }),
   ).rejects.toMatchObject({ code: "session_changed" });
+  expect(accepted).toEqual([]);
   const foreign = new CloudAcademicClient({
     context: () => context,
     request: async (path) => ({

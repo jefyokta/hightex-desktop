@@ -4,6 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { ServerUrl } from "../url/server-url";
 import { WorkspaceRuntime } from "../workspaces/runtime";
+import { ProfileService } from "./profile-service";
+import { cloudProfileFromUser } from "../clients/cloud-profile";
 
 export class SessionService {
   private static cachedToken: string | null = null;
@@ -112,7 +114,13 @@ export class SessionService {
     if (!("role" in user)) {
       (user as User).role = user.roles?.[0]?.name ?? null;
     }
+    const workspace = WorkspaceRuntime.profile;
+    const profile =
+      workspace?.type === "cloud" && workspace.accountId === String(user.id)
+        ? cloudProfileFromUser(user as User, ProfileService.getCloudProfile())
+        : undefined;
     this.store.set("session.user", user);
+    if (profile) ProfileService.setCloudProfile(profile);
   }
 
   static clearUser(): void {

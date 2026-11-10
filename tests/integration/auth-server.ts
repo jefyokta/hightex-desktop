@@ -68,8 +68,13 @@ try {
     `Web login HTTP ${login.status}`,
   );
   const authorized = await web(loginURL);
-  assert.equal(authorized.status, 302);
-  const callback = authorized.headers.get("Location") ?? "";
+  assert.equal(authorized.status, 200);
+  const successPage = await authorized.text();
+  assert.equal(successPage.includes("You can close this tab now."), true);
+  const callback =
+    /href="(hightex:\/\/auth\/callback\?[^"]+)"/
+      .exec(successPage)?.[1]
+      .replace(/&amp;/g, "&") ?? "";
   assert.equal(callback.startsWith("hightex://auth/callback?"), true);
   const result = await client.callback(callback);
   assert.equal(result.ok, true);

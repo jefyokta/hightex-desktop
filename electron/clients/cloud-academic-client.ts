@@ -5,6 +5,7 @@ import { readAuthorProfile } from "@hightex/importer";
 
 interface AcademicTransport {
   context(): CloudSession;
+  accept?(user: unknown): void;
   request(
     endpoint: string,
   ): Promise<{ ok: boolean; status: number; data: unknown }>;
@@ -39,8 +40,8 @@ const committeePerson = (value: unknown): AcademicPerson => {
   };
 };
 
-export const parseCloudAcademic = (me: unknown, university: unknown) => {
-  const user = record(record(me).message);
+export const parseCloudAuthor = (value: unknown) => {
+  const user = record(value);
   if (!Array.isArray(user.advisors)) return fail("academic_invalid");
   // /me.advisors is the backend projection of active mentorships. Never use
   // array order or the actor's first role to choose a document's advisors.
@@ -66,9 +67,6 @@ export const parseCloudAcademic = (me: unknown, university: unknown) => {
     String(thesis.student_id) !== String(user.id)
   )
     return fail("academic_invalid");
-  const officials = record(record(university).data);
-  if (!("lead_program_study" in officials) || !("dean" in officials))
-    return fail("academic_invalid");
   const first = person(primary[0]);
   return {
     accountId: String(user.id),
@@ -84,6 +82,16 @@ export const parseCloudAcademic = (me: unknown, university: unknown) => {
         examiner2: committeePerson(thesis.second_examiner),
       },
     },
+  };
+};
+
+export const parseCloudAcademic = (me: unknown, university: unknown) => {
+  const parsed = parseCloudAuthor(record(me).message);
+  const officials = record(record(university).data);
+  if (!("lead_program_study" in officials) || !("dean" in officials))
+    return fail("academic_invalid");
+  return {
+    ...parsed,
     committee: {
       kaprodi: person(officials.lead_program_study, "nip"),
       dekan: person(officials.dean, "nip"),
@@ -126,6 +134,7 @@ export class CloudAcademicClient {
       return fail("cloud_changed");
     const parsed = parseCloudAcademic(me, university);
     if (parsed.accountId !== session.accountId) return fail("session_changed");
+    this.transport.accept?.(record(me).message);
     return {
       session,
       serverDocumentId: owned ? String(record(owned).id) : null,

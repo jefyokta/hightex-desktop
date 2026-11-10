@@ -44,18 +44,6 @@ export const accountService = new AccountClient({
     SessionService.setUser(user);
     await SessionHandler.broadcastSession();
   },
-  cache: (profile) => {
-    const workspace = WorkspaceRuntime.profile;
-    if (
-      workspace?.type === "cloud" &&
-      workspace.accountId === profile.session.accountId
-    )
-      ProfileService.setCloudProfile({
-        name: profile.name,
-        nim: profile.nim ?? "",
-        cv: profile.cv ?? "",
-      });
-  },
   cachePicture: (session, picture) => {
     const workspace = WorkspaceRuntime.profile;
     if (

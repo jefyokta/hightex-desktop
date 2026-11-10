@@ -23,16 +23,6 @@ export const resolveAuthorProfile = (
 
   // The active workspace is the only author-profile source. This also keeps
   // older documents and imported archives from restoring a second identity.
-  if (workspaceProfile.isCloud) {
-    return {
-      ...profile,
-      name: workspaceProfile.name ?? "",
-      nim: workspaceProfile.nim ?? "",
-      cv: workspaceProfile.cv ?? "",
-      picture: workspaceProfile.picture,
-    };
-  }
-
   const authorProfile = { ...workspaceProfile };
   delete authorProfile.isCloud;
   return {

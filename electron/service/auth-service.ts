@@ -32,20 +32,8 @@ export const desktopAuth = new AuthClient({
         WorkspaceRuntime.root,
         WorkspaceRuntime.serverUrl,
       ).bindAccount(String(user.id));
-      if (WorkspaceRuntime.profile.type === "cloud") {
-        if (firstBinding) ProfileService.clearProfilePicture();
-        const cloudUser = user as User & { cv?: unknown };
-        ProfileService.setCloudProfile({
-          name: user.name,
-          nim: user.identity_number ?? "",
-          cv:
-            typeof cloudUser.cv === "string"
-              ? cloudUser.cv
-              : cloudUser.cv === null
-                ? ""
-                : (ProfileService.getCloudProfile()?.cv ?? ""),
-        });
-      }
+      if (WorkspaceRuntime.profile.type === "cloud" && firstBinding)
+        ProfileService.clearProfilePicture();
     }
     SessionService.setToken(token);
     SessionService.setExpiry(expiresAt);

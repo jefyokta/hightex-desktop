@@ -1,8 +1,0 @@
-# Perbaikan comparison dan panduan
-
-- [x] **Layout modal comparison:** batas ukuran mengikuti viewport dan titlebar editor; nama branch panjang membungkus; navigasi layar kecil dipadatkan; footer tetap bisa dijangkau; notifikasi editor tidak menutupi kontrol.
-- [x] **Panduan yang menunggu terus:** langkah dengan target belum tersedia dapat dilewati lewat tombol maupun keyboard. Panduan tetap terlihat setelah langkah dilewati, termasuk ketika dialog branch masih terbuka; dialog comparison di atasnya menjadi target yang benar. Panduan tidak membuat atau memilih dokumen secara otomatis. Saat pustaka kosong, pilihan dokumen nonaktif, tersedia tautan ke halaman Dokumen, dan isian umum tetap dapat disimpan. Panduan 1.3/1.4 tidak meminta pilihan dokumen yang belum tersedia.
-- [x] **Dua aksi pembuatan branch:** **Buat branch** menambahkan branch dan tetap di daftar; **Buat dan buka** membuka editor hasilnya. Enter memakai aksi Buat branch.
-- [x] **Kasus terkait:** editor belum siap tidak boleh membuat branch; kegagalan membuka editor mempertahankan branch yang sudah dibuat tanpa duplikasi. Pemeriksaan mencakup pustaka kosong, belum ada branch, dialog bertumpuk, nama panjang, window pendek, dan notifikasi yang menutupi footer.
-
-Validasi: 439 tes unit, typecheck, lint terkait, dan build lolos. Integrasi Electron memeriksa alur panduan/branch serta rendering comparison dan keutuhan data sumber. Kelanjutan form memeriksa dokumen pertama muncul tanpa dipilih otomatis, pilihan dikosongkan saat dokumen dihapus, pemulihan dokumen tetap meminta pilihan baru, serta retry profil mempertahankan draft. Pengujian UI dijalankan di macOS.
