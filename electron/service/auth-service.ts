@@ -25,6 +25,8 @@ export const desktopAuth = new AuthClient({
   }),
   save: (user, token, expiresAt) => {
     if (WorkspaceRuntime.root && !WorkspaceRuntime.migrating) {
+      if (!WorkspaceRuntime.serverUrl)
+        throw Error("Workspace server is not initialized");
       const firstBinding = !WorkspaceRuntime.profile?.accountId;
       WorkspaceRuntime.profile = new WorkspaceRegistry(
         WorkspaceRuntime.root,

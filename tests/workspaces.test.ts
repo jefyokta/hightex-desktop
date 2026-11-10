@@ -12,7 +12,7 @@ import {
   workspaceHost,
   workspaceIdFromUrl,
   normalizeWorkspaceServer,
-} from "../src/workspaces/identity";
+} from "../electron/workspaces/identity";
 import {
   WorkspaceRegistry,
   hasLegacyWorkspace,
@@ -91,7 +91,10 @@ test("server normalization keeps origins and ports distinct without inventing su
 test("fresh installs skip migration; updates with legacy stores require it exactly once", () => {
   const fresh = directory();
   expect(hasLegacyWorkspace(fresh)).toBe(false);
-  expect(new WorkspaceRegistry(fresh).read().migrationComplete).toBe(true);
+  expect(
+    new WorkspaceRegistry(fresh, "https://cloud.test/api/").read()
+      .migrationComplete,
+  ).toBe(true);
   for (const file of [
     "installed.json",
     "config.json",
@@ -100,10 +103,13 @@ test("fresh installs skip migration; updates with legacy stores require it exact
   ]) {
     const root = directory();
     writeFileSync(path.join(root, file), "{}");
-    const registry = new WorkspaceRegistry(root);
+    const registry = new WorkspaceRegistry(root, "https://cloud.test/api/");
     expect(registry.read().migrationComplete).toBe(false);
     registry.write({ ...registry.read(), migrationComplete: true });
-    expect(new WorkspaceRegistry(root).read().migrationComplete).toBe(true);
+    expect(
+      new WorkspaceRegistry(root, "https://cloud.test/api/").read()
+        .migrationComplete,
+    ).toBe(true);
   }
   const browserOnly = directory();
   mkdirSync(path.join(browserOnly, "IndexedDB"));
@@ -136,7 +142,7 @@ test("profile identity survives rename/logout and rejects replacing a bound clou
 
 test("deleting a workspace removes its local data and protects active/default profiles", () => {
   const root = directory();
-  const registry = new WorkspaceRegistry(root);
+  const registry = new WorkspaceRegistry(root, "https://cloud.test/api/");
   const created = registry.create({ name: "Research", type: "local" });
   const workspaceId = created.profiles[1].id;
   registry.write({ ...created, activeId: workspaceId });

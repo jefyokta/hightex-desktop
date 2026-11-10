@@ -57,21 +57,17 @@ if (process.argv.includes("--startup")) {
           };
         if (name === "../service/auth-service")
           return { desktopAuth: { cancel() {} } };
-      }
-      if (name === "electron" && filename.endsWith("/workspaces/handlers.ts"))
-        return {
-          app: {
-            relaunch: () => {
+        if (name === "../utilities/restart-application")
+          return {
+            restartApplication: async () => {
               restarts++;
               if (interactive)
                 console.log(
                   "Migration complete. Restart is simulated in this fixture; close the window when done.",
                 );
             },
-            quit() {},
-          },
-          BrowserWindow,
-        };
+          };
+      }
       if (name.startsWith(".") || name.startsWith("@main/")) {
         let target = name.startsWith("@main/")
           ? path.join(project, "electron", name.slice(6))

@@ -2,7 +2,7 @@ import { protocol } from "electron";
 import { LoggerService } from "@main/service/logger-service";
 import { Controller } from "./application-hosts/controller";
 import { WorkspaceRuntime } from "../workspaces/runtime";
-import { workspaceHost } from "../../src/workspaces/identity";
+import { workspaceHost } from "../workspaces/identity";
 
 export class HightexProtocol {
   static readonly SCHEME = "hightex";

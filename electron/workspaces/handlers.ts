@@ -1,15 +1,18 @@
-import { app, BrowserWindow, session } from "electron";
+import { BrowserWindow, session } from "electron";
 import type { Application } from "../main/application";
 import { IPCMain } from "../utilities/ipc-main";
-import { workspaceHost } from "../../src/workspaces/identity";
+import { workspaceHost } from "./identity";
 import { WorkspaceRuntime } from "./runtime";
 import { WorkspaceRegistry } from "./registry";
 import { WorkspaceMigration } from "./migration";
 import { EditorWindow } from "../windows/editor-window";
 import { desktopAuth } from "../service/auth-service";
+import { restartApplication } from "../utilities/restart-application";
 
 export function registerWorkspaceHandlers(application: Application) {
   if (!WorkspaceRuntime.root) return;
+  if (!WorkspaceRuntime.serverUrl)
+    throw Error("Workspace server is not initialized");
   const registry = new WorkspaceRegistry(
     WorkspaceRuntime.root,
     WorkspaceRuntime.serverUrl,
@@ -34,10 +37,6 @@ export function registerWorkspaceHandlers(application: Application) {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (!window) throw Error("Window closed");
     return window;
-  };
-  const restart = () => {
-    app.relaunch();
-    app.quit();
   };
   const broadcastWorkspaceChange = () => {
     BrowserWindow.getAllWindows().forEach((window) => {
@@ -129,7 +128,7 @@ export function registerWorkspaceHandlers(application: Application) {
           "Close preview or export windows before switching workspaces.",
         );
       registry.write({ ...state, activeId: id });
-      restart();
+      await restartApplication();
     } catch (error) {
       WorkspaceRuntime.switching = false;
       WorkspaceRuntime.switchInterrupted = false;
@@ -151,7 +150,7 @@ export function registerWorkspaceHandlers(application: Application) {
       if (BrowserWindow.getAllWindows().length > 1)
         throw Error("Close other windows before migrating");
       await migration.run(resolutions);
-      restart();
+      await restartApplication();
     },
   );
   IPCMain.handle("workspaces:migration:target", (event) =>

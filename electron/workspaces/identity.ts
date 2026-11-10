@@ -1,18 +1,4 @@
 const PROFILE_ID = /^[a-z0-9][a-z0-9-]{0,62}$/;
-export const PRODUCTION_WORKSPACE_SERVER =
-  "https://hightex.jefyokta.dev/api/";
-export const DEFAULT_DEVELOPMENT_WORKSPACE_SERVER = "http://127.0.0.1:8000";
-
-export function workspaceServerForEnvironment(
-  isDev: boolean,
-  localServer?: string,
-): string {
-  return normalizeWorkspaceServer(
-    isDev
-      ? localServer?.trim() || DEFAULT_DEVELOPMENT_WORKSPACE_SERVER
-      : PRODUCTION_WORKSPACE_SERVER,
-  );
-}
 
 export function workspaceHost(id: string): string {
   if (!PROFILE_ID.test(id)) throw Error("Invalid workspace ID");

@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import * as identity from "../electron/workspaces/identity";
 
 const fixture = (
   isPackaged: boolean,
@@ -12,16 +13,7 @@ const fixture = (
   const modules: Record<string, unknown> = {
     electron: { app: { isPackaged } },
     "dotenv/config": {},
-    "../../src/workspaces/identity": {
-      normalizeWorkspaceServer: (value: string) =>
-        `${new URL(value).origin}/api/`,
-      workspaceServerForEnvironment: (isDev: boolean, localServer?: string) =>
-        `${new URL(
-          isDev
-            ? localServer || "http://127.0.0.1:8000"
-            : "https://hightex.jefyokta.dev",
-        ).origin}/api/`,
-    },
+    "../workspaces/identity": identity,
     "../workspaces/runtime": {
       WorkspaceRuntime: {
         profile: workspaceServer

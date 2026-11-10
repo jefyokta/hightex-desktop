@@ -11,14 +11,13 @@ import {
 import path from "node:path";
 import {
   normalizeWorkspaceServer,
-  PRODUCTION_WORKSPACE_SERVER,
   workspaceHost,
-} from "../../src/workspaces/identity";
+} from "./identity";
 
 export class WorkspaceRegistry {
   constructor(
     readonly root: string,
-    readonly cloudServerUrl = PRODUCTION_WORKSPACE_SERVER,
+    readonly cloudServerUrl: string,
   ) {
     if (normalizeWorkspaceServer(cloudServerUrl) !== cloudServerUrl)
       throw Error("Invalid configured workspace server");

@@ -1,10 +1,7 @@
 import { Handled } from "@main/exception/interface/handled";
 import { ipcMain, IpcMainInvokeEvent } from "electron";
 import { WorkspaceRuntime } from "../workspaces/runtime";
-import {
-  workspaceHost,
-  workspaceIdFromUrl,
-} from "../../src/workspaces/identity";
+import { workspaceHost, workspaceIdFromUrl } from "../workspaces/identity";
 
 export class IPCMain {
   static handle(

@@ -2,10 +2,7 @@ import { AuthRouter } from "./auth";
 import { AppHost } from "./app";
 import { Router } from "./contract";
 import { DocumentRouter } from "./document";
-import {
-  workspaceHost,
-  workspaceIdFromUrl,
-} from "../../../src/workspaces/identity";
+import { workspaceHost, workspaceIdFromUrl } from "../../workspaces/identity";
 import { WorkspaceRuntime } from "../../workspaces/runtime";
 import { WorkspaceRegistry } from "../../workspaces/registry";
 
@@ -37,10 +34,8 @@ export class Controller {
     const knownProfile =
       profileId &&
       WorkspaceRuntime.root &&
-      new WorkspaceRegistry(
-        WorkspaceRuntime.root,
-        WorkspaceRuntime.serverUrl,
-      )
+      WorkspaceRuntime.serverUrl &&
+      new WorkspaceRegistry(WorkspaceRuntime.root, WorkspaceRuntime.serverUrl)
         .read()
         .profiles.some((profile) => profile.id === profileId);
     const handler = knownProfile ? this.hosts.app : this.hosts[host];

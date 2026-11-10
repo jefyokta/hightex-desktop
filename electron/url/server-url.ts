@@ -1,10 +1,7 @@
 import { ApplicationRuntime } from "../main/application-runtime";
 import "dotenv/config";
 import { WorkspaceRuntime } from "../workspaces/runtime";
-import {
-  normalizeWorkspaceServer,
-  workspaceServerForEnvironment,
-} from "../../src/workspaces/identity";
+import { normalizeWorkspaceServer } from "../workspaces/identity";
 
 export class ServerUrl {
   public readonly url: URL;
@@ -13,9 +10,10 @@ export class ServerUrl {
   constructor(base?: string | URL) {
     this.url = new URL(
       base ??
-        workspaceServerForEnvironment(
-          ApplicationRuntime.isDev,
-          process.env["LOCAL_SERVER"],
+        normalizeWorkspaceServer(
+          ApplicationRuntime.isDev
+            ? process.env["LOCAL_SERVER"]?.trim() || "http://127.0.0.1:8000"
+            : "https://hightex.jefyokta.dev/api/",
         ),
     );
     if (
@@ -30,10 +28,7 @@ export class ServerUrl {
   public static get instance(): ServerUrl {
     const configured = (this._instance ??= new ServerUrl());
     const profile = WorkspaceRuntime.profile;
-    if (
-      profile?.type === "cloud" &&
-      profile.serverUrl !== normalizeWorkspaceServer(configured.api.href)
-    )
+    if (profile?.type === "cloud" && profile.serverUrl !== configured.api.href)
       throw new Error("This workspace is bound to an unsupported cloud host");
     return configured;
   }
@@ -53,7 +48,6 @@ export class ServerUrl {
     return new URL("/api/", this.url.origin);
   }
 
-  /** Resolve an API endpoint without dropping the /api/ prefix. */
   public endpoint(path: string): URL {
     const url = new URL(path.replace(/^\/+/, ""), this.api);
     if (
@@ -67,7 +61,6 @@ export class ServerUrl {
     return url;
   }
 
-  /** Resolve a website or storage path on this server. */
   public resolve(path: string | URL = "/"): URL {
     const url = new URL(path, this.url.origin + "/");
     if (!this.compare(url) || url.username || url.password) {

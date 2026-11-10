@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { normalizeWorkspaceServer } from "../../src/workspaces/identity";
+import { normalizeWorkspaceServer } from "./identity";
 
 export function cloudWorkspace(
   serverUrl: string,
@@ -25,7 +25,6 @@ export function cloudWorkspace(
   };
 }
 
-/** A branch belongs to its root's workspace; ambiguous families need a decision. */
 export function planWorkspaceMigration(
   documents: HighTexDocument[],
   bindings: CloudBinding[],
@@ -127,7 +126,6 @@ export function planWorkspaceMigration(
   return { profiles: [...profiles.values()], assignments, conflicts };
 }
 
-/** Copy global records deliberately; preserve unowned/orphan data in Local. */
 export function selectWorkspaceData(
   snapshot: WorkspaceDataSnapshot,
   assignments: Record<string, string>,

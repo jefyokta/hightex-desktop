@@ -22,7 +22,7 @@ import { canonicalWorkspaceSnapshot } from "../../src/workspaces/snapshot";
 import {
   normalizeWorkspaceServer,
   workspaceHost,
-} from "../../src/workspaces/identity";
+} from "./identity";
 import { Snapshot } from "../database/models/snapshot";
 import { Comment } from "../database/models/comment";
 import { LocalLecturer } from "../database/models/lecturer";
