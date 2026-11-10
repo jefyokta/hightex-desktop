@@ -69,13 +69,52 @@ export const UniversityConsent = () => {
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "space-between",
+            gap: "1cm",
+            breakInside: "avoid",
           }}
         >
           <div
             style={{
               paddingTop: "5em",
               textAlign: "center",
+              flex: 1,
+              minWidth: 0,
+              overflowWrap: "anywhere",
+            }}
+          >
+            <b>Ketua Program Studi</b>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            <span style={{ fontWeight: "bold" }}>
+              {name(doc.config.kaprodi?.name)}
+            </span>
+
+            <br />
+
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP. {doc.config.kaprodi?.nip}
+            </span>
+          </div>
+          <div
+            style={{
+              paddingTop: "5em",
+              textAlign: "center",
+              flex: 1,
+              minWidth: 0,
+              overflowWrap: "anywhere",
             }}
           >
             <b>Pembimbing Kerja Praktek</b>
