@@ -14,33 +14,36 @@
   padding: 1px 0;
   margin-top: 1em !important;
 
-  break-inside: auto;
+  break-inside: avoid;
 }
 
 .toc-row.sub {
   margin-top: 0.5em !important;
-  padding-left: 2.25em;
+  padding-left: var(--toc-h1-number-width, 2.25em);
 }
 
 .toc-row.subsub {
   margin-top: 0.5em !important;
-  padding-left: 4.75em;
+  padding-left: calc(
+    var(--toc-h1-number-width, 2.25em) + var(--toc-h2-number-width, 2.5em)
+  );
 }
 
 .toc-number {
-  width: 2.25em;
+  grid-column: 1;
+  width: var(--toc-h1-number-width, 2.25em);
   font-weight: bold;
   text-align: left;
   white-space: nowrap;
 }
 
 .toc-row.sub .toc-number {
-  width: 2.5em;
+  width: var(--toc-h2-number-width, 2.5em);
   font-weight: normal;
 }
 
 .toc-row.subsub .toc-number {
-  width: 3em;
+  width: var(--toc-h3-number-width, 3em);
   font-weight: normal;
 }
 
@@ -50,7 +53,7 @@
   min-width: 0;
 }
 
-.toc-row:not(:has(.toc-number)) .toc-inner {
+.toc-row.unnumbered .toc-inner {
   grid-column: 1 / 3;
 }
 

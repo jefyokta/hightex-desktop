@@ -1,7 +1,7 @@
 import { CommandProps, ReactNodeViewRenderer } from "@tiptap/react";
 import { ImageFigure as ImageFigureComponent } from "./component";
 import { Figure } from "../figure";
-import { uniqId } from "@/utils/uniq-id";
+import { createFigureImage } from "@/editor/utils/create-figure-image";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -19,24 +19,7 @@ export const ImageFigure = Figure.extend({
       addFigureImage:
         (imgUrl: string) =>
         ({ editor }: CommandProps) => {
-          return editor.commands.insertContent({
-            type: "imageFigure",
-            attrs: {
-              figureId: uniqId(),
-            },
-            content: [
-              {
-                type: "image",
-                attrs: {
-                  src: imgUrl,
-                },
-              },
-              {
-                type: "figcaption",
-                text: "Image Caption",
-              },
-            ],
-          });
+          return editor.commands.insertContent(createFigureImage(imgUrl));
         },
     };
   },

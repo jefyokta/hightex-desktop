@@ -1,12 +1,13 @@
-import { uniqId } from "@/utils/uniq-id";
 import { PluginKey } from "@tiptap/pm/state";
 import { Extension, Range } from "@tiptap/react";
 import Suggestion, { SuggestionOptions } from "@tiptap/suggestion";
 import { createRenderer } from "../utilites";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
+import { createFigureImage } from "@/editor/utils/create-figure-image";
+import { matchFigureImage, matchFigureTable } from "./parse";
 type NSItems = {
   label: string;
-  onClick: (range: Range) => any;
+  onClick: (range: Range) => void;
 };
 export const NodeShortcut = Extension.create({
   name: "nodeShortcut",
@@ -19,10 +20,8 @@ export const NodeShortcut = Extension.create({
         editor: this.editor,
         items: ({ query }) => {
           const suggestions: NSItems[] = [];
-          const lower = query.toLowerCase();
-
-          const table = matchFigureTable(lower);
-          const img = matchFigureImage(lower);
+          const table = matchFigureTable(query);
+          const img = matchFigureImage(query);
 
           if (table) {
             suggestions.push({
@@ -52,27 +51,12 @@ export const NodeShortcut = Extension.create({
                   .chain()
                   .focus()
                   .deleteRange(range)
-                  .insertContent({
-                    type: "imageFigure",
-                    attrs: {
-                      figureId: uniqId(),
-                    },
-                    content: [
-                      {
-                        type: "image",
-                        attrs: {
-                          src: "",
-                        },
-                      },
-                      {
-                        type: "figcaption",
-                        text:
-                          typeof img !== "boolean" && img.caption
-                            ? img.caption
-                            : "Image Caption",
-                      },
-                    ],
-                  })
+                  .insertContent(
+                    createFigureImage(
+                      null,
+                      typeof img !== "boolean" ? img.caption : undefined,
+                    ),
+                  )
                   .run();
               },
             });
@@ -93,54 +77,3 @@ export const NodeShortcut = Extension.create({
     ];
   },
 });
-
-const getNumber = (string: string) => {
-  const num = parseInt(string, 10) || 3;
-  return num > 0 && num < 8 ? num : 3;
-};
-const matchFigureTable = (text: string) => {
-  const rowMatch = text.match(/^tab\.(\d+)\.(\d+)\.?$/);
-  const colsMatch = text.match(/^tab\.(\d+)\.?$/);
-  const captionMatch = text.match(/^tab\.(\d+)\.(\d+)\.(\w+)$/);
-
-  if (captionMatch) {
-    return {
-      cols: getNumber(captionMatch[1]),
-      rows: getNumber(captionMatch[2]),
-      caption: captionMatch[3].replace(/_/g, " ") || "",
-    };
-  }
-
-  if (rowMatch) {
-    return {
-      cols: getNumber(rowMatch[1]),
-      rows: getNumber(rowMatch[2]),
-      caption: "",
-    };
-  }
-  if (colsMatch) {
-    return {
-      cols: getNumber(colsMatch[1]),
-      rows: 3,
-      caption: "",
-    };
-  }
-  if (!text || "tab.".startsWith(text)) {
-    return { cols: 3, rows: 3 };
-  }
-
-  return false;
-};
-
-const matchFigureImage = (text: string) => {
-  if (!text || "fig.".startsWith(text)) {
-    return true;
-  }
-  const hasCaption = text.match(/^fig\.(\w+)/);
-  if (hasCaption) {
-    return {
-      caption: hasCaption[1].replace("_", " "),
-    };
-  }
-  return false;
-};
