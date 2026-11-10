@@ -19,6 +19,13 @@ The preload currently also exposes a generic `window.ipcRenderer` compatibility
 surface; do not add new renderer features that depend on arbitrary channel
 access when a named API can express the operation.
 
+Global `Window` declarations do not guarantee that these APIs exist in every
+runtime context. Preview iframes have separate windows and may have no preload
+bridge even when the same route works in a top-level window. Read
+[IPC APIs in iframes](./iframe-ipc.md) before adding API calls to shared print,
+preview, or frame code; type checks and a successful build cannot verify that
+the iframe receives the API.
+
 ## Request-response operations
 
 Use `ipcRenderer.invoke` in preload and register the corresponding main-process

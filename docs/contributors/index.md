@@ -113,6 +113,8 @@ implementation before relying on a note for a new change.
   workspace isolation, editor lifecycle, and cross-cutting invariants.
 - [Electron renderer and IPC boundary](./electron-ipc.md) — preload APIs,
   request handlers, event subscriptions, and boundary checks.
+- [IPC APIs in iframes](./iframe-ipc.md) — frame API availability, preview
+  initialization, and runtime failures that type checks and builds cannot catch.
 - [Testing and verification](./testing.md) — focused unit checks and safe
   Electron integration testing.
 

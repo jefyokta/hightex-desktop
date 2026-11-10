@@ -36,6 +36,11 @@ during effect cleanup. The engine checks its active state between asynchronous
 steps so an obsolete render cannot continue after its view is replaced.
 Preserve this cancellation behavior when adding asynchronous resource work.
 
+Print routes may run in an editor iframe or a dedicated PDF window, with
+different API availability and initialization. See
+[IPC APIs in iframes](./iframe-ipc.md) before adding `window.*` API dependencies
+to printable views, resolvers, or their shared helpers.
+
 The engine waits for fonts and image resources before pagination and before
 signaling completion. If a render fails, report it through the existing print
 error path. Do not treat a partially rendered page as a successful export.
