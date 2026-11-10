@@ -16,6 +16,7 @@ import {
 import { Copy, Delete } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const FigureTableComponent: React.FC<NodeViewProps> = ({
   node,
@@ -23,11 +24,12 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
   getPos,
   deleteNode,
 }) => {
+  useAppLanguage();
   const [insideNode, setInsideNode] = useState(false);
   const copy = () => {
     if (typeof window === "undefined") return;
     window.navigator.clipboard.writeText(`@figureTable[${node.attrs.id}]`);
-    toast.success("table's ref copied");
+    toast.success(t("editor.inline.copy_reference"));
   };
 
   useEffect(() => {
@@ -116,9 +118,8 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
     >
       <DropdownMenu>
         <DropdownMenuTrigger
-          className={`absolute ${
-            insideNode ? "visible opacity-100" : "invisible opacity-0"
-          } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
+          className={`absolute ${insideNode ? "visible opacity-100" : "invisible opacity-0"
+            } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -143,7 +144,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
 
         <DropdownMenuContent className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
           <DropdownMenuLabel className="text-neutral-700 dark:text-neutral-300">
-            Figure Table
+            {t("editor.inline.figure_table")}
           </DropdownMenuLabel>
 
           <DropdownMenuSeparator className="bg-neutral-200 dark:bg-neutral-700" />
@@ -153,7 +154,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
             className="text-neutral-800 dark:text-neutral-200 focus:bg-neutral-100 dark:focus:bg-neutral-800"
           >
             <Copy className="mr-2" />
-            Copy Ref
+            {t("editor.inline.copy_reference")}
           </DropdownMenuItem>
 
           <DropdownMenuItem
@@ -161,7 +162,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
             className="text-red-500 focus:bg-red-50 dark:focus:bg-red-950"
           >
             <Delete className="mr-2" />
-            Delete
+            {t("editor.inline.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

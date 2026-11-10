@@ -113,9 +113,7 @@ function LecturerImportDialog({ onClose }: { onClose(): void }) {
         >
           <p>{t("lecturers.import_format")}</p>
           <pre className="overflow-x-auto rounded-lg bg-muted p-3">
-            {
-              '[\n  { "name": "Dosen A, M.Kom.", "nip": "000123" },\n  { "name": "Dosen B", "nip": "000456" }\n]'
-            }
+            {t("lecturers.import_example")}
           </pre>
           <p>{t("lecturers.import_duplicates")}</p>
         </Disclosure>

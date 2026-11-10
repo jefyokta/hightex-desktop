@@ -35,7 +35,7 @@ export const ChapteTree = () => {
       className="w-full h-full overflow-auto "
     >
       <TabHeader
-        title="Chapters"
+        title={t("editor.inline.chapters_title")}
         desc={t("editor.expandable.chapters.header")}
       />
       <Files>

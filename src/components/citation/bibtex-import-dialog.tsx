@@ -64,7 +64,7 @@ export const BibtexImportDialog = ({ form, onImport }: Props) => {
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 py-5">
           <div className="w-full flex gap-2">
             <Input
-              placeholder="From doi link"
+              placeholder={t("citation.doi_placeholder")}
               onChange={(e) => setDoiLink(e.target.value)}
             />
             <Button

@@ -1,7 +1,8 @@
 import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
 import { formatDistanceToNow } from "date-fns";
+import { enUS, id as idLocale } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
-import { t } from "@/utils/lang";
+import { getCurrentLanguage, t, useAppLanguage } from "@/utils/lang";
 import { useParams } from "react-router-dom";
 import { strFromU8, unzipSync } from "fflate";
 import { createMarker } from "@/utils/sharing";
@@ -19,26 +20,22 @@ import {
   Minus,
 } from "lucide-react";
 import { ShouldNotifiedWithNativeComponent } from "@/exception/interfaces/should-notified-with-native-component";
-
-const formatSnapshotType = (type: string) => {
-  return type
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
+import { sharingTypeLabel } from "@/utils/sharing-labels";
 
 const formatRelativeDate = (value: Date | string | null | undefined) => {
-  if (!value) return "Unknown time";
+  if (!value) return t("snapshots.unknown_time");
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown time";
+  if (Number.isNaN(date.getTime())) return t("snapshots.unknown_time");
 
-  return formatDistanceToNow(date, { addSuffix: true });
+  return formatDistanceToNow(date, {
+    addSuffix: true,
+    locale: getCurrentLanguage() === "id" ? idLocale : enUS,
+  });
 };
 
 export const SnapshotViewer = () => {
+  useAppLanguage();
   const { id } = useParams();
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -136,7 +133,7 @@ export const SnapshotViewer = () => {
         console.error(err);
         throw new ShouldNotifiedWithNativeComponent(
           ShouldNotifiedWithNativeComponent.normilize(err) ||
-            t("snapshots.not_found"),
+          t("snapshots.not_found"),
           "/dashboard/snapshots",
         );
       });
@@ -205,7 +202,9 @@ export const SnapshotViewer = () => {
     }
   };
 
-  const title = snapshot ? formatSnapshotType(snapshot.type) : "Snapshot";
+  const title = snapshot
+    ? sharingTypeLabel(snapshot.type as SharingType)
+    : t("snapshots.snapshot");
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
@@ -218,8 +217,8 @@ export const SnapshotViewer = () => {
             <h1 className="truncate text-sm font-medium">{title}</h1>
             <p className="truncate text-[11px] text-muted-foreground">
               {snapshot?.documentId
-                ? `Document ${snapshot.documentId}`
-                : "Loading snapshot"}
+                ? t("snapshots.document", { id: snapshot.documentId })
+                : t("snapshots.loading_snapshot")}
             </p>
           </div>
         </div>
@@ -261,10 +260,13 @@ export const SnapshotViewer = () => {
               <div className="flex min-w-0 items-center gap-2">
                 <MessageSquare className="size-4 text-muted-foreground" />
                 <div className="min-w-0">
-                  <h2 className="truncate text-sm font-medium">Comments</h2>
+                  <h2 className="truncate text-sm font-medium">
+                    {t("snapshots.comments")}
+                  </h2>
                   <p className="text-[11px] text-muted-foreground">
-                    {comments.length} saved comment
-                    {comments.length === 1 ? "" : "s"}
+                    {t("snapshots.saved_comments", {
+                      count: comments.length,
+                    })}
                   </p>
                 </div>
               </div>
@@ -274,17 +276,19 @@ export const SnapshotViewer = () => {
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => setCommentsOpen(false)}
-                title="Minimize comments"
+                title={t("snapshots.minimize_comments")}
               >
                 <Minus />
-                <span className="sr-only">Minimize comments</span>
+                <span className="sr-only">
+                  {t("snapshots.minimize_comments")}
+                </span>
               </Button>
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto p-2">
               {comments.length === 0 ? (
                 <div className="flex min-h-24 items-center justify-center rounded-lg text-xs text-muted-foreground">
-                  No comments in this snapshot.
+                  {t("snapshots.no_comments")}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -294,7 +298,7 @@ export const SnapshotViewer = () => {
                       payload.name ??
                       payload.role ??
                       comment.participantId ??
-                      "User";
+                      t("snapshots.unknown_author");
 
                     return (
                       <button
@@ -332,10 +336,10 @@ export const SnapshotViewer = () => {
                 ? "pointer-events-none translate-y-2 scale-95 opacity-0"
                 : "translate-y-0 scale-100 opacity-100",
             )}
-            title="Open comments"
+            title={t("snapshots.open_comments")}
           >
             <MessageSquare />
-            Comments
+            {t("snapshots.comments")}
             <span
               className={cn(
                 "ml-1 rounded bg-primary-foreground/15 px-1.5 py-0.5 text-[10px]",

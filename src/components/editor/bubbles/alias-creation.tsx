@@ -4,12 +4,14 @@ import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Document } from "@/editor/document";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const AliasCreation: React.FC<BubbleMenuProps> = ({
   editor,
   isSingleWord,
   text,
 }) => {
+  useAppLanguage();
   const [value, setValue] = useState("");
 
   const createAlias = async () => {
@@ -44,7 +46,7 @@ export const AliasCreation: React.FC<BubbleMenuProps> = ({
             void createAlias();
           }
         }}
-        placeholder="means..."
+        placeholder={t("editor.inline.alias_placeholder")}
         className="h-7 w-28 border-0 bg-muted/50 px-2 placeholder:text text-xs shadow-none focus-visible:ring-1"
         autoFocus
       />
@@ -55,7 +57,7 @@ export const AliasCreation: React.FC<BubbleMenuProps> = ({
         disabled={!value.trim()}
         className="h-7 px-2 text-xs"
       >
-        create
+        {t("editor.inline.create")}
       </Button>
     </div>
   );

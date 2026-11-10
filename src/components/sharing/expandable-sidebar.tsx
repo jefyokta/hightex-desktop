@@ -24,8 +24,10 @@ import { RoleBadge } from "./role-bage";
 import { truncate } from "@/utils/truncate";
 import { sharingTypeLabel } from "@/utils/sharing-labels";
 import { useNavigate } from "react-router-dom";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const ExpandableSharingSidebar = () => {
+  useAppLanguage();
   const {
     participants,
     identity,
@@ -105,7 +107,7 @@ export const ExpandableSharingSidebar = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && rename(name)}
-            placeholder="Display name..."
+            placeholder={t("sharing.display_name")}
             className="h-8 text-sm"
           />
           <Button
@@ -113,7 +115,7 @@ export const ExpandableSharingSidebar = () => {
             className="h-8 shrink-0 px-3"
             onClick={() => rename(name)}
           >
-            Save
+            {t("sharing.save_name")}
           </Button>
         </div>
       </div>
@@ -152,12 +154,13 @@ export const ExpandableSharingSidebar = () => {
                         </TooltipTrigger>
                         <TooltipContent>{c.payload.role}</TooltipContent>
                       </Tooltip>
-                      {" want you to see "}
+                      {" "}
+                      {t("sharing.wants_you_to_see")}{" "}
                       <span
                         className="font-medium text-foreground underline cursor-pointer"
                         onClick={() => scrollToPage(Number(c.payload.page))}
                       >
-                        page {c.payload.page}
+                        {t("sharing.page", { page: c.payload.page })}
                       </span>
                     </p>
                   </div>
@@ -171,20 +174,22 @@ export const ExpandableSharingSidebar = () => {
               <div className="mb-2 rounded-lg bg-muted border border-border overflow-hidden">
                 <div className="flex items-center justify-between px-3 py-2 border-b border-border">
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                    selection
+                    {t("sharing.selection")}
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">
                       {(() => {
                         const s = getNearestPageNum(selection.start) ?? "";
                         const e = getNearestPageNum(selection.end) ?? "";
-                        return s === e ? `page ${s}` : `page ${s} – ${e}`;
+                        return s === e
+                          ? t("sharing.page", { page: s })
+                          : t("sharing.page_range", { start: s, end: e });
                       })()}
                     </span>
                     <button
                       onClick={() => setSelection(null)}
                       className="h-3.5 w-3.5 rounded-full bg-red-400 hover:bg-red-500 transition-colors flex items-center justify-center shadow-sm group"
-                      aria-label="Clear selection"
+                      aria-label={t("sharing.clear_selection")}
                     >
                       <span className="text-white text-[14px] leading-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                         ×
@@ -211,7 +216,7 @@ export const ExpandableSharingSidebar = () => {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Write a comment..."
+                placeholder={t("sharing.comment_placeholder")}
                 disabled={!connected || !canComment}
                 className="h-8 text-sm flex-1"
               />
@@ -234,7 +239,7 @@ export const ExpandableSharingSidebar = () => {
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-3 space-y-2">
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground px-1">
-                {participants.length} participants
+                {t("sharing.participants", { count: participants.length })}
               </div>
               {participants.map((u) => (
                 <div
@@ -259,10 +264,10 @@ export const ExpandableSharingSidebar = () => {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => {}}
+                onClick={() => { }}
               >
                 <LogOut className="h-3.5 w-3.5" />
-                Leave session
+                {t("sharing.leave_session")}
               </Button>
             )}
             <Button
@@ -272,7 +277,7 @@ export const ExpandableSharingSidebar = () => {
               onClick={() => navigate("/dashboard/present")}
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back
+              {t("sharing.back")}
             </Button>
           </div>
         </TabsContent>

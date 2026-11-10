@@ -19,7 +19,7 @@ type SettingModalProps = {
 
 export const SettingModal: React.FC<SettingModalProps> = ({
   open = false,
-  onClose = () => {},
+  onClose = () => { },
 }) => {
   const { config, saveConfig } = useConfig();
 
@@ -74,10 +74,10 @@ export const SettingModal: React.FC<SettingModalProps> = ({
             label={
               <>
                 {/* note for translator: alias = singkatan */}
-                <span>Enable Alias Hints</span>
+                <span>{t("settings.editor.alias_hints")}</span>
               </>
             }
-            description="Show the meaning of words defined in your Aliases List when you hover over them in the editor."
+            description={t("settings.editor.alias_hints_description")}
             value={config?.editor?.aliasHint ?? false}
             onChange={(value) => {
               saveEditor({

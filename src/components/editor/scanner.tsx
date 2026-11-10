@@ -11,6 +11,7 @@ import { useScan } from "@/hooks/use-scan";
 import { useScannerNavigation } from "@/hooks/use-scanner-navigation";
 import { diagnosticLocationKey } from "@/scanner/navigation";
 import { Counter } from "tjsn-parser";
+import { t, useAppLanguage } from "@/utils/lang";
 
 type PunctuationIssue = ScanResults["punctuation"][number];
 const visible = (s: string) => s.replace(/ /g, "·").replace(/\n/g, "↵");
@@ -186,6 +187,7 @@ const ProgressBar = ({
 
 export const Scanner = () => {
   const [expand, setExpand] = useState(false);
+  useAppLanguage();
   const {
     run,
     cancel,
@@ -229,9 +231,9 @@ export const Scanner = () => {
       })),
       ...figures.headings.map((graph) => ({
         graph,
-        kind: "Lampiran",
+        kind: t("editor.inline.appendix"),
         label: Counter.getAlpha(Number(graph.numbering)),
-        text: textOf(graph.text) || "(tanpa judul)",
+        text: textOf(graph.text) || t("editor.inline.untitled"),
       })),
     ];
   }, [figures]);
@@ -243,7 +245,7 @@ export const Scanner = () => {
     return (
       <button
         onClick={() => setExpand(true)}
-        aria-label="Buka scanner"
+        aria-label={t("editor.inline.open_scanner")}
         className="fixed bottom-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-background shadow"
       >
         {scanning ? (
@@ -264,20 +266,25 @@ export const Scanner = () => {
     <div className="fixed bottom-5 right-5 flex max-h-[75vh] w-96 flex-col overflow-hidden rounded-xl bg-background shadow-lg">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold">Scanner</h2>
+          <h2 className="text-sm font-semibold">
+            {t("editor.inline.scanner")}
+          </h2>
           <p className="text-xs text-muted-foreground">
-            {status === "idle" && "Cek referensi dan tanda baca"}
-            {scanning && "Sedang memeriksa…"}
+            {status === "idle" && t("editor.inline.scanner_idle")}
+            {scanning && t("editor.inline.scanner_scanning")}
             {status === "done" &&
-              (total ? `${total} temuan` : "Tidak ada masalah")}
-            {status === "cancelled" && `Dibatalkan · ${total} temuan sementara`}
+              (total
+                ? t("editor.inline.scanner_findings", { count: total })
+                : t("editor.inline.scanner_no_issues"))}
+            {status === "cancelled" &&
+              t("editor.inline.scanner_cancelled", { count: total })}
             {status === "failed" &&
-              `Pemeriksaan gagal · ${total} temuan sementara`}
+              t("editor.inline.scanner_failed", { count: total })}
           </p>
         </div>
         <button
           onClick={() => setExpand(false)}
-          aria-label="Tutup"
+          aria-label={t("editor.inline.close")}
           className="rounded p-1 hover:bg-muted"
         >
           <X size={16} />
@@ -289,7 +296,7 @@ export const Scanner = () => {
           <ProgressBar
             done={completed}
             total={plugins.length}
-            label={current ?? "Menyiapkan…"}
+            label={current ?? t("editor.inline.scanner_preparing")}
           />
         )}
 
@@ -298,7 +305,7 @@ export const Scanner = () => {
             onClick={cancel}
             className="flex w-full items-center justify-center gap-2 rounded-md border py-2 text-xs hover:bg-muted"
           >
-            <Ban size={14} /> Batalkan
+            <Ban size={14} /> {t("editor.inline.cancel")}
           </button>
         ) : (
           <button
@@ -310,7 +317,9 @@ export const Scanner = () => {
             ) : (
               <RotateCcw size={14} />
             )}
-            {status === "idle" ? "Mulai scan" : "Scan ulang"}
+            {status === "idle"
+              ? t("editor.inline.start_scan")
+              : t("editor.inline.scanner_rescan")}
           </button>
         )}
       </div>
@@ -327,7 +336,10 @@ export const Scanner = () => {
         ))}
 
         {figureCount > 0 && (
-          <Section title="Tidak dirujuk di teks" count={figureCount}>
+          <Section
+            title={t("editor.inline.unreferenced")}
+            count={figureCount}
+          >
             <ul className="divide-y rounded-lg border">
               {figureRows.map(({ graph, kind, label, text }) => (
                 <FigureRow
@@ -349,7 +361,10 @@ export const Scanner = () => {
         )}
 
         {chapters.length > 0 && (
-          <Section title="Tanda baca" count={punctuation.length}>
+          <Section
+            title={t("editor.inline.punctuation")}
+            count={punctuation.length}
+          >
             <div className="space-y-2">
               {chapters.map(({ chapter, issues }) => (
                 <ChapterGroup
@@ -365,7 +380,7 @@ export const Scanner = () => {
 
         {status === "idle" && (
           <p className="py-6 text-center text-xs text-muted-foreground">
-            Belum ada hasil. Klik "Mulai scan".
+            {t("editor.inline.scanner_empty")}
           </p>
         )}
       </div>

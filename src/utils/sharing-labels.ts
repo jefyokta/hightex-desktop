@@ -1,8 +1,10 @@
-const SESSION_LABELS: Record<SharingType, string> = {
-  advising: "Advising",
-  proposalSeminar: "Proposal Seminar",
-  finalDefense: "Final Defense",
+import { t, type LocaleKey } from "@/utils/lang";
+
+const SESSION_LABELS: Record<SharingType, LocaleKey> = {
+  advising: "present.type_advising",
+  proposalSeminar: "present.type_proposal_seminar",
+  finalDefense: "present.type_final_defense",
 };
 export function sharingTypeLabel(type: SharingType): string {
-  return SESSION_LABELS[type] ?? type;
+  return type in SESSION_LABELS ? t(SESSION_LABELS[type]) : type;
 }

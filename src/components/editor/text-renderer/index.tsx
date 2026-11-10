@@ -2,6 +2,7 @@ import React from "react";
 import { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../../../editor/storage/hightex-db";
 import { CiteUtils } from "bibtex.js";
+import { t, useAppLanguage } from "@/utils/lang";
 
 async function resolveCite(key?: string) {
   if (!key) return null;
@@ -70,6 +71,7 @@ function renderText(node: JSONContent): React.ReactNode {
 }
 
 function CiteNode({ node }: { node: JSONContent }) {
+  useAppLanguage();
   const [data, setData] = React.useState<CiteUtils | null>(null);
 
   const key = node.attrs?.cite;
@@ -90,7 +92,7 @@ function CiteNode({ node }: { node: JSONContent }) {
   }, [key]);
 
   if (!data) {
-    return <cite data-loading="true">loading...</cite>;
+    return <cite data-loading="true">{t("common.loading")}</cite>;
   }
 
   return (

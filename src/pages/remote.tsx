@@ -63,7 +63,7 @@ export const RemoteDocuments = () => {
   const local =
     !state ||
     state.profiles.find((profile) => profile.id === state.activeId)?.type ===
-      "local";
+    "local";
   if (local || !user) return <LoginGate />;
   return (
     <RemoteDocumentsContent key={`${user.id}:${online}`} online={online} />
@@ -185,11 +185,11 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       docs.some((doc) => doc.id === previous)
         ? previous
         : (docs.find(
-            (doc) =>
-              mapped[doc.id]?.serverDocumentId ===
-              response.commits.find((item) => item.type === "current")
-                ?.document_id,
-          )?.id ??
+          (doc) =>
+            mapped[doc.id]?.serverDocumentId ===
+            response.commits.find((item) => item.type === "current")
+              ?.document_id,
+        )?.id ??
           docs[0]?.id ??
           ""),
     );
@@ -237,7 +237,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       });
       await assertCurrent(session);
       if (result.status !== "downloaded") {
-        toast.info("Versi cloud belum tersedia atau sudah tidak tersimpan.");
+        toast.info(t("remote.cloud_version_unavailable"));
         return;
       }
       const id = restore
@@ -436,7 +436,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 onClick={() => setHistoryOpen(true)}
               >
                 <History className="size-4" />
-                Riwayat
+                {t("remote.history")}
                 {archives.length > 0 && (
                   <span className="rounded-full bg-muted px-1.5 text-[11px] leading-5">
                     {archives.length}
@@ -454,7 +454,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 ) : (
                   <RefreshCw className="size-4" />
                 )}
-                Muat ulang
+                {t("remote.refresh")}
               </Button>
             </div>
           }
@@ -463,14 +463,14 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             [
-              "1. Pilih dokumen",
-              "Dokumen lokal tetap tersimpan di perangkat ini.",
+              t("remote.guide_select"),
+              t("remote.guide_select_description"),
             ],
             [
-              "2. Simpan versi",
-              "Satu dokumen cloud dan empat versi sebelumnya.",
+              t("remote.guide_save"),
+              t("remote.guide_save_description"),
             ],
-            ["3. Ajukan review", "Kirim versi tersimpan kepada pembimbing."],
+            [t("remote.guide_review"), t("remote.guide_review_description")],
           ].map(([title, description]) => (
             <div key={title} className="rounded-xl border bg-background p-4">
               <p className="text-sm font-medium">{title}</p>
@@ -485,8 +485,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
           <div className="flex items-start gap-3 rounded-2xl bg-neutral-50 p-4 text-sm text-muted-foreground dark:bg-neutral-900">
             <CloudOff className="mt-0.5 size-4 shrink-0" />
             <p>
-              Kamu sedang offline. Dokumen di perangkat ini tetap aman.
-              Menyimpan dan mengunduh bisa dilakukan setelah terhubung lagi.
+              {t("remote.offline_description")}
             </p>
           </div>
         )}
@@ -513,7 +512,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
             </div>
             <button
               type="button"
-              aria-label="Tutup pesan"
+              aria-label={t("remote.close_notice")}
               onClick={() => setNotice(null)}
               className="-m-1 rounded-md p-1 opacity-70 transition-opacity hover:opacity-100"
             >
@@ -529,7 +528,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 <Cloud className="size-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-semibold">Versi di cloud</h2>
+                <h2 className="font-semibold">{t("remote.cloud_version")}</h2>
                 {showSkeleton ? (
                   <div
                     className="mt-2 h-4 w-44 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800"
@@ -539,13 +538,15 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   <div className="mt-0.5 space-y-1">
                     <p className="text-sm text-muted-foreground">
                       {current.created_at
-                        ? `Disimpan ${timeAgo(current.created_at)}`
-                        : "Tersimpan di cloud"}
+                        ? t("remote.saved_at", {
+                          time: timeAgo(current.created_at),
+                        })
+                        : t("remote.stored_in_cloud")}
                     </p>
                     <p className="wrap-break-word text-sm">
                       {current.message || (
                         <span className="text-muted-foreground">
-                          Tanpa catatan
+                          {t("remote.no_note")}
                         </span>
                       )}
                     </p>
@@ -553,9 +554,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                       <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Link2 className="size-3.5 shrink-0" />
                         <span className="truncate">
-                          Tertaut dengan{" "}
+                          {t("remote.linked_to")}{" "}
                           <ParsedItalic
-                            text={linkedDoc.title || "Tanpa judul"}
+                            text={linkedDoc.title || t("remote.untitled")}
                           />
                         </span>
                       </p>
@@ -564,8 +565,8 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 ) : (
                   <p className="mt-0.5 text-sm text-muted-foreground">
                     {online && loaded
-                      ? "Belum ada versi di cloud. Simpan dokumenmu di bawah untuk memulai."
-                      : "Status cloud belum tersedia. Hubungkan internet lalu muat ulang."}
+                      ? t("remote.no_cloud_version")
+                      : t("remote.cloud_status_unavailable")}
                   </p>
                 )}
               </div>
@@ -584,7 +585,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   ) : (
                     <ArrowDownToLine className="size-4" />
                   )}
-                  {linkedDoc ? "Perbarui salinan lokal" : "Unduh dokumen"}
+                  {linkedDoc
+                    ? t("remote.update_local_copy")
+                    : t("remote.download_document")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -592,7 +595,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   onClick={() => void pull(undefined, false, true)}
                   disabled={!online || busy}
                 >
-                  Unduh sebagai salinan
+                  {t("remote.download_copy")}
                 </Button>
               </div>
             )}
@@ -606,20 +609,25 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 aria-expanded={showTech}
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
-                Detail teknis
+                {t("remote.technical_details")}
                 <ChevronDown
-                  className={`size-3.5 transition-transform ${
-                    showTech ? "rotate-180" : ""
-                  }`}
+                  className={`size-3.5 transition-transform ${showTech ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {showTech && (
                 <dl className="mt-3 space-y-3 rounded-xl bg-white px-4 py-3 dark:bg-neutral-950">
-                  <TechRow label="Server ID" value={current.document_id} />
-                  <TechRow label="Local ID" value={linkedLocalId} />
-                  <TechRow label="SHA-256" value={current.sha256} />
                   <TechRow
-                    label="Base SHA-256 draft terpilih"
+                    label={t("remote.server_id")}
+                    value={current.document_id}
+                  />
+                  <TechRow
+                    label={t("remote.local_id")}
+                    value={linkedLocalId}
+                  />
+                  <TechRow label={t("remote.sha256")} value={current.sha256} />
+                  <TechRow
+                    label={t("remote.selected_draft_base_sha256")}
                     value={bindings[selectedId]?.baseSha256}
                   />
                 </dl>
@@ -634,9 +642,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
               <UploadCloud className="size-5" />
             </div>
             <div>
-              <h2 className="font-semibold">Simpan ke cloud</h2>
+              <h2 className="font-semibold">{t("remote.save_to_cloud")}</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Pilih dokumen, lalu simpan sebagai versi baru.
+                {t("remote.save_to_cloud_description")}
               </p>
             </div>
           </div>
@@ -644,7 +652,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
           <div className="mt-5 space-y-4">
             <div className="space-y-2">
               <label htmlFor="cloud-doc-select" className="text-sm font-medium">
-                Dokumen
+                {t("remote.document_label")}
               </label>
               <Select
                 value={selectedId}
@@ -658,17 +666,19 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   <SelectValue
                     placeholder={
                       !loaded
-                        ? "Memuat dokumen…"
+                        ? t("common.loading")
                         : localDocs.length
-                          ? "Pilih dokumen lokal"
-                          : "Belum ada dokumen lokal"
+                          ? t("remote.choose_document")
+                          : t("remote.no_local_document")
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
                   {localDocs.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
-                      <ParsedItalic text={doc.title || "Tanpa judul"} />
+                      <ParsedItalic
+                        text={doc.title || t("remote.untitled")}
+                      />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -679,16 +689,15 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   {isLinked ? (
                     <>
                       <Link2 className="size-3.5 shrink-0" />
-                      Dokumen ini sudah tertaut dengan versi di cloud.
+                      {t("remote.already_linked")}
                     </>
                   ) : current?.sha256 ? (
                     <>
                       <AlertCircle className="size-3.5 shrink-0" />
-                      Dokumen ini belum tertaut dengan dokumen di cloud saat
-                      ini.
+                      {t("remote.not_linked")}
                     </>
                   ) : (
-                    "Akan menjadi versi pertama di cloud."
+                    t("remote.first_cloud_version")
                   )}
                 </p>
               )}
@@ -699,21 +708,21 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 >
                   <p className="font-medium">
                     {kp
-                      ? "Dokumen KP — tersedia secara lokal"
+                      ? t("remote.kp_local")
                       : cloudAhead
-                        ? "Versi cloud sudah berubah"
+                        ? t("remote.cloud_changed")
                         : isLinked
-                          ? "Dokumen tertaut ke cloud"
+                          ? t("remote.linked_cloud")
                           : current
-                            ? "Dokumen ini akan menggantikan slot cloud"
-                            : "Siap untuk pencadangan pertama"}
+                            ? t("remote.replaces_cloud_slot")
+                            : t("remote.ready_first_backup")}
                   </p>
                   <p className="mt-1 text-xs leading-5">
                     {cloudAhead
-                      ? "Unduh sebagai salinan untuk membandingkan perubahan, atau gunakan Force push jika isi lokal yang ingin dipertahankan."
+                      ? t("remote.cloud_ahead_hint")
                       : isLinked
-                        ? "Simpan versi untuk mengirim perubahan lokal terbaru sebelum mengajukan review."
-                        : "Periksa dokumen yang dipilih sebelum menyimpan. Server menyediakan satu slot per akun."}
+                        ? t("remote.linked_save_hint")
+                        : t("remote.save_review_hint")}
                   </p>
                 </div>
               )}
@@ -725,9 +734,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 className="flex items-baseline justify-between text-sm font-medium"
               >
                 <span>
-                  Catatan{" "}
+                  {t("remote.note")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (opsional)
+                    ({t("remote.optional")})
                   </span>
                 </span>
                 <span className="text-[11px] font-normal text-muted-foreground">
@@ -740,7 +749,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 onChange={(event) => setCommitMessage(event.target.value)}
                 maxLength={255}
                 rows={2}
-                placeholder="Contoh: Merapikan bab metodologi"
+                placeholder={t("remote.commit_placeholder")}
                 disabled={busy}
                 className="min-h-16 resize-y bg-white dark:bg-neutral-950"
               />
@@ -761,14 +770,16 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 }
                 className="ml-auto w-full sm:w-auto"
                 aria-describedby="cloud-push-readiness"
-                title={pushHint || "Simpan perubahan lokal ke cloud"}
+                title={pushHint || t("remote.save_local_to_cloud")}
               >
                 {task?.kind === "push" ? (
                   <LoaderCircle className="size-4 animate-spin" />
                 ) : (
                   <UploadCloud className="size-4" />
                 )}
-                {task?.kind === "push" ? "Menyimpan…" : "Simpan versi"}
+                {task?.kind === "push"
+                  ? t("remote.saving")
+                  : t("remote.save_version")}
               </Button>
             </div>
             {current && (
@@ -776,12 +787,10 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 data-cloud-force-push
                 className="rounded-xl border border-amber-200 p-4 dark:border-amber-900"
                 triggerClassName="cursor-pointer text-sm font-medium"
-                label={<> Timpa versi cloud (Force push) </>}
+                label={t("remote.force_push")}
               >
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Gunakan jika versi lokal harus menggantikan cloud meskipun
-                  terjadi konflik. Seluruh isi cloud diganti; versi cloud
-                  diunduh dan dibackup terlebih dahulu.
+                  {t("remote.force_push_description")}
                 </p>
                 <Button
                   variant="destructive"
@@ -796,16 +805,18 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                   ) : (
                     <UploadCloud className="size-4" />
                   )}
-                  Force push dokumen lokal
+                  {t("remote.force_push_local")}
                 </Button>
               </Disclosure>
             )}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm">
               <p className="text-muted-foreground">
-                Sudah siap menerima masukan pembimbing?
+                {t("remote.advisor_review_ready")}
               </p>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/dashboard/submissions">Buka pengajuan review</Link>
+                <Link to="/dashboard/submissions">
+                  {t("remote.open_review_request")}
+                </Link>
               </Button>
             </div>
           </div>
@@ -813,10 +824,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       </div>
 
       <aside
-        aria-label="Riwayat versi"
-        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 xl:block ${
-          historyOpen ? "w-80" : "w-14"
-        }`}
+        aria-label={t("remote.version_history")}
+        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 xl:block ${historyOpen ? "w-80" : "w-14"
+          }`}
       >
         {historyOpen ? (
           <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-80 overflow-y-auto px-5">
@@ -831,8 +841,8 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
             <button
               type="button"
               onClick={() => setHistoryOpen(true)}
-              aria-label="Buka riwayat versi"
-              title="Riwayat versi"
+              aria-label={t("remote.open_version_history")}
+              title={t("remote.version_history")}
               className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-neutral-50 hover:text-foreground dark:hover:bg-neutral-900"
             >
               <History className="size-4" />
@@ -854,7 +864,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
             aria-hidden
           />
           <aside
-            aria-label="Riwayat versi"
+            aria-label={t("remote.version_history")}
             className="fixed inset-y-0 right-0 z-40 w-full max-w-sm overflow-y-auto border-l bg-background p-5 shadow-2xl"
           >
             <HistoryHeader
@@ -881,7 +891,7 @@ function HistoryHeader({
       <div className="min-w-0">
         <h2 className="flex items-center gap-2 font-semibold">
           <History className="size-4 text-muted-foreground" />
-          Riwayat versi
+          {t("remote.version_history")}
           {count > 0 && (
             <span className="rounded-full bg-muted px-1.5 text-[11px] font-normal leading-5 text-muted-foreground">
               {count}
@@ -889,14 +899,14 @@ function HistoryHeader({
           )}
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Unduh versi lama sebagai dokumen lokal.
+          {t("remote.download_old_version")}
         </p>
       </div>
       <button
         type="button"
         onClick={onClose}
-        aria-label="Tutup riwayat"
-        title="Tutup"
+        aria-label={t("remote.close_history")}
+        title={t("common.close")}
         className="-m-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <ChevronsRight className="size-4" />
@@ -925,10 +935,11 @@ function HistoryList({
   if (!archives.length) {
     return (
       <div className="mt-8 px-2 text-center">
-        <p className="text-sm font-medium">Belum ada versi sebelumnya</p>
+        <p className="text-sm font-medium">
+          {t("remote.no_previous_versions")}
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Versi lama akan muncul di sini setelah kamu menyimpan perubahan
-          berikutnya.
+          {t("remote.previous_versions_hint")}
         </p>
       </div>
     );
@@ -942,7 +953,7 @@ function HistoryList({
             <p className="line-clamp-2 wrap-break-word text-sm font-medium">
               {commit.message || (
                 <span className="font-normal text-muted-foreground">
-                  Tanpa catatan
+                  {t("remote.no_note")}
                 </span>
               )}
             </p>
@@ -956,14 +967,16 @@ function HistoryList({
             className="shrink-0"
             onClick={() => onPull(commit.sha256 || undefined)}
             disabled={!online || busy || !commit.sha256}
-            aria-label={`Unduh versi ${formatDate(commit.created_at)}`}
+            aria-label={t("remote.download_version", {
+              date: formatDate(commit.created_at),
+            })}
           >
             {pullingSha === commit.sha256 ? (
               <LoaderCircle className="size-4 animate-spin" />
             ) : (
               <ArrowDownToLine className="size-4" />
             )}
-            Salinan
+            {t("remote.copy")}
           </Button>
           <Button
             variant="ghost"
@@ -971,7 +984,7 @@ function HistoryList({
             disabled={!online || busy || !canRestore || !commit.sha256}
             onClick={() => commit.sha256 && onRestore(commit.sha256)}
           >
-            Pulihkan
+            {t("remote.restore")}
           </Button>
         </li>
       ))}
@@ -985,7 +998,7 @@ function TechRow({ label, value }: { label: string; value?: string | null }) {
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="mt-1 flex items-start gap-1">
         <span className="min-w-0 flex-1 break-all font-mono text-xs">
-          {value || "Belum ditautkan"}
+          {value || t("remote.not_linked_status")}
         </span>
         {value && <CopyButton value={value} label={label} />}
       </dd>
@@ -1002,7 +1015,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("Gagal menyalin.");
+      toast.error(t("citation.copy_failed"));
     }
   };
 

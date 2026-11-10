@@ -195,9 +195,9 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
               <span className="text-[11px] text-neutral-500 dark:text-neutral-400 whitespace-nowrap tabular-nums px-1">
                 {resultCount > 0
                   ? t("editor.findReplace.matchCount", {
-                      current: String(currentIndex + 1),
-                      total: String(resultCount),
-                    })
+                    current: String(currentIndex + 1),
+                    total: String(resultCount),
+                  })
                   : t("editor.findReplace.noResults")}
               </span>
             )}
@@ -213,7 +213,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
 
             {/* Navigation */}
             <BarButton
-              title="Previous (Shift+Enter)"
+              title={`${t("editor.inline.previous")} (Shift+Enter)`}
               onClick={handlePrev}
               disabled={resultCount === 0}
             >
@@ -221,7 +221,7 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             </BarButton>
 
             <BarButton
-              title="Next (Enter)"
+              title={`${t("editor.inline.next")} (Enter)`}
               onClick={handleNext}
               disabled={resultCount === 0}
             >
@@ -238,7 +238,10 @@ export const FindReplaceBar: React.FC<FindReplaceBarProps> = ({
             </BarButton>
 
             {/* Close */}
-            <BarButton title="Close (Esc)" onClick={handleClose}>
+            <BarButton
+              title={`${t("editor.inline.close")} (Esc)`}
+              onClick={handleClose}
+            >
               <X className="w-3.5 h-3.5" />
             </BarButton>
           </div>
@@ -321,10 +324,9 @@ const BarButton: React.FC<{
             rounded-md
             transition-colors duration-100
             disabled:opacity-30 disabled:cursor-not-allowed
-            ${
-              active
-                ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white"
-                : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200"
+            ${active
+              ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white"
+              : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200"
             }
           `}
         >

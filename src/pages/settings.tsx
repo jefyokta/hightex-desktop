@@ -228,11 +228,11 @@ export const Settings = () => {
                 {/* 
               note for translator: alias = singkatan
                */}
-                <span>Enable Alias Hints</span>
+                <span>{t("settings.editor.alias_hints")}</span>
               </>
             }
             description={
-              "Show the meaning of words defined in your Aliases List when you hover over them in the editor."
+              t("settings.editor.alias_hints_description")
             }
             value={config.editor?.aliasHint ?? false}
             onChange={async (val) => {
@@ -312,11 +312,9 @@ export const Settings = () => {
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-0.5">
-                <Label>Export timeout</Label>
+                <Label>{t("settings.export.timeout")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {
-                    "Export timeout in millisecond, default 120000ms (120 seconds)"
-                  }
+                  {t("settings.export.timeout_description")}
                 </p>
               </div>
             </div>
@@ -339,7 +337,7 @@ export const Settings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Zotero</CardTitle>
+          <CardTitle>{t("settings.zotero.zotero")}</CardTitle>
           <CardDescription>{t("settings.zotero.description")}</CardDescription>
         </CardHeader>
 
@@ -413,7 +411,7 @@ export const Settings = () => {
 
             <img
               src="/enabling-zotero-apis.png"
-              alt="Enable Zotero HTTP access"
+              alt={t("settings.zotero.how_to_enable.label")}
               className="mt-4 w-full rounded-2xl border border-neutral-200 dark:border-neutral-800"
             />
           </div>
@@ -424,17 +422,17 @@ export const Settings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Data</CardTitle>
-          <CardDescription>Storage and reset options</CardDescription>
+          <CardTitle>{t("settings.data.title")}</CardTitle>
+          <CardDescription>{t("settings.data.description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <DangerAction
             label={t("settings.data.clear_cache.label")}
             description={t("settings.data.clear_cache.description")}
-            action="Clear"
+            action={t("settings.data.clear_action")}
             onClick={async () => {
-              const id = toast.loading("Loading...");
+              const id = toast.loading(t("common.loading"));
 
               try {
                 toast.loading(
@@ -519,13 +517,13 @@ export const Settings = () => {
           <DangerAction
             label={t("settings.data.config.label")}
             description={t("settings.data.config.description")}
-            action="Reset"
+            action={t("settings.data.reset_action")}
             onClick={async () => {
-              const id = toast.loading("Loading...");
+              const id = toast.loading(t("common.loading"));
 
               try {
                 await window.config.reset();
-                toast.success("Done", { id });
+                toast.success(t("common.done_action"), { id });
               } catch (error) {
                 toast.error(
                   error instanceof Error

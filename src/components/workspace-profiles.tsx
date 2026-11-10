@@ -11,7 +11,12 @@ import {
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useAuthModal } from "@/context/auth-modal-context";
 import { useOnline } from "@/hooks/use-online";
-import { t } from "@/utils/lang";
+import {
+  LANGUAGE_OPTIONS,
+  t,
+  useAppLanguage,
+  type SupportedLanguage,
+} from "@/utils/lang";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { NativeSelect } from "./ui/native-select";
@@ -33,6 +38,7 @@ import {
 
 export function WorkspaceProfiles() {
   const { state, setState, error, setError } = useWorkspaces();
+  const language = useAppLanguage();
   const online = useOnline();
   const { openLogin, closeLogin } = useAuthModal();
   const [name, setName] = useState("");
@@ -349,6 +355,26 @@ export function WorkspaceProfiles() {
                 <option value="cloud">{t("workspace_profiles.cloud_type")}</option>
               </NativeSelect>
             </label>
+            {state.profiles.length === 1 && (
+              <label className="block space-y-1.5 text-sm">
+                <span>{t("workspace_profiles.language")}</span>
+                <NativeSelect
+                  value={language}
+                  disabled={busy}
+                  onChange={(event) =>
+                    void window.config.set({
+                      language: event.target.value as SupportedLanguage,
+                    })
+                  }
+                >
+                  {LANGUAGE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+            )}
             <p className="text-xs leading-relaxed text-muted-foreground">
               {type === "cloud"
                 ? t("workspace_profiles.cloud_hint")

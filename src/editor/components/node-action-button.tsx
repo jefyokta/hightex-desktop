@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import Tippy from "@tippyjs/react";
 import { GripVertical } from "lucide-react";
+import { t, useAppLanguage } from "@/utils/lang";
 import {
   Command,
   CommandGroup,
@@ -34,7 +35,7 @@ const ActionMenuContent: React.FC<{
   return (
     <Command className="rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-md text-left font-sans w-37.5 bg-white dark:bg-neutral-950 text-neutral-950 dark:text-neutral-50">
       <CommandList>
-        <CommandGroup heading={label || "Options"}>
+        <CommandGroup heading={label || t("editor.inline.options")}>
           <CommandSeparator className="my-2 bg-neutral-100 dark:bg-neutral-800" />
           {items.map((item, i) => (
             <CommandItem
@@ -59,6 +60,7 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
   items,
   label,
 }) => {
+  useAppLanguage();
   const actionItems = items || [];
   const [isVisible, setIsVisible] = useState(false);
 
@@ -98,7 +100,7 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
       >
         <button
           onClick={toggleVisibility}
-          title="Node Actions"
+          title={t("editor.inline.node_actions")}
           className="p-1 rounded-md cursor-pointer text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 shadow-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
           <GripVertical className="w-4 h-4" />

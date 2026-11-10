@@ -72,9 +72,12 @@ export const Editor: React.FC = () => {
     const off = Manager.app.on(
       "migrating:deprecation",
       ({ fixed, node, id }) => {
-        toast.info(`Auto Migrating for deprecated nodes`, {
+        toast.info(t("editor.inline.auto_migrating"), {
           id,
-          description: `found '${node.type}', found ${fixed} in totals`,
+          description: t("editor.inline.auto_migrating_description", {
+            count: fixed,
+            node: node.type,
+          }),
         });
       },
     );
@@ -302,7 +305,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
               diagnostic?.chapterId === chapter.getId() &&
               !focusScannerDiagnostic(editor, diagnostic)
             ) {
-              toast.info("Temuan tidak lagi ditemukan. Jalankan scan ulang.");
+              toast.info(t("editor.inline.scanner_stale"));
             }
           } else if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
             scrollToPunctuationParagraph(
@@ -357,7 +360,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
                           setOpen(true);
                         }}
                       >
-                        Open
+                        {t("editor.inline.open")}
                       </Button>
                     ),
                   });

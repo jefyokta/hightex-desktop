@@ -26,6 +26,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { t } from "@/utils/lang";
 
 const sizeToHeightMiddleware = size({
   apply({ rects, elements }) {
@@ -54,11 +55,10 @@ const ToolButton = ({ icon, tooltip, onClick, destructive = false }: any) => (
                     rounded-md
                     transition
                     shrink-0
-                    ${
-                      destructive
-                        ? "hover:bg-destructive/10 text-destructive"
-                        : "hover:bg-muted"
-                    }
+                    ${destructive
+            ? "hover:bg-destructive/10 text-destructive"
+            : "hover:bg-muted"
+          }
                 `}
       >
         {icon}
@@ -154,7 +154,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
           </TooltipTrigger>
 
           <TooltipContent className="text-[11px] px-2 py-1">
-            Table tools
+            {t("editor.inline.table_tools")}
           </TooltipContent>
         </Tooltip>
 
@@ -173,7 +173,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
         >
           <div className="flex items-center gap-0.5 px-1">
             <ToolButton
-              tooltip="Align left"
+              tooltip={t("editor.context_menu.align_left")}
               onClick={() => {
                 editor.commands.setCellAlignmentLeft();
               }}
@@ -181,7 +181,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
             />
 
             <ToolButton
-              tooltip="Align center"
+              tooltip={t("editor.context_menu.align_center")}
               onClick={() => {
                 editor.commands.setCellAlignmentCenter();
               }}
@@ -189,7 +189,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
             />
 
             <ToolButton
-              tooltip="Align right"
+              tooltip={t("editor.context_menu.align_right")}
               onClick={() => {
                 editor.commands.setCellAlignmentRight();
               }}
@@ -199,7 +199,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
             <Divider />
 
             <ToolButton
-              tooltip="Merge cells"
+              tooltip={t("editor.context_menu.merge_cells")}
               onClick={() => {
                 editor.commands.mergeCells();
               }}
@@ -207,7 +207,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
             />
 
             <ToolButton
-              tooltip="Split cell"
+              tooltip={t("editor.context_menu.split_cell")}
               onClick={() => {
                 editor.commands.splitCell();
               }}
@@ -218,7 +218,7 @@ const CellMenu = ({ editor }: { editor: Editor }) => {
 
             <ToolButton
               destructive
-              tooltip="Delete column"
+              tooltip={t("editor.context_menu.delete_column")}
               onClick={() => {
                 editor.commands.deleteColumn();
               }}
@@ -293,7 +293,7 @@ const RowMenu = ({ editor }: { editor: Editor }) => {
       >
         <ToolButton
           destructive
-          tooltip="Delete row"
+          tooltip={t("editor.context_menu.delete_row")}
           onClick={() => {
             editor.commands.deleteRow();
           }}
@@ -382,7 +382,7 @@ const AddRowColumnAfter = ({ editor }: { editor: Editor }) => {
         </TooltipTrigger>
 
         <TooltipContent className="text-[11px] px-2 py-1">
-          Add column
+          {t("editor.inline.add_column")}
         </TooltipContent>
       </Tooltip>
 
@@ -408,7 +408,7 @@ const AddRowColumnAfter = ({ editor }: { editor: Editor }) => {
         </TooltipTrigger>
 
         <TooltipContent className="text-[11px] px-2 py-1">
-          Add row
+          {t("editor.inline.add_row")}
         </TooltipContent>
       </Tooltip>
     </>

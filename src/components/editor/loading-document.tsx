@@ -1,4 +1,7 @@
+import { t, useAppLanguage } from "@/utils/lang";
+
 export const LoadingDocument = () => {
+  useAppLanguage();
   return (
     <div
       className="
@@ -38,7 +41,7 @@ export const LoadingDocument = () => {
 
         <div className="mt-12 flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500">
           <div className="w-2 h-2 rounded-full bg-neutral-300 dark:bg-neutral-700 animate-pulse" />
-          Loading document...
+          {t("editor.inline.loading_document")}
         </div>
       </div>
     </div>

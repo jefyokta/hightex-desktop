@@ -132,8 +132,8 @@ export const LoginModal = () => {
             value={email}
             type="email"
             autoComplete="username"
-            placeholder="Email"
-            aria-label="Email"
+            placeholder={t("desktop_auth.email")}
+            aria-label={t("desktop_auth.email")}
             required
             disabled={busy || waiting}
             onChange={(event) => setEmail(event.target.value)}
@@ -142,8 +142,8 @@ export const LoginModal = () => {
             value={password}
             type="password"
             autoComplete="current-password"
-            placeholder="Password"
-            aria-label="Password"
+            placeholder={t("desktop_auth.password")}
+            aria-label={t("desktop_auth.password")}
             required
             disabled={busy || waiting}
             onChange={(event) => setPassword(event.target.value)}

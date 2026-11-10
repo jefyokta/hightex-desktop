@@ -10,8 +10,10 @@ import {
   useInteractions,
 } from "@floating-ui/react";
 import { useEffect, useState } from "react";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const CommentSlave = () => {
+  useAppLanguage();
   const { editor } = useCurrentEditor();
 
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -112,7 +114,9 @@ export const CommentSlave = () => {
               {comment.role}
             </div>
 
-            <div className="text-[11px] text-muted-foreground">Comment</div>
+            <div className="text-[11px] text-muted-foreground">
+              {t("editor.inline.comment")}
+            </div>
           </div>
         </div>
       </div>

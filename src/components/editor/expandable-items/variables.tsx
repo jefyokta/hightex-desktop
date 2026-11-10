@@ -103,7 +103,10 @@ export const VariableTab = () => {
   return (
     <TooltipProvider>
       <div data-tour="editor-variables" className="w-full h-full overflow-auto">
-        <TabHeader title="Variables" desc="Document variables" />
+        <TabHeader
+          title={t("editor.inline.variables_title")}
+          desc={t("editor.inline.variables_description")}
+        />
 
         <div className="px-2 py-2">
           {creating ? (
@@ -112,7 +115,7 @@ export const VariableTab = () => {
                 autoFocus
                 value={newLine}
                 onChange={(e) => setNewLine(e.target.value.trim())}
-                placeholder="key = value"
+                placeholder={t("editor.inline.variable_placeholder")}
                 className="flex-1 bg-transparent outline-none text-sm"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") saveCreate();
@@ -124,7 +127,7 @@ export const VariableTab = () => {
               />
 
               <button onClick={saveCreate} className="text-xs">
-                save
+                {t("editor.inline.save")}
               </button>
             </div>
           ) : (
@@ -132,16 +135,20 @@ export const VariableTab = () => {
               onClick={() => setCreating(true)}
               className="cursor-pointer"
             >
-              add variable
+              {t("editor.inline.add_variable")}
             </Button>
           )}
         </div>
 
         <div className="px-2 space-y-2 text-sm">
           {loading ? (
-            <div className="text-neutral-500 text-xs py-3">loading...</div>
+            <div className="text-neutral-500 text-xs py-3">
+              {t("editor.inline.loading_variables")}
+            </div>
           ) : sortedVars.length === 0 ? (
-            <div className="text-neutral-500 text-xs py-3">no variables</div>
+            <div className="text-neutral-500 text-xs py-3">
+              {t("editor.inline.no_variables")}
+            </div>
           ) : (
             sortedVars.map((v) => {
               const locked = isStaticVar(v.name);
@@ -195,7 +202,9 @@ export const VariableTab = () => {
                     {!locked && (
                       <div className="flex items-center gap-2 text-xs">
                         {isEditing ? (
-                          <button onClick={() => saveEdit(v.name)}>save</button>
+                          <button onClick={() => saveEdit(v.name)}>
+                            {t("editor.inline.save")}
+                          </button>
                         ) : (
                           <>
                             <button
@@ -204,14 +213,14 @@ export const VariableTab = () => {
                                 setDraft(v.value);
                               }}
                             >
-                              edit
+                              {t("editor.inline.edit")}
                             </button>
 
                             <button
                               onClick={() => remove(v.name)}
                               className="text-red-500"
                             >
-                              delete
+                              {t("editor.inline.delete")}
                             </button>
                           </>
                         )}

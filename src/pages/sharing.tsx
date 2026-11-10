@@ -27,21 +27,21 @@ import { Input } from "@/components/ui/input";
 import { connectToHost } from "@/utils/sharing";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t, useAppLanguage, type LocaleKey } from "@/utils/lang";
 import { ParsedItalic } from "@/utils/parse-italic";
 
-const sharingType: { type: SharingType; name: string }[] = [
+const sharingType: { type: SharingType; key: LocaleKey }[] = [
   {
     type: "advising",
-    name: "Advising",
+    key: "present.type_advising",
   },
   {
     type: "proposalSeminar",
-    name: "Proposal Seminar",
+    key: "present.type_proposal_seminar",
   },
   {
     type: "finalDefense",
-    name: "Final Defense",
+    key: "present.type_final_defense",
   },
 ];
 
@@ -262,20 +262,20 @@ const ShareDocument = ({
       <div className="flex items-center gap-3">
         <Select value={type} onValueChange={(v) => setType(v as SharingType)}>
           <SelectTrigger className="w-56">
-            <SelectValue placeholder="Sharing Type" />
+            <SelectValue placeholder={t("sharing.type")} />
           </SelectTrigger>
 
           <SelectContent>
             {sharingType.map((item) => (
               <SelectItem key={item.type} value={item.type}>
-                {item.name}
+                {t(item.key)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Button disabled={!type || loading} onClick={start}>
-          {loading ? "Starting..." : "Start Sharing"}
+          {loading ? t("sharing.starting") : t("sharing.start")}
         </Button>
       </div>
     </div>
@@ -295,7 +295,7 @@ const SharingInfo = ({
     <div className="rounded-xl bg-neutral-50 dark:bg-neutral-900 p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold">Active Session</h3>
+          <h3 className="font-semibold">{t("sharing.active_session")}</h3>
 
           <p className="text-sm text-muted-foreground">
             <ParsedItalic text={session.document.title} />
@@ -303,7 +303,7 @@ const SharingInfo = ({
         </div>
         <div className="space-x-1">
           <Button variant="destructive" size="sm" onClick={() => onClose()}>
-            Stop
+            {t("sharing.stop")}
           </Button>
           <Button
             size="sm"
@@ -311,26 +311,30 @@ const SharingInfo = ({
               return go("/shared");
             }}
           >
-            Go
+            {t("sharing.open")}
           </Button>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg bg-black/5 dark:bg-white/3  p-3">
-          <div className="text-xs text-muted-foreground">Session Type</div>
+          <div className="text-xs text-muted-foreground">
+            {t("sharing.session_type")}
+          </div>
 
           <div className="font-medium">{sharingTypeLabel(session.type)}</div>
         </div>
 
         <div className="rounded-lg bg-black/5 dark:bg-white/3 p-3">
-          <div className="text-xs text-muted-foreground">Address</div>
+          <div className="text-xs text-muted-foreground">
+            {t("sharing.address")}
+          </div>
 
           <div className="font-mono text-sm">{session.host}</div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="font-medium">Invitation Codes</div>
+        <div className="font-medium">{t("sharing.invitation_codes")}</div>
 
         {session.guest.map((guest) => (
           <div

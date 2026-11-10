@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { formatInTextCitation } from "@/utils/citation";
 import { CiteUtils } from "bibtex.js";
+import { t, useAppLanguage } from "@/utils/lang";
 
 interface CiteRecord {
   key: string;
@@ -55,7 +56,7 @@ const CitationItem = ({
             hover:bg-neutral-100 hover:text-neutral-700
             dark:hover:bg-neutral-800 dark:hover:text-neutral-200
           "
-          aria-label="Remove citation"
+          aria-label={t("editor.inline.citation_remove")}
         >
           <X size={15} />
         </button>
@@ -73,10 +74,12 @@ const CitationItem = ({
             disabled:cursor-default disabled:opacity-40
             dark:hover:bg-neutral-800 dark:hover:text-neutral-200
           "
-          aria-label="Add citation"
+          aria-label={t("editor.inline.citation_add")}
         >
           {selected ? (
-            <span className="px-1 text-xs">Added</span>
+            <span className="px-1 text-xs">
+              {t("editor.inline.citation_added")}
+            </span>
           ) : (
             <Plus size={16} />
           )}
@@ -90,13 +93,14 @@ export const Citation: React.FC<NodeViewProps> = ({
   node,
   updateAttributes,
 }) => {
+  useAppLanguage();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"view" | "add">("view");
 
   const [cites, setCites] = useState<CiteRecord[]>([]);
   const [bibliography, setBibliography] = useState<CiteRecord[]>([]);
 
-  const [fetchedCite, setFetchedCite] = useState("(Loading)");
+  const [fetchedCite, setFetchedCite] = useState(t("common.loading"));
   const [search, setSearch] = useState("");
 
   const citeIds = useMemo(
@@ -244,10 +248,12 @@ export const Citation: React.FC<NodeViewProps> = ({
                 </button>
 
                 <div className="min-w-0">
-                  <h2 className="text-sm font-semibold">Add citation</h2>
+                  <h2 className="text-sm font-semibold">
+                    {t("editor.inline.citation_add")}
+                  </h2>
 
                   <p className="truncate text-xs text-neutral-500">
-                    Select a reference from your bibliography
+                    {t("editor.inline.citation_choose")}
                   </p>
                 </div>
               </div>
@@ -265,7 +271,7 @@ export const Citation: React.FC<NodeViewProps> = ({
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search bibliography..."
+                    placeholder={t("editor.inline.citation_search")}
                     className="
                       h-9 w-full bg-transparent text-sm outline-none
                       placeholder:text-neutral-400
@@ -289,7 +295,7 @@ export const Citation: React.FC<NodeViewProps> = ({
                   </div>
                 ) : (
                   <div className="py-8 text-center text-sm text-neutral-500">
-                    No bibliography found.
+                    {t("editor.inline.citation_none")}
                   </div>
                 )}
               </div>
@@ -297,10 +303,12 @@ export const Citation: React.FC<NodeViewProps> = ({
           ) : (
             <>
               <div className="border-b px-4 py-3">
-                <h2 className="text-sm font-semibold">Citation</h2>
+                <h2 className="text-sm font-semibold">
+                  {t("editor.inline.citation")}
+                </h2>
 
                 <p className="text-xs text-neutral-500">
-                  Manage references in this citation
+                  {t("editor.inline.citation_manage")}
                 </p>
               </div>
 
@@ -317,7 +325,7 @@ export const Citation: React.FC<NodeViewProps> = ({
                   </div>
                 ) : (
                   <div className="rounded-lg border border-dashed border-neutral-300 px-3 py-8 text-center text-sm text-neutral-500 dark:border-neutral-700">
-                    No citations added.
+                    {t("editor.inline.citations_none")}
                   </div>
                 )}
 
@@ -336,13 +344,13 @@ export const Citation: React.FC<NodeViewProps> = ({
                   "
                 >
                   <Plus size={15} />
-                  Add citation
+                  {t("editor.inline.citation_add")}
                 </button>
               </div>
 
               <div className="border-t px-3 py-3">
                 <div className="mb-2 px-1 text-xs font-medium text-neutral-500">
-                  Format
+                  {t("editor.inline.citation_format")}
                 </div>
 
                 <Tabs
@@ -354,9 +362,13 @@ export const Citation: React.FC<NodeViewProps> = ({
                   }
                 >
                   <TabsList className="grid h-9 w-full grid-cols-2">
-                    <TabsTrigger value="standard">Standard</TabsTrigger>
+                    <TabsTrigger value="standard">
+                      {t("editor.inline.citation_standard")}
+                    </TabsTrigger>
 
-                    <TabsTrigger value="author">Author</TabsTrigger>
+                    <TabsTrigger value="author">
+                      {t("editor.inline.citation_author")}
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>

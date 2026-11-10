@@ -21,6 +21,7 @@ import { ImageConvertError } from "@/exception/image-convert";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { toast } from "sonner";
+import { t, useAppLanguage } from "@/utils/lang";
 
 type LoadState =
   | { status: "idle" }
@@ -35,6 +36,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
   getPos,
   editor,
 }) => {
+  useAppLanguage();
   const dbId = node.attrs["src"] as string | null;
   const initWidth = (node.attrs["width"] as number) ?? 400;
 
@@ -109,7 +111,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
       await navigator.clipboard.write([
         new ClipboardItem({ [blob.type]: blob }),
       ]);
-      toast.success("copied!");
+      toast.success(t("editor.expandable.citation.copied"));
     } catch (err) {
       console.error("[ImageComponent] copy failed", err);
       throw new ShouldNotified(ApplicationError.normilize(err));
@@ -229,20 +231,27 @@ const ReadyView: React.FC<ReadyViewProps> = ({
       onMouseDown={onStartResize}
     />
     <div className="absolute top-2 left-2 z-50 hidden group-hover:flex space-x-2">
-      <IconBtn tooltip="Copy image" onClick={onCopy}>
+      <IconBtn tooltip={t("editor.inline.image_copy")} onClick={onCopy}>
         <Images className="w-4 h-4" />
       </IconBtn>
-      <IconBtn tooltip="Wrap in figure" onClick={onToFigure}>
+      <IconBtn
+        tooltip={t("editor.inline.wrap_figure")}
+        onClick={onToFigure}
+      >
         <GalleryThumbnails className="w-4 h-4" />
       </IconBtn>
       <IconBtn
-        tooltip="Delete image"
+        tooltip={t("editor.context_menu.delete_image")}
         variant="danger-soft"
         onClick={onDeleteImage}
       >
         <Trash className="w-4 h-4" />
       </IconBtn>
-      <IconBtn tooltip="Remove node" variant="danger" onClick={onDeleteNode}>
+      <IconBtn
+        tooltip={t("editor.inline.delete")}
+        variant="danger"
+        onClick={onDeleteNode}
+      >
         <X className="w-4 h-4" />
       </IconBtn>
     </div>
@@ -272,7 +281,11 @@ const UploadView: React.FC<UploadViewProps> = ({ onSelect, onDeleteNode }) => {
   return (
     <div className="relative">
       <div className="absolute top-2 right-2 z-50">
-        <IconBtn tooltip="Remove node" variant="danger" onClick={onDeleteNode}>
+        <IconBtn
+          tooltip={t("editor.inline.delete")}
+          variant="danger"
+          onClick={onDeleteNode}
+        >
           <X className="w-4 h-4" />
         </IconBtn>
       </div>
@@ -283,7 +296,7 @@ const UploadView: React.FC<UploadViewProps> = ({ onSelect, onDeleteNode }) => {
           className="sr-only"
           onChange={handleChange}
         />
-        <span>Click or drop image</span>
+        <span>{t("editor.inline.image_drop")}</span>
       </label>
     </div>
   );

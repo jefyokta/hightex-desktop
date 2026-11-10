@@ -68,13 +68,13 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
           <div className="flex gap-2">
             {selected.length > 0 && (
               <Button onClick={() => clear()} variant="destructive" size="sm">
-                Deselect All
+                {t("citation.zotero.deselect_all")}
               </Button>
             )}
 
             {items.length > 0 && selected.length !== items.length && (
               <Button onClick={selectAll} size="sm">
-                Select All
+                {t("citation.zotero.select_all")}
               </Button>
             )}
 

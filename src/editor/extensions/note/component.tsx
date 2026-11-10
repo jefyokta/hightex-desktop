@@ -9,8 +9,10 @@ import type { MarkViewRendererProps } from "@tiptap/core";
 import { MarkViewContent } from "@tiptap/react";
 import { Clock3, MessageSquareText, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
+  useAppLanguage();
   const [open, setOpen] = useState(false);
 
   const { id, note, created } = mark.attrs;
@@ -20,9 +22,9 @@ export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
   const createdText =
     createdDate && !Number.isNaN(createdDate.getTime())
       ? new Intl.DateTimeFormat(undefined, {
-          dateStyle: "medium",
-          timeStyle: "short",
-        }).format(createdDate)
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(createdDate)
       : null;
 
   const handleUnset = () => {
@@ -96,7 +98,7 @@ export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
             </div>
 
             <div className="min-w-0">
-              <p className="text-sm font-medium">Note</p>
+              <p className="text-sm font-medium">{t("editor.inline.note")}</p>
 
               {createdText && (
                 <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -110,7 +112,9 @@ export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
           <div className="px-3 py-3">
             <p className="whitespace-pre-wrap wrap-break-word text-sm leading-relaxed">
               {note || (
-                <span className="italic text-muted-foreground">No note</span>
+                <span className="italic text-muted-foreground">
+                  {t("editor.inline.no_note")}
+                </span>
               )}
             </p>
           </div>
@@ -124,7 +128,7 @@ export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
               onClick={handleUnset}
             >
               <Trash2 className="size-4" />
-              Remove note
+              {t("editor.inline.remove_note")}
             </Button>
           </div>
         </PopoverContent>

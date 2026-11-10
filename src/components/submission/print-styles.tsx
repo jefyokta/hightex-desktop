@@ -5,6 +5,7 @@ import fontCss from "@/assets/fonts/style.css?url";
 import katexCss from "katex/dist/katex.min.css?url";
 import codeCss from "highlight.js/styles/github-dark.css?url";
 import { createElementFromUrl } from "@/utils/create-element-from-url";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const PrintStyles = ({
   children,
@@ -13,6 +14,7 @@ export const PrintStyles = ({
   children: ReactNode;
   onError?(error: unknown): void;
 }) => {
+  useAppLanguage();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -47,6 +49,7 @@ export const PrintStyles = ({
       elements.forEach((element) => element.remove());
     };
   }, [onError]);
-  if (error) return <p role="alert">Unable to load preview styles.</p>;
+  if (error)
+    return <p role="alert">{t("submission_review.errors.preview_failed")}</p>;
   return ready ? children : null;
 };

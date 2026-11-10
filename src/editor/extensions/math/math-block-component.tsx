@@ -13,6 +13,7 @@ import { Copy, Trash2 } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { Document } from "@/editor/document";
+import { t, useAppLanguage } from "@/utils/lang";
 
 export const MathBlockComponent = ({
   node,
@@ -20,6 +21,7 @@ export const MathBlockComponent = ({
   deleteNode,
   editor,
 }: NodeViewProps) => {
+  useAppLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [latex, setLatex] = useState(node.attrs.latex ?? "");
@@ -126,16 +128,18 @@ export const MathBlockComponent = ({
                 onClick={() =>
                   navigator.clipboard
                     .writeText(node.attrs.id)
-                    .then((_) => toast.success("equation copied!"))
+                    .then(() =>
+                      toast.success(t("editor.inline.equation_copied")),
+                    )
                 }
               >
                 <Copy className="w-4 h-4 mr-1" />
-                Quote
+                {t("editor.inline.quote")}
               </Button>
 
               <Button size="sm" variant="destructive" onClick={deleteNode}>
                 <Trash2 className="w-4 h-4 mr-1" />
-                Delete
+                {t("editor.inline.delete")}
               </Button>
             </div>
           </PopoverContent>

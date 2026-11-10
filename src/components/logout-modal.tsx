@@ -26,10 +26,10 @@ export const LogoutModal = () => {
       <div className="w-90 p-6 space-y-6 bg-white dark:bg-neutral-900">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Logout from HighTex?
+            {t("desktop_auth.logout_title")}
           </h2>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            You will be signed out of your current session.
+            {t("desktop_auth.logout_description")}
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export const LogoutModal = () => {
             disabled={loading}
             className="flex-1 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
 
           <button
@@ -47,7 +47,9 @@ export const LogoutModal = () => {
             disabled={loading}
             className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading ? "Logging out..." : "Logout"}
+            {loading
+              ? t("desktop_auth.logging_out")
+              : t("common.logout")}
           </button>
         </div>
       </div>

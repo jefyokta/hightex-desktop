@@ -165,8 +165,8 @@ export const SubmissionSnapshotViewer = ({
           <p className="text-xs text-muted-foreground">
             {snapshot.source.kind === "submission"
               ? t("submission_review.snapshot_label", {
-                  id: snapshot.source.submissionId,
-                })
+                id: snapshot.source.submissionId,
+              })
               : t("submission_review.local_label")}
           </p>
         </div>
@@ -196,22 +196,22 @@ export const SubmissionSnapshotViewer = ({
       {(error ||
         profile.incomplete ||
         snapshot.unsupportedNodes.length > 0) && (
-        <Alert variant={error ? "destructive" : "default"}>
-          <AlertDescription>
-            {error && <p>{error}</p>}
-            {profile.incomplete && (
-              <p>{t("submission_review.missing_profile")}</p>
-            )}
-            {snapshot.unsupportedNodes.length > 0 && (
-              <p>{t("submission_review.unsupported_content")}</p>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
+          <Alert variant={error ? "destructive" : "default"}>
+            <AlertDescription>
+              {error && <p>{error}</p>}
+              {profile.incomplete && (
+                <p>{t("submission_review.missing_profile")}</p>
+              )}
+              {snapshot.unsupportedNodes.length > 0 && (
+                <p>{t("submission_review.unsupported_content")}</p>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
         <div className="flex items-center gap-2 min-w-35 text-xs">
           <Eye className="w-4 h-4 opacity-60 shrink-0" />
-          Full Document
+          {t("submission_review.full_document")}
         </div>
         <div className="flex items-center gap-2 flex-1 min-w-40 max-w-60 border rounded-lg px-2 py-1 h-8 bg-background">
           <ZoomIn className="w-4 h-4 opacity-60 shrink-0" />
@@ -240,7 +240,7 @@ export const SubmissionSnapshotViewer = ({
           <div className="flex items-center gap-2 rounded-lg border px-2.5 py-1 h-8 bg-background">
             <Layout className="w-4 h-4 opacity-60" />
             <span className="text-xs text-muted-foreground select-none">
-              Layout
+              {t("submission_review.layout")}
             </span>
             <Switch
               checked={layoutIndicator}

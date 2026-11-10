@@ -124,7 +124,10 @@ export const Preview = () => {
 
   return (
     <div className="flex flex-col h-full justify-between">
-      <TabHeader title="Preview" desc={t("editor.expandable.preview.header")}>
+      <TabHeader
+        title={t("editor.inline.preview_title")}
+        desc={t("editor.expandable.preview.header")}
+      >
         <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
           <div className="flex items-center gap-2 min-w-35">
             <Eye className="w-4 h-4 opacity-60 shrink-0" />
@@ -149,15 +152,15 @@ export const Preview = () => {
               }}
             >
               <SelectTrigger className="h-8 w-full text-xs">
-                <SelectValue placeholder="Scope" />
+                <SelectValue placeholder={t("editor.inline.preview_scope")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="current" className="text-xs">
-                    Current Chapter
+                    {t("editor.inline.current_chapter")}
                   </SelectItem>
                   <SelectItem value="full" className="text-xs">
-                    Full Document
+                    {t("editor.inline.full_document")}
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -192,7 +195,7 @@ export const Preview = () => {
             <div className="flex items-center gap-2 rounded-lg border px-2.5 py-1 h-8 bg-background">
               <Monitor className="w-4 h-4 opacity-60" />
               <span className="text-xs text-muted-foreground select-none">
-                Auto
+                {t("editor.inline.auto")}
               </span>
               <Switch
                 checked={autoUpdate}
@@ -206,7 +209,7 @@ export const Preview = () => {
             <div className="flex items-center gap-2 rounded-lg border px-2.5 py-1 h-8 bg-background">
               <Layout className="w-4 h-4 opacity-60" />
               <span className="text-xs text-muted-foreground select-none">
-                Layout
+                {t("editor.inline.layout")}
               </span>
               <Switch
                 checked={layoutIndicator}

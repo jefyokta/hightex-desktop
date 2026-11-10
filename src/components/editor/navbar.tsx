@@ -147,7 +147,7 @@ export const NavBar: React.FC = () => {
             <ButtonGroup>
               <Button
                 icon={ArrowLeftIcon}
-                title="Back"
+                title={t("editor.inline.toolbar_back")}
                 disabled={!navigation?.canGoBack}
                 spinnable={false}
                 onClick={() => {
@@ -184,12 +184,12 @@ export const NavBar: React.FC = () => {
                   )}
                 </button>
                 <Button
-                  title="undo"
+                  title={t("editor.inline.toolbar_undo")}
                   icon={Undo2}
                   onClick={() => editor.chain().focus().undo().run()}
                 />
                 <Button
-                  title="redo"
+                  title={t("editor.inline.toolbar_redo")}
                   icon={Redo2}
                   onClick={() => editor.chain().focus().redo().run()}
                 />
@@ -198,7 +198,7 @@ export const NavBar: React.FC = () => {
               <ButtonGroup>
                 <Button
                   tour="editor-headings"
-                  title="h2"
+                  title={t("editor.inline.toolbar_heading_2")}
                   icon={Heading2}
                   active={state?.isH2}
                   onClick={() =>
@@ -206,7 +206,7 @@ export const NavBar: React.FC = () => {
                   }
                 />
                 <Button
-                  title="h3"
+                  title={t("editor.inline.toolbar_heading_3")}
                   icon={Heading3}
                   active={state?.isH3}
                   onClick={() =>
@@ -214,7 +214,7 @@ export const NavBar: React.FC = () => {
                   }
                 />
                 <Button
-                  title="h4"
+                  title={t("editor.inline.toolbar_heading_4")}
                   icon={Heading4}
                   active={state?.isH4}
                   onClick={() =>
@@ -227,26 +227,26 @@ export const NavBar: React.FC = () => {
                 <Button
                   icon={Bold}
                   tour="editor-bold"
-                  title="bold"
+                  title={t("editor.inline.toolbar_bold")}
                   active={state?.isBold}
                   onClick={() => editor.chain().focus().toggleBold().run()}
                 />
                 <Button
                   icon={Italic}
                   tour="editor-italic"
-                  title="italic"
+                  title={t("editor.inline.toolbar_italic")}
                   active={state?.isItalic}
                   onClick={() => editor.chain().focus().toggleItalic().run()}
                 />
                 <Button
                   icon={Underline}
-                  title="underline"
+                  title={t("editor.inline.toolbar_underline")}
                   active={state?.isUnderline}
                   onClick={() => editor.chain().focus().toggleUnderline().run()}
                 />
                 <Button
                   icon={Strikethrough}
-                  title="strike"
+                  title={t("editor.inline.toolbar_strike")}
                   active={state?.isStrike}
                   onClick={() => editor.chain().focus().toggleStrike().run()}
                 />
@@ -256,7 +256,7 @@ export const NavBar: React.FC = () => {
                 <Button
                   icon={List}
                   tour="editor-lists"
-                  title="bullet list"
+                  title={t("editor.inline.toolbar_bullet_list")}
                   active={state?.isBulletList}
                   onClick={() =>
                     editor.chain().focus().toggleBulletList().run()
@@ -264,7 +264,7 @@ export const NavBar: React.FC = () => {
                 />
                 <Button
                   icon={ListOrdered}
-                  title="ordered list"
+                  title={t("editor.inline.toolbar_ordered_list")}
                   active={state?.isOrderedList}
                   onClick={() =>
                     editor.chain().focus().toggleOrderedList().run()
@@ -275,7 +275,7 @@ export const NavBar: React.FC = () => {
               <ButtonGroup>
                 <Button
                   tour="editor-math"
-                  title="math"
+                  title={t("editor.inline.toolbar_math")}
                   icon={Sigma}
                   active={state?.isGrid}
                   onClick={() =>
@@ -288,7 +288,7 @@ export const NavBar: React.FC = () => {
                 />
                 <Button
                   tour="editor-grid"
-                  title="grid"
+                  title={t("editor.inline.toolbar_grid")}
                   icon={Table}
                   active={state?.isGrid}
                   onClick={() =>
@@ -301,7 +301,7 @@ export const NavBar: React.FC = () => {
                 />
                 <Button
                   tour="editor-table"
-                  title="table"
+                  title={t("editor.inline.toolbar_table")}
                   icon={Table}
                   active={state?.isTable}
                   onClick={() =>
@@ -314,7 +314,7 @@ export const NavBar: React.FC = () => {
                 />
                 <Button
                   tour="editor-image"
-                  title="image"
+                  title={t("editor.inline.toolbar_image")}
                   icon={Image}
                   active={state?.isImage}
                   onClick={() => editor.chain().focus().addFigureImage("")}
@@ -324,7 +324,7 @@ export const NavBar: React.FC = () => {
               <ButtonGroup>
                 <Button
                   tour="editor-citation"
-                  title="citation"
+                  title={t("editor.inline.toolbar_citation")}
                   icon={Quote}
                   onClick={() => {
                     setContent("citation");
@@ -334,7 +334,7 @@ export const NavBar: React.FC = () => {
                 <Button
                   icon={Search}
                   tour="editor-search"
-                  title="search & replace"
+                  title={t("editor.inline.toolbar_search_replace")}
                   onClick={() => {
                     window.dispatchEvent(
                       new KeyboardEvent("keydown", {
@@ -349,8 +349,8 @@ export const NavBar: React.FC = () => {
                   tour="editor-pdf"
                   title={
                     exportingPdf
-                      ? `${pdfStatus || "Mengekspor PDF"} (${pdfProgress}%)`
-                      : "download pdf"
+                      ? `${pdfStatus || t("editor.inline.exporting_pdf")} (${pdfProgress}%)`
+                      : t("common.export")
                   }
                   icon={exportingPdf ? Loader2 : DownloadCloudIcon}
                   disabled={exportingPdf}
@@ -389,7 +389,7 @@ export const NavBar: React.FC = () => {
                     );
 
                     const toastId = toast.loading(
-                      renderProgressToast("Menyiapkan ekspor PDF...", 5),
+                      renderProgressToast(t("editor.inline.preparing_pdf"), 5),
                     );
 
                     const unsubscribe = window.hightex.onPdfProgress(
@@ -418,14 +418,16 @@ export const NavBar: React.FC = () => {
 
                       if (result === null) {
                         toast.dismiss(toastId);
-                        toast.info("Ekspor PDF dibatalkan", { duration: 3000 });
+                        toast.info(t("editor.inline.export_cancelled"), {
+                          duration: 3000,
+                        });
                         return;
                       }
 
                       toast.success(
                         <div className="flex flex-col gap-1">
                           <span className="font-semibold text-sm">
-                            PDF Berhasil Disimpan!
+                            {t("editor.inline.pdf_saved")}
                           </span>
                           <span className="text-xs text-neutral-500 truncate max-w-60">
                             {result.filename}
@@ -435,11 +437,11 @@ export const NavBar: React.FC = () => {
                           id: toastId,
                           duration: 15000,
                           action: {
-                            label: "Buka File",
+                            label: t("editor.inline.open_file"),
                             onClick: () => window.file?.openPath?.(result.path),
                           },
                           cancel: {
-                            label: "Buka Folder",
+                            label: t("editor.inline.open_folder"),
                             onClick: () =>
                               window.file?.showInFolder?.(result.path),
                           },
@@ -449,7 +451,7 @@ export const NavBar: React.FC = () => {
                       const msg =
                         error instanceof Error
                           ? error.message
-                          : "Error while exporting PDF";
+                          : t("common.export_failed");
                       toast.error(t("common.export_failed"), {
                         description: msg,
                         id: toastId,
@@ -491,7 +493,7 @@ export const NavBar: React.FC = () => {
                 />
 
                 <Button
-                  title="settings"
+                  title={t("editor.inline.toolbar_settings")}
                   icon={Settings}
                   onClick={() => {
                     setOpenSetting(true);
