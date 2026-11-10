@@ -19,34 +19,39 @@
 
 .toc-row.sub {
   margin-top: 0.5em !important;
-  padding-left: 2.5em;
+  padding-left: 2.25em;
 }
 
 .toc-row.subsub {
   margin-top: 0.5em !important;
-  padding-left: 5.5em;
+  padding-left: 4.75em;
 }
 
 .toc-number {
-  width: 2.5em;
+  width: 2.25em;
   font-weight: bold;
   text-align: left;
   white-space: nowrap;
 }
 
 .toc-row.sub .toc-number {
-  width: 3em;
+  width: 2.5em;
   font-weight: normal;
 }
 
 .toc-row.subsub .toc-number {
-  width: 3.5em;
+  width: 3em;
   font-weight: normal;
 }
 
 .toc-inner {
+  grid-column: 2;
   display: block;
   min-width: 0;
+}
+
+.toc-row:not(:has(.toc-number)) .toc-inner {
+  grid-column: 1 / 3;
 }
 
 .toc-text {
@@ -67,6 +72,7 @@
 }
 
 .toc-page {
+  grid-column: 3;
   font-weight: bold;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
