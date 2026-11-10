@@ -161,6 +161,11 @@ export const Row = ({
             <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px]">
               {category?.name ?? t("dashboard.unavailable_category")}
             </span>
+            {category?.variant && (
+              <span className="rounded-md border border-border/60 px-1.5 py-0.5 text-[11px]">
+                {t(`common.${category.variant}`)}
+              </span>
+            )}
             <span className="text-border" aria-hidden="true">
               ·
             </span>

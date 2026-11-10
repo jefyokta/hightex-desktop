@@ -29,6 +29,7 @@ export class TocBuilder {
 
     const num = document.createElement("div");
     num.classList.add("toc-number");
+    num.textContent = heading.getAttribute("data-numbering")?.trim() ?? "";
 
     const inner = document.createElement("div");
     inner.classList.add("toc-inner");
@@ -45,7 +46,9 @@ export class TocBuilder {
     // console.log(h1s)
 
     inner.append(text, dots);
-    row.append(num, inner, page);
+    if (num.textContent) row.append(num);
+    else row.classList.add("unnumbered");
+    row.append(inner, page);
     const div = document.createElement("div");
     div.append(row);
     return div;
@@ -80,6 +83,25 @@ export class TocBuilder {
       wrapper.appendChild(item);
     }
 
+    // Share one number column per level. Digits occupy 1ch and periods 0.5ch
+    // in the document's Times font; leave half an em before every title.
+    for (const [level, selector] of [
+      [1, ".toc-row:not(.sub):not(.subsub) .toc-number"],
+      [2, ".toc-row.sub .toc-number"],
+      [3, ".toc-row.subsub .toc-number"],
+    ] as const) {
+      const widths = Array.from(wrapper.querySelectorAll(selector), (number) =>
+        Array.from(number.textContent ?? "").reduce(
+          (width, character) => width + (character === "." ? 0.5 : 1),
+          0,
+        ),
+      );
+      wrapper.style.setProperty(
+        `--toc-h${level}-number-width`,
+        `calc(${Math.max(1, ...widths)}ch + 0.5em)`,
+      );
+    }
+
     return wrapper;
   }
 
@@ -89,20 +111,6 @@ export class TocBuilder {
     rows.forEach((row) => {
       const headingId = row.dataset.headingId;
       if (!headingId) return;
-
-      const originalHeading = document.querySelector<HTMLElement>(
-        `#${CSS.escape(headingId)}`,
-      );
-
-      const numEl = row.querySelector<HTMLElement>(".toc-number");
-      if (numEl && originalHeading) {
-        const num = originalHeading.getAttribute("data-numbering");
-        if (!num) {
-          numEl.remove();
-        } else {
-          numEl.textContent = num;
-        }
-      }
 
       const pageEl = row.querySelector<HTMLElement>(".toc-page");
       if (!pageEl) return;
