@@ -133,6 +133,8 @@ implementation before relying on a note for a new change.
 
 ### Documents and academic data
 
+- [Product FAQ](./product-faq.md) — HighTex's thesis-specialist scope and
+  product constraints.
 - [Editor and document persistence](./editor-persistence.md) — IndexedDB,
   autosave, flush, and portable archive boundaries.
 - [Document rendering pipeline](./document-rendering.md) — resolver order,
