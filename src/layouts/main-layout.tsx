@@ -21,6 +21,7 @@ import { LocaleProvider } from "@/context/locale-context";
 import { ConfigContextProvider } from "@/context/config-context";
 import { MultiSelectProvider } from "@/context/multi-select-context";
 import { WorkspaceAccessGuard } from "@/components/workspace-access-guard";
+import { WorkspaceWelcomeDialog } from "@/components/workspace-welcome-dialog";
 const applyTheme = (theme: "light" | "dark" | "system") => {
   const root = document.documentElement;
 
@@ -74,6 +75,7 @@ export const MainLayout = () => {
                       <LogoutModalProvider>
                         <ErrorSlave />
                         <LoginModal />
+                        <WorkspaceWelcomeDialog />
                         <WorkspaceAccessGuard>
                           <Outlet />
                         </WorkspaceAccessGuard>

@@ -3,9 +3,14 @@ import { toast } from "sonner";
 import { guidePlan, guideAcknowledgments } from "@/data/ui-guides";
 import { t } from "@/utils/lang";
 
-export function useUIGuide(scope: GuideScope = "workspace"): GuideController {
+export function useUIGuide(
+  scope: GuideScope = "workspace",
+  automaticPaused = false,
+): GuideController {
   const [status, setStatus] = useState<OnboardingStatus>();
   const [session, setSession] = useState<GuideSession | null>(null);
+  const currentSession = useRef(session);
+  currentSession.current = session;
   const saving = useRef(false);
   const visited = useRef(new Set<string>());
 
@@ -22,22 +27,35 @@ export function useUIGuide(scope: GuideScope = "workspace"): GuideController {
     let alive = true;
     const api = window.hightex.onboarding;
     if (!api) return;
-    void Promise.all([api.status(), window.workspaces.state()])
-      .then(([value, workspaces]) => {
-        if (!alive) return;
-        setStatus(value);
-        const workspaceType = workspaces.profiles.find(
-          (profile) => profile.id === workspaces.activeId,
-        )?.type;
-        open(guidePlan(value, scope, false, undefined, workspaceType));
-      })
-      .catch(() => {
-        /* Onboarding must not block writing. */
-      });
+    const refresh = () =>
+      void Promise.all([api.status(), window.workspaces.state()])
+        .then(([value, workspaces]) => {
+          if (!alive) return;
+          setStatus(value);
+          const workspaceType = workspaces.profiles.find(
+            (profile) => profile.id === workspaces.activeId,
+          )?.type;
+          if (
+            currentSession.current?.phase === "tour" ||
+            currentSession.current?.plan.mode === "replay"
+          )
+            return;
+          open(
+            automaticPaused
+              ? null
+              : guidePlan(value, scope, false, undefined, workspaceType),
+          );
+        })
+        .catch(() => {
+          /* Onboarding must not block writing. */
+        });
+    refresh();
+    window.addEventListener("hightex:onboarding-changed", refresh);
     return () => {
       alive = false;
+      window.removeEventListener("hightex:onboarding-changed", refresh);
     };
-  }, [scope, open]);
+  }, [scope, open, automaticPaused]);
 
   // Wait for an existing import, confirmation or mobile drawer to close first.
   const phase = session?.phase ?? null;

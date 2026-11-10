@@ -1,5 +1,4 @@
 import { WorkspaceGuide } from "@/components/dashboard/workspace-guide";
-import { FirstInstallProfileDialog } from "@/components/dashboard/first-install-profile-dialog";
 import { useUIGuide } from "@/hooks/use-ui-guide";
 import { Outlet, useLocation } from "react-router-dom";
 import { Menu, WifiOff } from "lucide-react";
@@ -22,8 +21,13 @@ import "@/css/workspace.css";
 
 export const AppLayout = () => {
   useAppLanguage();
-  const guide = useUIGuide();
   const { pathname } = useLocation();
+  const guide = useUIGuide(
+    "workspace",
+    pathname === "/profile" ||
+      pathname === "/profile/cv" ||
+      pathname === "/workspaces",
+  );
   const online = useOnline();
   const { state: workspaceState, error: workspaceError } = useWorkspaces();
   const [recent, setRecent] = useState<HighTexDocument[]>([]);
@@ -152,7 +156,6 @@ export const AppLayout = () => {
         </DialogContent>
       </Dialog>
       <WorkspaceGuide guide={guide} />
-      <FirstInstallProfileDialog guide={guide} />
     </div>
   );
 };

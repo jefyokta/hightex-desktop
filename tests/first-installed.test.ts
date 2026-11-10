@@ -14,10 +14,10 @@ function fixture(initial?: string) {
     fail: (value: boolean) => {
       fail = value;
     },
-    launch: (version = "1.2.0") => {
+    launch: (version = "1.2.0", profilePath = "/profile") => {
       const modules = {
         electron: {
-          app: { getPath: () => "/profile", getVersion: () => version },
+          app: { getPath: () => profilePath, getVersion: () => version },
         },
         path: { join: (...parts: string[]) => parts.join("/") },
         fs: {
@@ -103,7 +103,36 @@ test("legacy plain timestamps migrate without pretending an existing install is 
   expect(status.firstInstalled).toBe(false);
   expect(status.time).toBe("2025-03-12T04:05:06.000Z");
   expect(status.installedVersion).toBeNull();
+  expect(status.profileSetupPending).toBe(false);
   expect(JSON.parse(f.files.get(f.file)!).lastVersion).toBe("1.2.0");
+});
+
+test("welcome remains pending until acknowledged and stays independent per workspace", () => {
+  const f = fixture();
+  const first = f.launch("1.4.2", "/workspaces/first");
+  expect(first.firstInstalled().profileSetupPending).toBe(true);
+  expect(
+    f.launch("1.4.2", "/workspaces/first").firstInstalled().profileSetupPending,
+  ).toBe(true);
+  expect(first.acknowledgeProfileSetup().profileSetupPending).toBe(false);
+  expect(
+    f.launch("1.4.3", "/workspaces/first").firstInstalled().profileSetupPending,
+  ).toBe(false);
+  expect(
+    f.launch("1.4.3", "/workspaces/second").firstInstalled().profileSetupPending,
+  ).toBe(true);
+});
+
+test("a failed welcome acknowledgment remains pending and can be retried", () => {
+  const f = fixture();
+  const app = f.launch();
+  app.firstInstalled();
+  f.fail(true);
+  expect(() => app.acknowledgeProfileSetup()).toThrow("Disk full");
+  expect(app.firstInstalled().profileSetupPending).toBe(true);
+  f.fail(false);
+  expect(app.acknowledgeProfileSetup().profileSetupPending).toBe(false);
+  expect(f.launch().firstInstalled().profileSetupPending).toBe(false);
 });
 
 test("a damaged marker recovers without losing access to the application or declaring a fresh install", () => {

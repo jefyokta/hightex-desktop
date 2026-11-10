@@ -42,6 +42,16 @@ const seenBaseline = Object.fromEntries(
   baseline.map((guide) => [guide.id, guide.revision]),
 );
 
+test("workspace welcome precedes automatic guides while replay and editor remain available", () => {
+  const pending = status({ firstInstalled: true, profileSetupPending: true });
+  expect(guidePlan(pending, "workspace")).toBeNull();
+  expect(guidePlan(pending, "workspace", true)?.mode).toBe("replay");
+  expect(guidePlan(pending, "editor")).not.toBeNull();
+  expect(
+    guidePlan({ ...pending, profileSetupPending: false }, "workspace")?.mode,
+  ).toBe("welcome");
+});
+
 test("planned 1.3.0 guides appear on upgrade without repeating seen 1.2.0 features", () => {
   const seenOldGuides = Object.fromEntries(
     GUIDE_RELEASES.filter(({ version }) => version === "1.2.0")

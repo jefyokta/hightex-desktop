@@ -96,6 +96,7 @@ export function DefaultProfileSection({
       const updated = { ...profile };
       await window.profile.set(updated);
       await window.hightex.onboarding.acknowledgeProfileSetup();
+      window.dispatchEvent(new Event("hightex:onboarding-changed"));
       setProfile(updated);
       setOriginal(JSON.stringify(updated));
     } finally {
