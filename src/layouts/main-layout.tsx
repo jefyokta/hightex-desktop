@@ -22,6 +22,7 @@ import { ConfigContextProvider } from "@/context/config-context";
 import { MultiSelectProvider } from "@/context/multi-select-context";
 import { WorkspaceAccessGuard } from "@/components/workspace-access-guard";
 import { WorkspaceWelcomeDialog } from "@/components/workspace-welcome-dialog";
+import { WindowTitleSlave } from "@/slaves/window-title";
 const applyTheme = (theme: "light" | "dark" | "system") => {
   const root = document.documentElement;
 
@@ -66,6 +67,7 @@ export const MainLayout = () => {
           <ConfirmProvider>
             <AskProvider>
               <MultiSelectProvider>
+                <WindowTitleSlave />
                 <OpenFileSlave />
                 <CliDocumentsSlave />
                 <UpdaterStatusListener />
