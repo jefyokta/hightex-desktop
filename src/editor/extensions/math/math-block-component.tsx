@@ -12,7 +12,9 @@ import { Copy, Trash2 } from "lucide-react";
 
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { Manager } from "@/editor/manager";
 import { Document } from "@/editor/document";
+import { getEditorChapter } from "@/editor/event";
 import { t, useAppLanguage } from "@/utils/lang";
 
 export const MathBlockComponent = ({
@@ -27,7 +29,7 @@ export const MathBlockComponent = ({
   const [latex, setLatex] = useState(node.attrs.latex ?? "");
   const [open, setOpen] = useState(false);
 
-  const [pos, setPos] = useState(0);
+  const [number, setNumber] = useState<number | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -44,26 +46,38 @@ export const MathBlockComponent = ({
     requestAnimationFrame(() => {
       editor.view.dom.blur();
     });
-  }, [open]);
+  }, [editor, open]);
 
-  const handler = async () => {
-    const eqs = await Document.instance?.getEquations();
-
-    const graph = eqs?.find((e) => e.id === node.attrs.id);
-    if (graph) {
-      setPos(graph.pos);
-    }
-  };
   useEffect(() => {
-    editor.on("update", handler);
-    return () => {
-      editor.off("update", handler);
+    const equationId: string | null = node.attrs.id;
+    const document = getEditorChapter(editor)?.document ?? Document.instance;
+    let active = true;
+    let revision = 0;
+    setNumber(null);
+
+    const updateNumber = async () => {
+      if (!equationId || !document) return;
+      const request = ++revision;
+      try {
+        const equations = await document.getEquations();
+        if (!active || request !== revision) return;
+        const graph = equations.find((equation) => equation.id === equationId);
+        setNumber(graph?.pos ?? null);
+      } catch (error) {
+        if (active && request === revision)
+          console.error("Unable to load equation number", error);
+      }
     };
-  }, []);
 
-  useEffect(() => {
-    handler();
-  }, []);
+    const offChapter = Manager.app.on("chapter:update", ({ chapter }) => {
+      if (chapter.document === document) void updateNumber();
+    });
+    void updateNumber();
+    return () => {
+      active = false;
+      offChapter();
+    };
+  }, [editor, node.attrs.id]);
   const update = () => {
     return setTimeout(() => {
       if (latex !== node.attrs.latex) {
@@ -76,7 +90,7 @@ export const MathBlockComponent = ({
     if (!node.attrs.id) {
       updateAttributes({ id: "eq-" + uniqId() });
     }
-  }, []);
+  }, [node.attrs.id, updateAttributes]);
 
   return (
     <NodeViewWrapper className="my-4" contentEditable={false} {...node.attrs}>
@@ -95,7 +109,9 @@ export const MathBlockComponent = ({
                   ref={containerRef}
                   className="pointer-events-none select-none"
                 />
-                <span className="text-sm text-neutral-500">({pos})</span>
+                {number !== null && (
+                  <span className="text-sm text-neutral-500">({number})</span>
+                )}
               </div>
             </button>
           </PopoverTrigger>
