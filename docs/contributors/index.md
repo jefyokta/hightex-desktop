@@ -139,6 +139,8 @@ implementation before relying on a note for a new change.
   autosave, flush, and portable archive boundaries.
 - [Document rendering pipeline](./document-rendering.md) — resolver order,
   Paged.js lifecycle, and export boundary.
+- [Experimental editor page view](./editor-pagination.md) — layout rules,
+  document isolation, limitations and verification.
 - [HighTex file formats](./files.md) — portable document and snapshot formats.
 - [Cloud document sync policies](./cloud-document-sync-policies.md) — content
   fingerprints and cloud version behavior.

@@ -423,6 +423,84 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   min-height: max-content;
 }
 
+/* Page breaks belong to editor presentation, never to the saved chapter. */
+.tiptap[data-editor-pagination="true"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tiptap[data-editor-pagination="true"] > p {
+  display: flow-root;
+}
+
+.tiptap [data-editor-page-break] {
+  display: block;
+  float: left;
+  clear: both;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0;
+  line-height: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tiptap .editor-pagination-block {
+  margin-top: calc(
+    var(--editor-original-margin, 0px) + var(--editor-break-height, 0px)
+  ) !important;
+}
+
+.page[data-paginated-editor] {
+  min-height: calc(
+    var(--editor-page-count, 1) * var(--editor-page-height) +
+      (var(--editor-page-count, 1) - 1) * var(--editor-page-gap)
+  );
+  overflow: visible;
+  background: transparent !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.page[data-paginated-editor] > :first-child {
+  position: relative;
+  z-index: 1;
+}
+
+.editor-pagination-sheets {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.editor-pagination-sheet {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--editor-page-height);
+  border-radius: 4px;
+  background: white;
+  box-shadow: 0 3px 16px rgb(0 0 0 / 7%);
+}
+
+.dark .editor-pagination-sheet {
+  background: var(--color-neutral-900, #171717);
+}
+
+.editor-pagination-number {
+  position: absolute;
+  right: 3cm;
+  bottom: 1.3cm;
+  font-size: 10pt;
+  line-height: 1;
+  color: #737373;
+}
+
 .tiptap pre {
   background: black;
   border-radius: 0.5rem;
@@ -480,10 +558,10 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
     background-color 0.2s ease,
     opacity 0.2s ease;
 }
-td[tableheaderlike="1"]{
+td[tableheaderlike="1"] {
   border-bottom: 1px var(--border);
 }
-th{
+th {
   border-bottom: 1px solid white;
 }
 

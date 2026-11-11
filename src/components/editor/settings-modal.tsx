@@ -19,7 +19,7 @@ type SettingModalProps = {
 
 export const SettingModal: React.FC<SettingModalProps> = ({
   open = false,
-  onClose = () => { },
+  onClose = () => {},
 }) => {
   const { config, saveConfig } = useConfig();
 
@@ -43,6 +43,12 @@ export const SettingModal: React.FC<SettingModalProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <SettingSwitch
+            label={t("settings.editor.pagination")}
+            description={t("settings.editor.pagination_description")}
+            value={config?.editor?.pagination ?? false}
+            onChange={(value) => saveEditor({ pagination: value })}
+          />
           <SettingSwitch
             label={t("settings.editor.spell_check")}
             value={config?.editor?.spellCheck ?? false}

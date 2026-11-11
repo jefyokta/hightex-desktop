@@ -91,6 +91,8 @@
     "theme": "Tema",
     "theme.description": "Pilih mode tema aplikasi",
     "editor": {
+      "pagination": "Mode halaman (eksperimental)",
+      "pagination_description": "Tampilkan halaman A4 saat mengedit. Nomor halaman dimulai dari 1 per bab; gunakan pratinjau cetak untuk pembagian halaman akhir.",
       "title": "Editor",
       "description": "Perilaku penulisan dan pengeditan",
       "spell_check": "Pemeriksa Ejaan",
@@ -679,6 +681,10 @@
     "cache_empty": "Belum ada profil Cloud tersimpan di perangkat ini. Sambungkan internet dan login untuk memuatnya."
   },
   "editor": {
+    "pagination": {
+      "pages": "Mode halaman bab · {count} halaman",
+      "unsupported": "Bab ini memakai tampilan menerus karena tabel atau blok lain lebih tinggi dari satu halaman. Pratinjau cetak tetap tersedia."
+    },
     "inline": {
       "table_tools": "Alat tabel",
       "add_column": "Tambah kolom",

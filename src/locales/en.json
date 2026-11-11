@@ -91,6 +91,8 @@
     "theme": "Theme",
     "theme.description": "Choose application theme mode",
     "editor": {
+      "pagination": "Page view (experimental)",
+      "pagination_description": "Show A4 pages while editing. Page numbers start at 1 in each chapter; use print preview for final pagination.",
       "title": "Editor",
       "description": "Writing and editing behavior",
       "spell_check": "Spell Check",
@@ -679,6 +681,10 @@
     "cache_empty": "No Cloud profile has been saved on this device yet. Connect and sign in to load it."
   },
   "editor": {
+    "pagination": {
+      "pages": "Chapter page view · {count} page(s)",
+      "unsupported": "This chapter uses continuous view because a table or another block is taller than one page. Print preview remains available."
+    },
     "inline": {
       "table_tools": "Table tools",
       "add_column": "Add column",

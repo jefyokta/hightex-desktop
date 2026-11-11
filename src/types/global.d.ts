@@ -65,6 +65,7 @@ declare global {
       scrollBar?: boolean;
       aliasHint?: boolean;
       tableResizeGuides?: boolean;
+      pagination?: boolean;
     };
     export: {
       saveDialog: boolean;
