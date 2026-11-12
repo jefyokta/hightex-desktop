@@ -12,7 +12,8 @@ export function PaginationStatus({ editor }: { editor: Editor | null }) {
       return {
         enabled: state?.enabled ?? false,
         pages: state?.layout.pages ?? 1,
-        unsupported: state?.layout.unsupported ?? false,
+        error: state?.layout.error ?? false,
+        pending: state?.pending ?? false,
       };
     },
   });
@@ -23,9 +24,11 @@ export function PaginationStatus({ editor }: { editor: Editor | null }) {
       data-pagination-status
       role="status"
     >
-      {state.unsupported
-        ? t("editor.pagination.unsupported")
-        : t("editor.pagination.pages", { count: state.pages })}
+      {state.error
+        ? t("editor.pagination.error")
+        : state.pending
+          ? t("editor.pagination.updating")
+          : t("editor.pagination.pages", { count: state.pages })}
     </p>
   );
 }

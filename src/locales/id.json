@@ -682,8 +682,9 @@
   },
   "editor": {
     "pagination": {
+      "updating": "Mengatur tata letak halaman…",
       "pages": "Mode halaman bab · {count} halaman",
-      "unsupported": "Bab ini memakai tampilan menerus karena tabel atau blok lain lebih tinggi dari satu halaman. Pratinjau cetak tetap tersedia."
+      "error": "Tata letak halaman belum berhasil dibuat. Isi tetap tersedia; matikan lalu aktifkan mode halaman untuk mencoba lagi."
     },
     "inline": {
       "table_tools": "Alat tabel",

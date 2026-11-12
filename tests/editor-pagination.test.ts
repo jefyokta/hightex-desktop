@@ -18,7 +18,6 @@ test("an empty or exactly fitting chapter stays on one page", () => {
   expect(paginateUnits([{ ...line(1, 0), bottom: contentHeight }])).toEqual({
     pages: 1,
     breaks: [],
-    unsupported: false,
   });
 });
 
@@ -70,8 +69,8 @@ test("a fitting figure moves as one block", () => {
   expect(result.breaks[0]).toMatchObject({ from: 25, to: 30 });
 });
 
-test("oversized blocks fall back for the entire chapter without a break loop", () => {
-  const result = paginateUnits([
+test("oversized units fail explicitly without presenting a clipped page", () => {
+  expect(() => paginateUnits([
     line(1, contentHeight - 10),
     {
       from: 20,
@@ -80,8 +79,66 @@ test("oversized blocks fall back for the entire chapter without a break loop", (
       bottom: 3 * contentHeight,
       kind: "block",
     },
+  ])).toThrow("cannot fit a page");
+});
+
+function paragraph(count: number, top: number): LayoutUnit[] {
+  return Array.from({ length: count }, (_, index) => ({
+    ...line(100 + index, top + index * 24),
+    group: 99,
+    lineIndex: index,
+    lineCount: count,
+  }));
+}
+
+test("a short paragraph moves whole instead of leaving one line behind", () => {
+  const result = paginateUnits(paragraph(3, contentHeight - 30));
+  expect(result.breaks.map(item => item.from)).toEqual([100]);
+});
+
+test("a long paragraph leaves two lines on both sides of its break", () => {
+  const result = paginateUnits(paragraph(5, contentHeight - 100));
+  expect(result.breaks.map(item => item.from)).toEqual([103]);
+  const long = paginateUnits(paragraph(100, contentHeight - 30));
+  expect(long.breaks[0].from).toBe(100);
+  expect(long.pages).toBe(4);
+});
+
+test("a heading follows the paragraph's two-line minimum", () => {
+  const top = contentHeight - 60;
+  const result = paginateUnits([
+    { ...line(1, top), kind: "block", to: 10, keepWithNext: true },
+    ...paragraph(5, top + 24),
   ]);
-  expect(result).toEqual({ pages: 1, breaks: [], unsupported: true });
+  expect(result.breaks.map(item => item.from)).toEqual([1]);
+});
+
+test("first-line ink above its block aligns with the new content edge", () => {
+  const unit: LayoutUnit = {
+    ...paragraph(1, contentHeight - 40)[0],
+    bottom: contentHeight + 10,
+    anchor: { from: 99, to: 150, top: contentHeight - 30, marginTop: 0 },
+  };
+  const result = paginateUnits([unit]);
+  const pageBreak = result.breaks[0];
+  expect(pageBreak).toMatchObject({ from: 99, to: 150, kind: "block" });
+  expect(unit.top + pageBreak.height).toBeCloseTo(EDITOR_PAGE.height + EDITOR_PAGE.gap);
+});
+
+test("explicit breaks start a new page and do not create a blank page at its start", () => {
+  const result = paginateUnits([
+    line(1, 0),
+    { ...line(10, 30), bottom: 30, kind: "block", to: 11, breakBefore: true },
+    line(12, 30),
+  ]);
+  expect(result.breaks.map(item => item.from)).toEqual([10]);
+  expect(result.pages).toBe(2);
+  expect(paginateUnits([{ ...line(1, 0), breakBefore: true }]).pages).toBe(1);
+});
+
+test("invalid geometry fails instead of creating a nonfinite spacer", () => {
+  expect(() => paginateUnits([{ ...line(1, 0), bottom: NaN }])).toThrow();
+  expect(() => paginateUnits([{ ...line(1, 0), bottom: -1 }])).toThrow();
 });
 
 test("consecutive headings stay with their first content line", () => {

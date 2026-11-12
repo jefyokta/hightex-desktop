@@ -682,8 +682,9 @@
   },
   "editor": {
     "pagination": {
+      "updating": "Updating page layout…",
       "pages": "Chapter page view · {count} page(s)",
-      "unsupported": "This chapter uses continuous view because a table or another block is taller than one page. Print preview remains available."
+      "error": "Page layout could not be completed. Your content is still available; toggle page view to retry."
     },
     "inline": {
       "table_tools": "Table tools",

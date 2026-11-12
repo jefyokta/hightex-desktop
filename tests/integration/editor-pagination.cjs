@@ -21,6 +21,8 @@ import {Storage} from '/src/editor/storage/index.ts';
 import {events,getEditorChapter} from '/src/editor/event/index.ts';
 import {EditorPagination,paginationKey} from '/src/editor/pagination/index.ts';
 import {EDITOR_PAGE} from '/src/editor/pagination/layout.ts';
+import {measureEditor} from '/src/editor/pagination/measure.ts';
+import {FlowCache} from '/src/editor/pagination/flow.ts';
 import {PaginationStatus} from '/src/components/editor/pagination-status.tsx';
 import {TooltipProvider} from '/src/components/ui/tooltip.tsx';
 import {MemoryRouter,Routes,Route,useNavigate} from 'react-router-dom';
@@ -61,10 +63,26 @@ window.updates=0;window.layouts=0;window.errors=[];
 window.addEventListener('error',event=>window.errors.push(event.message));
 window.addEventListener('unhandledrejection',event=>window.errors.push(String(event.reason)));
 window.layout=()=>paginationKey.getState(editor.state).layout;
+window.layoutReady=()=>!paginationKey.getState(editor.state).pending;
 window.setPages=enabled=>editor.commands.setEditorPagination(enabled);
 window.waitSaved=()=>Storage.instance.waitForChapter(chapter.getId());
 window.closeHistory=()=>editor.view.dispatch(closeHistory(editor.state.tr));
 window.pageMetrics=EDITOR_PAGE;
+window.measureFresh=()=>measureEditor(editor.view,new FlowCache(),new AbortController().signal);
+window.performanceCache=new FlowCache();
+window.measureCached=async()=>{
+ const measured=performanceCache.measured;const reused=performanceCache.reused;const start=performance.now();
+ const result=await measureEditor(editor.view,performanceCache,new AbortController().signal);
+ return {ms:performance.now()-start,measured:performanceCache.measured-measured,reused:performanceCache.reused-reused,pages:result.pages,signature:JSON.stringify(result)};
+};
+window.sampleTransactions=async count=>{
+ const samples=[];let position=0;editor.state.doc.forEach((node,pos)=>{if(!position&&node.type.name==='paragraph')position=pos+1});
+ for(let i=0;i<count;i++){
+  const start=performance.now();editor.commands.insertContentAt(position,'x');samples.push(performance.now()-start);
+  await new Promise(requestAnimationFrame);
+ }
+ await waitSaved();return samples;
+};
 window.inPage=element=>{
  const page=document.querySelector('.page').getBoundingClientRect();
  const scale=page.width/EDITOR_PAGE.width;
@@ -77,9 +95,10 @@ window.textRects=()=>{
  const page=document.querySelector('.page').getBoundingClientRect();
  const scale=page.width/EDITOR_PAGE.width;
  const bad=[];let lines=0;
- for(const paragraph of document.querySelectorAll('.tiptap > p')){
+ for(const paragraph of editor.view.dom.querySelectorAll('p, pre code, h1, h2, h3, h4, figcaption')){
   const walker=document.createTreeWalker(paragraph,NodeFilter.SHOW_TEXT);
   let text;while(text=walker.nextNode()){
+   if(text.parentElement.closest('.katex-mathml'))continue;
    const range=document.createRange();range.selectNodeContents(text);
    for(const rect of range.getClientRects()){
     if(!rect.width||!rect.height)continue;lines++;
@@ -176,8 +195,41 @@ app
     win.webContents.on("console-message", (event) => {
       if (event.level === "error") console.error(event.message);
     });
+    win.webContents.on("render-process-gone", (_event, details) => {
+      console.error("Fixture renderer gone:", details);
+      void finish(1);
+    });
     await win.loadURL("http://127.0.0.1:" + server.address().port + "/");
+    if (process.env.HIGHTEX_PAGINATION_DEBUG) {
+      win.webContents.debugger.attach("1.3");
+      await win.webContents.debugger.sendCommand("Debugger.enable");
+      win.webContents.debugger.on("message", (_event, method, data) => {
+        if (method !== "Debugger.paused") return;
+        console.log(
+          "Renderer stack:",
+          JSON.stringify(
+            data.callFrames.slice(0, 8).map((frame) => ({
+              name: frame.functionName,
+              url: frame.url,
+              line: frame.location.lineNumber,
+            })),
+          ),
+        );
+        void win.webContents.debugger.sendCommand("Debugger.resume");
+      });
+      const debugTimer = setInterval(() => {
+        if (!win.isDestroyed())
+          void win.webContents.debugger
+            .sendCommand("Debugger.pause")
+            .catch(() => {});
+      }, 10000);
+      debugTimer.unref();
+    }
     await until("window.ready&&window.editor");
+    if (process.env.HIGHTEX_PAGINATION_PERF) {
+      await runPerformance();
+      return;
+    }
     await execute(
       "await document.fonts.ready;window.baseline=JSON.stringify(editor.getJSON());window.savedBaseline=JSON.stringify(await db.chapters.get('fixture.1'));window.startUpdates=updates;window.setPages(true)",
     );
@@ -220,6 +272,7 @@ app
       false,
     );
     const before = await execute("return JSON.stringify(layout())");
+    console.log("Checkpoint: baseline complete");
     await execute(
       "document.querySelector('.page').style.transform='scale(0.7)'",
     );
@@ -241,6 +294,7 @@ app
       true,
     );
     await execute("window.setPages(true)");
+    console.log("Checkpoint: re-enabled");
     await until(
       "document.querySelector('.editor-pagination-sheet')&&document.querySelector('[data-editor-page-break]')",
     );
@@ -251,10 +305,17 @@ app
       true,
     );
     // Native input at a visual page boundary must still target the model text.
+    win.show();
+    win.focus();
+    win.webContents.focus();
     await execute(
       "closeHistory();window.breakPosition=layout().breaks.find(item=>item.kind==='line').from;editor.commands.setTextSelection(breakPosition);editor.commands.focus()",
     );
+    await until(
+      "document.activeElement===editor.view.dom&&document.hasFocus()",
+    );
     await win.webContents.insertText("uji");
+    console.log("Checkpoint: native input");
     await pause();
     assert.equal(
       await execute(
@@ -268,9 +329,27 @@ app
       await execute("return JSON.stringify(editor.getJSON())===baseline"),
       true,
     );
+    // Exercise Chromium's editing beside noneditable widgets repeatedly,
+    // including whole-grapheme deletion and the normal undo stack.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await until("layoutReady()&&!layout().error");
+      await execute("closeHistory();window.breakPosition=layout().breaks.find(item=>item.kind==='line').from;editor.commands.setTextSelection(breakPosition);editor.commands.focus()");
+      await win.webContents.insertText("e\u0301");
+      win.webContents.sendInputEvent({ type: "keyDown", keyCode: "Backspace" });
+      win.webContents.sendInputEvent({ type: "keyUp", keyCode: "Backspace" });
+      await until("JSON.stringify(editor.getJSON())===baseline");
+      await execute("closeHistory();editor.commands.setTextSelection(breakPosition);editor.commands.focus()");
+      await win.webContents.insertText("👩🏽‍💻");
+      await execute("editor.commands.setTextSelection(breakPosition)");
+      win.webContents.sendInputEvent({ type: "keyDown", keyCode: "Delete" });
+      win.webContents.sendInputEvent({ type: "keyUp", keyCode: "Delete" });
+      await until("JSON.stringify(editor.getJSON())===baseline");
+    }
+    console.log("Checkpoint: repeated boundary input and grapheme deletion");
     await execute(
       "closeHistory();editor.commands.focus('end');editor.commands.insertContent(' Tambahan pengujian.');await waitSaved();closeHistory()",
     );
+    console.log("Checkpoint: append");
     await pause();
     await execute("editor.commands.undo();await waitSaved()");
     await pause();
@@ -289,19 +368,20 @@ app
     await execute(
       "editor.commands.insertContentAt(editor.state.doc.content.size,{type:'codeBlock',content:[{type:'text',text:'oversized\\n'.repeat(70)}]})",
     );
-    await until(
-      "layout().unsupported&&!document.querySelector('.editor-pagination-sheet')",
-    );
-    assert.equal(
-      await execute(
-        "return document.querySelector('[data-pagination-status]').textContent.includes('continuous view')",
-      ),
-      true,
-    );
+    console.log("Checkpoint: long code inserted");
+    await until("layout().pages>=6&&!layout().error");
+    if ((await execute("return textRects().bad.length")) > 0)
+      console.log(
+        "Code layout diagnostic:",
+        await execute(
+          "const fresh=await measureFresh();return {current:layout().breaks.map(b=>({from:b.from,height:b.height,top:b.top,kind:b.kind})),fresh:fresh.breaks.map(b=>({from:b.from,height:b.height,top:b.top,kind:b.kind})),widgets:Array.from(editor.view.dom.querySelectorAll('[data-editor-page-break]')).map(e=>({height:e.style.height,pos:editor.view.posAtDOM(e,0)}))}",
+        ),
+      );
+    assert.deepEqual((await execute("return textRects()")).bad, []);
     await execute(
       "editor.commands.setContent(JSON.parse(baseline));await waitSaved()",
     );
-    await until("!layout().unsupported&&layout().pages>=3");
+    await until("layoutReady()&&!layout().error&&layout().pages>=3");
     assert.deepEqual((await execute("return textRects()")).bad, []);
     // Exercise actual React node views, including loaded image dimensions,
     // captions, a small table and inline atoms/marks.
@@ -316,7 +396,7 @@ app
       "document.querySelector('.node-image img')?.complete&&layout().breaks.some(item=>item.kind==='block')",
     );
     await pause();
-    assert.equal(await execute("return layout().unsupported"), false);
+    assert.equal(await execute("return Boolean(layout().error)"), false);
     const figure = await execute(
       "return inPage(document.querySelector('[data-type=imageFigure]'))",
     );
@@ -335,13 +415,122 @@ app
     await execute(
       "editor.commands.insertContentAt(editor.state.doc.content.size,makeTable(60));await waitSaved()",
     );
-    await until(
-      "layout().unsupported&&!document.querySelector('.editor-pagination-sheet')",
+    await until("layout().furniture?.length>0&&!layout().error");
+    assert.deepEqual((await execute("return textRects()")).bad, []);
+    assert.equal(
+      await execute(
+        "return Array.from(document.querySelectorAll('.editor-pagination-furniture')).every(element=>element.querySelector('th')&&element.querySelector('figcaption'))",
+      ),
+      true,
     );
+    await execute(`window.spanTable={type:'figureTable',content:[
+      {type:'figcaption',content:[{type:'text',text:'Tabel Gabungan'}]},
+      {type:'table',content:[
+        {type:'tableRow',content:[{type:'tableHeader',attrs:{rowspan:2},content:[p('Kelompok')]},{type:'tableHeader',attrs:{colspan:2},content:[p('Hasil')]}]},
+        {type:'tableRow',content:[{type:'tableHeader',content:[p('Awal')]},{type:'tableHeader',content:[p('Akhir')]}]},
+        {type:'tableRow',content:[{type:'tableCell',attrs:{rowspan:3},content:[p(sentence.repeat(80))]},{type:'tableCell',content:[p('B1')]},{type:'tableCell',content:[p('C1')]}]},
+        {type:'tableRow',content:[{type:'tableCell',attrs:{colspan:2},content:[p(sentence.repeat(35))]}]},
+        {type:'tableRow',content:[{type:'tableCell',content:[p('B3')]},{type:'tableCell',content:[p('C3')]}]},
+        ...Array.from({length:25},(_,row)=>({type:'tableRow',content:[0,1,2].map(column=>({type:'tableCell',content:[row%3===0?{type:'paragraph'}:p('Data '+row+'/'+column)]}))})),
+      ]}
+    ]};
+    editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],spanTable,p('Sesudah tabel')]});await waitSaved()`);
+    await until("layoutReady()&&!layout().error&&layout().furniture?.length>0");
+    assert.deepEqual((await execute("return textRects()")).bad, []);
+    assert.equal(
+      await execute(
+        "return editor.getText().includes(sentence.repeat(80).trim())",
+      ),
+      true,
+    );
+    console.log("Checkpoint: rowspan and tall cell");
+    await execute(`window.innerTable=makeTable(45);innerTable.content[0].content[0].text='Tabel Bagian Dalam';
+      window.outerTable={type:'figureTable',content:[{type:'figcaption',content:[{type:'text',text:'Tabel Bagian Luar'}]},{type:'table',content:[
+        {type:'tableRow',content:[{type:'tableHeader',content:[p('Struktur')]},{type:'tableHeader',content:[p('Penjelasan')]}]},
+        {type:'tableRow',content:[{type:'tableCell',content:[p('Sebelum tabel'),innerTable,p('Sesudah tabel')]},{type:'tableCell',content:[p(sentence.repeat(60))]}]},
+      ]}]};editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],outerTable,p('Akhir')]});await waitSaved()`);
+    await until("layoutReady()&&!layout().error&&layout().pages>=3");
+    assert.deepEqual((await execute("return textRects()")).bad,[],"nested table ink crosses a page margin");
+    console.log("Checkpoint: nested tables");
+    await execute(`outerTable.content[1].content[1].content[0].content[0]=p(sentence.repeat(30));
+      editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],outerTable,p('Akhir')]});await waitSaved()`);
+    await until("layoutReady()");
+    assert.equal(await execute("return Boolean(layout().error)"),false,"nested table with a paginated prelude failed");
+    assert.deepEqual((await execute("return textRects()")).bad,[],"nested table after a long paragraph crosses a page margin");
+    console.log("Checkpoint: nested table after a paginated paragraph");
+    await execute(`editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],
+      {type:'orderedList',attrs:{start:4},content:[{type:'listItem',content:[p('Tabel di dalam daftar'),makeTable(45),p('Sesudah tabel')]}]},
+      p('Selesai')]});await waitSaved()`);
+    await until("layoutReady()");
+    assert.equal(await execute("return Boolean(layout().error)"),false,"table inside a list failed");
+    assert.deepEqual((await execute("return textRects()")).bad,[],"table nested in a list crosses a page margin");
+    console.log("Checkpoint: split table inside a list");
+    await execute(`window.listFixture={type:'orderedList',attrs:{start:7},content:Array.from({length:8},(_,index)=>({type:'listItem',content:[
+      p('Butir '+index+' '+sentence.repeat(18)),
+      {type:'orderedList',attrs:{start:3},content:[{type:'listItem',content:[p(sentence.repeat(12))]}]},
+    ]}))};editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],listFixture,p('Sesudah daftar')]});await waitSaved()`);
+    await until("layoutReady()&&!layout().error&&layout().pages>=5");
+    assert.deepEqual((await execute("return textRects()")).bad, []);
+    assert.equal(
+      await execute("return editor.getJSON().content[1].attrs.start"),
+      7,
+    );
+    assert.equal(
+      await execute(
+        "return editor.getJSON().content[1].content[0].content[1].attrs.start",
+      ),
+      3,
+    );
+    console.log("Checkpoint: nested numbered lists");
+    await execute(`editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],
+      {type:'paragraph',content:Array.from({length:90},(_,i)=>[{type:'text',text:'Baris '+i},{type:'hardBreak'}]).flat()},
+      {type:'paragraph',content:[{type:'text',text:sentence.repeat(20)},{type:'mathInline',attrs:{latex:String.raw\`\\dfrac{\\sum_{i=1}^{100}x_i^2}{\\sqrt{1+x^2}}\`}},{type:'text',text:sentence.repeat(20)}]},
+      {type:'paragraph'},p('Akhir'),
+    ]});await waitSaved();await document.fonts.ready`);
+    await until("layoutReady()&&!layout().error&&layout().pages>=4");
+    assert.deepEqual((await execute("return textRects()")).bad,[]);
+    console.log("Checkpoint: hard breaks and tall inline math");
+    await execute(`window.transitionFixture={type:'doc',content:[JSON.parse(baseline).content[0],...Array.from({length:35},(_,i)=>[
+      p('Sebelum daftar '+i+' '+sentence.repeat(6+i%4)),
+      {type:'orderedList',attrs:{start:i+1},content:[{type:'listItem',content:[p('Butir pertama '+i)]},{type:'listItem',content:[p('Butir kedua '+i)]}]},
+      {type:'heading',attrs:{level:2},content:[{type:'text',text:'Bagian '+i}]},
+      {type:'codeBlock',content:[{type:'text',text:['const a = 1;','const b = a + 1;','console.log(b);'].join(String.fromCharCode(10))}]},
+      p('Sesudah blok '+i+' '+sentence.repeat(i%3+1)),
+    ]).flat()]};editor.commands.setContent(transitionFixture);await waitSaved()`);
+    await until("layoutReady()&&!layout().error&&layout().pages>=10");
+    const transitionInk=await execute("return textRects()");
+    if(transitionInk.bad.length){
+      await execute("const page=document.querySelector('.page');window.scrollTo(0,scrollY+page.getBoundingClientRect().top+textRects().bad[0].top-160)");
+      await pause();
+      writeFileSync(path.join(artifacts,'clipped-node-transition.png'),(await win.webContents.capturePage()).toPNG());
+      console.log('Clipping reproduction:',artifacts,transitionInk.bad.slice(0,4));
+    }
+    assert.deepEqual(transitionInk.bad,[],"glyphs are clipped at paragraph/list/code transitions");
+    console.log("Checkpoint: paragraph/list/code transitions");
+    await execute(`window.inkFixture={type:'doc',content:[JSON.parse(baseline).content[0],...Array.from({length:120},(_,i)=>({type:'paragraph',content:[
+      ...(i%3===0?[]:[{type:'text',text:'ÅÉỆgyp '+sentence.repeat(i%4+1),marks:[{type:i%2?'italic':'bold'}]}]),
+      {type:'mathInline',attrs:{latex:String.raw\`\\dfrac{\\sum_{i=1}^{100}x_i^2}{\\sqrt{1+x^2}}\`}},
+      {type:'text',text:' '+sentence.repeat(2)},
+    ]}))]};editor.commands.setContent(inkFixture);await waitSaved();await document.fonts.ready`);
+    await until("layoutReady()&&!layout().error&&layout().pages>=10");
+    assert.deepEqual((await execute("return textRects()")).bad,[],"visible glyph ink intersects a page margin");
+    console.log("Checkpoint: accented/italic text and fraction ink at page boundaries");
+    await execute(`window.forcedFixture={type:'doc',content:[JSON.parse(baseline).content[0],p('Sebelum pemisah'),{type:'horizontalRule'},p('Halaman baru'),
+      {type:'orderedList',attrs:{start:5},content:[{type:'listItem',content:[p('Awal butir'),{type:'horizontalRule'},p('Lanjutan butir')]}]},
+      {type:'figureTable',content:[{type:'figcaption',content:[{type:'text',text:'Pemisah dalam tabel'}]},{type:'table',content:[
+        {type:'tableRow',content:[{type:'tableHeader',content:[p('Kolom')]}]},
+        {type:'tableRow',content:[{type:'tableCell',content:[p('Awal sel'),{type:'horizontalRule'},p('Lanjutan sel')]}]},
+      ]}]},p('Selesai')]};editor.commands.setContent(forcedFixture);await waitSaved()`);
+    await until("layoutReady()");
+    assert.equal(await execute("return Boolean(layout().error)"),false);
+    assert.equal(await execute("return layout().pages"),4);
+    assert.deepEqual((await execute("return textRects()")).bad,[],"forced page break clips visible text");
+    assert.equal(await execute("return layout().furniture.length"),1);
+    console.log("Checkpoint: explicit page breaks in paragraphs, lists and table cells");
     await execute(
       "editor.commands.setContent(JSON.parse(baseline));await waitSaved()",
     );
-    await until("!layout().unsupported&&layout().pages>=3");
+    await until("layoutReady()&&!layout().error&&layout().pages>=3");
     await execute(
       "const page=document.querySelector('.page');window.scrollTo(0,scrollY+page.getBoundingClientRect().top+pageMetrics.height-240)",
     );
@@ -400,7 +589,7 @@ app
     );
     assert.deepEqual(await execute("return errors"), []);
     console.log(
-      "PASS: multi-page paragraphs, zoom, selection, toggle, JSON/HTML, persistence, autosave, undo, image/caption, tables, inline atoms, oversized-block fallback, recovery and dark mode.",
+      "PASS: glyph bounds, paragraphs/lists/code, split and nested tables, merged cells, explicit breaks, zoom, selection, native input, undo, persistence, serialization and production editor lifecycle.",
     );
     console.log("Artifacts:", artifacts);
   })
@@ -417,4 +606,33 @@ async function finish(code) {
   if (server) await new Promise((resolve) => server.close(resolve));
   if (vite) await vite.close();
   app.exit(code);
+}
+
+async function runPerformance() {
+  win.show(); win.focus(); win.webContents.focus();
+  await execute("editor.commands.setContent({type:'doc',content:[{type:'heading',attrs:{level:1},content:[{type:'text',text:'Performance'}]},...Array.from({length:400},(_,i)=>p('Paragraf '+i+' '+sentence.repeat(3))),makeTable(60)]});await waitSaved();await document.fonts.ready");
+  const plain = await execute("return sampleTransactions(40)");
+  await execute("window.setPages(true)");
+  await until("layoutReady()&&!layout().error&&layout().pages>20");
+  const paginated = await execute("return sampleTransactions(40)");
+  await until("layoutReady()&&!layout().error");
+  const cold = await execute("return measureCached()");
+  const warm = await execute("return measureCached()");
+  assert.equal(warm.signature,cold.signature,"cached layout differs from a fresh measurement");
+  assert.equal(warm.measured,0,"unchanged paragraphs were remeasured");
+  await execute("editor.commands.insertContentAt(editor.state.doc.child(0).nodeSize+1,'x');await waitSaved()");
+  const edited = await execute("return measureCached()");
+  const fresh = await execute("return JSON.stringify(await measureFresh())");
+  assert.equal(edited.signature,fresh,"incremental measurements differ after editing");
+  assert.ok(edited.measured<=3,JSON.stringify({remeasured:edited.measured}));
+  await until("layoutReady()");
+  assert.deepEqual((await execute("return textRects()")).bad,[],"long-chapter glyph bounds drift across page edges");
+  const stats = samples => {
+    const sorted=[...samples].sort((a,b)=>a-b);
+    return {median:sorted[Math.floor(sorted.length/2)],p95:sorted[Math.floor(sorted.length*.95)],max:sorted.at(-1)};
+  };
+  console.log('PERFORMANCE',JSON.stringify({plain:stats(plain),paginated:stats(paginated),cold:{ms:cold.ms,measured:cold.measured,pages:cold.pages},warm:{ms:warm.ms,measured:warm.measured,reused:warm.reused},edited:{ms:edited.ms,measured:edited.measured,reused:edited.reused}}));
+  await execute("window.setPages(false)");
+  await until("!document.querySelector('[data-pagination-measure]')&&!document.querySelector('.editor-pagination-sheet')");
+  console.log('PASS: performance comparison, cache equivalence, single-paragraph invalidation and cancellation cleanup.');
 }
