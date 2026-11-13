@@ -49,6 +49,8 @@ import { LoadingDocument } from "@/components/editor/loading-document";
 import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
 import { DocumentNotFound } from "@/exception/document-not-found";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
+import { EditorPagination } from "@/editor/pagination";
+import { PaginationStatus } from "@/components/editor/pagination-status";
 import {
   SCANNER_PARAGRAPH_PREFIX,
   scrollToPunctuationParagraph,
@@ -93,20 +95,17 @@ export const Editor: React.FC = () => {
     });
   }, []);
 
-  useEffect(
-    () => {
-      const refreshIdentity = () => {
-        void Document.instance?.refreshWorkspaceIdentity();
-      };
-      const offProfile = window.profile.onChange?.(refreshIdentity);
-      const offSession = window.session.onChange?.(refreshIdentity);
-      return () => {
-        offProfile?.();
-        offSession?.();
-      };
-    },
-    [],
-  );
+  useEffect(() => {
+    const refreshIdentity = () => {
+      void Document.instance?.refreshWorkspaceIdentity();
+    };
+    const offProfile = window.profile.onChange?.(refreshIdentity);
+    const offSession = window.session.onChange?.(refreshIdentity);
+    return () => {
+      offProfile?.();
+      offSession?.();
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -252,7 +251,10 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const navigationFrame = useRef<number>();
   const removeListeners = useRef<() => void>();
   const extensions = useMemo(
-    () => chapter.extensions.get(config?.editor.aliasHint),
+    () => [
+      ...chapter.extensions.get(config?.editor.aliasHint),
+      EditorPagination,
+    ],
     [chapter, config?.editor.aliasHint],
   );
 
@@ -332,46 +334,59 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         e.preventDefault();
 
         const target = e.target as HTMLElement | null;
-        if (!target?.id) return;
+        if (!target?.id && !window.application.isDev) return;
 
         openContextMenu(
           e.clientX,
           e.clientY,
           [
-            {
-              label: t("editor.context_menu.delete"),
-              danger: true,
-              icon: <TrashIcon className="h-4 w-4" />,
-              onClick: () => editor.commands.deleteSelection(),
-            },
-            {
-              label: t("editor.context_menu.see_in_preview"),
-              icon: <Eye className="h-4 w-4" />,
-              onClick: () => {
-                const frame = document.querySelector("iframe");
-                if (!frame) {
-                  throw new FrameNotOpened({
-                    message: t("error.frame.not.opened"),
-                    description: t("error.frame.not.opened.desc"),
-                    action: (
-                      <Button
-                        onClick={() => {
-                          setContent("previewer");
-                          setOpen(true);
-                        }}
-                      >
-                        {t("editor.inline.open")}
-                      </Button>
-                    ),
-                  });
-                }
-                FrameManager.sendMessage(
-                  "node:clicked",
-                  { uuid: target.id, type: "node:clicked" },
-                  frame,
-                );
-              },
-            },
+            ...(window.application.isDev
+              ? [
+                  {
+                    label: "Inspect Element",
+                    onClick: () =>
+                      window.application.inspectElement(e.clientX, e.clientY),
+                  },
+                ]
+              : []),
+            ...(target?.id
+              ? [
+                  {
+                    label: t("editor.context_menu.delete"),
+                    danger: true,
+                    icon: <TrashIcon className="h-4 w-4" />,
+                    onClick: () => editor.commands.deleteSelection(),
+                  },
+                  {
+                    label: t("editor.context_menu.see_in_preview"),
+                    icon: <Eye className="h-4 w-4" />,
+                    onClick: () => {
+                      const frame = document.querySelector("iframe");
+                      if (!frame) {
+                        throw new FrameNotOpened({
+                          message: t("error.frame.not.opened"),
+                          description: t("error.frame.not.opened.desc"),
+                          action: (
+                            <Button
+                              onClick={() => {
+                                setContent("previewer");
+                                setOpen(true);
+                              }}
+                            >
+                              {t("editor.inline.open")}
+                            </Button>
+                          ),
+                        });
+                      }
+                      FrameManager.sendMessage(
+                        "node:clicked",
+                        { uuid: target.id, type: "node:clicked" },
+                        frame,
+                      );
+                    },
+                  },
+                ]
+              : []),
             ...getContextMenuItems(editor),
           ],
           target,
@@ -420,6 +435,11 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
     };
   }, [editor, setEditor]);
 
+  useEffect(() => {
+    if (ready && editor && !editor.isDestroyed)
+      editor.commands.setEditorPagination(config?.editor.pagination ?? false);
+  }, [editor, ready, config?.editor.pagination]);
+
   return (
     <>
       {!ready &&
@@ -438,6 +458,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         ) : (
           <LoadingDocument />
         ))}
+      {ready && <PaginationStatus editor={editor} />}
       <div
         id="page"
         ref={pageRef}

@@ -39,6 +39,7 @@ function fixture(
   }
   const modules: Record<string, unknown> = {
     electron: {
+      ipcMain: new EventEmitter(),
       dialog: {
         showMessageBoxSync: (_window: unknown, options: unknown) => {
           dialogs.push(options);

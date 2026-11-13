@@ -184,6 +184,14 @@ export const Settings = () => {
 
         <CardContent className="space-y-4">
           <SettingSwitch
+            label={t("settings.editor.pagination")}
+            description={t("settings.editor.pagination_description")}
+            value={config.editor?.pagination ?? false}
+            onChange={(value) =>
+              patchConfig({ editor: { ...config.editor, pagination: value } })
+            }
+          />
+          <SettingSwitch
             label={t("settings.editor.spell_check")}
             value={config.editor?.spellCheck ?? false}
             onChange={async (val) => {
@@ -231,9 +239,7 @@ export const Settings = () => {
                 <span>{t("settings.editor.alias_hints")}</span>
               </>
             }
-            description={
-              t("settings.editor.alias_hints_description")
-            }
+            description={t("settings.editor.alias_hints_description")}
             value={config.editor?.aliasHint ?? false}
             onChange={async (val) => {
               await patchConfig({

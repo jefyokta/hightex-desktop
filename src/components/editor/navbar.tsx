@@ -493,6 +493,7 @@ export const NavBar: React.FC = () => {
                 />
 
                 <Button
+                  tour="editor-settings-trigger"
                   title={t("editor.inline.toolbar_settings")}
                   icon={Settings}
                   onClick={() => {

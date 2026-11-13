@@ -1,5 +1,5 @@
 import fs from "fs";
-import { app, BrowserWindow, Menu, MenuItem, dialog } from "electron";
+import { app, BrowserWindow, Menu, MenuItem, dialog, ipcMain } from "electron";
 import { ConfigService } from "../service/config-service";
 import en from "../../src/locales/en.json";
 import id from "../../src/locales/id.json";
@@ -197,6 +197,7 @@ export class Application {
       icon: path.join(publicPath, "electron-vite.svg"),
 
       webPreferences: {
+        additionalArguments: this.isDev ? ["--hightex-dev"] : [],
         preload: this.preloadEntry,
         contextIsolation: true,
         devTools: this.isDev,
@@ -212,7 +213,26 @@ export class Application {
         event.preventDefault();
       }
     });
+
     const mainWindow = this.win;
+    const inspectElement = (
+      event: Electron.IpcMainEvent,
+      x: number,
+      y: number,
+    ) => {
+      if (
+        !this.isDev ||
+        event.sender !== mainWindow.webContents ||
+        !Number.isFinite(x) ||
+        !Number.isFinite(y)
+      )
+        return;
+      mainWindow.webContents.inspectElement(x, y);
+    };
+    ipcMain.on("editor:inspect-element", inspectElement);
+    mainWindow.once("closed", () => {
+      ipcMain.removeListener("editor:inspect-element", inspectElement);
+    });
     mainWindow.webContents.on("will-prevent-unload", (event) => {
       const messages = (ConfigService.getKey("language") === "id" ? id : en)
         .profile;

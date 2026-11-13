@@ -84,7 +84,11 @@ export const ExpandableSideBar = () => {
               })}
             </div>
 
-            <div className="flex-1 overflow-auto pt-3 pb-20">
+            <div
+              className={`min-h-0 flex-1 overflow-auto pt-3 ${
+                content === "previewer" ? "pb-0" : "pb-20"
+              }`}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={content}
@@ -92,7 +96,7 @@ export const ExpandableSideBar = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="h-full"
+                  className="h-full min-h-0"
                 >
                   {tabs[content].element}
                 </motion.div>

@@ -12,7 +12,7 @@ export const Modal = ({
 }) => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !e.defaultPrevented) onClose();
     };
     // console.log(open);
     if (open) window.addEventListener("keydown", handler);

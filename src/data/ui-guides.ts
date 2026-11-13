@@ -1,6 +1,7 @@
 import release120 from "./ui-guides/releases/1.2.0";
 import release130 from "./ui-guides/releases/1.3.0";
 import release140 from "./ui-guides/releases/1.4.0";
+import release150 from "./ui-guides/releases/1.5.0";
 import { versionAtLeast } from "./ui-guides/version";
 export { versionAtLeast } from "./ui-guides/version";
 
@@ -9,6 +10,7 @@ export const GUIDE_RELEASES: GuideRelease[] = [
   release120,
   release130,
   release140,
+  release150,
 ];
 
 export function availableReleases(
