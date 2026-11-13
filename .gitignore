@@ -35,6 +35,7 @@ src/editor/plugins/ai-suggestion.ts
 API_CLIENT.MD
 
 plan.md
+dev-info.md
 
 # Independent libraries
 /packages/
