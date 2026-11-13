@@ -12,3 +12,8 @@ current hightex pagination handled by paged js for pdf output not for live edito
 
 # Stop when it is not possible
 if the requirements is not possible example, we have to move another editor that support pagination, or the implementasion would break the application rule or product rule. you should stop
+
+
+# Pagination Api Should
+1. current margins maybe 3 for all, but dont harcode them all, make it configureable
+2. make repeated table capt/header can be disabled
