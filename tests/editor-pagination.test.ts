@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { DEFAULT_PAGINATION, mergePaginationOptions, paginationGeometry } from "../src/editor/pagination/options";
 import {
   EDITOR_PAGE,
   paginateUnits,
@@ -6,6 +7,32 @@ import {
 } from "../src/editor/pagination/layout";
 
 const contentHeight = EDITOR_PAGE.height - 2 * EDITOR_PAGE.margin;
+
+test("asymmetric margins control the usable page area and planner", () => {
+  const page = paginationGeometry({ margins: { top: 20, right: 25, bottom: 40, left: 35 } });
+  expect(page.contentHeight).toBeCloseTo((297-60)*96/25.4);
+  expect(page.contentWidth).toBeCloseTo(150*96/25.4);
+  const small = paginationGeometry({ margins: { top: 60, bottom: 60 } });
+  const units: LayoutUnit[] = [{from:1,top:0,bottom:24,kind:"line"},{from:2,top:700,bottom:724,kind:"line"}];
+  expect(paginateUnits(units).pages).toBe(1);
+  expect(paginateUnits(units,small).pages).toBe(2);
+});
+
+test("option patches preserve other sides and table flags are independent", () => {
+  const patch = mergePaginationOptions({ margins: { left: 40 }, repeatTableHeader: false }, { margins: { top: 25 }, repeatTableCaption: false });
+  const page = paginationGeometry(patch);
+  expect(page.margins.left).toBeCloseTo(40*96/25.4);
+  expect(page.margins.top).toBeCloseTo(25*96/25.4);
+  expect(page.margins.bottom).toBe(DEFAULT_PAGINATION.margins.bottom);
+  expect(page.repeatTableHeader).toBe(false);
+  expect(page.repeatTableCaption).toBe(false);
+});
+
+test("invalid margins fail before changing the layout", () => {
+  for (const value of [-1, NaN, Infinity]) expect(()=>paginationGeometry({margins:{top:value}})).toThrow();
+  expect(()=>paginationGeometry({margins:{left:110,right:110}})).toThrow();
+  expect(()=>paginationGeometry({margins:{top:150,bottom:150}})).toThrow();
+});
 const line = (from: number, top: number): LayoutUnit => ({
   from,
   top,
@@ -113,11 +140,54 @@ test("a heading follows the paragraph's two-line minimum", () => {
   expect(result.breaks.map(item => item.from)).toEqual([1]);
 });
 
+test("a heading follows a short paragraph when its third line moves the paragraph whole", () => {
+  const top = contentHeight - 80;
+  const result = paginateUnits([
+    { ...line(1, top), kind: "block", to: 10, keepWithNext: true },
+    ...paragraph(3, top + 24),
+  ]);
+  expect(result.breaks.map(item => item.from)).toEqual([1]);
+});
+
 test("first-line ink above its block aligns with the new content edge", () => {
   const unit: LayoutUnit = {
     ...paragraph(1, contentHeight - 40)[0],
     bottom: contentHeight + 10,
     anchor: { from: 99, to: 150, top: contentHeight - 30, marginTop: 0 },
+  };
+  const result = paginateUnits([unit]);
+  const pageBreak = result.breaks[0];
+  expect(pageBreak).toMatchObject({ from: 99, to: 150, kind: "block" });
+  expect(unit.top + pageBreak.height).toBeCloseTo(EDITOR_PAGE.height + EDITOR_PAGE.gap);
+});
+
+test("leading ink above its block aligns at the next content edge", () => {
+  const unit: LayoutUnit = {
+    from: 99,
+    to: 150,
+    top: 200,
+    bottom: 1000,
+    kind: "block",
+    lineIndex: 0,
+    lineCount: 1,
+    anchor: { from: 99, to: 150, top: -20, marginTop: 0 },
+  };
+  const result = paginateUnits([unit]);
+  const pageBreak = result.breaks[0];
+  expect(pageBreak).toMatchObject({ from: 99, to: 150, kind: "block" });
+  expect(unit.top + pageBreak.height).toBeCloseTo(EDITOR_PAGE.height + EDITOR_PAGE.gap);
+});
+
+test("a leading anchor margin does not offset the first visible line", () => {
+  const unit: LayoutUnit = {
+    from: 99,
+    to: 150,
+    top: contentHeight - 20,
+    bottom: contentHeight + 200,
+    kind: "block",
+    lineIndex: 0,
+    lineCount: 1,
+    anchor: { from: 99, to: 150, top: contentHeight - 40, marginTop: 50 },
   };
   const result = paginateUnits([unit]);
   const pageBreak = result.breaks[0];

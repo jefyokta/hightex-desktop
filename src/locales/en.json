@@ -684,7 +684,29 @@
     "pagination": {
       "updating": "Updating page layout…",
       "pages": "Chapter page view · {count} page(s)",
-      "error": "Page layout could not be completed. Your content is still available; toggle page view to retry."
+      "error": "Page layout could not be completed. Your content is still available; try again or turn off page view.",
+      "experimental_notice": "Experimental editor layout. Page breaks and chapter page numbers may differ from the PDF; use print preview for final output.",
+      "retry": "Try page layout again",
+      "disable": "Turn off page view",
+      "disable_save_failed": "Page view is off for this chapter, but the preference could not be saved. Turn it off in Settings before opening another chapter.",
+      "feedback": {
+        "open": "Report a page view issue",
+        "issue_title": "Experimental page view issue",
+        "title": "Report experimental page view",
+        "description": "Describe the problem and review the report before sending. You can also copy it to share later.",
+        "privacy": "No document text, title, IDs, file paths, or screenshots are attached automatically. Your description and basic app/browser environment details are included.",
+        "details": "What happened?",
+        "placeholder": "Steps to reproduce, what you expected, and what appeared. Include document details only if you want to share them.",
+        "preview": "Report to send or copy",
+        "version_failed": "The app version could not be read. You can still copy or send the report.",
+        "send": "Send report",
+        "sending": "Sending…",
+        "sent": "Report sent. Thank you for testing page view.",
+        "send_failed": "The report could not be sent. Your draft is still here. Try again, or copy it to share through your usual support channel.",
+        "copy": "Copy report",
+        "copied": "Report copied. Nothing was sent by copying.",
+        "copy_failed": "The report could not be copied. You can select and copy the preview text manually."
+      }
     },
     "inline": {
       "table_tools": "Table tools",
@@ -2191,6 +2213,26 @@
       },
       "requires_document": "This step needs a document. Close the tour, create or import a document, then reopen the guide from Help.",
       "requires_visible_document": "Show at least one document to continue. Clear the filters, or close the tour and create or import a document first."
+    },
+    "release150": {
+      "pagination": {
+        "name": "Experimental page view",
+        "summary": "Try A4 pages while writing. It starts off; PDF output still follows print preview.",
+        "settings": {
+          "title": "Try page view when you want",
+          "description": "Open editor settings from the toolbar to find Page view (experimental). The experiment is optional and starts off. This tour does not enable it."
+        },
+        "opt_in": {
+          "title": "Writing pages and final PDF",
+          "description": "Switch page view on to try it, or keep it off. Page numbers start at 1 in each editable chapter. PDF page breaks still follow print preview and can differ from the editor.",
+          "fallback": "Open editor settings to try Page view (experimental). You can keep it off and continue writing normally."
+        },
+        "feedback": {
+          "title": "Turn it off or report an issue",
+          "description": "Use the page view status controls to turn the experiment off or report a layout/editing issue. Reporting lets you review or copy a draft first; document content and screenshots are not attached automatically. The report action is also available in editor settings when page view is off.",
+          "fallback": "Open editor settings to turn page view on/off or report an issue. Nothing is reported automatically, and you can continue using print preview for your PDF."
+        }
+      }
     }
   }
 }

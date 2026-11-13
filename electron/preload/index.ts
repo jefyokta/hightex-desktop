@@ -70,6 +70,9 @@ ipcRenderer.on("application:navigate", (_event, route: string) => {
 });
 
 contextBridge.exposeInMainWorld("application", {
+  isDev: process.argv.includes("--hightex-dev"),
+  inspectElement: (x: number, y: number) =>
+    ipcRenderer.send("editor:inspect-element", x, y),
   setProfileDraftBusy: (busy: boolean) =>
     ipcRenderer.invoke("profile:draft-state", busy),
   editorDocumentId: (() => {

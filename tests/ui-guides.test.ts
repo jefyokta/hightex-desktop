@@ -42,6 +42,35 @@ const seenBaseline = Object.fromEntries(
   baseline.map((guide) => [guide.id, guide.revision]),
 );
 
+test("page view announcement is reserved for 1.5+ and can be dismissed without opting in", () => {
+  const old = availableGuides("1.4.4", "editor");
+  expect(
+    old.some((guide) => guide.id === "experimental-editor-pagination"),
+  ).toBe(false);
+  const seenGuides = Object.fromEntries(
+    old.map((guide) => [guide.id, guide.revision]),
+  );
+  const plan = guidePlan(
+    status({ currentVersion: "1.5.0", seenGuides }),
+    "editor",
+  )!;
+  expect(plan.guides.map((guide) => guide.id)).toEqual([
+    "experimental-editor-pagination",
+  ]);
+  expect(guideAcknowledgments(plan)).toEqual([
+    { id: "experimental-editor-pagination", revision: 1 },
+  ]);
+  expect(
+    guidePlan(
+      status({
+        currentVersion: "1.5.0",
+        seenGuides: { ...seenGuides, "experimental-editor-pagination": 1 },
+      }),
+      "editor",
+    ),
+  ).toBeNull();
+});
+
 test("workspace welcome precedes automatic guides while replay and editor remain available", () => {
   const pending = status({ firstInstalled: true, profileSetupPending: true });
   expect(guidePlan(pending, "workspace")).toBeNull();

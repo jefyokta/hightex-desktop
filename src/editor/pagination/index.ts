@@ -1,23 +1,27 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, type EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
-import { EDITOR_PAGE, type PageLayout } from "./layout";
+import type { PageLayout } from "./layout";
+import { applyPageGeometry, mergePaginationOptions, paginationGeometry, type PaginationOptions } from "./options";
+export type { PaginationOptions } from "./options";
 import { measureEditor } from "./measure";
 import { FlowCache } from "./flow";
 import { paginationInputProps } from "./input";
 
 interface PaginationState {
+  options: PaginationOptions;
   enabled: boolean;
   pending: boolean;
   decorations: DecorationSet;
   layout: PageLayout;
 }
-type PaginationUpdate = { enabled?: boolean; layout?: PageLayout };
+type PaginationUpdate = { enabled?: boolean; layout?: PageLayout; options?: PaginationOptions; pending?: boolean };
 export const paginationKey = new PluginKey<PaginationState>("editorPagination");
 const emptyLayout = (): PageLayout => ({
   breaks: [],
   pages: 1,
 });
+const fontsAreLoading = () => document.fonts.status === "loading";
 
 function decorations(
   viewDoc: Parameters<typeof DecorationSet.create>[0],
@@ -77,6 +81,7 @@ class PaginationView {
   private cache = new FlowCache();
   private task?: AbortController;
   private width = 0;
+  private pendingQueued = false;
 
   constructor(private view: EditorView) {
     this.page = view.dom.closest<HTMLElement>(".page");
@@ -120,6 +125,7 @@ class PaginationView {
       characterData: true,
       attributes: true,
     });
+    document.fonts.addEventListener("loading", this.fontsLoading);
     document.fonts.addEventListener("loadingdone", this.fontsChanged);
     view.dom.addEventListener("load", this.schedule, true);
     view.dom.addEventListener("compositionend", this.schedule);
@@ -133,15 +139,18 @@ class PaginationView {
   update(view: EditorView, previous?: EditorState) {
     this.view = view;
     const state = paginationKey.getState(view.state)!;
+    const geometry = paginationGeometry(state.options);
     const active = state.enabled && !state.layout.error;
     this.page ??= view.dom.closest<HTMLElement>(".page");
     this.page?.toggleAttribute("data-paginated-editor", active);
+    this.page?.toggleAttribute("data-pagination-surface", active);
     if (active && this.page) {
+      applyPageGeometry(this.page, geometry);
       this.page.style.setProperty(
         "--editor-page-height",
-        `${EDITOR_PAGE.height}px`,
+        `${geometry.height}px`,
       );
-      this.page.style.setProperty("--editor-page-gap", `${EDITOR_PAGE.gap}px`);
+      this.page.style.setProperty("--editor-page-gap", `${geometry.gap}px`);
       this.page.style.setProperty(
         "--editor-page-count",
         String(state.layout.pages),
@@ -150,6 +159,7 @@ class PaginationView {
       const chromeSignature = JSON.stringify([
         state.layout.pages,
         state.layout.furniture,
+        geometry,
       ]);
       if (chromeSignature !== this.chromeSignature) {
         this.chromeSignature = chromeSignature;
@@ -160,14 +170,14 @@ class PaginationView {
           const number = document.createElement("span");
           number.className = "editor-pagination-number";
           number.textContent = String(index + 1);
-          const top = index * (EDITOR_PAGE.height + EDITOR_PAGE.gap);
+          const top = index * geometry.stride;
           sheet.style.top = `${top}px`;
-          number.style.top = `${top + EDITOR_PAGE.height - EDITOR_PAGE.margin / 2}px`;
+          number.style.top = `${top + geometry.height - geometry.margins.bottom / 2}px`;
           this.sheets.append(sheet, number);
           if (index < state.layout.pages - 1) {
             const boundary = document.createElement("div");
             boundary.className = "editor-pagination-boundary";
-            boundary.style.top = `${top + EDITOR_PAGE.height - EDITOR_PAGE.margin}px`;
+            boundary.style.top = `${top + geometry.height - geometry.margins.bottom}px`;
             this.sheets.append(boundary);
           }
         }
@@ -194,7 +204,8 @@ class PaginationView {
     if (
       !previous ||
       previous.doc !== view.state.doc ||
-      paginationKey.getState(previous)?.enabled !== state.enabled
+      paginationKey.getState(previous)?.enabled !== state.enabled ||
+      paginationKey.getState(previous)?.options !== state.options
     )
       this.schedule();
   }
@@ -202,11 +213,15 @@ class PaginationView {
   private clearPageStyle() {
     for (const key of ["height", "gap", "count"])
       this.page?.style.removeProperty(`--editor-page-${key}`);
+    for (const side of ["top", "right", "bottom", "left"])
+      this.page?.style.removeProperty(`--editor-margin-${side}`);
+    this.page?.style.removeProperty("--editor-content-width");
   }
 
   private schedule = () => {
     if (this.destroyed || !paginationKey.getState(this.view.state)?.enabled)
       return;
+    this.markPending();
     this.task?.abort();
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
@@ -215,9 +230,33 @@ class PaginationView {
     }, 120);
   };
 
+  private markPending() {
+    if (this.pendingQueued) return;
+    this.pendingQueued = true;
+    // Scheduling can happen inside a ProseMirror view update. Publish status
+    // after it completes, without nesting a dispatch or changing the document.
+    queueMicrotask(() => {
+      this.pendingQueued = false;
+      if (this.destroyed) return;
+      const state = paginationKey.getState(this.view.state);
+      if (!state?.enabled || state.pending) return;
+      this.view.dispatch(this.view.state.tr
+        .setMeta(paginationKey, { pending: true } satisfies PaginationUpdate)
+        .setMeta("addToHistory", false));
+    });
+  }
+
   private fontsChanged = () => {
     this.cache.clear();
     this.schedule();
+  };
+
+  private fontsLoading = () => {
+    this.markPending();
+    this.task?.abort();
+    clearTimeout(this.timer);
+    cancelAnimationFrame(this.frame ?? 0);
+    this.cache.clear();
   };
 
   private compositionStarted = () => {
@@ -229,6 +268,7 @@ class PaginationView {
   private async measure() {
     if (this.destroyed || !paginationKey.getState(this.view.state)?.enabled)
       return;
+    if (fontsAreLoading()) return;
     if (this.view.composing) return;
     const width = this.view.dom.clientWidth;
     if (width !== this.width) {
@@ -239,9 +279,10 @@ class PaginationView {
     this.task?.abort();
     this.task = task;
     const doc = this.view.state.doc;
+    const options = paginationKey.getState(this.view.state)!.options;
     let layout: PageLayout | null;
     try {
-      layout = await measureEditor(this.view, this.cache, task.signal);
+      layout = await measureEditor(this.view, this.cache, task.signal, paginationGeometry(options));
     } catch (error) {
       if (task.signal.aborted || this.destroyed) return;
       console.error("Editor pagination failed", error);
@@ -251,7 +292,9 @@ class PaginationView {
       !layout ||
       task.signal.aborted ||
       this.destroyed ||
+      fontsAreLoading() ||
       this.view.state.doc !== doc ||
+      paginationKey.getState(this.view.state)?.options !== options ||
       !paginationKey.getState(this.view.state)?.enabled
     )
       return;
@@ -278,6 +321,7 @@ class PaginationView {
     cancelAnimationFrame(this.frame ?? 0);
     this.resize.disconnect();
     this.mutations.disconnect();
+    document.fonts.removeEventListener("loading", this.fontsLoading);
     document.fonts.removeEventListener("loadingdone", this.fontsChanged);
     this.view.dom.removeEventListener("load", this.schedule, true);
     this.view.dom.removeEventListener("compositionend", this.schedule);
@@ -287,29 +331,44 @@ class PaginationView {
     );
     this.sheets.remove();
     this.page?.removeAttribute("data-paginated-editor");
+    this.page?.removeAttribute("data-pagination-surface");
     this.clearPageStyle();
   }
 }
 
-export const EditorPagination = Extension.create({
+export const EditorPagination = Extension.create<PaginationOptions>({
   name: "editorPagination",
+  addOptions() {
+    return { margins: { top: 30, right: 30, bottom: 30, left: 30 }, repeatTableCaption: true, repeatTableHeader: true };
+  },
   addCommands() {
     return {
+      configureEditorPagination:
+        (patch: PaginationOptions) =>
+        ({ tr, state }) => {
+          const previous = (tr.getMeta(paginationKey) as PaginationUpdate | undefined)?.options ?? paginationKey.getState(state)!.options;
+          const options = mergePaginationOptions(previous, patch);
+          tr.setMeta(paginationKey, { ...(tr.getMeta(paginationKey) ?? {}), options } satisfies PaginationUpdate);
+          tr.setMeta("addToHistory", false);
+          return true;
+        },
       setEditorPagination:
         (enabled: boolean) =>
         ({ tr }) => {
-          tr.setMeta(paginationKey, { enabled } satisfies PaginationUpdate);
+          tr.setMeta(paginationKey, { ...(tr.getMeta(paginationKey) ?? {}), enabled } satisfies PaginationUpdate);
           tr.setMeta("addToHistory", false);
           return true;
         },
     };
   },
   addProseMirrorPlugins() {
+    const options = mergePaginationOptions({}, this.options);
     return [
       new Plugin<PaginationState>({
         key: paginationKey,
         state: {
           init: () => ({
+            options,
             enabled: false,
             pending: false,
             decorations: DecorationSet.empty,
@@ -320,21 +379,25 @@ export const EditorPagination = Extension.create({
               | PaginationUpdate
               | undefined;
             const enabled = update?.enabled ?? previous.enabled;
+            const options = update?.options ?? previous.options;
+            const reset = update?.enabled !== undefined || update?.options !== undefined;
             const layout = enabled
-              ? update?.enabled !== undefined
+              ? reset
                 ? emptyLayout()
                 : (update?.layout ?? previous.layout)
               : emptyLayout();
             return {
+              options,
               enabled,
               pending:
                 enabled &&
                 !update?.layout &&
-                (update?.enabled !== undefined ||
+                (reset ||
+                  update?.pending === true ||
                   tr.docChanged ||
                   previous.pending),
               layout,
-              decorations: !enabled
+              decorations: !enabled || reset
                 ? DecorationSet.empty
                 : update?.layout
                   ? decorations(tr.doc, layout)
@@ -360,6 +423,7 @@ export const EditorPagination = Extension.create({
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     editorPagination: {
+      configureEditorPagination(options: PaginationOptions): ReturnType;
       setEditorPagination(enabled: boolean): ReturnType;
     };
   }

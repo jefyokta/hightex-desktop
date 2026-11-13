@@ -1,6 +1,6 @@
 import type { Node as ModelNode } from "@tiptap/pm/model";
 import type { EditorView } from "@tiptap/pm/view";
-import { EDITOR_PAGE } from "./layout";
+import { DEFAULT_PAGINATION, applyPageGeometry, type PaginationGeometry } from "./options";
 
 interface TextRun {
   from: number;
@@ -14,12 +14,14 @@ export class LayoutSnapshot {
   readonly root: HTMLElement;
   readonly elements = new Map<number, HTMLElement>();
   readonly runs: TextRun[] = [];
+  /** Table subtrees delegated to their own pass; includes deferred children. */
   readonly completedTables = new Set<number>();
   readonly origin: number;
   readonly left: number;
+
   private copies = new Map<Node, Node>();
 
-  constructor(view: EditorView) {
+  constructor(view: EditorView, readonly geometry: PaginationGeometry = DEFAULT_PAGINATION) {
     this.model = view.state.doc;
     const page = view.dom.closest<HTMLElement>(".page");
     if (!page || !view.dom.isConnected) throw Error("Editor is not mounted");
@@ -35,12 +37,14 @@ export class LayoutSnapshot {
       "--start-counter",
       getComputedStyle(page).getPropertyValue("--start-counter"),
     );
+    this.host.setAttribute("data-pagination-surface", "");
+    applyPageGeometry(this.host, geometry);
     const wrapper = document.createElement("div");
     wrapper.append(this.root);
     this.host.append(wrapper);
     document.body.append(this.host);
     const bounds = this.host.getBoundingClientRect();
-    this.origin = bounds.top + EDITOR_PAGE.margin;
+    this.origin = bounds.top + geometry.margins.top;
     this.left = bounds.left;
     this.model.descendants((node, pos) => {
       if (node.isText) return false;
@@ -78,6 +82,12 @@ export class LayoutSnapshot {
         "editor-pagination-row",
         "editor-pagination-scaled",
       );
+      // Decoration styles must disappear with their classes. Otherwise table
+      // continuation HTML retains stale row heights and changes on every pass.
+      for (const property of ["--editor-row-height", "--editor-break-height", "--editor-original-margin", "--editor-atom-scale"])
+        clone.style.removeProperty(property);
+      if (!clone.className) clone.removeAttribute("class");
+      if (!clone.style.length) clone.removeAttribute("style");
     }
     if (node instanceof HTMLImageElement && clone instanceof HTMLImageElement) {
       clone.style.width = `${node.offsetWidth}px`;
@@ -103,7 +113,6 @@ export class LayoutSnapshot {
       yield this.runs[index];
   }
 
-  /** Locate a model position after earlier inserts have split cloned text runs. */
   point(from: number): { node: Text; offset: number } | null {
     let low = 0;
     let high = this.runs.length - 1;
@@ -157,11 +166,31 @@ export class LayoutSnapshot {
   margin(from: number, height: number) {
     const element = this.elements.get(from);
     if (!element) throw Error("Unable to locate a block");
+    const before = element.getBoundingClientRect().top;
     const original = parseFloat(getComputedStyle(element).marginTop) || 0;
     element.style.setProperty("--editor-original-margin", `${original}px`);
-    element.style.setProperty("--editor-break-height", `${height}px`);
     element.classList.add("editor-pagination-block");
-    return original;
+    // Margins are not additive: siblings and node-view descendants can collapse
+    // with this margin. Calibrate the CSS margin against the actual displacement
+    // instead of assuming that a 250px margin moves the block by 250px.
+    let cssHeight = height;
+    let previous: { css: number; moved: number } | undefined;
+    // A table cell's minimum height can absorb part of the first displacement.
+    // The slope then changes when its contents start growing the row. Allow the
+    // bounded calibration to settle across that transition and pixel rounding.
+    for (let attempt = 0; attempt < 8; attempt++) {
+      element.style.setProperty("--editor-break-height", `${cssHeight}px`);
+      const moved = element.getBoundingClientRect().top - before;
+      const error = height - moved;
+      if (Math.abs(error) <= 0.05)
+        return { height: cssHeight, marginTop: original };
+      const slope = previous
+        ? (moved - previous.moved) / (cssHeight - previous.css)
+        : 1;
+      previous = { css: cssHeight, moved };
+      cssHeight += error / (Number.isFinite(slope) && slope > 0 ? slope : 1);
+    }
+    throw Error("A block page break did not reach its measured position");
   }
 
   destroy() {

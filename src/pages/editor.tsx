@@ -334,46 +334,59 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         e.preventDefault();
 
         const target = e.target as HTMLElement | null;
-        if (!target?.id) return;
+        if (!target?.id && !window.application.isDev) return;
 
         openContextMenu(
           e.clientX,
           e.clientY,
           [
-            {
-              label: t("editor.context_menu.delete"),
-              danger: true,
-              icon: <TrashIcon className="h-4 w-4" />,
-              onClick: () => editor.commands.deleteSelection(),
-            },
-            {
-              label: t("editor.context_menu.see_in_preview"),
-              icon: <Eye className="h-4 w-4" />,
-              onClick: () => {
-                const frame = document.querySelector("iframe");
-                if (!frame) {
-                  throw new FrameNotOpened({
-                    message: t("error.frame.not.opened"),
-                    description: t("error.frame.not.opened.desc"),
-                    action: (
-                      <Button
-                        onClick={() => {
-                          setContent("previewer");
-                          setOpen(true);
-                        }}
-                      >
-                        {t("editor.inline.open")}
-                      </Button>
-                    ),
-                  });
-                }
-                FrameManager.sendMessage(
-                  "node:clicked",
-                  { uuid: target.id, type: "node:clicked" },
-                  frame,
-                );
-              },
-            },
+            ...(window.application.isDev
+              ? [
+                  {
+                    label: "Inspect Element",
+                    onClick: () =>
+                      window.application.inspectElement(e.clientX, e.clientY),
+                  },
+                ]
+              : []),
+            ...(target?.id
+              ? [
+                  {
+                    label: t("editor.context_menu.delete"),
+                    danger: true,
+                    icon: <TrashIcon className="h-4 w-4" />,
+                    onClick: () => editor.commands.deleteSelection(),
+                  },
+                  {
+                    label: t("editor.context_menu.see_in_preview"),
+                    icon: <Eye className="h-4 w-4" />,
+                    onClick: () => {
+                      const frame = document.querySelector("iframe");
+                      if (!frame) {
+                        throw new FrameNotOpened({
+                          message: t("error.frame.not.opened"),
+                          description: t("error.frame.not.opened.desc"),
+                          action: (
+                            <Button
+                              onClick={() => {
+                                setContent("previewer");
+                                setOpen(true);
+                              }}
+                            >
+                              {t("editor.inline.open")}
+                            </Button>
+                          ),
+                        });
+                      }
+                      FrameManager.sendMessage(
+                        "node:clicked",
+                        { uuid: target.id, type: "node:clicked" },
+                        frame,
+                      );
+                    },
+                  },
+                ]
+              : []),
             ...getContextMenuItems(editor),
           ],
           target,

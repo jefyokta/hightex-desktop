@@ -492,6 +492,21 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   box-shadow: none !important;
 }
 
+.page[data-pagination-surface] {
+  padding: var(--editor-margin-top) var(--editor-margin-right)
+    var(--editor-margin-bottom) var(--editor-margin-left);
+}
+
+.page[data-pagination-surface] :is(p, table),
+.page[data-pagination-surface] > .tiptap {
+  max-width: var(--editor-content-width) !important;
+}
+
+.page[data-pagination-surface] figure[data-type="figureTable"] figcaption {
+  width: var(--editor-content-width) !important;
+  max-width: 100%;
+}
+
 .page[data-paginated-editor] > :first-child {
   position: relative;
   z-index: 1;
@@ -526,12 +541,12 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   z-index: 2;
   left: 0;
   width: 100%;
-  height: calc(6cm + var(--editor-page-gap));
+  height: calc(var(--editor-margin-bottom) + var(--editor-margin-top) + var(--editor-page-gap));
   background: linear-gradient(
     to bottom,
-    var(--editor-paper) 0 3cm,
-    var(--editor-workspace) 3cm calc(3cm + var(--editor-page-gap)),
-    var(--editor-paper) calc(3cm + var(--editor-page-gap)) 100%
+    var(--editor-paper) 0 var(--editor-margin-bottom),
+    var(--editor-workspace) var(--editor-margin-bottom) calc(var(--editor-margin-bottom) + var(--editor-page-gap)),
+    var(--editor-paper) calc(var(--editor-margin-bottom) + var(--editor-page-gap)) 100%
   );
 }
 
@@ -550,7 +565,7 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 
 .editor-pagination-number {
   position: absolute;
-  right: 3cm;
+  right: var(--editor-margin-right);
   z-index: 3;
   font-size: 10pt;
   line-height: 1;

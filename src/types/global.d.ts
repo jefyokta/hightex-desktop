@@ -131,6 +131,8 @@ declare global {
   };
   interface Window {
     application: {
+      readonly isDev: boolean;
+      inspectElement(x: number, y: number): void;
       setProfileDraftBusy(busy: boolean): Promise<void>;
       readonly editorDocumentId?: string | null;
       onNavigate(callback: (route: string) => void): () => void;

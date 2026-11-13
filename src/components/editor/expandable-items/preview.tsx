@@ -123,7 +123,7 @@ export const Preview = () => {
   };
 
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex h-full min-h-0 flex-col">
       <TabHeader
         title={t("editor.inline.preview_title")}
         desc={t("editor.expandable.preview.header")}
@@ -223,7 +223,7 @@ export const Preview = () => {
         </div>
       </TabHeader>
 
-      <div className="w-full flex-1 bg-muted/30 flex flex-col relative overflow-hidden">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-muted/30">
         {loading && (
           <div className="absolute inset-0 p-6 space-y-3 z-10 bg-background/80 backdrop-blur-sm">
             <div className="h-6 w-1/3 bg-muted animate-pulse rounded-md" />
@@ -233,7 +233,7 @@ export const Preview = () => {
         )}
 
         <iframe
-          className={cn("flex-1 w-full border-0 bg-white")}
+          className={cn("min-h-0 w-full flex-1 border-0 bg-white")}
           key={frameKey}
           src={
             scope === "current"

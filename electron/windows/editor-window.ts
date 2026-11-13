@@ -43,12 +43,29 @@ export class EditorWindow {
       webPreferences: {
         additionalArguments: [
           `--hightex-editor-document=${encodeURIComponent(documentId)}`,
+          ...(Application.isDev ? ["--hightex-dev"] : []),
         ],
         preload: Application.instance.preloadEntry,
         contextIsolation: true,
         devTools: Application.isDev,
       },
     });
+
+    const inspectElement = (
+      event: Electron.IpcMainEvent,
+      x: number,
+      y: number,
+    ) => {
+      if (
+        !Application.isDev ||
+        event.sender !== window.webContents ||
+        !Number.isFinite(x) ||
+        !Number.isFinite(y)
+      )
+        return;
+      window.webContents.inspectElement(x, y);
+    };
+    ipcMain.on("editor:inspect-element", inspectElement);
 
     window.webContents.on("will-navigate", (event, target) => {
       const url = new URL(target);
@@ -74,7 +91,6 @@ export class EditorWindow {
       dirty: async () => {
         if (!state.initialized) return true;
         const snapshot = await this.snapshot(documentId);
-        // Also notice files removed or changed outside HighTex since opening.
         if (state.document.filePath) {
           try {
             return (
@@ -135,6 +151,7 @@ export class EditorWindow {
     window.on("close", (event) => void guard.request(event));
 
     window.once("closed", () => {
+      ipcMain.removeListener("editor:inspect-element", inspectElement);
       this.closeGuards.delete(documentId);
       if (this.windows.get(documentId)?.window === window) {
         this.windows.delete(documentId);

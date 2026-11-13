@@ -52,13 +52,13 @@ export const Splash = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="splash-screen relative isolate flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <div className="splash-screen relative isolate flex h-dvh w-full flex-col overflow-hidden bg-background text-foreground">
         <div
           className="drag-bar absolute inset-x-0 top-0 z-10 h-7"
           aria-hidden="true"
         />
         <div className="splash-ambient" aria-hidden="true" />
-        <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-4 pt-10 sm:px-10 lg:px-12">
+        <header className="relative mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between px-6 pb-4 pt-10 sm:px-10 lg:px-12">
           <div className="flex items-center gap-3">
             <HighTexLogo
               size={44}
@@ -94,7 +94,7 @@ export const Splash = () => {
           </div>
         </header>
 
-        <main className="relative mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-6 py-12 sm:px-10 lg:grid-cols-2 lg:gap-12 lg:px-12 lg:py-6">
+        <main className="relative mx-auto grid min-h-0 w-full max-w-6xl flex-1 items-center gap-12 overflow-y-auto px-6 py-12 sm:px-10 lg:grid-cols-2 lg:gap-12 lg:px-12 lg:py-6">
           <motion.div
             initial={reducedMotion ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -212,7 +212,7 @@ export const Splash = () => {
           </motion.div>
         </main>
 
-        <footer className="relative mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 pb-6 sm:px-10 lg:px-12">
+        <footer className="relative mx-auto flex w-full max-w-6xl shrink-0 flex-col gap-4 px-6 pb-6 sm:px-10 lg:px-12">
           <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:gap-6">
             <GitHubSupport />
             <div className="flex shrink-0 flex-wrap items-center gap-2">

@@ -1,6 +1,6 @@
 import type { Node as ModelNode } from "@tiptap/pm/model";
 import { collectFlow, FlowCache, type FlowLine } from "./flow";
-import { EDITOR_PAGE, type PageLayout } from "./layout";
+import type { PageLayout } from "./layout";
 import { LayoutSnapshot } from "./snapshot";
 import { fitAtomicContent } from "./atomic-layout";
 
@@ -16,6 +16,7 @@ interface Cell {
   from: number;
   node: ModelNode;
   lines: FlowLine[];
+  nested: { node: ModelNode; pos: number; container: number; done: boolean }[];
 }
 
 /** Freeze row heights before adding gaps so rowspan growth cannot move earlier pages. */
@@ -61,14 +62,14 @@ export async function paginateTable(
           index + Math.max(1, Number(cell.attrs.rowspan) || 1),
         ),
         lines: [],
+        nested: [],
       });
       cellOffset += cell.nodeSize;
     }
     offset += row.nodeSize;
     await checkpoint();
   }
-  const contentHeight = EDITOR_PAGE.height - 2 * EDITOR_PAGE.margin;
-  const stride = EDITOR_PAGE.height + EDITOR_PAGE.gap;
+  const { contentHeight, stride, margins, repeatTableCaption, repeatTableHeader } = snapshot.geometry;
   let headerCount = 0;
   while (
     headerCount < rows.length &&
@@ -93,15 +94,20 @@ export async function paginateTable(
   furniture.dataset.type = "figureTable";
   furniture.className = "tiptap ProseMirror editor-pagination-repeat";
   furniture.style.cssText = `position:absolute;left:0;top:0;margin:0;width:${table.getBoundingClientRect().width}px`;
-  if (caption) {
+  if (caption && repeatTableCaption) {
     const copy = caption.cloneNode(true) as HTMLElement;
     copy.classList.add("editor-pagination-repeat-caption");
     copy.dataset.repeatLabel = caption.dataset.label ?? "Tabel";
     copy.style.position = "relative";
+    // A caption can be wider than a narrow table. Keep its measured width
+    // instead of wrapping it to the continuation table's width and reserving
+    // a different header height from the original.
+    copy.style.setProperty("width", `${caption.getBoundingClientRect().width}px`, "important");
+    copy.style.maxWidth = "none";
     copy.style.left = `${caption.getBoundingClientRect().left - table.getBoundingClientRect().left}px`;
     furniture.append(copy);
   }
-  if (headerCount) {
+  if (headerCount && repeatTableHeader) {
     const headerTable = table.cloneNode(false) as HTMLTableElement;
     headerTable.style.width = `${table.getBoundingClientRect().width}px`;
     const columns = table.querySelector("colgroup");
@@ -124,12 +130,11 @@ export async function paginateTable(
   const firstPage = Math.max(0, Math.floor(groupTop / stride));
   if (firstGroupBottom - groupTop <= contentHeight - reservedTop && firstGroupBottom > firstPage * stride + contentHeight) {
     const height = (firstPage + 1) * stride + reservedTop - groupTop;
-    const marginTop = snapshot.margin(containerPos, height);
+    const margin = snapshot.margin(containerPos, height);
     const container = snapshot.model.nodeAt(containerPos)!;
-    layout.breaks.push({ from: containerPos, to: containerPos + container.nodeSize, top: groupTop, bottom: firstGroupBottom, kind: "block", height, marginTop });
+    layout.breaks.push({ from: containerPos, to: containerPos + container.nodeSize, top: groupTop, bottom: firstGroupBottom, kind: "block", ...margin });
   }
   for (const cell of cells) {
-    const nested: { node: ModelNode; pos: number }[] = [];
     cell.node.descendants((child, offset) => {
       if (child.type.name === "figureTable" || child.type.name === "table") {
         let inner = child;
@@ -141,7 +146,12 @@ export async function paginateTable(
             innerOffset += part.nodeSize;
           }
         }
-        nested.push({ node: inner, pos: innerPos });
+        const container = cell.from + 1 + offset;
+        cell.nested.push({ node: inner, pos: innerPos, container, done: false });
+        // Defer its contents until the preceding parent rows have reached
+        // their final positions. Parent flow must not paginate this subtree.
+        snapshot.completedTables.add(container);
+        snapshot.completedTables.add(innerPos);
         return false;
       }
       if (child.type.name === "imageFigure" || (child.isAtom && child.isBlock)) {
@@ -150,8 +160,6 @@ export async function paginateTable(
       }
       return true;
     });
-    for (const inner of nested)
-      await paginateTable(snapshot, inner.node, inner.pos, layout, cache, checkpoint, reservedTop + furnitureHeight, depth + 1);
     cell.lines = await collectFlow(snapshot, cell.node, cell.from, cache, checkpoint);
   }
   for (const row of rows) row.height = row.element.getBoundingClientRect().height;
@@ -179,8 +187,25 @@ export async function paginateTable(
       rows.length * 3 + layout.pages * 3,
   );
   const forcedBreaks = cells.flatMap(cell => cell.lines.filter(line => line.breakBefore));
-  while (true) {
+  for (;;) {
     const naturalLimit = page * stride + contentHeight;
+    for (const cell of cells) {
+      for (const inner of cell.nested) {
+        if (inner.done) continue;
+        const top = snapshot.elements.get(inner.container)!.getBoundingClientRect().top - snapshot.origin;
+        if (top > naturalLimit + 0.5 || cell.lines.some(line => line.from < inner.container && line.bounds().bottom > naturalLimit + 0.5)) break;
+        freeze();
+        await paginateTable(snapshot, inner.node, inner.pos, layout, cache, checkpoint, reservedTop + furnitureHeight, depth + 1);
+        inner.done = true;
+        // Child gaps can grow this row; frozen earlier rows cannot redistribute
+        // that growth and shift a previously measured child or page.
+        for (const row of rows) {
+          row.height = row.element.getBoundingClientRect().height;
+          rowEffects.get(row.from)!.height = row.height;
+          row.element.style.setProperty("--editor-row-height", `${row.height}px`);
+        }
+      }
+    }
     let forcedTop = Infinity;
     for (const line of forcedBreaks) {
       const { top } = line.bounds();
@@ -213,7 +238,10 @@ export async function paginateTable(
         if (cell.row > rowIndex || cell.end <= rowIndex || !cell.lines.length)
           continue;
         let low = 0;
-        let high = cell.lines.length;
+        const deferred = cell.nested.find(inner => !inner.done);
+        const lineEnd = deferred ? cell.lines.findIndex(line => line.from > deferred.container) : -1;
+        const availableLines = lineEnd < 0 ? cell.lines.length : lineEnd;
+        let high = availableLines;
         while (low < high) {
           const middle = (low + high) >>> 1;
           const candidate = cell.lines[middle];
@@ -223,7 +251,7 @@ export async function paginateTable(
             low = middle + 1;
           else high = middle;
         }
-        if (low >= cell.lines.length) continue;
+        if (low >= availableLines) continue;
         let line = cell.lines[low];
         let bounds = line.bounds();
         if (bounds.top >= target - 0.5) continue;
@@ -260,15 +288,14 @@ export async function paginateTable(
         if (anchor || line.kind === "block") {
           const from = anchor?.from ?? line.from;
           const to = anchor?.to ?? line.to!;
-          const marginTop = snapshot.margin(from, height);
+          const margin = snapshot.margin(from, height);
           layout.breaks.push({
             from,
             to,
             top: bounds.top,
             bottom: bounds.bottom,
             kind: "block",
-            height,
-            marginTop,
+            ...margin,
           });
         } else {
           snapshot.spacer(line.from, height);
@@ -308,7 +335,7 @@ export async function paginateTable(
     ) {
       const bounds = table.getBoundingClientRect();
       layout.furniture!.push({
-        top: nextStart + reservedTop + EDITOR_PAGE.margin,
+        top: nextStart + reservedTop + margins.top,
         left: bounds.left - snapshot.left,
         width: bounds.width,
         html: furnitureHTML,
@@ -322,4 +349,6 @@ export async function paginateTable(
   layout.pages = Math.max(layout.pages, page + 1);
   snapshot.completedTables.add(pos);
   snapshot.completedTables.add(containerPos);
+  if (cells.some(cell => cell.nested.some(inner => !inner.done)))
+    throw Error("A nested table did not reach its parent layout position");
 }

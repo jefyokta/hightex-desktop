@@ -2,7 +2,6 @@ import type { EditorView } from "@tiptap/pm/view";
 import type { Node as ModelNode } from "@tiptap/pm/model";
 import { textFlow, FlowCache } from "./flow";
 import {
-  EDITOR_PAGE,
   paginateUnits,
   type LayoutUnit,
   type PageLayout,
@@ -10,16 +9,18 @@ import {
 import { LayoutSnapshot, layoutCheckpoint } from "./snapshot";
 import { paginateTable } from "./table-layout";
 import { fitAtomicContent } from "./atomic-layout";
+import { DEFAULT_PAGINATION, type PaginationGeometry } from "./options";
 
 /** A bounded, cancellable layout pass over a snapshot of one editor document. */
 export async function measureEditor(
   view: EditorView,
   cache: FlowCache,
   signal: AbortSignal,
+  geometry: PaginationGeometry = DEFAULT_PAGINATION,
 ): Promise<PageLayout | null> {
   if (!view.dom.isConnected || !view.dom.getBoundingClientRect().width)
     return null;
-  const snapshot = new LayoutSnapshot(view);
+  const snapshot = new LayoutSnapshot(view, geometry);
   const checkpoint = layoutCheckpoint(signal);
   const layout: PageLayout = {
     breaks: [],
@@ -28,7 +29,7 @@ export async function measureEditor(
     scales: [],
     furniture: [],
   };
-  const contentHeight = EDITOR_PAGE.height - 2 * EDITOR_PAGE.margin;
+  const { contentHeight } = geometry;
   try {
     snapshot.model.descendants((node, pos) => {
       if (node.type.name === "imageFigure" || (node.isAtom && node.isBlock)) {
@@ -39,9 +40,9 @@ export async function measureEditor(
     });
     const plan = async (units: LayoutUnit[]) => {
       if (!units.length) return;
-      const result = paginateUnits(units);
+      const result = paginateUnits(units, geometry);
       for (const item of result.breaks) {
-        if (item.kind === "block") snapshot.margin(item.from, item.height);
+        if (item.kind === "block") Object.assign(item, snapshot.margin(item.from, item.height));
         else snapshot.spacer(item.from, item.height);
       }
       layout.breaks.push(...result.breaks);
@@ -127,9 +128,10 @@ export async function measureEditor(
             lineIndex: line.lineIndex,
             lineCount: line.lineCount,
             anchor: line.anchor,
-            keepWithNext:
-              node.type.name === "heading" &&
-              line.lineIndex === line.lineCount! - 1,
+            // Keep the chain through every line of consecutive headings.
+            // Marking only the last line stops lookahead inside a subheading
+            // and can leave its preceding heading alone on the old page.
+            keepWithNext: node.type.name === "heading",
             breakBefore: line.breakBefore,
           })),
         );
