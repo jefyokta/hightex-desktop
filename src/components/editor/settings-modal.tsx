@@ -11,6 +11,8 @@ import {
 } from "../ui/card";
 import { SettingSwitch } from "@/pages/settings";
 import { Manager } from "@/editor/manager";
+import { useCurrentEditor } from "@/hooks/use-editor";
+import { PaginationFeedback } from "./pagination-feedback";
 
 type SettingModalProps = {
   open?: boolean;
@@ -19,9 +21,10 @@ type SettingModalProps = {
 
 export const SettingModal: React.FC<SettingModalProps> = ({
   open = false,
-  onClose = () => { },
+  onClose = () => {},
 }) => {
   const { config, saveConfig } = useConfig();
+  const { editor } = useCurrentEditor();
 
   const saveEditor = async (
     patch: Partial<NonNullable<ConfigShape["editor"]>>,
@@ -43,6 +46,15 @@ export const SettingModal: React.FC<SettingModalProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div data-tour="editor-pagination-setting" className="space-y-2">
+            <SettingSwitch
+              label={t("settings.editor.pagination")}
+              description={t("settings.editor.pagination_description")}
+              value={config?.editor?.pagination ?? false}
+              onChange={(value) => saveEditor({ pagination: value })}
+            />
+            <PaginationFeedback editor={editor} />
+          </div>
           <SettingSwitch
             label={t("settings.editor.spell_check")}
             value={config?.editor?.spellCheck ?? false}

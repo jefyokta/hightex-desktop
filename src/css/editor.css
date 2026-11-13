@@ -423,6 +423,155 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   min-height: max-content;
 }
 
+/* Page breaks belong to editor presentation, never to the saved chapter. */
+.tiptap[data-editor-pagination="true"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tiptap[data-editor-pagination="true"] :is(p, pre, blockquote) {
+  display: flow-root;
+}
+
+.tiptap[data-editor-pagination="true"] li {
+  display: flow-root list-item;
+}
+
+.tiptap[data-editor-pagination="true"] :is(td, th) {
+  vertical-align: top;
+}
+
+.tiptap[data-editor-pagination="true"] hr {
+  height: 0;
+  margin: 0;
+  border: 0;
+}
+
+.tiptap[data-editor-pagination="true"] pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.editor-pagination-row {
+  height: var(--editor-row-height) !important;
+}
+.editor-pagination-scaled {
+  zoom: var(--editor-atom-scale);
+}
+
+.tiptap [data-editor-page-break] {
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0;
+  line-height: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tiptap .editor-pagination-block {
+  margin-top: calc(
+    var(--editor-original-margin, 0px) + var(--editor-break-height, 0px)
+  ) !important;
+}
+
+.page[data-paginated-editor] {
+  --editor-paper: white;
+  --editor-workspace: #f1f3f5;
+  min-height: calc(
+    var(--editor-page-count, 1) * var(--editor-page-height) +
+      (var(--editor-page-count, 1) - 1) * var(--editor-page-gap)
+  );
+  overflow: visible;
+  background: transparent !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.page[data-pagination-surface] {
+  padding: var(--editor-margin-top) var(--editor-margin-right)
+    var(--editor-margin-bottom) var(--editor-margin-left);
+}
+
+.page[data-pagination-surface] :is(p, table),
+.page[data-pagination-surface] > .tiptap {
+  max-width: var(--editor-content-width) !important;
+}
+
+.page[data-pagination-surface] figure[data-type="figureTable"] figcaption {
+  width: var(--editor-content-width) !important;
+  max-width: 100%;
+}
+
+.page[data-paginated-editor] > :first-child {
+  position: relative;
+  z-index: 1;
+}
+
+.editor-pagination-sheets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.editor-pagination-sheet {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--editor-page-height);
+  z-index: 0;
+  border-radius: 0;
+  background: var(--editor-paper);
+  outline: 1px solid rgb(0 0 0 / 10%);
+  box-shadow: 0 3px 16px rgb(0 0 0 / 7%);
+}
+
+.dark .page[data-paginated-editor] {
+  --editor-paper: var(--color-neutral-900, #171717);
+  --editor-workspace: black;
+}
+
+.editor-pagination-boundary {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  width: 100%;
+  height: calc(var(--editor-margin-bottom) + var(--editor-margin-top) + var(--editor-page-gap));
+  background: linear-gradient(
+    to bottom,
+    var(--editor-paper) 0 var(--editor-margin-bottom),
+    var(--editor-workspace) var(--editor-margin-bottom) calc(var(--editor-margin-bottom) + var(--editor-page-gap)),
+    var(--editor-paper) calc(var(--editor-margin-bottom) + var(--editor-page-gap)) 100%
+  );
+}
+
+.editor-pagination-furniture {
+  position: absolute;
+  z-index: 3;
+}
+
+.page .editor-pagination-repeat figcaption.editor-pagination-repeat-caption::before {
+  content: attr(data-repeat-label) " " !important;
+  counter-increment: none !important;
+}
+.editor-pagination-repeat-caption::after {
+  content: " (lanjutan)";
+}
+
+.editor-pagination-number {
+  position: absolute;
+  right: var(--editor-margin-right);
+  z-index: 3;
+  font-size: 10pt;
+  line-height: 1;
+  color: #737373;
+}
+
 .tiptap pre {
   background: black;
   border-radius: 0.5rem;
@@ -480,10 +629,10 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
     background-color 0.2s ease,
     opacity 0.2s ease;
 }
-td[tableheaderlike="1"]{
+td[tableheaderlike="1"] {
   border-bottom: 1px var(--border);
 }
-th{
+th {
   border-bottom: 1px solid white;
 }
 

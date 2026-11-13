@@ -43,6 +43,27 @@ function fixture(saved?: Partial<ConfigShape>) {
   return { service: sandbox.exports.ConfigService, values };
 }
 
+test("experimental pagination stays opt-in for new and older saved settings", () => {
+  expect(fixture().service.get().editor.pagination).toBe(false);
+  expect(
+    fixture({ editor: { spellCheck: true } }).service.get().editor.pagination,
+  ).toBe(false);
+  const { service, values } = fixture({
+    editor: { spellCheck: true, pagination: true },
+  });
+  service.set({ theme: "dark" });
+  expect(
+    fixture(values.get("app") as ConfigShape).service.get().editor.pagination,
+  ).toBe(true);
+  service.set({ editor: { pagination: false } });
+  const reopened = fixture(values.get("app") as ConfigShape).service;
+  expect(reopened.get().editor).toMatchObject({
+    spellCheck: true,
+    pagination: false,
+  });
+  expect(reopened.reset().editor.pagination).toBe(false);
+});
+
 test("resize guides default to true for new and previously saved editor settings", () => {
   expect(fixture().service.get().editor.tableResizeGuides).toBe(true);
   const { service } = fixture({

@@ -12,7 +12,6 @@ const canonical = (value: unknown): unknown => {
   return value;
 };
 
-/** Compare all archive content, including manifest and profile, without ZIP timestamps. */
 export function archiveFingerprint(bytes: Uint8Array): string {
   const hash = createHash("sha256");
   const entries = unzipSync(bytes);

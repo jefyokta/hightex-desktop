@@ -65,6 +65,7 @@ declare global {
       scrollBar?: boolean;
       aliasHint?: boolean;
       tableResizeGuides?: boolean;
+      pagination?: boolean;
     };
     export: {
       saveDialog: boolean;
@@ -130,6 +131,8 @@ declare global {
   };
   interface Window {
     application: {
+      readonly isDev: boolean;
+      inspectElement(x: number, y: number): void;
       setProfileDraftBusy(busy: boolean): Promise<void>;
       readonly editorDocumentId?: string | null;
       onNavigate(callback: (route: string) => void): () => void;

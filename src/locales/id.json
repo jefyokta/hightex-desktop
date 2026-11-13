@@ -91,6 +91,8 @@
     "theme": "Tema",
     "theme.description": "Pilih mode tema aplikasi",
     "editor": {
+      "pagination": "Mode halaman (eksperimental)",
+      "pagination_description": "Tampilkan halaman A4 saat mengedit. Nomor halaman dimulai dari 1 per bab; gunakan pratinjau cetak untuk pembagian halaman akhir.",
       "title": "Editor",
       "description": "Perilaku penulisan dan pengeditan",
       "spell_check": "Pemeriksa Ejaan",
@@ -679,6 +681,33 @@
     "cache_empty": "Belum ada profil Cloud tersimpan di perangkat ini. Sambungkan internet dan login untuk memuatnya."
   },
   "editor": {
+    "pagination": {
+      "updating": "Mengatur tata letak halaman…",
+      "pages": "Mode halaman bab · {count} halaman",
+      "error": "Tata letak halaman belum berhasil diselesaikan. Isi dokumen tetap tersedia; coba lagi atau matikan tampilan halaman.",
+      "experimental_notice": "Tata letak editor masih eksperimental. Pemenggalan dan nomor halaman bab dapat berbeda dari PDF; gunakan pratinjau cetak untuk hasil akhir.",
+      "retry": "Coba tata letak lagi",
+      "disable": "Matikan mode halaman",
+      "disable_save_failed": "Mode halaman dimatikan untuk bab ini, tetapi preferensinya belum tersimpan. Matikan lewat Pengaturan sebelum membuka bab lain.",
+      "feedback": {
+        "open": "Laporkan masalah mode halaman",
+        "issue_title": "Masalah mode halaman eksperimental",
+        "title": "Laporkan mode halaman eksperimental",
+        "description": "Jelaskan masalah dan tinjau laporan sebelum dikirim. Kamu juga bisa menyalinnya untuk dibagikan nanti.",
+        "privacy": "Teks, judul, ID, lokasi file dokumen, dan screenshot tidak dilampirkan otomatis. Laporan menyertakan penjelasanmu serta informasi dasar aplikasi/browser.",
+        "details": "Apa yang terjadi?",
+        "placeholder": "Langkah mengulang masalah, hasil yang diharapkan, dan yang muncul. Sertakan detail dokumen hanya jika ingin membagikannya.",
+        "preview": "Laporan yang akan dikirim atau disalin",
+        "version_failed": "Versi aplikasi belum bisa dibaca. Laporan tetap bisa disalin atau dikirim.",
+        "send": "Kirim laporan",
+        "sending": "Mengirim…",
+        "sent": "Laporan terkirim. Terima kasih sudah mencoba mode halaman.",
+        "send_failed": "Laporan belum terkirim. Draf tetap tersedia. Coba lagi atau salin untuk dibagikan lewat kanal bantuan yang biasa kamu gunakan.",
+        "copy": "Salin laporan",
+        "copied": "Laporan disalin. Menyalin tidak mengirim laporan.",
+        "copy_failed": "Laporan belum bisa disalin. Kamu bisa memilih dan menyalin teks pratinjau secara manual."
+      }
+    },
     "inline": {
       "table_tools": "Alat tabel",
       "add_column": "Tambah kolom",
@@ -2184,6 +2213,26 @@
       },
       "requires_document": "Belum ada dokumen untuk langkah ini. Tutup tur, buat atau impor dokumen, lalu buka panduan lagi dari Bantuan.",
       "requires_visible_document": "Tampilkan minimal satu dokumen untuk melanjutkan. Bersihkan filter, atau tutup tur dan buat atau impor dokumen terlebih dahulu."
+    },
+    "release150": {
+      "pagination": {
+        "name": "Mode halaman eksperimental",
+        "summary": "Coba halaman A4 saat menulis. Awalnya nonaktif; PDF tetap mengikuti pratinjau cetak.",
+        "settings": {
+          "title": "Coba mode halaman saat diperlukan",
+          "description": "Buka pengaturan editor dari toolbar untuk menemukan Mode halaman (eksperimental). Fitur ini opsional dan awalnya nonaktif. Tur ini tidak mengaktifkannya."
+        },
+        "opt_in": {
+          "title": "Halaman menulis dan PDF akhir",
+          "description": "Aktifkan mode halaman untuk mencoba, atau biarkan nonaktif. Nomor halaman dimulai dari 1 pada setiap bab yang bisa diedit. Pemenggalan PDF tetap mengikuti pratinjau cetak dan dapat berbeda dari editor.",
+          "fallback": "Buka pengaturan editor untuk mencoba Mode halaman (eksperimental). Kamu bisa membiarkannya nonaktif dan tetap menulis seperti biasa."
+        },
+        "feedback": {
+          "title": "Matikan atau laporkan masalah",
+          "description": "Gunakan kontrol status mode halaman untuk mematikan eksperimen atau melaporkan masalah tata letak/editing. Laporan bisa ditinjau atau disalin sebelum dikirim; isi dokumen dan screenshot tidak dilampirkan otomatis. Tombol laporan juga tersedia di pengaturan editor saat mode halaman nonaktif.",
+          "fallback": "Buka pengaturan editor untuk mengaktifkan/mematikan mode halaman atau melaporkan masalah. Tidak ada laporan otomatis; kamu tetap bisa memakai pratinjau cetak untuk PDF."
+        }
+      }
     }
   }
 }

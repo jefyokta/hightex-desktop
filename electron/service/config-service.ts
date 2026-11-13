@@ -15,6 +15,7 @@ const DEFAULT_CONFIG: ConfigShape = {
     spellCheck: false,
     preferCloudProfile: true,
     tableResizeGuides: true,
+    pagination: false,
   },
   export: {
     saveDialog: false,
