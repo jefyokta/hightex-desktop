@@ -18,7 +18,7 @@ export class DocumentRouter extends Router {
       const v = url.searchParams.get("url")?.trim();
       if (!v) throw new Error("Missing URL");
       const value = decodeURIComponent(v);
-      console.log(value)
+      console.log(value);
       source = new URL(
         /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`,
       );
@@ -30,8 +30,8 @@ export class DocumentRouter extends Router {
       ) {
         throw new Error("Invalid URL");
       }
-    } catch(e) {
-      console.log(e)
+    } catch (e) {
+      console.log(e);
       return new Response("Provide a valid HTTP or HTTPS document URL.", {
         status: 400,
       });
@@ -46,7 +46,6 @@ export class DocumentRouter extends Router {
         const token = SessionService.getToken();
         headers.set("Authorization", `Bearer ${token}`);
       }
-
 
       const response = await fetch(source, {
         signal: AbortSignal.timeout(60000),

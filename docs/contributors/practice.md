@@ -63,10 +63,61 @@ HighTex Desktop values clarity and type safety. Good practices include:
 - Use the existing project UI system and localized strings instead of adding ad
   hoc interfaces.
 
+`LocaleProvider` at the application root owns the language config subscription.
+Components consume `useAppLanguage` from `hooks/` when translated output must
+update; do not add another config listener per component or editor NodeView.
+
 If you are unsure whether a pattern is already established, search the codebase
 before introducing a new abstraction.
 
+## Avoid duplication and apply SOLID
+
+Before adding a function, search for existing behavior with the same purpose.
+Reuse the existing implementation, or extract the shared behavior at its current
+owner and update its callers. Keep one source of truth for document rules such
+as numbering, reference labels, serialization and pagination. Similar-looking
+code with different responsibilities does not automatically need a shared helper.
+
+Apply SOLID to the concrete change:
+
+- **Single responsibility:** give each module one reason to change. Keep source
+  capture, content rendering, page planning and privileged PDF/file operations
+  with their respective owners.
+- **Open/closed:** extend existing capabilities through their established
+  interfaces and adapters, without copying an implementation for each consumer.
+- **Liskov substitution:** an adapter must preserve its interface's behavior,
+  including errors, cancellation and cleanup; it must not silently omit supported
+  content or claim success with incomplete output.
+- **Interface segregation:** accept only the data and operations a consumer
+  needs. Do not require a live editor, database or application singleton for a
+  read-only operation that only needs a snapshot.
+- **Dependency inversion:** keep document/rendering rules independent of host
+  services. Pass resolved inputs or narrow existing interfaces across boundaries;
+  leave Electron, storage and network access in their owning adapters/services.
+
+Use these principles to keep changes small and testable. Introduce an abstraction
+when actual consumers need it; avoid speculative frameworks, duplicate domain
+models and layers that only forward calls without adding a useful boundary.
+Use a class when related operations own state or a lifecycle, following the
+surrounding ecosystem. Keep small stateless conversions and formatters as pure
+functions; SOLID does not require wrapping every helper in a class.
+
 ## Verify behavior before submitting
+
+Keep runtime validation at the boundary that owns the input. Validate untrusted
+IPC/persisted payloads there, with the failing field or node, reason and useful
+expected/actual values. Preserve the original reason across process boundaries;
+do not collapse unrelated failures into one generic message or dump document/asset
+contents into errors.
+
+After accepting an input, pass the validated result through its owner. Avoid
+revalidating the whole document inside per-page or per-node operations. Retain
+guards for real lifecycle transitions, resource readiness and native output that
+can violate the layout contract. Exhaustive equivalence audits belong in focused
+fixtures; do not scatter test-style assertions through application flow.
+
+Use the smallest relevant verification for the actual change. Do not repeatedly
+run broad or native suites when no new failure or behavior change requires them.
 
 Do not rely on code inspection alone. Validate the actual behavior affected by
 your change:

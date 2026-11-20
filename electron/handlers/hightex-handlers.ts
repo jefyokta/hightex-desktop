@@ -26,6 +26,7 @@ import { advisorService } from "@main/service/advisor-service";
 import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 import { ServerUrl } from "../url/server-url";
 import { FormArchiveService } from "../service/form-archive-service";
+import { EditorPDFExperimentalHandlers } from "./editor-pdf-experimental-handlers";
 import type { FormPrintInput } from "../../src/forms/model";
 import {
   lecturerDirectory,
@@ -34,6 +35,7 @@ import {
 
 export class HighTexHandler {
   static register() {
+    EditorPDFExperimentalHandlers.register();
     IPCMain.handle("hightex:lecturers:cloud", () =>
       WorkspaceRuntime.profile?.type === "cloud"
         ? lecturerCloud.fetch()

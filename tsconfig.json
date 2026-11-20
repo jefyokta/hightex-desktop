@@ -32,6 +32,7 @@
   "include": [
     "src",
     "electron",
+    "shared",
     "src/types/**/*.d.ts",
     "src/components/**/*.tsx",
     "tests/**/*.ts",

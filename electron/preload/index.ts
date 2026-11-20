@@ -1,5 +1,25 @@
 import { ipcRenderer, contextBridge, webUtils } from "electron";
 
+contextBridge.exposeInMainWorld("editorPDFExperimental", {
+  debug: (snapshot, requestId) =>
+    ipcRenderer.invoke("experimental:editor-pdf:debug", snapshot, requestId),
+  export: (snapshot, requestId) =>
+    ipcRenderer.invoke("experimental:editor-pdf:export", snapshot, requestId),
+  cancel: (requestId) =>
+    ipcRenderer.invoke("experimental:editor-pdf:cancel", requestId),
+  init: (request) =>
+    ipcRenderer.invoke(`experimental:editor-pdf:init:${request}`),
+  ready: (request, fingerprint, pages) =>
+    ipcRenderer.send(
+      "experimental:editor-pdf:ready",
+      request,
+      fingerprint,
+      pages,
+    ),
+  error: (request, message) =>
+    ipcRenderer.send("experimental:editor-pdf:error", request, message),
+} satisfies EditorPDFExperimentalAPI);
+
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {

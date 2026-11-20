@@ -27,11 +27,13 @@ export const desktopAuth = new AuthClient({
     if (WorkspaceRuntime.root && !WorkspaceRuntime.migrating) {
       if (!WorkspaceRuntime.serverUrl)
         throw Error("Workspace server is not initialized");
-      const firstBinding = !WorkspaceRuntime.profile?.accountId;
+      const firstBinding =
+        !WorkspaceRuntime.profile?.accountId ||
+        WorkspaceRuntime.profile.serverUrl !== WorkspaceRuntime.serverUrl;
       WorkspaceRuntime.profile = new WorkspaceRegistry(
         WorkspaceRuntime.root,
         WorkspaceRuntime.serverUrl,
-      ).bindAccount(String(user.id));
+      ).bindAccount(String(user.id), user.email);
       if (WorkspaceRuntime.profile.type === "cloud" && firstBinding)
         ProfileService.clearProfilePicture();
     }
