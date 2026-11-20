@@ -26,6 +26,11 @@ import { captureDraft } from "../src/utils/htx/draft-transfer";
 import { migrateDocumentCommittee } from "../src/utils/document-committee";
 import { parseHighTexV2 } from "@hightex/importer";
 import { SchemaWritter } from "../src/utils/htx/schema/schema-writter";
+import { readDocumentSnapshot } from "../src/editor/storage/document-snapshot";
+import {
+  documentRenderModel,
+  documentRenderFingerprint,
+} from "../src/editor/document/render-model";
 
 const category: Category = {
   id: 1,
@@ -77,6 +82,168 @@ beforeAll(async () => {
 beforeEach(async () => {
   setWorkspace(emptyAuthorProfile());
   await Promise.all(db.tables.map((table) => table.clear()));
+});
+
+test("abbreviation labels remove one matching namespace without changing stored keys or authored dots", async () => {
+  const aliases = [
+    { documentId: "a", key: "a.API", value: "Interface" },
+    { documentId: "a", key: "A.B", value: "Dotted abbreviation" },
+    { documentId: "a", key: "a.a.API", value: "Authored prefix" },
+    { documentId: "a", key: "another.API", value: "Different prefix" },
+  ];
+  await db.aliases.bulkPut(aliases);
+  const before = await db.aliases.toArray();
+  const labels = new Map(
+    (await db.getAliases("a")).map(({ key, value }) => [key, value]),
+  );
+  expect(labels.get("API")).toBe("Interface");
+  expect(labels.get("A.B")).toBe("Dotted abbreviation");
+  expect(labels.get("a.API")).toBe("Authored prefix");
+  expect(labels.get("another.API")).toBe("Different prefix");
+  expect(await db.aliases.toArray()).toEqual(before);
+});
+
+test("database-only rendering and archive export use the same document and asset scope", async () => {
+  const source = makeDocument("database-only");
+  source.config.consentDate = new Date("2026-11-03");
+  await db.documents.put(source);
+  await db.chapters.bulkPut([
+    {
+      id: "database-only.1",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Only in IndexedDB" },
+            { type: "cite", attrs: { cite: "used-foreign-cite" } },
+          ],
+        },
+        { type: "image", attrs: { src: "used-foreign-image" } },
+      ],
+    },
+    { id: "another.1", content: [{ type: "paragraph" }] },
+  ]);
+  await db.cite.bulkPut([
+    {
+      key: "used-foreign-cite",
+      documentId: "another",
+      bib: "@book{used,title={Used}}",
+    },
+    {
+      key: "unused-foreign-cite",
+      documentId: "another",
+      bib: "@book{unused,title={Unused}}",
+    },
+  ]);
+  for (const id of ["used-foreign-image", "unused-foreign-image"])
+    await db.images.put({
+      id,
+      documentId: "another",
+      blob: new Blob([id], { type: "image/webp" }),
+      createdAt: 0,
+    });
+  await db.setAlias("API", "Application Programming Interface", source.id);
+  await db.setAlias("OTHER", "Unrelated", "another");
+  await db.setVar("location", "Campus", source.id);
+  setWorkspace({
+    ...emptyAuthorProfile(),
+    name: "Workspace author",
+    picture: new Blob(["photo"], { type: "image/webp" }),
+  });
+
+  const snapshot = await readDocumentSnapshot(source.id);
+  const direct = await documentRenderModel(snapshot);
+  const archived = parseHighTexV2(
+    (await new Exporter(source.id).buildExport()).buffer,
+  );
+  for (const key of [
+    "document",
+    "chapters",
+    "config",
+    "references",
+    "images",
+    "variables",
+    "aliases",
+    "profile",
+    "profilePicture",
+  ] as const)
+    expect(direct[key]).toEqual(archived[key]);
+  expect(direct.chapters.map(({ id }) => id)).toEqual(["1"]);
+  expect(Object.keys(direct.images)).toEqual(["used-foreign-image"]);
+  expect(Object.keys(direct.references)).toEqual(["used-foreign-cite"]);
+  expect(snapshot.document.file).toBeUndefined();
+
+  await db.chapters.update("database-only.1", {
+    content: [{ type: "paragraph" }],
+  });
+  await db.images.delete("used-foreign-image");
+  expect((await documentRenderModel(snapshot)).chapters).toEqual(
+    direct.chapters,
+  );
+  expect((await documentRenderModel(snapshot)).images).toEqual(direct.images);
+  expect(await db.documents.get(source.id)).toEqual(source);
+});
+
+test("render source identity covers metadata, author, illustrations and photograph", async () => {
+  await db.documents.put(makeDocument("identity"));
+  await db.images.put({
+    id: "png",
+    documentId: "identity",
+    blob: new Blob(["image"], { type: "image/png" }),
+    createdAt: 0,
+  });
+  setWorkspace({
+    ...emptyAuthorProfile(),
+    name: "Author",
+    picture: new Blob(["photo"], { type: "image/png" }),
+  });
+  const snapshot = await readDocumentSnapshot("identity");
+  const model = await documentRenderModel(snapshot);
+  const identity = await documentRenderFingerprint(model);
+  expect(
+    await documentRenderFingerprint(await documentRenderModel(snapshot)),
+  ).toBe(identity);
+  expect(model.images.png.mime).toBe("image/png");
+  const variants = [
+    { ...model, document: { ...model.document, title: "Changed title" } },
+    { ...model, profile: { ...model.profile!, name: "Another author" } },
+    {
+      ...model,
+      profilePicture: { mime: "image/png", bytes: new Uint8Array([1]) },
+    },
+    {
+      ...model,
+      images: { added: { mime: "image/png", bytes: new Uint8Array([2]) } },
+    },
+  ];
+  for (const variant of variants)
+    expect(await documentRenderFingerprint(variant)).not.toBe(identity);
+});
+
+test("reading a PDF source never repairs IDs or writes back to stored chapters", async () => {
+  const source = makeDocument("read-only-source");
+  const chapters = ["1", "2"].map((id) => ({
+    id: `${source.id}.${id}`,
+    content: [
+      {
+        type: "paragraph",
+        attrs: { id: "duplicate", shouldUnique: true },
+        content: [{ type: "text", text: "Preserve stored input" }],
+      },
+    ],
+  }));
+  await db.documents.put(source);
+  await db.chapters.bulkPut(chapters);
+  const model = await documentRenderModel(
+    await readDocumentSnapshot(source.id),
+  );
+  expect(model.chapters.map((chapter) => chapter.content[0].attrs?.id)).toEqual(
+    ["duplicate", "duplicate"],
+  );
+  expect(await db.chapters.bulkGet(chapters.map(({ id }) => id))).toEqual(
+    chapters,
+  );
+  expect(await db.documents.get(source.id)).toEqual(source);
 });
 
 afterAll(async () => {

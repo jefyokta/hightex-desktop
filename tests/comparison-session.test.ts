@@ -53,6 +53,15 @@ function fixture() {
       session: { onChange: () => () => removed++ },
     },
   };
+  const sourceObserver = { ...sandbox, exports: {} };
+  vm.runInNewContext(
+    ts.transpileModule(
+      readFileSync(new URL("../src/editor/storage/document-source-observer.ts", import.meta.url), "utf8"),
+      { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } },
+    ).outputText,
+    sourceObserver,
+  );
+  modules["./document-source-observer"] = sourceObserver.exports;
   vm.runInNewContext(
     ts.transpileModule(
       readFileSync(
@@ -70,6 +79,7 @@ function fixture() {
   );
   return {
     api: sandbox.exports,
+    sources: sourceObserver.exports as typeof import("../src/editor/storage/document-source-observer"),
     flushed,
     compared: () => compared,
     stopped: () => stopped,
@@ -95,6 +105,43 @@ const snapshot = (title: string) => ({
   aliases: [],
   variables: [],
   images: [],
+});
+
+test("derived numbering watches source writes without hashing image blobs and unsubscribes on abort", async () => {
+  const f = fixture(), controller = new AbortController();
+  let changed = 0;
+  const watch = f.sources.observeDocumentSources(["main"], () => changed++, controller.signal, { compareContent: false });
+  const source = { ...snapshot("Before"), images: [{ blob: { arrayBuffer() { throw Error("Must not hash blobs"); } } }] };
+  f.emit(source);
+  await watch.ready;
+  expect(changed).toBe(0);
+  f.emit(source);
+  expect(changed).toBe(1);
+  controller.abort();
+  f.emit(source);
+  expect(changed).toBe(1);
+  expect(f.stopped()).toBe(1);
+  expect(f.removed()).toBe(2);
+});
+
+test("layout observation ignores only matching buffer autosaves and still detects external source or metadata changes", async () => {
+  const f = fixture(), controller = new AbortController();
+  let changed = 0, buffer = [{ type: "paragraph", content: [{ type: "text", text: "Before" }] }];
+  const current = () => ({ ...snapshot("Title"), documents: [{ title: "Title", updatedAt: 1 }],
+    chapters: [{ id: "main.1", content: structuredClone(buffer) }, { id: "main.2", content: [] }] });
+  const watch = f.sources.observeDocumentSources(["main"], () => changed++, controller.signal,
+    { chapterBuffer: { id: "main.1", content: () => buffer } });
+  f.emit(current());await watch.ready;
+  buffer = [{ type: "paragraph", content: [{ type: "text", text: "Typed" }] }];
+  f.emit({ ...current(), documents: [{ title: "Title", updatedAt: 2 }] });await tick();
+  expect(changed).toBe(0);
+  const external = current();external.chapters[0].content = [];
+  f.emit(external);await tick();expect(changed).toBe(1);
+  f.emit(external);await tick();expect(changed).toBe(1);
+  const otherChapter = structuredClone(external);otherChapter.chapters[1].content = structuredClone(buffer);
+  f.emit(otherChapter);await tick();expect(changed).toBe(2);
+  f.emit({ ...otherChapter, documents: [{ title: "New title", updatedAt: 3 }] });await tick();expect(changed).toBe(3);
+  controller.abort();
 });
 
 test("closing comparison during its initial read never flushes or activates another editor", async () => {

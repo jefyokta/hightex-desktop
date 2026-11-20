@@ -8,6 +8,7 @@ import { CategoryEmpty } from "../src/exception/categories-empty";
 import { Chapter } from "../src/editor/chapter";
 import { emptyAuthorProfile } from "../src/utils/document-profile";
 import { useChapterStore } from "../src/hooks/use-chapter";
+import { DocumentIdentities } from "../src/editor/document/identities";
 
 const categories: Category[] = [
   {
@@ -167,6 +168,69 @@ test("a versioned document binds normal and static chapters to that version with
   expect(
     JSON.stringify((await db.chapters.get("active.1"))?.content),
   ).toContain("Original chapter one");
+});
+
+test("editing initialization repairs all saved chapter IDs before any chapter is mounted", async () => {
+  const content = [
+    {
+      type: "paragraph",
+      attrs: { id: "shared-anchor" },
+      content: [{ type: "text", text: "Keep this text" }],
+    },
+  ];
+  await db.chapters.bulkPut([
+    { id: "active.1", content },
+    { id: "active.4", content },
+  ]);
+  const background = await new Document("active").warm({ activate: false });
+  expect((await db.chapters.get("active.4"))?.content[0].attrs?.id).toBe(
+    "shared-anchor",
+  );
+  expect(background.identities.reserved("active.1").has("shared-anchor")).toBe(
+    true,
+  );
+  const editing = await new Document("active").warm({
+    activate: false,
+    forEditing: true,
+  });
+  const first = await db.chapters.get("active.1"),
+    other = await db.chapters.get("active.4");
+  expect(first?.content[0].attrs?.id).toBe("shared-anchor");
+  expect(other?.content[0].attrs?.id).not.toBe("shared-anchor");
+  expect(other?.content[0].content).toEqual(content[0].content);
+  expect(
+    editing.identities.reserved("active.1").has(other!.content[0].attrs!.id),
+  ).toBe(true);
+  expect(
+    await editing.identities.prepare("active", ["active.1", "active.4"]),
+  ).toBe(0);
+  expect(await db.chapters.get("active.4")).toEqual(other);
+});
+
+test("identity repair rolls back every chapter and reservations if persistence fails", async () => {
+  const input = ["1", "4"].map((id) => ({
+    id: `active.${id}`,
+    content: [{ type: "paragraph", attrs: { id: "123:legacy" } }],
+  }));
+  await db.chapters.bulkPut(input);
+  const identities = new DocumentIdentities(db);
+  await identities.load(input.map(({ id }) => id));
+  const fail = () => {
+    throw Error("Failed identity write");
+  };
+  db.chapters.hook("updating", fail);
+  try {
+    await expect(
+      identities.prepare(
+        "active",
+        input.map(({ id }) => id),
+      ),
+    ).rejects.toThrow("Failed identity write");
+  } finally {
+    db.chapters.hook("updating").unsubscribe(fail);
+  }
+  expect(await db.chapters.bulkGet(input.map(({ id }) => id))).toEqual(input);
+  expect(identities.reserved("active.1").has("123:legacy")).toBe(true);
 });
 
 test("an incomplete category list can recover the requested category before warming the document", async () => {

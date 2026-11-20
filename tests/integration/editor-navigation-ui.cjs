@@ -1,0 +1,67 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+exports.run = async ({execute, until, win, artifacts}) => {
+  await execute('await waitSaved();document.getElementById("root").style.cssText="height:100vh;display:flex;flex-direction:column";await window.config.set({editor:{pagination:true}});window.mountApplication()');
+  await until('window.applicationEditor&&!applicationEditor.isDestroyed&&document.querySelector("[data-chapter-picker-trigger]")&&!document.querySelector("[data-chapter-picker-trigger]").disabled');
+  await until('document.querySelector("[data-pagination-status]")');
+  const original = await execute('return JSON.stringify(applicationEditor.getJSON())');
+  await execute(`const {Manager}=await import('/src/editor/manager/index.ts');
+    window.graphReads=0;const {Document}=await import('/src/editor/document/index.ts');const chapter=Document.current,original=chapter.graph.sync;
+    chapter.graph.sync=function(...args){graphReads++;return original.apply(this,args)};
+    Manager.app.dispatch('chapter:update',{chapterId:chapter.getId(),chapter});`);
+  await win.webContents.sendInputEvent({type:'keyDown',keyCode:'K',modifiers:['meta']});
+  await win.webContents.sendInputEvent({type:'keyUp',keyCode:'K',modifiers:['meta']});
+  await until('document.querySelector("[data-chapter-picker] [cmdk-input]")');
+  await until('Array.from(document.querySelectorAll("[cmdk-item]")).some(item=>item.textContent.includes("Metode Penelitian"))');
+  await execute('await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);await Promise.all(document.querySelector("[data-chapter-picker]").getAnimations().map(animation=>animation.finished))');
+  fs.writeFileSync(path.join(artifacts,'chapter-picker.png'),await win.webContents.capturePage().then(image=>image.toPNG()));
+  const tree = await execute(`return {items:document.querySelectorAll('[cmdk-item]').length,
+    active:!!document.querySelector('[cmdk-item][data-checked=true]'),focused:document.activeElement?.hasAttribute('cmdk-input'),
+    nested:!!document.querySelector('.chapter-picker-heading'),overflow:document.querySelector('[data-chapter-picker]').getBoundingClientRect().width>window.innerWidth};`);
+  await win.webContents.insertText('Metode');
+  await until('document.querySelector(".chapter-picker-heading:not([hidden])")');
+  const search = await execute(`return Array.from(document.querySelectorAll('[cmdk-item]')).filter(item=>!item.hidden).map(item=>item.textContent)`);
+  assert.ok(search.length>0&&search.every(text=>text.includes('Metode')));
+  await execute(`window.headingNavigation=[];const {Manager}=await import('/src/editor/manager/index.ts');
+    const originalScroll=Manager.scrollTo;
+    Manager.scrollTo=function(id){const container=document.getElementById('main-scroll');headingNavigation.push({id,exists:!!document.getElementById(id),height:container.clientHeight,scrollHeight:container.scrollHeight});return originalScroll.call(this,id)};`);
+  await win.webContents.sendInputEvent({type:'keyDown',keyCode:'ENTER'});
+  await win.webContents.sendInputEvent({type:'keyUp',keyCode:'ENTER'});
+  await until('!document.querySelector("[data-chapter-picker]")');
+  await execute('await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame)');
+  const scrollDiagnostic=await execute('return {calls:headingNavigation,chapter:applicationChapter(),scrollTop:document.getElementById("main-scroll").scrollTop}');
+  fs.writeFileSync(path.join(artifacts,'heading-scroll.json'),JSON.stringify(scrollDiagnostic,null,2));
+  console.log('Heading scroll:',JSON.stringify(scrollDiagnostic));
+  assert.ok(scrollDiagnostic.calls.length>0&&scrollDiagnostic.calls[0].exists);
+
+  const after = await execute('return JSON.stringify(applicationEditor.getJSON())');
+  assert.equal(after,original);
+  await execute('document.querySelector("[data-chapter-picker-trigger]").click()');
+  await until('document.querySelector("[data-chapter-picker]")');
+  await execute(`Array.from(document.querySelectorAll('.chapter-picker-heading')).find(item=>item.getAttribute('data-value').startsWith('fixture.attachment:')).click()`);
+  await until('window.applicationEditor&&window.applicationChapter()==="fixture.attachment"');
+  await until('!document.querySelector("[data-chapter-picker-trigger]").disabled');
+  await until('headingNavigation.length>1&&headingNavigation.at(-1).exists');
+  await execute('document.querySelector("[data-chapter-picker-trigger]").click()');
+  await until('document.querySelector("[data-chapter-picker]")');
+  await win.webContents.sendInputEvent({type:'keyDown',keyCode:'ESCAPE'});
+  await win.webContents.sendInputEvent({type:'keyUp',keyCode:'ESCAPE'});
+  await until('!document.querySelector("[data-chapter-picker]")');
+  await execute('window.navigate("/document/fixture/1")');
+  await until('window.applicationEditor&&window.applicationChapter()==="fixture.1"&&document.querySelector("[data-pagination-status]")');
+  await execute('document.getElementById("main-scroll").scrollTo({top:0,behavior:"instant"})');
+  await execute('document.querySelector("[data-editor-pdf-options]").click()');
+  await until('document.querySelector("[data-editor-pdf-options-panel]")');
+  assert.equal(await execute('return !!document.querySelector("[data-pagination-disable]")'),true);
+  await win.webContents.sendInputEvent({type:'keyDown',keyCode:'ESCAPE'});
+  await win.webContents.sendInputEvent({type:'keyUp',keyCode:'ESCAPE'});
+  await until('!document.querySelector("[data-editor-pdf-options-panel]")');
+  fs.writeFileSync(path.join(artifacts,'pagination-controls.png'),await win.webContents.capturePage().then(image=>image.toPNG()));
+  assert.equal(tree.active,true);assert.equal(tree.focused,true);assert.equal(tree.nested,true);assert.equal(tree.overflow,false);
+  assert.equal(await execute('return graphReads'),0);
+  const report={graphReads:0,...tree,search,unchangedSource:true,options:true,headingScroll:true,crossChapter:true,escape:true};
+  fs.writeFileSync(path.join(artifacts,'navigation-ui.json'),JSON.stringify(report,null,2));
+  console.log('PASS chapter picker and pagination UI:',artifacts,JSON.stringify(report));
+};

@@ -119,7 +119,8 @@ test("welcome remains pending until acknowledged and stays independent per works
     f.launch("1.4.3", "/workspaces/first").firstInstalled().profileSetupPending,
   ).toBe(false);
   expect(
-    f.launch("1.4.3", "/workspaces/second").firstInstalled().profileSetupPending,
+    f.launch("1.4.3", "/workspaces/second").firstInstalled()
+      .profileSetupPending,
   ).toBe(true);
 });
 

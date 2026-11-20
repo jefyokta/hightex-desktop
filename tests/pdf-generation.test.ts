@@ -1,34 +1,8 @@
 import { expect, test } from "bun:test";
 import { EventEmitter } from "node:events";
-import { readFileSync } from "node:fs";
-import vm from "node:vm";
-import ts from "typescript";
 import { PDFDocument } from "pdf-lib";
+import { loadSource } from "./helpers/load-source";
 import type { Engine } from "../src/compiler/engine";
-
-function loadSource<T>(file: string, modules: Record<string, unknown>): T {
-  const sandbox = {
-    exports: {} as T,
-    require: (name: string) => {
-      if (!(name in modules)) throw new Error(`Unexpected import: ${name}`);
-      return modules[name];
-    },
-    setTimeout,
-    clearTimeout,
-    Date,
-  };
-  vm.runInNewContext(
-    ts.transpileModule(readFileSync(new URL(file, import.meta.url), "utf8"), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES2020,
-        esModuleInterop: true,
-      },
-    }).outputText,
-    sandbox,
-  );
-  return sandbox.exports;
-}
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -111,7 +85,7 @@ async function serviceFixture(
   }
   const { PDFService } = loadSource<
     typeof import("../electron/service/pdf-service")
-  >("../electron/service/pdf-service.ts", {
+  >(new URL("../electron/service/pdf-service.ts", import.meta.url), {
     "node:fs/promises": {
       mkdir: async () => {},
       writeFile: async (file: string) => {
@@ -298,7 +272,7 @@ test("closing a print window before readiness rejects its request", async () => 
 test("tree-builder errors reject the resolver rather than leaving its promise pending", async () => {
   const { TreeResolver } = loadSource<
     typeof import("../src/compiler/resolver/tree-resolver")
-  >("../src/compiler/resolver/tree-resolver.ts", {
+  >(new URL("../src/compiler/resolver/tree-resolver.ts", import.meta.url), {
     "../builder/toa-builder": {
       TOABuilder: class {
         async create() {

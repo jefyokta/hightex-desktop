@@ -80,7 +80,9 @@ function editorFixture() {
   const source = loadSource<typeof import("../src/editor/event")>(
     "../src/editor/event/index.ts",
     {
-      "../extensions/utilites": { ensureUniqueId: () => normalizeUpdate?.() },
+      "../extensions/uuid/normalize-editor": {
+        ensureUniqueId: () => normalizeUpdate?.(),
+      },
       "@tiptap/pm/state": {
         EditorState: { create: (next: typeof state) => next },
       },

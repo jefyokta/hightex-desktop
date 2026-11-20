@@ -16,7 +16,12 @@ interface FixtureOptions {
   isDev?: boolean;
   feedUrl?: string;
   appVersion?: string;
-  electronUpdaterLogger?: { info: () => void; warn: () => void; error: () => void; debug: () => void };
+  electronUpdaterLogger?: {
+    info: () => void;
+    warn: () => void;
+    error: () => void;
+    debug: () => void;
+  };
 }
 
 function setupFixture(options: FixtureOptions = {}) {
@@ -41,8 +46,13 @@ function setupFixture(options: FixtureOptions = {}) {
 
   class MockAppUpdater extends EventEmitter {
     autoDownload = false;
-    logger = options.electronUpdaterLogger || { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} };
-    
+    logger = options.electronUpdaterLogger || {
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+      debug: () => {},
+    };
+
     private _feedUrl: string | null = null;
     private _updateAvailable = false;
     private _updateInfo: UpdateInfo = {
@@ -57,7 +67,7 @@ function setupFixture(options: FixtureOptions = {}) {
       super();
       if (options.feedUrl) this.setFeedURL(options.feedUrl);
     }
-    
+
     setFeedURL(url: string) {
       this._feedUrl = url;
       calls.push(`setFeedURL: ${url}`);
@@ -73,7 +83,7 @@ function setupFixture(options: FixtureOptions = {}) {
         const response = await fetch(latestJsonUrl);
         if (!response.ok) throw new Error(`Failed to fetch ${latestJsonUrl}`);
         const data = await response.json();
-        
+
         this._updateInfo = data.updateInfo ?? data;
         this._updateAvailable =
           data.isUpdateAvailable ?? data.version !== appVersion;
@@ -85,7 +95,6 @@ function setupFixture(options: FixtureOptions = {}) {
           this.emit("update-not-available", this._updateInfo);
           return { isUpdateAvailable: false, updateInfo: this._updateInfo };
         }
-
       } catch (error) {
         this.emit("error", error);
         throw error;
@@ -94,16 +103,32 @@ function setupFixture(options: FixtureOptions = {}) {
 
     async downloadUpdate() {
       calls.push("downloadUpdate");
-      if (!this._updateAvailable || !this._updateInfo.files[0]) throw new Error("No update available or file info missing");
+      if (!this._updateAvailable || !this._updateInfo.files[0])
+        throw new Error("No update available or file info missing");
 
       // Simulate download progress
-      this.emit("download-progress", { percent: 0, transferred: 0, total: 1000000 });
-      await new Promise(resolve => setTimeout(resolve, 50));
-      this.emit("download-progress", { percent: 50, transferred: 500000, total: 1000000 });
-      await new Promise(resolve => setTimeout(resolve, 50));
-      this.emit("download-progress", { percent: 100, transferred: 1000000, total: 1000000 });
+      this.emit("download-progress", {
+        percent: 0,
+        transferred: 0,
+        total: 1000000,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      this.emit("download-progress", {
+        percent: 50,
+        transferred: 500000,
+        total: 1000000,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      this.emit("download-progress", {
+        percent: 100,
+        transferred: 1000000,
+        total: 1000000,
+      });
 
-      const downloadedEvent = { version: this._updateInfo.version, downloadedFile: "/tmp/dummy-update.dmg" };
+      const downloadedEvent = {
+        version: this._updateInfo.version,
+        downloadedFile: "/tmp/dummy-update.dmg",
+      };
       this.emit("update-downloaded", downloadedEvent);
       return Promise.resolve();
     }
@@ -116,7 +141,11 @@ function setupFixture(options: FixtureOptions = {}) {
     }
 
     downloadedArtifact() {
-      return { file: "/tmp/dummy-update.dmg", version: this._updateInfo.version, sha512: this._updateInfo.sha512 };
+      return {
+        file: "/tmp/dummy-update.dmg",
+        version: this._updateInfo.version,
+        sha512: this._updateInfo.sha512,
+      };
     }
   }
 
@@ -289,7 +318,9 @@ test("updater checks a local HTTP server for updates and downloads the artifact"
     const filePath = path.join(tempDir!, req.url!);
     try {
       const content = await readFile(filePath);
-      const mimeType = req.url!.endsWith(".dmg") ? "application/x-apple-diskimage" : "application/json";
+      const mimeType = req.url!.endsWith(".dmg")
+        ? "application/x-apple-diskimage"
+        : "application/json";
       res.writeHead(200, { "Content-Type": mimeType });
       res.end(content);
     } catch (error) {
