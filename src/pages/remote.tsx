@@ -1,6 +1,7 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { Disclosure } from "@/components/ui/disclosure";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { CloudError } from "@/exception/cloud-error";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -63,7 +64,7 @@ export const RemoteDocuments = () => {
   const local =
     !state ||
     state.profiles.find((profile) => profile.id === state.activeId)?.type ===
-    "local";
+      "local";
   if (local || !user) return <LoginGate />;
   return (
     <RemoteDocumentsContent key={`${user.id}:${online}`} online={online} />
@@ -92,7 +93,6 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
   const [loaded, setLoaded] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [showTech, setShowTech] = useState(false);
-  // Sidebar riwayat: terbuka di layar lebar, tertutup (jadi drawer) di layar sempit.
   const [historyOpen, setHistoryOpen] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -185,11 +185,11 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
       docs.some((doc) => doc.id === previous)
         ? previous
         : (docs.find(
-          (doc) =>
-            mapped[doc.id]?.serverDocumentId ===
-            response.commits.find((item) => item.type === "current")
-              ?.document_id,
-        )?.id ??
+            (doc) =>
+              mapped[doc.id]?.serverDocumentId ===
+              response.commits.find((item) => item.type === "current")
+                ?.document_id,
+          )?.id ??
           docs[0]?.id ??
           ""),
     );
@@ -462,14 +462,8 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
 
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            [
-              t("remote.guide_select"),
-              t("remote.guide_select_description"),
-            ],
-            [
-              t("remote.guide_save"),
-              t("remote.guide_save_description"),
-            ],
+            [t("remote.guide_select"), t("remote.guide_select_description")],
+            [t("remote.guide_save"), t("remote.guide_save_description")],
             [t("remote.guide_review"), t("remote.guide_review_description")],
           ].map(([title, description]) => (
             <div key={title} className="rounded-xl border bg-background p-4">
@@ -484,9 +478,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
         {!online && (
           <div className="flex items-start gap-3 rounded-2xl bg-neutral-50 p-4 text-sm text-muted-foreground dark:bg-neutral-900">
             <CloudOff className="mt-0.5 size-4 shrink-0" />
-            <p>
-              {t("remote.offline_description")}
-            </p>
+            <p>{t("remote.offline_description")}</p>
           </div>
         )}
 
@@ -539,8 +531,8 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                     <p className="text-sm text-muted-foreground">
                       {current.created_at
                         ? t("remote.saved_at", {
-                          time: timeAgo(current.created_at),
-                        })
+                            time: timeAgo(current.created_at),
+                          })
                         : t("remote.stored_in_cloud")}
                     </p>
                     <p className="wrap-break-word text-sm">
@@ -611,8 +603,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
               >
                 {t("remote.technical_details")}
                 <ChevronDown
-                  className={`size-3.5 transition-transform ${showTech ? "rotate-180" : ""
-                    }`}
+                  className={`size-3.5 transition-transform ${
+                    showTech ? "rotate-180" : ""
+                  }`}
                 />
               </button>
               {showTech && (
@@ -621,10 +614,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                     label={t("remote.server_id")}
                     value={current.document_id}
                   />
-                  <TechRow
-                    label={t("remote.local_id")}
-                    value={linkedLocalId}
-                  />
+                  <TechRow label={t("remote.local_id")} value={linkedLocalId} />
                   <TechRow label={t("remote.sha256")} value={current.sha256} />
                   <TechRow
                     label={t("remote.selected_draft_base_sha256")}
@@ -676,9 +666,7 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
                 <SelectContent>
                   {localDocs.map((doc) => (
                     <SelectItem key={doc.id} value={doc.id}>
-                      <ParsedItalic
-                        text={doc.title || t("remote.untitled")}
-                      />
+                      <ParsedItalic text={doc.title || t("remote.untitled")} />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -825,8 +813,9 @@ const RemoteDocumentsContent = ({ online }: { online: boolean }) => {
 
       <aside
         aria-label={t("remote.version_history")}
-        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 xl:block ${historyOpen ? "w-80" : "w-14"
-          }`}
+        className={`relative hidden shrink-0 self-stretch overflow-x-clip border-l transition-[width] duration-200 xl:block ${
+          historyOpen ? "w-80" : "w-14"
+        }`}
       >
         {historyOpen ? (
           <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-80 overflow-y-auto px-5">

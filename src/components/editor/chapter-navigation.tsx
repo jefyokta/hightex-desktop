@@ -1,5 +1,7 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Chapter } from "@/editor/chapter";
+import { chapterLabel } from "@/editor/chapter/outline";
+import { ChapterPicker } from "./chapter-picker";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -7,12 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useChapterNavigation } from "@/hooks/use-editor-navigation";
-import { t, useAppLanguage } from "@/utils/lang";
-
-const chapterLabel = (chapter: Chapter) =>
-  chapter.query.isNormalChapter()
-    ? `${chapter.getChapter()}. ${chapter.title}`
-    : chapter.title;
+import { t } from "@/utils/lang";
 
 export const ChapterNavigation = () => {
   useAppLanguage();
@@ -36,6 +33,7 @@ export const ChapterNavigation = () => {
       aria-label={t("editor.chapter_navigation.label")}
       className="flex shrink-0 items-center"
     >
+      <ChapterPicker />
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex">

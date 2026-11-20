@@ -165,8 +165,8 @@ export const SubmissionSnapshotViewer = ({
           <p className="text-xs text-muted-foreground">
             {snapshot.source.kind === "submission"
               ? t("submission_review.snapshot_label", {
-                id: snapshot.source.submissionId,
-              })
+                  id: snapshot.source.submissionId,
+                })
               : t("submission_review.local_label")}
           </p>
         </div>
@@ -196,18 +196,18 @@ export const SubmissionSnapshotViewer = ({
       {(error ||
         profile.incomplete ||
         snapshot.unsupportedNodes.length > 0) && (
-          <Alert variant={error ? "destructive" : "default"}>
-            <AlertDescription>
-              {error && <p>{error}</p>}
-              {profile.incomplete && (
-                <p>{t("submission_review.missing_profile")}</p>
-              )}
-              {snapshot.unsupportedNodes.length > 0 && (
-                <p>{t("submission_review.unsupported_content")}</p>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
+        <Alert variant={error ? "destructive" : "default"}>
+          <AlertDescription>
+            {error && <p>{error}</p>}
+            {profile.incomplete && (
+              <p>{t("submission_review.missing_profile")}</p>
+            )}
+            {snapshot.unsupportedNodes.length > 0 && (
+              <p>{t("submission_review.unsupported_content")}</p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
         <div className="flex items-center gap-2 min-w-35 text-xs">
           <Eye className="w-4 h-4 opacity-60 shrink-0" />

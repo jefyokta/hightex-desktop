@@ -1,7 +1,9 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useState } from "react";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
+import { uniqId } from "@/utils/uniq-id";
 
 export const NoteCreation: React.FC<BubbleMenuProps> = ({ editor }) => {
   useAppLanguage();
@@ -12,6 +14,7 @@ export const NoteCreation: React.FC<BubbleMenuProps> = ({ editor }) => {
       .chain()
       .focus()
       .toggleMark("note", {
+        id: uniqId(),
         note: value,
       })
       .run();

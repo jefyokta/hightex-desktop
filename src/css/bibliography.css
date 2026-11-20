@@ -1,0 +1,18 @@
+.csl-bib-body {
+  margin: 2rem 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.csl-entry {
+  margin-bottom: 0.5rem;
+  text-indent: -1.5rem;
+  padding-left: 1.5rem;
+  overflow-wrap: anywhere;
+}
+
+[data-csl-entry-id] {
+  text-align: justify;
+}

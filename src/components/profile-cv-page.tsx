@@ -7,6 +7,7 @@ export function ProfileCVPage({
   id,
   value,
   picture,
+  initialPictureUrl = "",
   editable = false,
   busy = false,
   invalid = false,
@@ -17,6 +18,7 @@ export function ProfileCVPage({
   id: string;
   value: string;
   picture?: Blob;
+  initialPictureUrl?: string;
   editable?: boolean;
   busy?: boolean;
   invalid?: boolean;
@@ -26,13 +28,17 @@ export function ProfileCVPage({
 }) {
   const content = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const [pictureUrl, setPictureUrl] = useState("");
+  const [pictureUrl, setPictureUrl] = useState(initialPictureUrl);
   useEffect(() => {
     const html = sanitizeCvHtml(value);
     if (content.current && content.current.innerHTML !== html)
       content.current.innerHTML = html;
-  }, [value]);
+  }, [value, editable]);
   useEffect(() => {
+    if (initialPictureUrl) {
+      setPictureUrl(initialPictureUrl);
+      return;
+    }
     if (!picture) {
       setPictureUrl("");
       return;
@@ -40,7 +46,7 @@ export function ProfileCVPage({
     const url = URL.createObjectURL(picture);
     setPictureUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [picture]);
+  }, [picture, initialPictureUrl]);
   const photo = pictureUrl ? (
     <img
       src={pictureUrl}
@@ -114,6 +120,9 @@ export function ProfileCVPage({
           aria-multiline="false"
           contentEditable={editable && !busy}
           suppressContentEditableWarning
+          dangerouslySetInnerHTML={
+            editable ? undefined : { __html: sanitizeCvHtml(value) }
+          }
           className="min-h-[4cm] outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           onInput={(event) => {
             if (!editable || busy) return;

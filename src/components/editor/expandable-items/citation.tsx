@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Copy,
@@ -18,7 +19,7 @@ import { TabHeader } from "./components/tab-header";
 import { CiteUtils, objectToBib } from "bibtex.js";
 import { Dropdown } from "@/components/dropdown";
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { parseBibtexInput, isCitationValid } from "@/utils/citation";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
 import {

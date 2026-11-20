@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useState, type ReactNode } from "react";
 import css from "@/css/document.css?url";
 import tocCss from "@/css/toc.css?url";
@@ -5,7 +6,7 @@ import fontCss from "@/assets/fonts/style.css?url";
 import katexCss from "katex/dist/katex.min.css?url";
 import codeCss from "highlight.js/styles/github-dark.css?url";
 import { createElementFromUrl } from "@/utils/create-element-from-url";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export const PrintStyles = ({
   children,

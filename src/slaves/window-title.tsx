@@ -1,9 +1,10 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useState } from "react";
 import { useMatch } from "react-router-dom";
 import { liveQuery } from "dexie";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { useWorkspaces } from "@/hooks/use-workspaces";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { parseItalic } from "@/utils/parse-italic";
 
 export const WindowTitleSlave = () => {

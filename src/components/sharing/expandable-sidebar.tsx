@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,7 @@ import { RoleBadge } from "./role-bage";
 import { truncate } from "@/utils/truncate";
 import { sharingTypeLabel } from "@/utils/sharing-labels";
 import { useNavigate } from "react-router-dom";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export const ExpandableSharingSidebar = () => {
   useAppLanguage();
@@ -153,8 +154,7 @@ export const ExpandableSharingSidebar = () => {
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>{c.payload.role}</TooltipContent>
-                      </Tooltip>
-                      {" "}
+                      </Tooltip>{" "}
                       {t("sharing.wants_you_to_see")}{" "}
                       <span
                         className="font-medium text-foreground underline cursor-pointer"
@@ -264,7 +264,7 @@ export const ExpandableSharingSidebar = () => {
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => { }}
+                onClick={() => {}}
               >
                 <LogOut className="h-3.5 w-3.5" />
                 {t("sharing.leave_session")}

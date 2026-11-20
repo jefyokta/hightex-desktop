@@ -1,9 +1,10 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { Cloud, ArrowLeft, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button, buttonVariants } from "./ui/button";
 import { useOnline } from "@/hooks/use-online";
 import { useAuthModal } from "@/context/auth-modal-context";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 
 export const LoginGate = ({ compact = false }: { compact?: boolean }) => {
@@ -39,10 +40,7 @@ export const LoginGate = ({ compact = false }: { compact?: boolean }) => {
           <Link to="/workspaces">{t("workspace_profiles.title")}</Link>
         </Button>
       ) : online ? (
-        <Button
-          className="workspace-primary mt-6"
-          onClick={openLogin}
-        >
+        <Button className="workspace-primary mt-6" onClick={openLogin}>
           <LogIn />
           {t("common.login")}
         </Button>

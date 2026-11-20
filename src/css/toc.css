@@ -69,6 +69,7 @@
 
 .toc-dots {
   display: inline;
+  white-space: nowrap;
   letter-spacing: 0.3em;
   color: #111;
   margin-left: 4px;

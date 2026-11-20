@@ -10,7 +10,7 @@ export const EditorNavigatorSlave = () => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return;
       if (e.key.toLowerCase() === "n") {
         e.preventDefault();
-        cycleNext()
+        cycleNext();
         return;
       }
 

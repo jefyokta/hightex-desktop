@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { CommentStorage } from "@/editor/storage/comment";
 import { useCurrentEditor } from "@/hooks/use-editor";
 import {
@@ -10,7 +11,7 @@ import {
   useInteractions,
 } from "@floating-ui/react";
 import { useEffect, useState } from "react";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export const CommentSlave = () => {
   useAppLanguage();

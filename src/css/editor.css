@@ -60,6 +60,14 @@
 figcaption {
   font-size: 12pt;
 }
+
+/* Editing affordances paint outside content; they never change its box or wrapping. */
+.page
+  .tiptap[contenteditable="true"]
+  figure[data-type="imageFigure"]:is(:hover, :focus-within)
+  .editor-image-figure-content {
+  outline: 1px solid #2563eb;
+}
 .page li {
   margin-left: 6pt;
 }
@@ -110,7 +118,7 @@ figure[data-type="figureTable"] table:not([data-type="grid"]) {
   text-align: left;
 }
 .page td,
-th {
+.tiptap th {
   padding-left: 0.2em;
   padding-right: 0.2em;
 }
@@ -146,7 +154,7 @@ th {
 .page td {
   overflow-wrap: anywhere;
 }
-td[colspan] {
+.tiptap td[colspan] {
   border-right: none;
 }
 .selectedCell::after {
@@ -186,8 +194,21 @@ figure[data-type="imageFigure"] .node-image {
   justify-content: center;
   width: 100%;
 }
+.tiptap figure[data-type="imageFigure"] img {
+  margin-inline: auto;
+}
 .node-image {
   width: max-content;
+}
+
+.tiptap
+  :is([data-type="ref-component"], a[data-ref]):is(
+    [data-status="missing"],
+    [data-status="error"]
+  ) {
+  color: #dc2626 !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .page figure {
@@ -223,20 +244,20 @@ figure[data-type="imageFigure"] .node-image {
   vertical-align: top;
 }
 
-td.center p,
-th.center p {
+.tiptap td.center p,
+.tiptap th.center p {
   text-align: center;
 }
-td.left p,
-th.left p {
+.tiptap td.left p,
+.tiptap th.left p {
   text-align: left;
 }
-td.right p,
-th.right p {
+.tiptap td.right p,
+.tiptap th.right p {
   text-align: right;
 }
 
-tr:last-of-type {
+.tiptap tr:last-of-type {
   border-bottom: 1px solid black;
 }
 .page h4,
@@ -244,37 +265,40 @@ tr:last-of-type {
 .page h4 p {
   text-indent: 0 !important;
 }
-.dark tr:last-of-type {
+.dark .tiptap tr:last-of-type {
   border-bottom: 1px solid white;
 }
-tr:first-of-type {
+.tiptap tr:first-of-type {
   border-top: 1px solid black;
 }
 
-tr:has(.table-header-like) {
+.tiptap tr:has(.table-header-like) {
   border-bottom: 1px solid black;
 }
 
-tr:has(th):first-of-type {
+.tiptap tr:has(th):first-of-type {
   border-bottom: 1px solid black;
 }
-.dark tr:has(th):first-of-type {
+.dark .tiptap tr:has(th):first-of-type {
   border-bottom: 1px solid white;
 }
 /* tr:has(th) {
    border-bottom: 1px solid black ;
 } */
-.dark tr:has(.table-header-like) {
+.dark .tiptap tr:has(.table-header-like) {
   border-bottom: 1px solid white !important;
 }
-tr:has(th[rowspan]:not([rowspan="1"])) {
+.dark .page:not([data-pagination-surface]) .tiptap th {
+  border-color: white;
+}
+.tiptap tr:has(th[rowspan]:not([rowspan="1"])) {
   border-bottom: 1px solid black;
 }
 .table-header-like {
   border-bottom: 1px solid black;
   border-top: 1px solid black;
 }
-.dark tr:first-of-type {
+.dark .tiptap tr:first-of-type {
   border-top: 1px solid white;
 }
 
@@ -306,6 +330,13 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 .page figcaption::before {
   content: attr(data-label) " ";
   font-weight: bold;
+}
+
+/* JS owns caption identity; source and continuation copies carry the same label. */
+.tiptap
+  figure:is([data-type="figureTable"], [data-type="imageFigure"])
+  figcaption[data-label]::before {
+  content: attr(data-label) " " !important;
 }
 .tableWrapper {
   display: flex;
@@ -414,13 +445,25 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 .attachment-chapter {
   counter-reset: h1-counter 0 !important;
 }
-.page,
+.attachment-chapter [data-editor-pagination="true"] > h1:not(:first-child) {
+  break-before: page;
+}
 .attachment-chapter h1::before {
   content: "LAMPIRAN " counter(h1-counter, upper-alpha) "\A" !important;
 }
 
 .tiptap {
   min-height: max-content;
+}
+
+/* Content metrics belong to the shared presentation, not Tiptap's temporary
+   injected style tag (which disappears when the last editable view unmounts). */
+.tiptap[data-editor-pagination="true"] {
+  position: relative;
+  overflow-wrap: break-word;
+  white-space: break-spaces;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0;
 }
 
 /* Page breaks belong to editor presentation, never to the saved chapter. */
@@ -452,6 +495,19 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.tiptap[data-editor-pagination="true"] table {
+  max-width: 100% !important;
+}
+.tiptap[data-editor-pagination="true"] figure[data-type="figureTable"] {
+  display: flow-root;
+}
+.tiptap[data-editor-pagination="true"]
+  :is(td, th)
+  figure[data-type="figureTable"]
+  figcaption {
+  width: 100% !important;
+  max-width: 100% !important;
+}
 
 .editor-pagination-row {
   height: var(--editor-row-height) !important;
@@ -460,7 +516,14 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   zoom: var(--editor-atom-scale);
 }
 
-.tiptap [data-editor-page-break] {
+.editor-pagination-image img,
+img.editor-pagination-image {
+  width: var(--editor-image-width) !important;
+  height: auto !important;
+}
+
+.tiptap [data-editor-page-break],
+[data-section-composition-block] [data-editor-page-break] {
   display: inline-block;
   vertical-align: top;
   width: 100%;
@@ -473,7 +536,8 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   user-select: none;
 }
 
-.tiptap .editor-pagination-block {
+.tiptap .editor-pagination-block,
+[data-section-composition-block].editor-pagination-block {
   margin-top: calc(
     var(--editor-original-margin, 0px) + var(--editor-break-height, 0px)
   ) !important;
@@ -493,8 +557,17 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 }
 
 .page[data-pagination-surface] {
+  background: white;
+  color: black;
   padding: var(--editor-margin-top) var(--editor-margin-right)
     var(--editor-margin-bottom) var(--editor-margin-left);
+}
+
+/* Printable table ink belongs to the shared content surface, including dark UI. */
+.page[data-pagination-surface]
+  .tiptap
+  :is(table, tr, td, th, .table-header-like) {
+  border-color: black !important;
 }
 
 .page[data-pagination-surface] :is(p, table),
@@ -541,12 +614,17 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   z-index: 2;
   left: 0;
   width: 100%;
-  height: calc(var(--editor-margin-bottom) + var(--editor-margin-top) + var(--editor-page-gap));
+  height: calc(
+    var(--editor-margin-bottom) + var(--editor-margin-top) +
+      var(--editor-page-gap)
+  );
   background: linear-gradient(
     to bottom,
     var(--editor-paper) 0 var(--editor-margin-bottom),
-    var(--editor-workspace) var(--editor-margin-bottom) calc(var(--editor-margin-bottom) + var(--editor-page-gap)),
-    var(--editor-paper) calc(var(--editor-margin-bottom) + var(--editor-page-gap)) 100%
+    var(--editor-workspace) var(--editor-margin-bottom)
+      calc(var(--editor-margin-bottom) + var(--editor-page-gap)),
+    var(--editor-paper)
+      calc(var(--editor-margin-bottom) + var(--editor-page-gap)) 100%
   );
 }
 
@@ -555,8 +633,9 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
   z-index: 3;
 }
 
-.page .editor-pagination-repeat figcaption.editor-pagination-repeat-caption::before {
-  content: attr(data-repeat-label) " " !important;
+.page
+  .editor-pagination-repeat
+  figcaption.editor-pagination-repeat-caption::before {
   counter-increment: none !important;
 }
 .editor-pagination-repeat-caption::after {
@@ -565,8 +644,8 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
 
 .editor-pagination-number {
   position: absolute;
-  right: var(--editor-margin-right);
   z-index: 3;
+  font-family: "Times New Roman", serif;
   font-size: 10pt;
   line-height: 1;
   color: #737373;
@@ -629,10 +708,10 @@ tr:has(th[rowspan]:not([rowspan="1"])) {
     background-color 0.2s ease,
     opacity 0.2s ease;
 }
-td[tableheaderlike="1"] {
+.tiptap td[tableheaderlike="1"] {
   border-bottom: 1px var(--border);
 }
-th {
+.tiptap th {
   border-bottom: 1px solid white;
 }
 
@@ -660,6 +739,7 @@ th {
 
 .page cite {
   font-style: normal;
+  padding-inline: 2px;
 }
 
 .menu {
@@ -673,13 +753,13 @@ th {
   position: relative;
 }
 
-.page h1:hover::after {
+.page .tiptap[contenteditable="true"] h1:hover::after {
   opacity: 1;
 }
 .attachment-chapter h1::after {
   content: "" !important;
 }
-.page h1::after {
+.page .tiptap[contenteditable="true"] h1::after {
   content: "Editable, But won't affected";
   white-space: nowrap;
   background-color: rgba(1, 1, 1, 0.45);
@@ -703,12 +783,13 @@ th {
 .page table {
   table-layout: fixed;
 }
-.static-chapter h1::before {
+.static-chapter :is(h1, h2, h3)::before {
   content: "" !important;
 }
 .static-chapter h1 {
   text-transform: uppercase;
 }
+
 .abstract-en {
   font-style: italic !important;
 }
@@ -742,4 +823,16 @@ th {
   background-color: #ea580c;
   color: white;
   box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.5);
+}
+/* Editor controls are overlays; shared content DOM alone determines page geometry. */
+.tiptap [data-editor-node-controls] > * {
+  pointer-events: auto;
+}
+.tiptap
+  figure[data-type="figureTable"]
+  table[data-type="table"]
+  > tbody
+  > tr:first-child
+  > td {
+  font-weight: bold;
 }

@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useCallback } from "react";
 import { Plus, Search } from "lucide-react";
 import { Zotero } from "@/assets/icons/zotero";
@@ -9,7 +10,7 @@ import { ZoteroImportDialog } from "@/components/citation/zotero-import-dialog";
 import { useCitationLibrary } from "@/hooks/use-citation-library";
 import { useBibtexImport } from "@/hooks/use-bibtex-import";
 import { useZoteroImport } from "@/hooks/use-zotero-import";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { PageHeader } from "@/components/dashboard/page-header";
 
 export const Citation = () => {

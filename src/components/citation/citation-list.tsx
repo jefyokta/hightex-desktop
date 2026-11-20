@@ -1,7 +1,8 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { memo, useMemo } from "react";
 import type { CiteUtils } from "bibtex.js";
 import { Copy, Quote, Trash } from "lucide-react";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { toast } from "sonner";
 
 const copyCitation = async (text: string) => {

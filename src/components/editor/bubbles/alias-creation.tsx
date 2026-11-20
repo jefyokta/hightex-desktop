@@ -1,10 +1,11 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { AliasStorage } from "@/editor/storage/aliases";
 import { useState } from "react";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Document } from "@/editor/document";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export const AliasCreation: React.FC<BubbleMenuProps> = ({
   editor,

@@ -581,10 +581,11 @@ const Button: React.FC<ButtonProps & PropsWithChildren> = ({
         disabled:opacity-40 disabled:cursor-not-allowed
         
         text-neutral-700 dark:text-neutral-200
-        ${active
-              ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-              : ""
-            }
+        ${
+          active
+            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
+            : ""
+        }
         ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
       `}
         >

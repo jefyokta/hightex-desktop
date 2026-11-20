@@ -68,11 +68,24 @@ function ReportIssueAction({ description }: { description: string }) {
 }
 
 export class ShouldReport extends ShouldNotified {
-  constructor(description: string, prevErr?: any) {
+  constructor(description: string, prevErr?: unknown) {
+    let previous = "";
+    if (prevErr !== undefined) {
+      try {
+        previous = ApplicationError.normilize(prevErr);
+      } catch {
+        previous = String(prevErr);
+      }
+    }
+    const detail =
+      previous && previous !== description
+        ? `${description}\n${previous}`
+        : description;
     super({
       message: t("error.report.unexpected_error"),
-      description: description + "\n" + ApplicationError.normilize(prevErr),
-      action: React.createElement(ReportIssueAction, { description }),
+      description: detail,
+      action: React.createElement(ReportIssueAction, { description: detail }),
     });
+    this.cause = prevErr;
   }
 }

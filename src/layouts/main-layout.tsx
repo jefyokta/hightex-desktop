@@ -16,8 +16,6 @@ import { OpenFileSlave } from "@/slaves/open-file";
 import { CliDocumentsSlave } from "@/slaves/cli-documents";
 import { ConfirmProvider } from "@/context/confrim-context";
 import { AskProvider } from "@/context/ask-context";
-import { applyLanguage } from "@/utils/lang";
-import { LocaleProvider } from "@/context/locale-context";
 import { ConfigContextProvider } from "@/context/config-context";
 import { MultiSelectProvider } from "@/context/multi-select-context";
 import { WorkspaceAccessGuard } from "@/components/workspace-access-guard";
@@ -46,13 +44,10 @@ export const MainLayout = () => {
     const config = window.config.get();
 
     const theme = config?.theme ?? "system";
-    const language = config?.language ?? "en";
     applyTheme(theme);
-    applyLanguage(language);
 
     const unsubscribe = window.config.onChange((cfg) => {
       applyTheme(cfg.theme);
-      applyLanguage(cfg.language ?? "en");
     });
 
     return () => {
@@ -62,39 +57,37 @@ export const MainLayout = () => {
 
   return (
     <ConfigContextProvider>
-      <LocaleProvider>
-        <ErrorProvider>
-          <ConfirmProvider>
-            <AskProvider>
-              <MultiSelectProvider>
-                <WindowTitleSlave />
-                <OpenFileSlave />
-                <CliDocumentsSlave />
-                <UpdaterStatusListener />
-                <TooltipProvider>
-                  <UserProvider>
-                    <AuthModalProvider>
-                      <LogoutModalProvider>
-                        <ErrorSlave />
-                        <LoginModal />
-                        <WorkspaceWelcomeDialog />
-                        <WorkspaceAccessGuard>
-                          <Outlet />
-                        </WorkspaceAccessGuard>
-                      </LogoutModalProvider>
-                    </AuthModalProvider>
-                  </UserProvider>
-                  <Toaster
-                    position="bottom-right"
-                    theme={window.config.get()?.theme || "system"}
-                    className="flex justify-between toasta"
-                  />
-                </TooltipProvider>
-              </MultiSelectProvider>
-            </AskProvider>
-          </ConfirmProvider>
-        </ErrorProvider>
-      </LocaleProvider>
+      <ErrorProvider>
+        <ConfirmProvider>
+          <AskProvider>
+            <MultiSelectProvider>
+              <WindowTitleSlave />
+              <OpenFileSlave />
+              <CliDocumentsSlave />
+              <UpdaterStatusListener />
+              <TooltipProvider>
+                <UserProvider>
+                  <AuthModalProvider>
+                    <LogoutModalProvider>
+                      <ErrorSlave />
+                      <LoginModal />
+                      <WorkspaceWelcomeDialog />
+                      <WorkspaceAccessGuard>
+                        <Outlet />
+                      </WorkspaceAccessGuard>
+                    </LogoutModalProvider>
+                  </AuthModalProvider>
+                </UserProvider>
+                <Toaster
+                  position="bottom-right"
+                  theme={window.config.get()?.theme || "system"}
+                  className="flex justify-between toasta"
+                />
+              </TooltipProvider>
+            </MultiSelectProvider>
+          </AskProvider>
+        </ConfirmProvider>
+      </ErrorProvider>
     </ConfigContextProvider>
   );
 };

@@ -47,9 +47,7 @@ export const LogoutModal = () => {
             disabled={loading}
             className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading
-              ? t("desktop_auth.logging_out")
-              : t("common.logout")}
+            {loading ? t("desktop_auth.logging_out") : t("common.logout")}
           </button>
         </div>
       </div>

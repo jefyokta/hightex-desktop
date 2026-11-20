@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,7 +28,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { useMultiSelect } from "@/hooks/use-multi-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { filterDocuments, type DocumentSort } from "@/utils/document-list";
 
 interface Props {

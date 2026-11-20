@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { WorkspaceGuide } from "@/components/dashboard/workspace-guide";
 import { useUIGuide } from "@/hooks/use-ui-guide";
 import { Outlet, useLocation } from "react-router-dom";
@@ -16,7 +17,7 @@ import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Manager } from "@/editor/manager";
 import { useOnline } from "@/hooks/use-online";
 import { useWorkspaces } from "@/hooks/use-workspaces";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import "@/css/workspace.css";
 
 export const AppLayout = () => {

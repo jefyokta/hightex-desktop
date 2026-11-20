@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useRef } from "react";
 import { ArrowRight, CircleHelp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import "@/css/ui-guides.css";
 
 export function GuideAnnouncement({ guide }: { guide: GuideController }) {

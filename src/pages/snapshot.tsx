@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { enUS, id as indonesian } from "date-fns/locale";
 import { formatDistanceToNow } from "date-fns";
@@ -8,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { confirm } from "@/utils/confirm";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
-import { t, getCurrentLanguage, useAppLanguage } from "@/utils/lang";
+import { t, getCurrentLanguage } from "@/utils/lang";
 
 const loadSnapshots = async () => {
   return (await window.ipcRenderer.invoke("snapshots")) as SnapshotEntity[];

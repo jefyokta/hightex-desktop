@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { FolderOpen, LoaderCircle, RefreshCw } from "lucide-react";
@@ -9,7 +10,7 @@ import {
   type SnapshotReadModel,
 } from "@/review/snapshot-reader";
 import { snapshotCache } from "@/review/snapshot-cache";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { LoginGate } from "../login-gate";
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";

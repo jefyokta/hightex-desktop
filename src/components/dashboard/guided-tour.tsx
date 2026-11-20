@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -10,7 +11,7 @@ import {
 import { ArrowLeft, ArrowRight, CircleHelp, Focus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import "@/css/ui-guides.css";
 
 const focusable =

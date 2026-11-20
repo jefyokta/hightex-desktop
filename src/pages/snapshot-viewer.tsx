@@ -1,8 +1,9 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, id as idLocale } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
-import { getCurrentLanguage, t, useAppLanguage } from "@/utils/lang";
+import { getCurrentLanguage, t } from "@/utils/lang";
 import { useParams } from "react-router-dom";
 import { strFromU8, unzipSync } from "fflate";
 import { createMarker } from "@/utils/sharing";
@@ -133,7 +134,7 @@ export const SnapshotViewer = () => {
         console.error(err);
         throw new ShouldNotifiedWithNativeComponent(
           ShouldNotifiedWithNativeComponent.normilize(err) ||
-          t("snapshots.not_found"),
+            t("snapshots.not_found"),
           "/dashboard/snapshots",
         );
       });

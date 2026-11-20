@@ -5,6 +5,7 @@ import { useAuthModal } from "../context/auth-modal-context";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { t } from "@/utils/lang";
+import { toast } from "sonner";
 
 export const LoginModal = () => {
   const { loginOpen, closeLogin } = useAuthModal();
@@ -15,6 +16,11 @@ export const LoginModal = () => {
   const [error, setError] = useState<string>();
   const operation = useRef(false);
   const generation = useRef(0);
+  const failureMessage =
+    error || (browser.error && t(`desktop_auth.errors.${browser.error}`));
+  useEffect(() => {
+    if (loginOpen && failureMessage) toast.error(failureMessage);
+  }, [loginOpen, failureMessage]);
   const completeLogin = useCallback(() => {
     window.dispatchEvent(new Event("workspaces:changed"));
     closeLogin();
@@ -86,10 +92,9 @@ export const LoginModal = () => {
             {t("desktop_auth.description")}
           </div>
         </div>
-        {(error || browser.error) && (
+        {failureMessage && (
           <p role="alert" className="text-sm text-destructive">
-            {error ||
-              (browser.error && t(`desktop_auth.errors.${browser.error}`))}
+            {failureMessage}
           </p>
         )}
         {waiting ? (

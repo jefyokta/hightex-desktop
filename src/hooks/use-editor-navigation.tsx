@@ -1,12 +1,16 @@
 import { useCallback } from "react";
 import { useMatch, useNavigate } from "react-router-dom";
 import type { Chapter } from "@/editor/chapter";
+import { headingNavigationTarget } from "@/editor/chapter/heading-navigation";
+import { Manager } from "@/editor/manager";
+import { useParams } from "@/hooks/use-params";
 import { useChapterStore } from "@/hooks/use-chapter";
 
 export function useChapterNavigation() {
   const { chapter: activeChapter } = useChapterStore();
   const match = useMatch("/document/:id/:chapter?/:version?");
   const navigate = useNavigate();
+  const { setParams } = useParams();
   const { id, chapter: routeChapter = "1", version } = match?.params ?? {};
   const chapterId = `${id}.${routeChapter}${version ? `.${version}` : ""}`;
   // Disable navigation while a different document/chapter is still loading.
@@ -27,6 +31,17 @@ export function useChapterNavigation() {
       );
     },
     [chapter, navigate],
+  );
+
+  const goToHeading = useCallback(
+    (target: Chapter, heading: HeadingGraph) => {
+      if (target.getId() === chapter?.getId()) Manager.scrollTo(heading.id);
+      else {
+        setParams([headingNavigationTarget(heading)]);
+        goTo(target);
+      }
+    },
+    [chapter, goTo, setParams],
   );
 
   const back = useCallback(() => goTo(previous), [goTo, previous]);
@@ -50,5 +65,6 @@ export function useChapterNavigation() {
     next,
     cycleNext,
     goTo,
+    goToHeading,
   };
 }

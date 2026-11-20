@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   useCallback,
   useEffect,
@@ -15,7 +16,7 @@ import { DocumentList } from "@/components/local/document-list";
 import type { DocumentMetadata } from "@/components/local/document-dialog";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import { resolveImportMode } from "@/utils/import-conflict";
 import { normalizeAuthorProfile } from "@/utils/document-profile";
 

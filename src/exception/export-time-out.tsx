@@ -7,7 +7,9 @@ export class ExportTimeout extends ShouldNotified {
     super({
       message: t("common.export_timeout"),
       description: desc,
-      action: <OpenFileButton title={t("common.open_log")} filePath={logFile} />,
+      action: (
+        <OpenFileButton title={t("common.open_log")} filePath={logFile} />
+      ),
     });
   }
 }

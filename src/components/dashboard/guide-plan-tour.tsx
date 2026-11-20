@@ -1,6 +1,7 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { GuidedTour } from "./guided-tour";
 import { GuideAnnouncement } from "./guide-announcement";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 // Release definitions supply the text and targets; rendering needs no step switch.
 export function GuidePlanTour({

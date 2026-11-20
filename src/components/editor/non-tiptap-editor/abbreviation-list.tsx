@@ -1,11 +1,10 @@
 import { Paper } from "@/components/paper";
-import { Button } from "@/components/ui/button";
 import { Document } from "@/editor/document";
 import { Manager } from "@/editor/manager";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { sortAliases } from "@/utils/sort-aliases";
-import { X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { AbbreviationRow, abbreviationColumns } from "./abbreviation-row";
 
 type Abbrevation = Omit<Alias, "documentId">;
 
@@ -109,29 +108,16 @@ export const AbbrevationList = ({
         <div
           className="grid"
           style={{
-            gridTemplateColumns: "6.5cm .5cm 7cm",
+            gridTemplateColumns: abbreviationColumns,
             width: "14cm !important",
           }}
         >
           {abbrevations.map((item) => (
-            <React.Fragment key={item.key}>
-              <div className="text-elipsis">{item.key}</div>
-
-              <div>:</div>
-
-              <div className="relative">
-                {item.value}
-                <Button
-                  onClick={() => {
-                    removeAbbrevation(item);
-                  }}
-                  className="absolute -right-10 z-10 top-0 w-5 h-5 rounded-full"
-                  variant={"destructive"}
-                >
-                  <X className="w-1" width={"16"} height={"16"} />
-                </Button>
-              </div>
-            </React.Fragment>
+            <AbbreviationRow
+              key={item.key}
+              item={item}
+              onRemove={() => void removeAbbrevation(item)}
+            />
           ))}
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { t, useAppLanguage } from "@/utils/lang";
+import { useAppLanguage } from "@/hooks/use-app-language";
+import { t } from "@/utils/lang";
 
 export const LoadingDocument = () => {
   useAppLanguage();

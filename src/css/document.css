@@ -1,3 +1,4 @@
+@import "./bibliography.css";
 /* pge */
 @import "katex/dist/katex.min.css";
 @import "highlight.js/styles/github-dark.css";
@@ -483,24 +484,6 @@ figure thead td {
 
 .content ol ol ol ol li::marker {
   content: counter(list-item, lower-alpha) ") ";
-}
-
-.csl-bib-body {
-  margin: 2rem 0;
-  padding: 0;
-  list-style: none;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.csl-entry {
-  margin-bottom: 0.5rem;
-  text-indent: -1.5rem;
-  padding-left: 1.5rem;
-}
-
-[data-csl-entry-id] {
-  text-align: justify;
 }
 
 .content-head {

@@ -1,6 +1,12 @@
 import type { Editor } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
 import { resolveDiagnosticTarget, type ScanDiagnostic } from "@hightex/scanner";
+import type { SectionSourceLocator } from "../../shared/section-layout";
+import { archiveSha256 } from "@/utils/htx/import-model";
+
+export type EditorDiagnostic = ScanDiagnostic & {
+  source?: SectionSourceLocator;
+};
 
 export const SCANNER_DIAGNOSTIC_PREFIX = "scanner:diagnostic:";
 
@@ -10,7 +16,7 @@ export function encodeScannerDiagnostic(diagnostic: ScanDiagnostic): string {
 
 export function decodeScannerDiagnostic(
   value: string,
-): ScanDiagnostic | undefined {
+): EditorDiagnostic | undefined {
   if (!value.startsWith(SCANNER_DIAGNOSTIC_PREFIX)) return;
   try {
     const diagnostic: unknown = JSON.parse(
@@ -55,7 +61,26 @@ export function decodeScannerDiagnostic(
       )
         return;
     }
-    return diagnostic as ScanDiagnostic;
+    if (item.source !== undefined) {
+      const source = item.source as Partial<SectionSourceLocator> | null;
+      if (
+        !source ||
+        typeof source !== "object" ||
+        Array.isArray(source) ||
+        source.chapterId !== item.chapterId ||
+        typeof source.sourceRevision !== "string" ||
+        !/^[a-f0-9]{64}$/.test(source.sourceRevision) ||
+        !Number.isInteger(source.from) ||
+        !Number.isInteger(source.to) ||
+        source.from! < 0 ||
+        source.to! < source.from! ||
+        [source.nodeId, source.figureId, source.assetId].some(
+          (value) => value !== undefined && typeof value !== "string",
+        )
+      )
+        return;
+    }
+    return diagnostic as EditorDiagnostic;
   } catch {
     return;
   }
@@ -98,6 +123,43 @@ export function focusScannerDiagnostic(
     chain.setNodeSelection(target.from);
   }
   return chain.scrollIntoView().run();
+}
+
+/** Pagination positions belong to one frozen revision; never apply them to a newer tree. */
+export async function focusEditorDiagnostic(
+  editor: Editor,
+  diagnostic: EditorDiagnostic,
+): Promise<boolean> {
+  if (!diagnostic.source) return focusScannerDiagnostic(editor, diagnostic);
+  if (editor.isDestroyed) return false;
+  const doc = editor.state.doc,
+    source = diagnostic.source;
+  const hash = await archiveSha256(
+    new TextEncoder().encode(JSON.stringify(doc.toJSON())),
+  );
+  if (
+    editor.isDestroyed ||
+    editor.state.doc !== doc ||
+    hash !== source.sourceRevision ||
+    source.to > doc.content.size
+  )
+    return false;
+  const position = doc.resolve(source.from);
+  let depth = position.depth + 1;
+  if (source.nodeId && doc.nodeAt(source.from)?.attrs.id !== source.nodeId)
+    for (let parent = position.depth; parent > 0; parent--)
+      if (position.node(parent).attrs.id === source.nodeId) {
+        depth = parent;
+        break;
+      }
+  const path = Array.from({ length: depth }, (_, level) =>
+    position.index(level),
+  );
+  return focusScannerDiagnostic(editor, {
+    ...diagnostic,
+    nodeId: undefined,
+    path,
+  });
 }
 
 export const SCANNER_PARAGRAPH_PREFIX = "scanner:paragraph:";

@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   ChevronDown,
   CircleHelp,
@@ -27,7 +28,7 @@ import { useUser } from "@/hooks/use-user";
 import { useOnline } from "@/hooks/use-online";
 import { useLogoutModal } from "@/context/logout-modal-context";
 import { useAuthModal } from "@/context/auth-modal-context";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import {
   Collapsible,
   CollapsibleContent,

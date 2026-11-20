@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useEffect, useState } from "react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
@@ -27,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { connectToHost } from "@/utils/sharing";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { toast } from "sonner";
-import { t, useAppLanguage, type LocaleKey } from "@/utils/lang";
+import { t, type LocaleKey } from "@/utils/lang";
 import { ParsedItalic } from "@/utils/parse-italic";
 
 const sharingType: { type: SharingType; key: LocaleKey }[] = [

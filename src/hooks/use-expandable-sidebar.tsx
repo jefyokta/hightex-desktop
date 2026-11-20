@@ -1,4 +1,4 @@
-import { ChapteTree } from "@/components/editor/expandable-items/chapter-tree";
+import { ChapterTree } from "@/components/editor/expandable-items/chapter-tree";
 import { Citation } from "@/components/editor/expandable-items/citation";
 import { Preview } from "@/components/editor/expandable-items/preview";
 import { Setting } from "@/components/editor/expandable-items/setting";
@@ -15,7 +15,7 @@ import React, {
 export const tabs = {
   chapterTree: {
     name: "Chapters",
-    element: <ChapteTree />,
+    element: <ChapterTree />,
   },
   previewer: {
     name: "previewer",

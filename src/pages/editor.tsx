@@ -1,3 +1,4 @@
+import { HEADING_PATH_PREFIX, scrollToHeadingPath } from "@/editor/chapter/heading-navigation";
 import React, {
   useCallback,
   useEffect,
@@ -24,6 +25,7 @@ import { useCurrentEditor } from "../hooks/use-editor";
 import { useChapterScroll } from "@/hooks/use-chapter-scroll";
 import { EditorContentError } from "../exception/editor-content-error";
 import { Document } from "@/editor/document";
+import { Storage } from "@/editor/storage";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
 import { FrameManager } from "@/frame/manager";
 import { ContextMenuPopup } from "@/components/context-menu";
@@ -51,11 +53,12 @@ import { DocumentNotFound } from "@/exception/document-not-found";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { EditorPagination } from "@/editor/pagination";
 import { PaginationStatus } from "@/components/editor/pagination-status";
+import { AbstractCompositionEditor } from "@/components/editor/abstract-composition-editor";
 import {
   SCANNER_PARAGRAPH_PREFIX,
   scrollToPunctuationParagraph,
   decodeScannerDiagnostic,
-  focusScannerDiagnostic,
+  focusEditorDiagnostic,
   SCANNER_DIAGNOSTIC_PREFIX,
 } from "@/scanner/navigation";
 export const Editor: React.FC = () => {
@@ -114,7 +117,12 @@ export const Editor: React.FC = () => {
       setLoadedChapter(null);
       if (id && !version) await refreshCloudAcademic(id);
       if (!alive) return;
-      const doc = await new Document(id!, version).warm({ activate: false });
+      await Storage.instance.waitForDocument(id!);
+      if (!alive) return;
+      const doc = await new Document(id!, version).warm({
+        activate: false,
+        forEditing: !version,
+      });
       if (!alive) return;
       const currentChapter = doc.chapters.find(
         (c) => c.getChapter() == (chapter ?? 1),
@@ -235,6 +243,10 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const navigationTargets = useRef(params);
   navigationTargets.current = params;
   const { config } = useConfig();
+  const composite = Boolean(
+    config?.editor.pagination &&
+    ["abstract", "abstract-en"].includes(chapter.getChapter()),
+  );
   const [ready, setReady] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [hasNavigationTarget, setHasNavigationTarget] = useState(false);
@@ -303,17 +315,24 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         if (target) {
           if (target.startsWith(SCANNER_DIAGNOSTIC_PREFIX)) {
             const diagnostic = decodeScannerDiagnostic(target);
-            if (
-              diagnostic?.chapterId === chapter.getId() &&
-              !focusScannerDiagnostic(editor, diagnostic)
-            ) {
-              toast.info(t("editor.inline.scanner_stale"));
-            }
+            if (diagnostic?.chapterId === chapter.getId())
+              void focusEditorDiagnostic(editor, diagnostic).then((focused) => {
+                if (!focused)
+                  toast.info(
+                    t(
+                      diagnostic.source
+                        ? "editor.pagination.source_stale"
+                        : "editor.inline.scanner_stale",
+                    ),
+                  );
+              });
           } else if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
             scrollToPunctuationParagraph(
               editor,
               Number(target.slice(SCANNER_PARAGRAPH_PREFIX.length)),
             );
+          } else if (target.startsWith(HEADING_PATH_PREFIX)) {
+            scrollToHeadingPath(editor, target);
           } else {
             Manager.scrollTo(target);
           }
@@ -470,17 +489,32 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         }
         className={`page ${chapter.getHtmlClass()} bg-white dark:bg-neutral-900! rounded-md shadow-[0_8px_30px_rgba(0,0,0,0.06)]`}
       >
-        <EditorContent
-          data-tour="editor-content"
-          spellCheck={config?.editor.spellCheck || false}
-          lang={config?.language || "id-ID"}
+        <AbstractCompositionEditor
+          chapter={chapter}
           editor={editor}
-        />
-        {chapter.getDecorator()}
+          enabled={composite && ready}
+        >
+          <EditorContent
+            data-tour="editor-content"
+            spellCheck={config?.editor.spellCheck || false}
+            lang={config?.language || "id-ID"}
+            editor={editor}
+          />
+        </AbstractCompositionEditor>
+        {!composite && chapter.getDecorator()}
         <BubbleMenu editor={editor} />
         <TableMenu editor={editor} />
         <CommentSlave />
       </div>
+      {ready && composite && (
+        <details
+          data-editor-ui
+          className="mt-2 max-w-[21cm] rounded-md border bg-card p-2 text-sm"
+        >
+          <summary className="cursor-pointer">Kata kunci</summary>
+          {chapter.getDecorator()}
+        </details>
+      )}
     </>
   );
 };

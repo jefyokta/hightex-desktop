@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   useEffect,
   useMemo,
@@ -30,7 +31,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { parseItalic } from "@/utils/parse-italic";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import {
   FORM_CATALOG,
   buildFormSheets,

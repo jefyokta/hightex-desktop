@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,7 +20,7 @@ import { ContributorsDialog } from "@/components/splash/contributors-dialog";
 import { SplashDocumentPreview } from "@/components/splash/document-preview";
 import { GitHubSupport } from "@/components/splash/github-support";
 import { DonateButton } from "@/components/splash/donate-button";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import HighTexLogo from "@/assets/icons/hightex";
 import "@/css/splash.css";
 

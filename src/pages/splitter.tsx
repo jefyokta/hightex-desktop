@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { FileText, FileUp, Library } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -24,7 +25,7 @@ import { toast } from "sonner";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { truncate } from "@/utils/truncate";
 import { cn } from "@/lib/utils";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 type MainDocument =
   | {

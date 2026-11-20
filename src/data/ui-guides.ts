@@ -57,7 +57,8 @@ export function guidePlan(
   workspaceType?: "local" | "cloud",
 ): GuidePlan | null {
   // Workspace setup takes priority over automatic feature tours.
-  if (!replay && scope === "workspace" && status.profileSetupPending) return null;
+  if (!replay && scope === "workspace" && status.profileSetupPending)
+    return null;
   const guides = availableGuides(
     status.currentVersion,
     scope,
