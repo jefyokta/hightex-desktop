@@ -1,8 +1,9 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import React from "react";
 import { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../../../editor/storage/hightex-db";
 import { CiteUtils } from "bibtex.js";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 async function resolveCite(key?: string) {
   if (!key) return null;

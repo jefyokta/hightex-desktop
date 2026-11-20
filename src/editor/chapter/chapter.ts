@@ -159,9 +159,7 @@ export class Chapter {
     const c = Array.isArray(content) ? content : content?.content || [];
     const cleanContent = this.query.isAttachmentChapter()
       ? c
-      : this.filterContent(
-          c.filter((c) => !(c.type == "heading" && c.attrs?.level == 1)),
-        );
+      : this.filterContent(c);
 
     await Storage.instance.setChapter({
       id: this.chapterId,
@@ -179,7 +177,7 @@ export class Chapter {
   async warm() {
     this.title = (await this.query.getChapterTitle()) || "";
 
-    await this.graph.sync();
+    await this.graph.warm();
 
     return this;
   }
@@ -234,6 +232,13 @@ export class Chapter {
         },
       ],
     };
+  }
+
+  /** The same heading fallback for stored drafts and immutable render inputs. */
+  sourceContent(content: JSONContent[] = []): JSONContent[] {
+    return content[0]?.type === "heading" && content[0].attrs?.level === 1
+      ? content
+      : [this.createHeading(), ...content];
   }
 
   getDecorator() {

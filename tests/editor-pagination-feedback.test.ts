@@ -38,6 +38,10 @@ test("pagination reports allowlist settings and omit document content, IDs and d
   expect(report).toContain("The heading moved.");
   expect(report).toContain("25/30/30/35");
   expect(report).not.toContain(secret);
+  expect(report).toStartWith("## Experimental editor page view\n");
+  expect(report).toContain("### Reproduction\n");
+  expect(report).toContain("### Diagnostics\n");
+  expect(report).toContain("- HighTex: 1.5.0");
 });
 
 test("diagnostics distinguish disabled, pending, failed and unavailable layouts", () => {

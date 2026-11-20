@@ -6,10 +6,10 @@ export class ChapterQuery {
   constructor(private chapter: Chapter) {}
 
   private staticChapterMap: Record<string, string> = {
-    "abstract-en": "abstract",
-    abstract: "abstrak",
-    foreword: "kata pengantar",
-    presentation: "lembar persembahan",
+    "abstract-en": "ABSTRAK",
+    abstract: "ABSTRACT",
+    foreword: "KATA PENGANTAR",
+    presentation: "LEMBAR PERSEMBAHAN",
   };
   async isCreated() {
     return await HighTexDB.getInstance().chapters.get(this.chapter.getId());
@@ -50,19 +50,7 @@ export class ChapterQuery {
     const exists = await HighTexDB.getInstance().chapters.get(
       this.chapter.getId(),
     );
-    if (!exists) {
-      return [this.chapter.createHeading()];
-    }
-    if (!(exists.content || []).length) {
-      return [this.chapter.createHeading()];
-    }
-
-    const firstNode = exists.content[0];
-    if (firstNode.type == "heading" && firstNode.attrs?.level == 1) {
-      return exists.content;
-    }
-
-    return [this.chapter.createHeading(), ...exists.content];
+    return this.chapter.sourceContent(exists?.content);
   }
 
   async getChapterTitle() {

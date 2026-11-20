@@ -1,13 +1,55 @@
 # Experimental editor page view
 
+## Composite abstract sections
+
+With experimental pagination enabled, abstract editors include their existing
+template metadata and keyword suffix around the editable body. `SectionComposition`
+owns this shell; `PaginationView` and `EditorSectionRenderer` pass it through
+the same `LayoutSnapshot` and planner. Template blocks have generated slot IDs;
+they are not authored ProseMirror nodes. An existing source H1 occupies the
+template's title slot, with a derived outline anchor when needed. Keyword editing
+controls sit outside the measured sheet, and metadata updates preserve the editor
+instance, selection and history.
+
+Content whitespace, wrapping and ligature rules are persistent in `editor.css`.
+Do not depend on Tiptap's injected stylesheet surviving navigation: its lifetime
+follows editable views and can end while snapshot compilation remains active.
+
+Experimental snapshot version 3 carries canonical contexts and ordered physical
+views. The print host selects a bounded run from one canonical context per native
+print. `PDFPageAssembly` crops the native strip into selectable physical pages and
+rebuilds final internal destinations. Debug still selects individual pages.
+Debug HTML uses the same frozen snapshot with page navigation. Experimental
+transport accepts canonical v3 only; the legacy PDF implementation and IPC are separate.
+
+Every editable section now uses the canonical context renderer, with optional
+abstract composition. Capture does not reuse the active editor's plan or wrapper
+DOM. Ordinary editor NodeViews still need complete presentation and editing
+acceptance; the mixed application fixture is one bounded proof. See the
+[document engine](document-engine.md) and [experimental PDF flow](editor-pdf-experimental.md).
+`PaginationView` now schedules `ChapterLayoutCompiler` with captured source and
+resolved dependencies. It publishes the frozen result's effects through a metadata
+transaction, keeping the same EditorState/history/selection owner. It does not
+measure React NodeView DOM or observe UI/selection mutations for layout. One
+`EditorLayoutSource` observer feeds local layout and document numbering. Turning
+pagination off releases compilation/resources/subscriptions; stale jobs cannot
+publish after source/options/resource changes.
+
+Cross-request result caching is supplied by the application-owned bounded layout
+cache. Editing/performance coverage and whole-feature acceptance remain separate
+from that implementation; further performance/retention work is deferred to the
+next version by the user.
+
+## Original page-view behavior
+
 Enable **Settings → Editor → Page view (experimental)**, either in the workspace
 settings or the editor settings dialog. The preference is local application
 configuration (`editor.pagination`) and defaults to false. It applies to the
 active editable chapter. Frozen/generated chapters retain their existing views.
 
-This is an experimental editor layout. **Paged.js print preview and PDF remain the
-authority for final page breaks and document-wide page numbering.** The page
-count displayed in the editor starts at 1 for each chapter.
+This is an experimental editor layout. The legacy Paged.js PDF flow remains
+separate. Experimental PDF export uses the canonical context pipeline described
+above; it has not passed the complete acceptance contract.
 
 ## Layout rules
 
@@ -107,6 +149,11 @@ Uneditable inline page spacers can make native browser editing ambiguous at
 their boundary. Plain text input and grapheme deletion there use ProseMirror
 transactions, retaining input rules, undo and the normal commit notification.
 IME composition remains under the editor's normal handling.
+
+Vertical arrows crossing an inline page gap resolve the adjacent text line through
+the view's coordinates. This avoids Chromium jumping past the remaining paragraph
+around a tall uneditable widget. Shift keeps the selection anchor; ordinary keys
+away from gaps stay with the editor. The transaction changes selection only.
 
 ## Verification
 
@@ -255,14 +302,14 @@ On macOS, the six same-input editor comparisons passed, while four compiler/
 Paged.js cases required review. Chapter page counts exclude the compiler's
 additional generated bibliography page:
 
-| Case | Editor pages | Compiler pages | Compiler/Paged.js findings |
-| --- | ---: | ---: | --- |
-| Paragraphs and headings | 6 | 6 | No checked failures |
-| Nested numbered lists | 5 | 5 | No checked failures |
-| Merged headers and long cell | 12 | 14 | 64 markers absent from PDF; 6 text-boundary findings |
-| Images, math, citations and references | 6 | 6 | 1 inline-math boundary finding |
-| Code and explicit breaks | 4 | 4 | 1 explicit break stays on the same page |
-| Nested table after long prelude | 7 | 6 | 42 markers absent from PDF; 13 text-boundary findings |
+| Case                                   | Editor pages | Compiler pages | Compiler/Paged.js findings                            |
+| -------------------------------------- | -----------: | -------------: | ----------------------------------------------------- |
+| Paragraphs and headings                |            6 |              6 | No checked failures                                   |
+| Nested numbered lists                  |            5 |              5 | No checked failures                                   |
+| Merged headers and long cell           |           12 |             14 | 64 markers absent from PDF; 6 text-boundary findings  |
+| Images, math, citations and references |            6 |              6 | 1 inline-math boundary finding                        |
+| Code and explicit breaks               |            4 |              4 | 1 explicit break stays on the same page               |
+| Nested table after long prelude        |            7 |              6 | 42 markers absent from PDF; 13 text-boundary findings |
 
 The table markers remained present in compiler source HTML and the Paged.js DOM;
 their absence from native PDF text coincided with text positioned outside the
@@ -322,3 +369,66 @@ threshold.
 Run Electron fixtures sequentially: Vite still reserves its default WebSocket
 port with HMR disabled, so concurrent fixture startups can emit development
 transport errors. These are distinct from the editor/compiler audits.
+
+## Document numbering in the experimental editor
+
+The live footer uses the document engine's final numbering metadata, including
+preceding parts and appendix resets. A local chapter page index is insufficient
+for this. `DocumentNumberingView` debounces work after the active layout is ready,
+observes committed document sources, and cancels stale work on editing, navigation,
+resource changes or disable. It uses isolated read-only views through the same
+`DocumentRenderSession` lifecycle as export. It does not print, package a PDF, write
+source, mount another editable chapter or change selection/history.
+
+Numbering pending/error is separate from local pagination readiness. Initial
+labels remain empty until available; a refresh can retain previous labels while
+showing pending status. A failed document render exposes an error and retry rather
+than displaying invented offsets. Export independently freezes and renders its
+current source. `documentNumbering: false` selects local diagnostic labels for
+standalone layout fixtures. This remains an optional experimental feature.
+
+`PaginationOptions.sections` configures `introduction`, `content` and `appendix`.
+Both live geometry and full-document rendering use these groups. Options include
+per-group margins, number position and decimal/Roman/alphabetic number format.
+The selected `section` policy overrides its group; explicit export policy has
+final precedence. There is no new settings UI or persistence format.
+
+Run the actual editor navigation and native PDF regression with:
+
+```sh
+env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron \
+  tests/integration/editor-document-numbering.cjs
+```
+
+It verifies global offsets, invalidation after earlier chapter changes, direct
+glyph/page equivalence for editable introduction and appendix content, appendix
+A/B numbering, long DOI/URL bibliography entries across pages, source/selection/
+history preservation and cancellation cleanup. Whitespace at a justified fragment
+boundary follows the source mode: `break-spaces` retains boundary spaces, while
+hanging/collapsible whitespace is collapsed only in the render copy. Bibliography
+wrapping lives in its shared CSS owner. This bounded native check does not certify
+all platforms or editing combinations; whole-document idle-render cost still
+needs representative performance measurements.
+
+
+## Editor controls and development HTML inspection
+
+`data-editor-ui` marks controls, not document content. Controls are non-editable
+and positioned outside the content flow. Measurement, page fragments and repeated
+furniture use the shared `editorNonContentSelector` to omit them. Hover/focus
+indicators use outlines; changing border width on authored content is forbidden.
+Mutations inside marked controls do not invalidate the page plan. Captions,
+references and visible equations remain document content, even when interactive.
+
+In development, the experimental export controls include **Debug HTML**. It uses
+the same `captureDocumentPDF` and internal `EditorPDFPrint` route as native export.
+The debug window opens DevTools and shows the final captured HTML. Its export
+button submits the same snapshot; editing the document afterwards does not
+recapture it. Debug controls are outside the page set and hidden when printing.
+The action is absent from production UI and rejected by main in packaged apps.
+
+`EditorPDFHost` owns each window, ready handshake, cancellation, timeout and
+cleanup. The PDF service owns validation, PDF metadata and atomic saving.
+`captureEditorChapterPDF` belongs to tests/helpers; product capture has one entry.
+Run `tests/integration/editor-pagination-ui.cjs` for hover/selection/menu geometry,
+source preservation, exact-snapshot debug export and close/cancel cleanup.

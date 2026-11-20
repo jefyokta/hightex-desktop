@@ -13,8 +13,19 @@ export class ChapterGraph {
 
   constructor(private chapter: Chapter) {}
 
+  /** Keep document-wide equation ordering identical for live and snapshot views. */
+  static numberEquations(graphs: readonly ChapterGraphData[]): EquationGraph[] {
+    return graphs
+      .flatMap((graph) => graph.equations)
+      .map((equation, index) => ({
+        ...equation,
+        numbering: String(index + 1),
+        pos: index + 1,
+      }));
+  }
+
   extract(content: JSONContent | JSONContent[]) {
-    const result = this.extractFromContent({
+    const result = ChapterGraph.extractFromContent({
       content,
       chapter: this.chapter,
     });
@@ -49,28 +60,17 @@ export class ChapterGraph {
   }
 
   async warm() {
-    const stored = await HighTexDB.getInstance().chapterGraphs.get(
-      this.chapter.getId(),
-    );
-
-    if (stored?.data) {
-      this.data = {
-        ...stored.data,
-        headings: (stored.data.headings ?? []).filter(
-          ({ level }) => level >= 1 && level <= 3,
-        ),
-      };
-      return this.data;
-    }
-
-    return await this.sync();
+    // Cached graphs may predate reordered/deleted nodes. Recount source without
+    // writing authored content or mounting an editor for another chapter.
+    return this.extract(await this.chapter.getContent());
   }
 
-  private extractFromContent({
+  /** Extract a read-only snapshot using the editor's graph rules, without storage. */
+  static extractFromContent({
     content,
     chapter,
   }: {
-    chapter: Chapter;
+    chapter: WalkContext["chapter"];
     content: JSONContent | JSONContent[];
   }) {
     const graph: ChapterGraphData = {
@@ -107,17 +107,18 @@ export class ChapterGraph {
     return (await this.sync()).equations;
   }
 
-  private walk(nodes: JSONContent[], ctx: WalkContext) {
-    for (const node of nodes) {
-      this.handleNode(node, ctx);
+  private static walk(nodes: JSONContent[], ctx: WalkContext, parentPath: number[] = []) {
+    for (const [index, node] of nodes.entries()) {
+      const path = [...parentPath, index];
+      this.handleNode(node, ctx, path);
 
       if (node.content?.length) {
-        this.walk(node.content, ctx);
+        this.walk(node.content, ctx, path);
       }
     }
   }
 
-  private handleNode(node: JSONContent, ctx: WalkContext) {
+  private static handleNode(node: JSONContent, ctx: WalkContext, path: number[]) {
     const chapterName = ctx.chapter.getChapter();
 
     if (node.type === "heading") {
@@ -131,12 +132,13 @@ export class ChapterGraph {
       ctx.graph.headings.push({
         id: node.attrs?.id || "",
         level: node.attrs?.level || 1,
+        path,
         text: node.content ?? [],
         pos: 0,
         chapterId: ctx.chapter.getId(),
         numbering: (() => {
           const { h1, h2, h3 } = ctx.counter.heading;
-          let H1 = ctx.chapter.query.isAttachmentChapter()
+          const H1 = ctx.chapter.query.isAttachmentChapter()
             ? h1
             : ctx.chapter.getChapter();
 
@@ -191,7 +193,7 @@ export class ChapterGraph {
     }
   }
 
-  private extractCaption(node: JSONContent): JSONContent[] {
+  private static extractCaption(node: JSONContent): JSONContent[] {
     if (!node.content) return [];
 
     const captionNode =
@@ -200,7 +202,7 @@ export class ChapterGraph {
     return captionNode?.content ?? [];
   }
 
-  private findImageSrc(node: JSONContent) {
+  private static findImageSrc(node: JSONContent) {
     if (!node.content) return "";
 
     for (const child of node.content) {
@@ -212,7 +214,7 @@ export class ChapterGraph {
     return "";
   }
 
-  private resolveHeadingCounter(
+  private static resolveHeadingCounter(
     h: WalkContext["counter"]["heading"],
     level: number,
   ) {

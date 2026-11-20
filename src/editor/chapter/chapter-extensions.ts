@@ -27,9 +27,11 @@ import { Variable } from "../extensions/variable";
 import { TableBorder } from "../extensions/table/border";
 import { Placeholder } from "@tiptap/extensions";
 import { createAliasPlugin } from "../plugins/alias-hint-plugin";
-import { Extension } from "@tiptap/core";
+import { Extension, generateHTML, type JSONContent } from "@tiptap/core";
 import { Comment } from "../extensions/comment";
 import { Note } from "../extensions/note";
+import { assertSupportedContent } from "@/utils/document-content";
+import { NodeIdentity } from "../extensions/uuid/identity-extension";
 
 type ChapterExtensionContext = Pick<
   Chapter,
@@ -46,7 +48,6 @@ export class ChapterExtensions {
     presentation: "Maksimal 1 halam",
     foreword: "Maksimal 2 halaman",
   };
-  /** Schema serialization reuses editor nodes without creating a live editor or its plugins. */
   static contentSchema(chapterName: string) {
     return new ChapterExtensions({
       frozen: false,
@@ -54,6 +55,16 @@ export class ChapterExtensions {
       getChapter: () => chapterName,
       query: { isNormalChapter: () => false },
     }).get(false);
+  }
+  /**
+   * Serialize using the editor schema, without creating an editor or plugins.
+   * Node-view content (images, math, references, citations) still needs its
+   * resolved rendering context; this is not a paginated PDF export.
+   */
+  static serializeContent(chapterName: string, nodes: JSONContent[]): string {
+    assertSupportedContent(nodes);
+    const extensions = this.contentSchema(chapterName);
+    return generateHTML({ type: "doc", content: nodes }, extensions);
   }
   get(enableAliasHint = false) {
     if (this.chapter.frozen) return [];
@@ -70,6 +81,7 @@ export class ChapterExtensions {
 
     return [
       StarterKit.configure({
+        blockquote: false,
         heading: false,
         listItem: false,
         paragraph: false,
@@ -129,16 +141,18 @@ export class ChapterExtensions {
         : []),
       Comment,
       Note,
+      NodeIdentity,
     ];
   }
 
   private getNonChapter() {
     const hasPlaceholder = this.placeHolder[this.chapter.getChapter()];
     return [
-      StarterKit,
+      StarterKit.configure({ blockquote: false }),
       Variable,
       SearchReplace,
       Note,
+      NodeIdentity,
       ...(hasPlaceholder
         ? [Placeholder.configure({ placeholder: hasPlaceholder })]
         : []),

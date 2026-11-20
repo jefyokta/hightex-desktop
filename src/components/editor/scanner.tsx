@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { Disclosure } from "@/components/ui/disclosure";
 import { useMemo, useState, type ReactNode } from "react";
 import { Ban, Loader2, RotateCcw, ScanText, X } from "lucide-react";
@@ -11,7 +12,7 @@ import { useScan } from "@/hooks/use-scan";
 import { useScannerNavigation } from "@/hooks/use-scanner-navigation";
 import { diagnosticLocationKey } from "@/scanner/navigation";
 import { Counter } from "tjsn-parser";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 type PunctuationIssue = ScanResults["punctuation"][number];
 const visible = (s: string) => s.replace(/ /g, "·").replace(/\n/g, "↵");
@@ -336,10 +337,7 @@ export const Scanner = () => {
         ))}
 
         {figureCount > 0 && (
-          <Section
-            title={t("editor.inline.unreferenced")}
-            count={figureCount}
-          >
+          <Section title={t("editor.inline.unreferenced")} count={figureCount}>
             <ul className="divide-y rounded-lg border">
               {figureRows.map(({ graph, kind, label, text }) => (
                 <FigureRow

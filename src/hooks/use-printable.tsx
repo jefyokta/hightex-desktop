@@ -166,4 +166,4 @@ export const PrintableProvider = ({
   );
 };
 
-export { usePrintable };
+export { usePrintable, PrintableContextProvider };

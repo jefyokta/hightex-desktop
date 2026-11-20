@@ -1,6 +1,8 @@
 // Isolated real Tiptap editor, persistence and native Chromium layout.
 // env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron tests/integration/editor-pagination.cjs
 const { app, BrowserWindow } = require("electron");
+// Fail bounded fixtures on main-process errors instead of opening a blocking OS dialog.
+process.on('uncaughtException', error => { console.error(error.stack || error); app.exit(1); });
 const { createServer } = require("node:http");
 const { mkdtempSync, readFileSync, writeFileSync } = require("node:fs");
 const path = require("node:path");
@@ -11,22 +13,59 @@ const artifacts = mkdtempSync(path.join(os.tmpdir(), "hightex-pagination-"));
 app.setPath("userData", artifacts);
 app.disableHardwareAcceleration();
 let vite, server, win;
+const editorPDFTest = process.env.HIGHTEX_EDITOR_PDF_PIPELINE
+  ? require("./editor-pdf-experimental.cjs").prepare({ root, artifacts })
+  : undefined;
 const documentTests = process.env.HIGHTEX_PAGINATION_DOCUMENTS
-  ? require('./editor-pagination-documents.cjs').prepare({ artifacts }) : undefined;
+  ? require(
+      process.env.HIGHTEX_EDITOR_PDF_ARCHIVES
+        ? "./editor-document-archives.cjs"
+        : "./editor-pagination-documents.cjs",
+    ).prepare({
+      artifacts,
+      reproduce: process.env.HIGHTEX_CORE_MVP
+        ? require("./editor-core-mvp.cjs").run
+        : process.env.HIGHTEX_PAGINATION_BASELINE
+        ? require("./editor-pagination-baseline.cjs").run
+        : process.env.HIGHTEX_PAGINATION_REDESIGN
+        ? require("./editor-pagination-redesign.cjs").run
+        : undefined,
+    })
+  : undefined;
 const html = `<!doctype html><body style="margin:0;background:#f1f3f5"><div id="root"></div><script type="module">
 import React from 'react';import {createRoot} from 'react-dom/client';
 import {useEditor,EditorContent} from '@tiptap/react';
-import {closeHistory} from '@tiptap/pm/history';
+import {getSchema} from '@tiptap/core';
+import {closeHistory,undoDepth,redoDepth} from '@tiptap/pm/history';
+import {EditorState,Plugin,PluginKey} from '@tiptap/pm/state';
+import {EditorView,Decoration,DecorationSet} from '@tiptap/pm/view';
 import {Document} from '/src/editor/document/index.ts';
 import {HighTexDB} from '/src/editor/storage/hightex-db.ts';
 import {Storage} from '/src/editor/storage/index.ts';
 import {events,getEditorChapter} from '/src/editor/event/index.ts';
 import {EditorPagination,paginationKey} from '/src/editor/pagination/index.ts';
-import {EDITOR_PAGE} from '/src/editor/pagination/layout.ts';
+import {EDITOR_PAGE} from '/src/editor/pagination/flow/page-planner.ts';
 import {paginationGeometry} from '/src/editor/pagination/options.ts';
-import {measureEditor} from '/src/editor/pagination/measure.ts';
-import {FlowCache} from '/src/editor/pagination/flow.ts';
-import {LayoutSnapshot} from '/src/editor/pagination/snapshot.ts';
+${process.env.HIGHTEX_EDITOR_SERIALIZATION || process.env.HIGHTEX_EDITOR_RENDERING ? "import {Parser} from 'tjsn-parser';window.legacyParserClass=Parser;" : ""}
+import {measureEditor} from '/src/editor/pagination/measurement/measure-chapter.ts';
+import {FlowCache} from '/src/editor/pagination/flow/text-flow.ts';
+import {LayoutSnapshot} from '/src/editor/pagination/measurement/layout-snapshot.ts';
+${process.env.HIGHTEX_WORKFLOW_LAYOUT_TRACE ? `
+window.workflowLayoutTrace=[];
+for(const [prototype,name] of [
+ [(await import('/src/editor/pagination/view.ts')).PaginationView.prototype,'compileLayout'],
+ [(await import('/src/editor/chapter/layout-source.ts')).EditorLayoutSource.prototype,'read'],
+ [(await import('/src/document-engine/layout/chapter-compiler.ts')).ChapterLayoutCompiler.prototype,'compile']]){
+ const original=prototype[name];prototype[name]=async function(...args){
+  const event={method:name,start:performance.now()};workflowLayoutTrace.push(event);
+  try{return await original.apply(this,args)}catch(error){event.error=error.message;throw error}
+  finally{event.end=performance.now()}
+ };
+}
+const paginationView=(await import('/src/editor/pagination/view.ts')).PaginationView.prototype;
+const updatePaginationView=paginationView.update;
+paginationView.update=function(...args){window.workflowPaginationView=this;return updatePaginationView.apply(this,args)};
+` : ""}
 import {PaginationStatus} from '/src/components/editor/pagination-status.tsx';
 import {TooltipProvider} from '/src/components/ui/tooltip.tsx';
 import {MemoryRouter,Routes,Route,useNavigate} from 'react-router-dom';
@@ -36,6 +75,9 @@ import {ParamsContextProvider} from '/src/hooks/use-params.tsx';
 import {ExpandableSideBarContextProvider} from '/src/hooks/use-expandable-sidebar.tsx';
 import {ConfigContextProvider} from '/src/context/config-context.tsx';
 import '/src/App.css';import '/src/css/editor.css';import 'katex/dist/katex.css';
+${process.env.HIGHTEX_BOUNDED_PROFILE?.startsWith('abstract-') ? "import {abstractCompositionInput} from '/tests/helpers/abstract-composition-input.tsx';window.abstractCompositionInput=abstractCompositionInput;" : ""}
+${process.env.HIGHTEX_COMPOSITE_APP ? "import '/src/document-engine/adapters/current-category.tsx';import '/src/document-export/capture.ts';import '/src/document-export/print/install-snapshot.ts';" : ""}
+${process.env.HIGHTEX_EDITOR_PDF_DARK ? "document.documentElement.classList.add('dark');" : ""}
 const config={language:'en',theme:'light',editor:{pagination:false},previewer:{scope:'current',autoUpdate:false,layoutIndicator:true}};
 const configListeners=new Set();
 window.config={get:()=>structuredClone(config),onChange:callback=>{configListeners.add(callback);return ()=>configListeners.delete(callback)},set:async patch=>{const editor={...config.editor,...patch.editor};Object.assign(config,patch,{editor});for(const callback of configListeners)callback(structuredClone(config));return structuredClone(config)}};
@@ -57,6 +99,7 @@ window.makeTable=rows=>({type:'figureTable',content:[
  {type:'figcaption',content:[{type:'text',text:'Hasil Pengujian'}]},
  {type:'table',content:Array.from({length:rows},(_,index)=>({type:'tableRow',content:[0,1].map(column=>({type:index===0?'tableHeader':'tableCell',content:[p('Data '+index+' / '+column)]}))}))},
 ]});
+${process.env.HIGHTEX_EDITOR_PDF_REOPEN || process.env.HIGHTEX_EDITING_WORKFLOW ? "if (!await db.documents.get('fixture')) {" : ""}
 await db.images.put({id:'fixture-image',documentId:'fixture',createdAt:0,blob:new Blob(['<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250"><rect width="400" height="250" fill="#cbd5e1"/><text x="40" y="125" font-size="30">Gambar Penelitian</text></svg>'],{type:'image/svg+xml'})});
 await db.documents.put({id:'fixture',title:'Pagination fixture',category:'1',config:{},keywords:{indonesian:[],english:[]}});
 await db.chapters.put({id:'fixture.1',content:[
@@ -67,7 +110,8 @@ await db.chapters.put({id:'fixture.1',content:[
  {type:'bulletList',content:[{type:'listItem',content:[p('Satu')]},{type:'listItem',content:[p('Dua')]}]},
  p('Akhir bab.'),
 ]});
-const doc=await new Document('fixture').warm({workspaceIdentity:false});
+${process.env.HIGHTEX_EDITOR_PDF_REOPEN || process.env.HIGHTEX_EDITING_WORKFLOW ? "}" : ""}
+const doc=await new Document('fixture').warm({workspaceIdentity:false,forEditing:true});
 const chapter=doc.chapters.find(chapter=>chapter.getChapter()==='1');Document.setCurrentChapter(chapter);
 window.updates=0;window.layouts=0;window.errors=[];
 window.addEventListener('error',event=>window.errors.push(event.message));
@@ -78,6 +122,13 @@ window.setPages=enabled=>editor.commands.setEditorPagination(enabled);
 window.failLayout=()=>editor.view.dispatch(editor.state.tr.setMeta(paginationKey,{layout:{breaks:[],pages:1,error:true}}));
 window.waitSaved=()=>Storage.instance.waitForChapter(chapter.getId());
 window.closeHistory=()=>editor.view.dispatch(closeHistory(editor.state.tr));
+window.historyDepth=(target=editor)=>({undo:undoDepth(target.state),redo:redoDepth(target.state)});
+window.nativeEditor={EditorState,EditorView,undoDepth,redoDepth,getSchema,closeHistory};
+window.createCaretWidget=()=>{
+ const key=new PluginKey('fixtureCaretWidget');
+ return new Plugin({key,props:{decorations:state=>DecorationSet.create(state.doc,[Decoration.widget(state.doc.content.size-1,()=>{const widget=document.createElement('span');widget.contentEditable='false';widget.setAttribute('data-editor-page-break','');widget.style.cssText='display:inline-block;width:0;height:0';return widget},{side:1})])}});
+};
+window.installCaretWidget=()=>{const plugin=createCaretWidget();editor.registerPlugin(plugin);return plugin.key};
 window.pageMetrics=EDITOR_PAGE;
 window.paginationGeometry=()=>paginationGeometry(paginationKey.getState(editor.state).options);
 window.paginationOptions=()=>paginationKey.getState(editor.state).options;
@@ -154,24 +205,29 @@ window.textRects=()=>{
  }
  return {lines,bad};
 };
-function Fixture(){
- const editor=useEditor({extensions:[...chapter.extensions.get(),EditorPagination],content:'',editable:false,
-  onCreate:async({editor})=>{await events.create({editor,chapter});window.ready=true},
+function Fixture({activeChapter=chapter,pagination=true}){
+ const editor=useEditor({extensions:[...activeChapter.extensions.get(),...(pagination?[EditorPagination.configure({documentNumbering:false})]:[])],content:'',editable:false,
+  onCreate:async({editor})=>{await events.create({editor,chapter:activeChapter});if(!editor.isDestroyed)window.ready=true},
   onUpdate:({editor})=>{window.updates++;void events.update({editor})},
-  onTransaction:({transaction})=>{if(transaction.getMeta(paginationKey)?.layout)window.layouts++},
+  onTransaction:({transaction})=>{const update=transaction.getMeta(paginationKey);if(update?.layout||update?.compiled)window.layouts++},
  });
  window.editor=editor;
  return React.createElement(React.Fragment,null,
   React.createElement(PaginationStatus,{editor}),
-  React.createElement('div',{className:'page',style:{margin:'20px auto'}},React.createElement(EditorContent,{editor})));
+  React.createElement('div',{className:'page'+(activeChapter===chapter?'':' '+activeChapter.getHtmlClass()),style:{margin:'20px auto'}},React.createElement(EditorContent,{editor})));
 }
 const reactRoot=createRoot(document.getElementById('root'));
-reactRoot.render(React.createElement(React.StrictMode,null,React.createElement(TooltipProvider,null,React.createElement(${process.env.HIGHTEX_PAGINATION_COMPARE ? "MemoryRouter" : "React.Fragment"},null,React.createElement(Fixture)))));
+let fixtureMount=0;
+window.mountChapterFixture=(activeChapter=chapter,pagination=true)=>{
+ window.ready=false;Document.setCurrentChapter(activeChapter);
+ reactRoot.render(React.createElement(React.StrictMode,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,null,React.createElement(Fixture,{key:++fixtureMount,activeChapter,pagination})))));
+};
+window.mountChapterFixture();
 function ApplicationProbe(){window.applicationEditor=useCurrentEditor().editor;window.navigate=useNavigate();return null}
-window.mountApplication=()=>reactRoot.render(
+window.mountApplication=(initial='/document/fixture/1')=>reactRoot.render(
  React.createElement(ConfigContextProvider,null,
   React.createElement(TooltipProvider,null,
-   React.createElement(MemoryRouter,{initialEntries:['/document/fixture/1']},
+   React.createElement(MemoryRouter,{initialEntries:[initial]},
     React.createElement(EditorProvider,null,
      React.createElement(ParamsContextProvider,null,
       React.createElement(ExpandableSideBarContextProvider,null,
@@ -181,14 +237,16 @@ window.applicationLayout=()=>paginationKey.getState(applicationEditor.state).lay
 window.applicationChapter=()=>getEditorChapter(applicationEditor)?.getId();
 </script>`;
 const execute = (code) =>
-  win.webContents.executeJavaScript(`(async()=>{${code}})()`);
-async function until(code) {
-  const deadline = Date.now() + 20000;
+  win.webContents.executeJavaScript(
+    `(async()=>{try{${code}}catch(error){throw new Error(error?.stack||error?.message||String(error))}})()`,
+  );
+async function until(code, timeout = 20000) {
+  const deadline = Date.now() + timeout;
   while (!(await execute(`return Boolean(${code})`))) {
     if (Date.now() > deadline) {
       console.error(
         await execute(
-          "return {layout:window.editor&&window.layout(),errors:window.errors}",
+          "return {layout:window.editor&&window.layout(),errors:window.errors,alert:document.querySelector('[role=alert]')?.textContent}",
         ),
       );
       throw Error("Timed out: " + code);
@@ -197,10 +255,23 @@ async function until(code) {
   }
 }
 const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
-const deadline = setTimeout(() => {
-  console.error("Pagination fixture deadline");
-  app.exit(1);
-}, documentTests ? 900000 : process.env.HIGHTEX_PAGINATION_STRESS || process.env.HIGHTEX_PAGINATION_COMPARE ? 300000 : 120000);
+const deadline = setTimeout(
+  () => {
+    console.error("Pagination fixture deadline");
+    app.exit(1);
+  },
+  process.env.HIGHTEX_PAGINATION_BASELINE || (process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)
+    ? 300000
+    : process.env.HIGHTEX_PAGINATION_REDESIGN
+    ? 240000
+    : documentTests
+    ? 900000
+    : process.env.HIGHTEX_PAGINATION_BENCHMARK ||
+        process.env.HIGHTEX_PAGINATION_STRESS ||
+        process.env.HIGHTEX_PAGINATION_COMPARE
+      ? 300000
+      : 120000,
+);
 app
   .whenReady()
   .then(async () => {
@@ -218,10 +289,30 @@ app
       logLevel: "error",
     });
     server = createServer(async (req, res) => {
+      if (editorPDFTest && (await editorPDFTest.serve(req, res, vite))) return;
       if (documentTests?.serve(req, res)) return;
-      if (req.url === "/comparison-print.html" && process.env.HIGHTEX_PAGINATION_COMPARE) {
+      if (
+        req.url === "/editor-page-plan-print.html" &&
+        process.env.HIGHTEX_EDITOR_PAGE_PLAN
+      ) {
         res.setHeader("content-type", "text/html");
-        res.end(await vite.transformIndexHtml("/comparison-print.html",require("./editor-pagination-compare.cjs").printHTML));
+        res.end(
+          await vite.transformIndexHtml(
+            req.url,
+            require("./editor-page-plan.cjs").printHTML,
+          ),
+        );
+      } else if (
+        req.url === "/comparison-print.html" &&
+        process.env.HIGHTEX_PAGINATION_COMPARE
+      ) {
+        res.setHeader("content-type", "text/html");
+        res.end(
+          await vite.transformIndexHtml(
+            "/comparison-print.html",
+            require("./editor-pagination-compare.cjs").printHTML,
+          ),
+        );
       } else if (req.url === "/") {
         res.setHeader("content-type", "text/html");
         res.end(await vite.transformIndexHtml("/", html));
@@ -245,11 +336,15 @@ app
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     win = new BrowserWindow({
-      show: false,
+      // show: false,
       width: 1100,
       height: 950,
-      webPreferences: { backgroundThrottling: false },
+      webPreferences: {
+        backgroundThrottling: false,
+        ...(editorPDFTest ? { preload: editorPDFTest.preload } : {}),
+      },
     });
+    if(process.env.HIGHTEX_INPUT_CDP||process.env.HIGHTEX_COMPOSITE_APP)win.setFocusable(false);
     win.webContents.on("console-message", (event) => {
       if (event.level === "error") console.error(event.message);
     });
@@ -258,10 +353,17 @@ app
       void finish(1);
     });
     if (documentTests) {
-      win.webContents.session.webRequest.onBeforeRequest((details, callback) => {
-        const url = new URL(details.url);
-        callback({ cancel: !['data:', 'blob:', 'devtools:'].includes(url.protocol) && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost' });
-      });
+      win.webContents.session.webRequest.onBeforeRequest(
+        (details, callback) => {
+          const url = new URL(details.url);
+          callback({
+            cancel:
+              !["data:", "blob:", "devtools:"].includes(url.protocol) &&
+              url.hostname !== "127.0.0.1" &&
+              url.hostname !== "localhost",
+          });
+        },
+      );
     }
     await win.loadURL("http://127.0.0.1:" + server.address().port + "/");
     if (process.env.HIGHTEX_PAGINATION_DEBUG) {
@@ -290,20 +392,255 @@ app
       debugTimer.unref();
     }
     await until("window.ready&&window.editor");
+    if (process.env.HIGHTEX_PAGINATION_FLOW) {
+      await require('./editor-pagination-flow.cjs').run({execute,until,artifacts});return;
+    }
+    if (process.env.HIGHTEX_NAVIGATION_UI) {
+      await require('./editor-navigation-ui.cjs').run({execute,until,win,artifacts});return;
+    }
+    if (process.env.HIGHTEX_SOURCE_OBSERVATION) {
+      await require('./editor-source-observation.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_PROJECTION_MAPPING) {
+      await require('./editor-page-descriptors.cjs').runMapping({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_PAGE_DESCRIPTORS) {
+      await require('./editor-page-descriptors.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_RESOURCE_PERFORMANCE) {
+      await require('./editor-resource-performance.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_CANONICAL_TRANSPORT) {
+      await require('./editor-canonical-transport.cjs').run({execute,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_PERFORMANCE_SCREENING) {
+      await require('./editor-performance-screening.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_INDEX_PRESENTATION) {
+      await require('./editor-template-flow.cjs').runIndexPresentation({execute,artifacts,win});return;
+    }
+    if (process.env.HIGHTEX_ROOT_LANGUAGE) {
+      await require('./editor-template-flow.cjs').runLanguage({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_NATIVE_INTERACTIONS) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-native-interactions.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
+    if ((process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)) {
+      await require(process.env.HIGHTEX_FLOW_PDF?'./editor-flow-pdf.cjs':'./editor-table-pdf.cjs').run({execute,until,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_LAYOUT_REUSE) {
+      await require('./editor-layout-reuse.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_TEMPLATE_FLOW) {
+      await require('./editor-template-flow.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_STATIC_SHEETS) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-template-flow.cjs').runStaticSheets({execute,artifacts,editorPDFTest,win});return;
+    }
+    if (process.env.HIGHTEX_GENERATED_LIVE) {
+      await require('./editor-generated-flow.cjs').runLive({execute,until,artifacts});return;
+    }
+    if (process.env.HIGHTEX_GENERATED_FLOW) {
+      await require('./editor-generated-flow.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_EDITING_WORKFLOW) {
+      await require('./editor-editing-workflow.cjs').run({execute,until,artifacts,win});return;
+    }
+    if (process.env.HIGHTEX_CAPTION_FLOW) {
+      await require('./editor-caption-flow.cjs').run({execute,artifacts});return;
+    }
+    if (process.env.HIGHTEX_COMPOSITE_APP) {
+      await require('./editor-composite-app.cjs').run({execute,until,artifacts,win,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_BOUNDED_PROJECTION) {
+      await require('./editor-bounded-projection.cjs').run({execute,until,artifacts,win});
+      return;
+    }
+    if (process.env.HIGHTEX_CONTINUOUS_PROJECTION) {
+      await require('./editor-continuous-projection.cjs').run({execute,until,artifacts,win});
+      return;
+    }
+    if (process.env.HIGHTEX_SHARED_PRESENTATION_PROOF) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-shared-presentation.cjs').run({execute,until,artifacts,editorPDFTest});
+      return;
+    }
+    if (process.env.HIGHTEX_LINE_PROJECTION_PROOF) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-line-projection.cjs').run({execute,until,artifacts,editorPDFTest});
+      return;
+    }
+    if (process.env.HIGHTEX_PAGINATION_UI) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-pagination-ui.cjs').runUI({execute,until,artifacts,editorPDFTest,win});
+      return;
+    }
+    if (process.env.HIGHTEX_DOCUMENT_NUMBERING) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-document-numbering.cjs').runDocumentNumbering({execute,until,artifacts,editorPDFTest});
+      return;
+    }
+    if (process.env.HIGHTEX_PAGINATION_REVIEW) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require('./editor-pagination-review.cjs').runReview({execute,until,artifacts,editorPDFTest});
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_SECTION_OPTIONS) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-section-options.cjs").runSectionOptions({
+        execute,
+        until,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_PAGE_NUMBERS) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-page-numbers.cjs").runPageNumbers({
+        execute,
+        until,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_EQUIVALENCE) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-pdf-equivalence.cjs").runEquivalence({
+        execute,
+        until,
+        win,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_IME) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-pagination-ime.cjs").runIME({
+        execute,
+        until,
+        win,
+        artifacts,
+        editorPDFTest,
+        print: process.env.HIGHTEX_IME_READY_ONLY ? false : undefined,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_CLIPBOARD) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-pagination-clipboard.cjs").runClipboard({
+        execute,
+        until,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_PDF_REOPEN) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-pdf-reopen.cjs").runReopen({
+        execute,
+        until,
+        win,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_PAGINATION_BENCHMARK) {
+      await require("./editor-pagination-benchmark.cjs").runBenchmark({
+        execute,
+        until,
+        win,
+        artifacts,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_PDF_LIFECYCLE) {
+      editorPDFTest.connect(win.webContents.getURL());
+      await require("./editor-pdf-lifecycle.cjs").runLifecycle({
+        execute,
+        until,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_CAPTIONS) {
+      await require("./editor-caption-numbering.cjs").runCaptions({
+        execute,
+        win,
+        artifacts,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_WHITESPACE) {
+      await require("./editor-pagination-whitespace.cjs").runWhitespace({
+        execute,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_PAGE_PLAN) {
+      await require("./editor-page-plan.cjs").runPagePlan({
+        execute,
+        until,
+        win,
+        artifacts,
+        editorPDFTest,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_RENDERING) {
+      if (process.env.HIGHTEX_CONTENT_FALLBACK)
+        await require("./editor-content-fallback.cjs").run({ execute, until, win, artifacts });
+      else await require("./editor-rendering.cjs").runRendering({ execute, until });
+      return;
+    }
+    if (process.env.HIGHTEX_EDITOR_SERIALIZATION) {
+      await require("./editor-serialization.cjs").runSerialization({
+        execute,
+        until,
+      });
+      return;
+    }
+    if (process.env.HIGHTEX_COMPILER_PARSER) {
+      await require("./compiler-parser.cjs").runParser({ execute });
+      return;
+    }
     if (documentTests) {
-      await documentTests.run({execute,win});
+      if (editorPDFTest) editorPDFTest.connect(win.webContents.getURL());
+      await documentTests.run({ execute, until, win, editorPDFTest });
       return;
     }
     if (process.env.HIGHTEX_PAGINATION_FEEDBACK) {
-      await require("./editor-pagination-feedback.cjs").runFeedback({execute,until,win,artifacts});
+      await require("./editor-pagination-feedback.cjs").runFeedback({
+        execute,
+        until,
+        win,
+        artifacts,
+      });
       return;
     }
     if (process.env.HIGHTEX_PAGINATION_COMPARE) {
-      await require("./editor-pagination-compare.cjs").runComparison({execute,until,win,artifacts});
+      await require("./editor-pagination-compare.cjs").runComparison({
+        execute,
+        until,
+        win,
+        artifacts,
+      });
       return;
     }
     if (process.env.HIGHTEX_PAGINATION_STRESS) {
-      await require("./editor-pagination-stress.cjs").runStress({ execute, until, win, artifacts });
+      await require("./editor-pagination-stress.cjs").runStress({
+        execute,
+        until,
+        win,
+        artifacts,
+      });
       return;
     }
     if (process.env.HIGHTEX_PAGINATION_CLIPPING) {
@@ -404,14 +741,31 @@ app
     );
     // Showing the native window can restore its old DOM selection after the
     // model selection was set. Establish the test caret after focus settles.
-    await execute("editor.view.focus();editor.commands.setTextSelection(breakPosition);await new Promise(requestAnimationFrame)");
-    assert.equal(await execute("return editor.state.selection.from"),await execute("return breakPosition"),"native focus changed the test caret before typing");
-    await execute("window.nativeBefore={selection:editor.state.selection.toJSON(),dom:window.getSelection()?.anchorOffset,text:editor.state.doc.textContent}");
+    await execute(
+      "editor.view.focus();editor.commands.setTextSelection(breakPosition);await new Promise(requestAnimationFrame)",
+    );
+    assert.equal(
+      await execute("return editor.state.selection.from"),
+      await execute("return breakPosition"),
+      "native focus changed the test caret before typing",
+    );
+    await execute(
+      "window.nativeBefore={selection:editor.state.selection.toJSON(),dom:window.getSelection()?.anchorOffset,text:editor.state.doc.textContent}",
+    );
     await win.webContents.insertText("uji");
     console.log("Checkpoint: native input");
     await pause();
-    if (await execute("return editor.state.doc.textBetween(breakPosition,breakPosition+3)!=='uji'")) {
-      console.log('Native caret diagnostic:',await execute("const after=editor.state.doc.textContent;let diff=0;while(nativeBefore.text[diff]===after[diff]&&diff<after.length)diff++;return {expected:breakPosition,beforeSelection:nativeBefore.selection,afterSelection:editor.state.selection.toJSON(),diff,inserted:after.slice(diff,diff+12),focused:document.activeElement===editor.view.dom,domOffset:window.getSelection()?.anchorOffset}"));
+    if (
+      await execute(
+        "return editor.state.doc.textBetween(breakPosition,breakPosition+3)!=='uji'",
+      )
+    ) {
+      console.log(
+        "Native caret diagnostic:",
+        await execute(
+          "const after=editor.state.doc.textContent;let diff=0;while(nativeBefore.text[diff]===after[diff]&&diff<after.length)diff++;return {expected:breakPosition,beforeSelection:nativeBefore.selection,afterSelection:editor.state.selection.toJSON(),diff,inserted:after.slice(diff,diff+12),focused:document.activeElement===editor.view.dom,domOffset:window.getSelection()?.anchorOffset}",
+        ),
+      );
     }
     assert.equal(
       await execute(
@@ -429,12 +783,16 @@ app
     // including whole-grapheme deletion and the normal undo stack.
     for (let attempt = 0; attempt < 4; attempt++) {
       await until("layoutReady()&&!layout().error");
-      await execute("closeHistory();window.breakPosition=layout().breaks.find(item=>item.kind==='line').from;editor.commands.setTextSelection(breakPosition);editor.commands.focus()");
+      await execute(
+        "closeHistory();window.breakPosition=layout().breaks.find(item=>item.kind==='line').from;editor.commands.setTextSelection(breakPosition);editor.commands.focus()",
+      );
       await win.webContents.insertText("e\u0301");
       win.webContents.sendInputEvent({ type: "keyDown", keyCode: "Backspace" });
       win.webContents.sendInputEvent({ type: "keyUp", keyCode: "Backspace" });
       await until("JSON.stringify(editor.getJSON())===baseline");
-      await execute("closeHistory();editor.commands.setTextSelection(breakPosition);editor.commands.focus()");
+      await execute(
+        "closeHistory();editor.commands.setTextSelection(breakPosition);editor.commands.focus()",
+      );
       await win.webContents.insertText("👩🏽‍💻");
       await execute("editor.commands.setTextSelection(breakPosition)");
       win.webContents.sendInputEvent({ type: "keyDown", keyCode: "Delete" });
@@ -509,7 +867,10 @@ app
     );
     assert.deepEqual((await execute("return textRects()")).bad, []);
     const tableDisplacement = await execute("return probeTableMargins()");
-    assert.ok(Math.abs(tableDisplacement.moved - 250) < 0.05, JSON.stringify(tableDisplacement));
+    assert.ok(
+      Math.abs(tableDisplacement.moved - 250) < 0.05,
+      JSON.stringify(tableDisplacement),
+    );
     await execute(
       "editor.commands.insertContentAt(editor.state.doc.content.size,makeTable(60));await waitSaved()",
     );
@@ -548,20 +909,40 @@ app
         {type:'tableRow',content:[{type:'tableCell',content:[p('Sebelum tabel'),innerTable,p('Sesudah tabel')]},{type:'tableCell',content:[p(sentence.repeat(60))]}]},
       ]}]};editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],outerTable,p('Akhir')]});await waitSaved()`);
     await until("layoutReady()&&!layout().error&&layout().pages>=3");
-    assert.deepEqual((await execute("return textRects()")).bad,[],"nested table ink crosses a page margin");
+    assert.deepEqual(
+      (await execute("return textRects()")).bad,
+      [],
+      "nested table ink crosses a page margin",
+    );
     console.log("Checkpoint: nested tables");
     await execute(`outerTable.content[1].content[1].content[0].content[0]=p(sentence.repeat(30));
       editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],outerTable,p('Akhir')]});await waitSaved()`);
     await until("layoutReady()");
-    assert.equal(await execute("return Boolean(layout().error)"),false,"nested table with a paginated prelude failed");
-    assert.deepEqual((await execute("return textRects()")).bad,[],"nested table after a long paragraph crosses a page margin");
+    assert.equal(
+      await execute("return Boolean(layout().error)"),
+      false,
+      "nested table with a paginated prelude failed",
+    );
+    assert.deepEqual(
+      (await execute("return textRects()")).bad,
+      [],
+      "nested table after a long paragraph crosses a page margin",
+    );
     console.log("Checkpoint: nested table after a paginated paragraph");
     await execute(`editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],
       {type:'orderedList',attrs:{start:4},content:[{type:'listItem',content:[p('Tabel di dalam daftar'),makeTable(45),p('Sesudah tabel')]}]},
       p('Selesai')]});await waitSaved()`);
     await until("layoutReady()");
-    assert.equal(await execute("return Boolean(layout().error)"),false,"table inside a list failed");
-    assert.deepEqual((await execute("return textRects()")).bad,[],"table nested in a list crosses a page margin");
+    assert.equal(
+      await execute("return Boolean(layout().error)"),
+      false,
+      "table inside a list failed",
+    );
+    assert.deepEqual(
+      (await execute("return textRects()")).bad,
+      [],
+      "table nested in a list crosses a page margin",
+    );
     console.log("Checkpoint: split table inside a list");
     await execute(`window.listFixture={type:'orderedList',attrs:{start:7},content:Array.from({length:8},(_,index)=>({type:'listItem',content:[
       p('Butir '+index+' '+sentence.repeat(18)),
@@ -586,7 +967,7 @@ app
       {type:'paragraph'},p('Akhir'),
     ]});await waitSaved();await document.fonts.ready`);
     await until("layoutReady()&&!layout().error&&layout().pages>=4");
-    assert.deepEqual((await execute("return textRects()")).bad,[]);
+    assert.deepEqual((await execute("return textRects()")).bad, []);
     console.log("Checkpoint: hard breaks and tall inline math");
     await execute(`window.transitionFixture={type:'doc',content:[JSON.parse(baseline).content[0],...Array.from({length:35},(_,i)=>[
       p('Sebelum daftar '+i+' '+sentence.repeat(6+i%4)),
@@ -596,19 +977,38 @@ app
       p('Sesudah blok '+i+' '+sentence.repeat(i%3+1)),
     ]).flat()]};editor.commands.setContent(transitionFixture);await waitSaved()`);
     await until("layoutReady()&&!layout().error&&layout().pages>=10");
-    const transitionInk=await execute("return textRects()");
-    if(transitionInk.bad.length){
-      await execute("const page=document.querySelector('.page');window.scrollTo(0,scrollY+page.getBoundingClientRect().top+textRects().bad[0].top-160)");
+    const transitionInk = await execute("return textRects()");
+    if (transitionInk.bad.length) {
+      await execute(
+        "const page=document.querySelector('.page');window.scrollTo(0,scrollY+page.getBoundingClientRect().top+textRects().bad[0].top-160)",
+      );
       await pause();
-      writeFileSync(path.join(artifacts,'clipped-node-transition.png'),(await win.webContents.capturePage()).toPNG());
-      console.log('Clipping reproduction:',artifacts,transitionInk.bad.slice(0,4));
+      writeFileSync(
+        path.join(artifacts, "clipped-node-transition.png"),
+        (await win.webContents.capturePage()).toPNG(),
+      );
+      console.log(
+        "Clipping reproduction:",
+        artifacts,
+        transitionInk.bad.slice(0, 4),
+      );
     }
-    assert.deepEqual(transitionInk.bad,[],"glyphs are clipped at paragraph/list/code transitions");
+    assert.deepEqual(
+      transitionInk.bad,
+      [],
+      "glyphs are clipped at paragraph/list/code transitions",
+    );
     console.log("Checkpoint: paragraph/list/code transitions");
-    await execute("editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],...codeListFixture(45)]});await waitSaved()");
+    await execute(
+      "editor.commands.setContent({type:'doc',content:[JSON.parse(baseline).content[0],...codeListFixture(45)]});await waitSaved()",
+    );
     await until("layoutReady()");
-    assert.equal(await execute("return Boolean(layout().error)"),false);
-    assert.deepEqual((await execute("return textRects()")).bad,[],"collapsed margins cause cumulative clipping after code/list boundaries");
+    assert.equal(await execute("return Boolean(layout().error)"), false);
+    assert.deepEqual(
+      (await execute("return textRects()")).bad,
+      [],
+      "collapsed margins cause cumulative clipping after code/list boundaries",
+    );
     console.log("Checkpoint: nested code/list margin-collapse regression");
     await execute(`window.inkFixture={type:'doc',content:[JSON.parse(baseline).content[0],...Array.from({length:120},(_,i)=>({type:'paragraph',content:[
       ...(i%3===0?[]:[{type:'text',text:'ÅÉỆgyp '+sentence.repeat(i%4+1),marks:[{type:i%2?'italic':'bold'}]}]),
@@ -616,8 +1016,14 @@ app
       {type:'text',text:' '+sentence.repeat(2)},
     ]}))]};editor.commands.setContent(inkFixture);await waitSaved();await document.fonts.ready`);
     await until("layoutReady()&&!layout().error&&layout().pages>=10");
-    assert.deepEqual((await execute("return textRects()")).bad,[],"visible glyph ink intersects a page margin");
-    console.log("Checkpoint: accented/italic text and fraction ink at page boundaries");
+    assert.deepEqual(
+      (await execute("return textRects()")).bad,
+      [],
+      "visible glyph ink intersects a page margin",
+    );
+    console.log(
+      "Checkpoint: accented/italic text and fraction ink at page boundaries",
+    );
     await execute(`window.forcedFixture={type:'doc',content:[JSON.parse(baseline).content[0],p('Sebelum pemisah'),{type:'horizontalRule'},p('Halaman baru'),
       {type:'orderedList',attrs:{start:5},content:[{type:'listItem',content:[p('Awal butir'),{type:'horizontalRule'},p('Lanjutan butir')]}]},
       {type:'figureTable',content:[{type:'figcaption',content:[{type:'text',text:'Pemisah dalam tabel'}]},{type:'table',content:[
@@ -625,11 +1031,17 @@ app
         {type:'tableRow',content:[{type:'tableCell',content:[p('Awal sel'),{type:'horizontalRule'},p('Lanjutan sel')]}]},
       ]}]},p('Selesai')]};editor.commands.setContent(forcedFixture);await waitSaved()`);
     await until("layoutReady()");
-    assert.equal(await execute("return Boolean(layout().error)"),false);
-    assert.equal(await execute("return layout().pages"),4);
-    assert.deepEqual((await execute("return textRects()")).bad,[],"forced page break clips visible text");
-    assert.equal(await execute("return layout().furniture.length"),1);
-    console.log("Checkpoint: explicit page breaks in paragraphs, lists and table cells");
+    assert.equal(await execute("return Boolean(layout().error)"), false);
+    assert.equal(await execute("return layout().pages"), 4);
+    assert.deepEqual(
+      (await execute("return textRects()")).bad,
+      [],
+      "forced page break clips visible text",
+    );
+    assert.equal(await execute("return layout().furniture.length"), 1);
+    console.log(
+      "Checkpoint: explicit page breaks in paragraphs, lists and table cells",
+    );
     await execute(
       "editor.commands.setContent(JSON.parse(baseline));await waitSaved()",
     );
@@ -706,14 +1118,21 @@ app
 async function finish(code) {
   clearTimeout(deadline);
   if (win && !win.isDestroyed()) win.destroy();
-  if (server) await new Promise((resolve) => server.close(resolve));
   if (vite) await vite.close();
+  if (server) {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
   app.exit(code);
 }
 
 async function runPerformance() {
-  win.show(); win.focus(); win.webContents.focus();
-  await execute("editor.commands.setContent({type:'doc',content:[{type:'heading',attrs:{level:1},content:[{type:'text',text:'Performance'}]},...Array.from({length:400},(_,i)=>p('Paragraf '+i+' '+sentence.repeat(3))),makeTable(60)]});await waitSaved();await document.fonts.ready;window.performanceInput=editor.getJSON()");
+  win.show();
+  win.focus();
+  win.webContents.focus();
+  await execute(
+    "editor.commands.setContent({type:'doc',content:[{type:'heading',attrs:{level:1},content:[{type:'text',text:'Performance'}]},...Array.from({length:400},(_,i)=>p('Paragraf '+i+' '+sentence.repeat(3))),makeTable(60)]});await waitSaved();await document.fonts.ready;window.performanceInput=editor.getJSON()",
+  );
   const plain = await execute("return sampleTransactions(40)");
   await execute("window.setPages(true)");
   await until("layoutReady()&&!layout().error&&layout().pages>20");
@@ -721,50 +1140,141 @@ async function runPerformance() {
   await until("layoutReady()&&!layout().error");
   const cold = await execute("return measureCached()");
   const warm = await execute("return measureCached()");
-  assert.equal(warm.signature,cold.signature,"cached layout differs from a fresh measurement");
-  assert.equal(warm.measured,0,"unchanged paragraphs were remeasured");
-  await execute("editor.commands.insertContentAt(editor.state.doc.child(0).nodeSize+1,'x');await waitSaved()");
+  assert.equal(
+    warm.signature,
+    cold.signature,
+    "cached layout differs from a fresh measurement",
+  );
+  assert.equal(warm.measured, 0, "unchanged paragraphs were remeasured");
+  await execute(
+    "editor.commands.insertContentAt(editor.state.doc.child(0).nodeSize+1,'x');await waitSaved()",
+  );
   const edited = await execute("return measureCached()");
   const fresh = await execute("return JSON.stringify(await measureFresh())");
-  assert.equal(edited.signature,fresh,"incremental measurements differ after editing");
-  assert.ok(edited.measured<=3,JSON.stringify({remeasured:edited.measured}));
+  assert.equal(
+    edited.signature,
+    fresh,
+    "incremental measurements differ after editing",
+  );
+  assert.ok(
+    edited.measured <= 3,
+    JSON.stringify({ remeasured: edited.measured }),
+  );
   await until("layoutReady()");
-  assert.deepEqual((await execute("return textRects()")).bad,[],"long-chapter glyph bounds drift across page edges");
-  const stats = samples => {
-    const sorted=[...samples].sort((a,b)=>a-b);
-    return {median:sorted[Math.floor(sorted.length/2)],p95:sorted[Math.floor(sorted.length*.95)],max:sorted.at(-1)};
+  assert.deepEqual(
+    (await execute("return textRects()")).bad,
+    [],
+    "long-chapter glyph bounds drift across page edges",
+  );
+  const stats = (samples) => {
+    const sorted = [...samples].sort((a, b) => a - b);
+    return {
+      median: sorted[Math.floor(sorted.length / 2)],
+      p95: sorted[Math.floor(sorted.length * 0.95)],
+      max: sorted.at(-1),
+    };
   };
   const nativeInput = async (enabled) => {
-    await execute(`window.setPages(false);editor.commands.setContent(performanceInput);await waitSaved();window.setPages(${enabled})`);
-    await until("layoutReady()&&!layout().error&&!document.querySelector('[data-pagination-measure]')");
-    await execute("editor.commands.focus();editor.commands.setTextSelection(editor.state.doc.child(0).nodeSize+1)");
-    await until("document.activeElement===editor.view.dom&&document.hasFocus()");
-    await execute("editor.view.focus();editor.commands.setTextSelection(editor.state.doc.child(0).nodeSize+1);await new Promise(requestAnimationFrame);window.nativeInputBefore=editor.getJSON()");
-    const burst=[],paced=[];
-    for(const [samples,count,delay] of [[burst,30,0],[paced,20,170]]) {
-      for(let index=0;index<count;index++) {
-        const start=performance.now();
-        await win.webContents.insertText('x');
-        await execute('await new Promise(requestAnimationFrame)');
-        samples.push(performance.now()-start);
-        if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+    await execute(
+      `window.setPages(false);editor.commands.setContent(performanceInput);await waitSaved();window.setPages(${enabled})`,
+    );
+    await until(
+      "layoutReady()&&!layout().error&&!document.querySelector('[data-pagination-measure]')",
+    );
+    await execute(
+      "editor.commands.focus();editor.commands.setTextSelection(editor.state.doc.child(0).nodeSize+1)",
+    );
+    await until(
+      "document.activeElement===editor.view.dom&&document.hasFocus()",
+    );
+    await execute(
+      "editor.view.focus();editor.commands.setTextSelection(editor.state.doc.child(0).nodeSize+1);await new Promise(requestAnimationFrame);window.nativeInputBefore=editor.getJSON()",
+    );
+    const burst = [],
+      paced = [];
+    for (const [samples, count, delay] of [
+      [burst, 30, 0],
+      [paced, 20, 170],
+    ]) {
+      for (let index = 0; index < count; index++) {
+        const start = performance.now();
+        await win.webContents.insertText("x");
+        await execute("await new Promise(requestAnimationFrame)");
+        samples.push(performance.now() - start);
+        if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
-    await execute('await waitSaved()');
-    await until("layoutReady()&&!layout().error&&!document.querySelector('[data-pagination-measure]')");
-    assert.equal(await execute("const expected=structuredClone(nativeInputBefore);expected.content[1].content[0].text='x'.repeat(50)+expected.content[1].content[0].text;return JSON.stringify(editor.getJSON())===JSON.stringify(expected)"),true,'native input dropped or changed text');
-    if(enabled)assert.deepEqual((await execute('return textRects()')).bad,[],'native typing caused page-boundary clipping');
-    return {burst:{...stats(burst),samples:burst},paced:{...stats(paced),samples:paced}};
+    await execute("await waitSaved()");
+    await until(
+      "layoutReady()&&!layout().error&&!document.querySelector('[data-pagination-measure]')",
+    );
+    assert.equal(
+      await execute(
+        "const expected=structuredClone(nativeInputBefore);expected.content[1].content[0].text='x'.repeat(50)+expected.content[1].content[0].text;return JSON.stringify(editor.getJSON())===JSON.stringify(expected)",
+      ),
+      true,
+      "native input dropped or changed text",
+    );
+    if (enabled)
+      assert.deepEqual(
+        (await execute("return textRects()")).bad,
+        [],
+        "native typing caused page-boundary clipping",
+      );
+    return {
+      burst: { ...stats(burst), samples: burst },
+      paced: { ...stats(paced), samples: paced },
+    };
   };
-  const native={plain:await nativeInput(false),paginated:await nativeInput(true)};
-  const report={platform:process.platform,versions:process.versions,plain:stats(plain),paginated:stats(paginated),cold:{ms:cold.ms,measured:cold.measured,pages:cold.pages},warm:{ms:warm.ms,measured:warm.measured,reused:warm.reused},edited:{ms:edited.ms,measured:edited.measured,reused:edited.reused},native,
-    protocol:'400 paragraphs and 60 table rows. Native insertText to next animation frame includes IPC; 30 burst and 20 paced inputs per mode. Paced inputs wait 170 ms between samples. Same chapter JSON restored per mode. Timing is diagnostic, not an acceptance threshold or physical keyboard-to-paint measurement.'};
-  writeFileSync(path.join(artifacts,'performance-report.json'),JSON.stringify(report,null,2));
-  console.log('PERFORMANCE',JSON.stringify({...report,versions:undefined,native:Object.fromEntries(Object.entries(native).map(([mode,values])=>[mode,Object.fromEntries(Object.entries(values).map(([kind,value])=>[kind,{median:value.median,p95:value.p95,max:value.max}]))]))}));
-  console.log('Performance report:',path.join(artifacts,'performance-report.json'));
+  const native = {
+    plain: await nativeInput(false),
+    paginated: await nativeInput(true),
+  };
+  const report = {
+    platform: process.platform,
+    versions: process.versions,
+    plain: stats(plain),
+    paginated: stats(paginated),
+    cold: { ms: cold.ms, measured: cold.measured, pages: cold.pages },
+    warm: { ms: warm.ms, measured: warm.measured, reused: warm.reused },
+    edited: { ms: edited.ms, measured: edited.measured, reused: edited.reused },
+    native,
+    protocol:
+      "400 paragraphs and 60 table rows. Native insertText to next animation frame includes IPC; 30 burst and 20 paced inputs per mode. Paced inputs wait 170 ms between samples. Same chapter JSON restored per mode. Timing is diagnostic, not an acceptance threshold or physical keyboard-to-paint measurement.",
+  };
+  writeFileSync(
+    path.join(artifacts, "performance-report.json"),
+    JSON.stringify(report, null, 2),
+  );
+  console.log(
+    "PERFORMANCE",
+    JSON.stringify({
+      ...report,
+      versions: undefined,
+      native: Object.fromEntries(
+        Object.entries(native).map(([mode, values]) => [
+          mode,
+          Object.fromEntries(
+            Object.entries(values).map(([kind, value]) => [
+              kind,
+              { median: value.median, p95: value.p95, max: value.max },
+            ]),
+          ),
+        ]),
+      ),
+    }),
+  );
+  console.log(
+    "Performance report:",
+    path.join(artifacts, "performance-report.json"),
+  );
   await execute("window.setPages(false)");
-  await until("!document.querySelector('[data-pagination-measure]')&&!document.querySelector('.editor-pagination-sheet')");
-  console.log('PASS: performance comparison, cache equivalence, single-paragraph invalidation and cancellation cleanup.');
+  await until(
+    "!document.querySelector('[data-pagination-measure]')&&!document.querySelector('.editor-pagination-sheet')",
+  );
+  console.log(
+    "PASS: performance comparison, cache equivalence, single-paragraph invalidation and cancellation cleanup.",
+  );
 }
 
 async function runFontRace() {
@@ -797,54 +1307,119 @@ async function runFontRace() {
     settled,
     "font completion must leave pagination stable",
   );
-  console.log("PASS: pagination waits for delayed fonts and settles without clipping.");
+  console.log(
+    "PASS: pagination waits for delayed fonts and settles without clipping.",
+  );
 }
 
 async function runClippingReproduction() {
-  await execute("await document.fonts.ready;window.heading=editor.getJSON().content[0];window.setPages(true)");
+  await execute(
+    "await document.fonts.ready;window.heading=editor.getJSON().content[0];window.setPages(true)",
+  );
   const cases = [
-    ['plain lists', `Array.from({length:70},(_,i)=>[
+    [
+      "plain lists",
+      `Array.from({length:70},(_,i)=>[
       p(('Contoh paragraf '+i+' '+sentence).repeat(1+i%11)),
       {type:i%2?'orderedList':'bulletList',content:[{type:'listItem',content:[p(sentence.repeat(1+i%5)),p('Paragraf kedua '+sentence)]},{type:'listItem',content:[p('Terakhir '+sentence.repeat(2))]}]},
-      p('Sesudah daftar '+sentence.repeat(2+i%7))]).flat()`],
-    ['code inside list items', 'codeListFixture(45)'],
-    ['hard breaks and lists', `Array.from({length:60},(_,i)=>[
+      p('Sesudah daftar '+sentence.repeat(2+i%7))]).flat()`,
+    ],
+    ["code inside list items", "codeListFixture(45)"],
+    [
+      "hard breaks and lists",
+      `Array.from({length:60},(_,i)=>[
       {type:'paragraph',content:Array.from({length:5+i%8},(_,j)=>[{type:'text',text:'Baris '+j+' '+sentence.slice(0,20+i%40)},{type:'hardBreak'}]).flat()},
-      {type:'orderedList',content:[{type:'listItem',content:[p(sentence.repeat(i%8+1))]}]}]).flat()`],
-    ['nested lists', `Array.from({length:60},(_,i)=>[
-      p(sentence.repeat(i%7+1)),{type:'orderedList',content:[{type:'listItem',content:[p('Pembuka '+sentence),{type:'bulletList',content:[{type:'listItem',content:[p(sentence.repeat(i%11+1))]}]},p('Penutup '+sentence)]}]}]).flat()`],
-    ['blockquote transitions', `Array.from({length:80},(_,i)=>[
-      p(sentence.repeat(i%5+1)),{type:'blockquote',content:[p(sentence.repeat(i%7+1)),p('Di dalam kutipan '+sentence)]},p('Berikutnya '+sentence)]).flat()`],
-    ['short line and whitespace boundaries', `Array.from({length:180},(_,i)=>p(('Kata   pendek '+i+' '+String.fromCharCode(10)+' dengan spasi '+sentence).repeat(1+i%9)))`],
-    ['tables after variable preludes', `Array.from({length:35},(_,i)=>[
-      p(sentence.repeat(1+i%12)),makeTable(2+i%8),p('Sesudah tabel '+sentence.repeat(i%7+1))]).flat()`],
-    ['figures and captions inside lists', `Array.from({length:25},(_,i)=>[
+      {type:'orderedList',content:[{type:'listItem',content:[p(sentence.repeat(i%8+1))]}]}]).flat()`,
+    ],
+    [
+      "nested lists",
+      `Array.from({length:60},(_,i)=>[
+      p(sentence.repeat(i%7+1)),{type:'orderedList',content:[{type:'listItem',content:[p('Pembuka '+sentence),{type:'bulletList',content:[{type:'listItem',content:[p(sentence.repeat(i%11+1))]}]},p('Penutup '+sentence)]}]}]).flat()`,
+    ],
+    [
+      "nested container transitions",
+      `Array.from({length:80},(_,i)=>[
+      p(sentence.repeat(i%5+1)),{type:'bulletList',content:[{type:'listItem',content:[p(sentence.repeat(i%7+1)),p('Di dalam daftar '+sentence)]}]},p('Berikutnya '+sentence)]).flat()`,
+    ],
+    [
+      "short line and whitespace boundaries",
+      `Array.from({length:180},(_,i)=>p(('Kata   pendek '+i+' '+String.fromCharCode(10)+' dengan spasi '+sentence).repeat(1+i%9)))`,
+    ],
+    [
+      "tables after variable preludes",
+      `Array.from({length:35},(_,i)=>[
+      p(sentence.repeat(1+i%12)),makeTable(2+i%8),p('Sesudah tabel '+sentence.repeat(i%7+1))]).flat()`,
+    ],
+    [
+      "figures and captions inside lists",
+      `Array.from({length:25},(_,i)=>[
       p(sentence.repeat(1+i%9)),{type:'bulletList',content:[{type:'listItem',content:[p('Gambar '+i),
         {type:'imageFigure',content:[{type:'image',attrs:{src:'fixture-image',width:400}},{type:'figcaption',content:[{type:'text',text:'Keterangan '+i}]}]},
-        p('Sesudah gambar '+sentence.repeat(2))]}]},p(sentence.repeat(2))]).flat()`],
+        p('Sesudah gambar '+sentence.repeat(2))]}]},p(sentence.repeat(2))]).flat()`,
+    ],
   ];
   for (const [label, content] of cases) {
-    await execute(`editor.commands.setContent({type:'doc',content:[heading,...(${content})]});await waitSaved()`);
+    await execute(
+      `editor.commands.setContent({type:'doc',content:[heading,...(${content})]});await waitSaved()`,
+    );
     await until("layoutReady()");
-    assert.equal(await execute("return Boolean(layout().error)"),false,label+' layout failed');
-    assert.ok(await execute("return layout().pages>1"),label+' did not exercise multiple pages');
+    assert.equal(
+      await execute("return Boolean(layout().error)"),
+      false,
+      label + " layout failed",
+    );
+    assert.ok(
+      await execute("return layout().pages>1"),
+      label + " did not exercise multiple pages",
+    );
     const geometry = await execute("return textRects()");
     if (geometry.bad.length) {
-      writeFileSync(path.join(artifacts,'clipping.json'),JSON.stringify(await execute("return {doc:editor.getJSON(),layout:layout(),geometry:textRects()}"),null,2));
-      await execute("const page=document.querySelector('.page');window.scrollTo(0,scrollY+page.getBoundingClientRect().top+textRects().bad[0].top-160)");
+      writeFileSync(
+        path.join(artifacts, "clipping.json"),
+        JSON.stringify(
+          await execute(
+            "return {doc:editor.getJSON(),layout:layout(),geometry:textRects()}",
+          ),
+          null,
+          2,
+        ),
+      );
+      await execute(
+        "const page=document.querySelector('.page');window.scrollTo(0,scrollY+page.getBoundingClientRect().top+textRects().bad[0].top-160)",
+      );
       await pause();
-      writeFileSync(path.join(artifacts,'clipping.png'),(await win.webContents.capturePage()).toPNG());
-      console.log('Clipping artifacts:',artifacts);
+      writeFileSync(
+        path.join(artifacts, "clipping.png"),
+        (await win.webContents.capturePage()).toPNG(),
+      );
+      console.log("Clipping artifacts:", artifacts);
     }
-    assert.equal(geometry.bad.length,0,label+' glyphs cross the page edge; first: '+JSON.stringify(geometry.bad.slice(0,3)));
-    if (label === 'code inside list items') {
+    assert.equal(
+      geometry.bad.length,
+      0,
+      label +
+        " glyphs cross the page edge; first: " +
+        JSON.stringify(geometry.bad.slice(0, 3)),
+    );
+    if (label === "code inside list items") {
       const displacements = await execute("return probeCollapsedMargins()");
       for (const item of displacements) {
-        assert.ok(Math.abs(item.moved-250)<0.05,JSON.stringify(item));
-        assert.ok(item.effect.height>250,'collapsed descendant margin was not accounted for');
+        assert.ok(Math.abs(item.moved - 250) < 0.05, JSON.stringify(item));
+        assert.ok(
+          item.effect.height > 250,
+          "collapsed descendant margin was not accounted for",
+        );
       }
-      console.log('PASS: actual block displacement with 12px and 36px collapsed margins',JSON.stringify(displacements));
+      console.log(
+        "PASS: actual block displacement with 12px and 36px collapsed margins",
+        JSON.stringify(displacements),
+      );
     }
-    console.log('PASS clipping reproduction:',label,await execute("return layout().pages"),'pages');
+    console.log(
+      "PASS clipping reproduction:",
+      label,
+      await execute("return layout().pages"),
+      "pages",
+    );
   }
 }

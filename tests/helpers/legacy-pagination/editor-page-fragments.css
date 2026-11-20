@@ -1,0 +1,19 @@
+.editor-page-fragment {
+  break-after: page;
+}
+.editor-page-fragment:last-child {
+  break-after: auto;
+}
+.editor-page-fragment :is(h2, h3)[data-fragment-heading]::before {
+  content: attr(data-fragment-heading) " ";
+}
+
+.editor-page-fragment li[data-fragment-list-continuation]::marker {
+  content: "";
+}
+
+/* The repeated header owns this edge; two native tables cannot collapse borders. */
+.editor-page-fragment table[data-fragment-table-continuation] > tbody > tr:first-child,
+.editor-page-fragment table[data-fragment-table-continuation] > tbody > tr:first-child > :is(td, th) {
+  border-top-width: 0 !important;
+}

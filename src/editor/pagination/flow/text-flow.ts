@@ -1,12 +1,9 @@
 import type { Node as ModelNode } from "@tiptap/pm/model";
-import type { LayoutUnit } from "./layout";
-import { LayoutSnapshot } from "./snapshot";
+import type { LayoutUnit } from "./page-planner";
+import { LayoutSnapshot } from "../measurement/layout-snapshot";
+import { paginationNode } from "../measurement/node-layout";
+import { measureTextLines, type FlowAtom, type LineMetric } from "./text-lines";
 
-interface LineMetric {
-  from: number;
-  top: number;
-  bottom: number;
-}
 export interface FlowLine extends LayoutUnit {
   bounds(): { top: number; bottom: number };
 }
@@ -16,9 +13,78 @@ interface CachedFlow {
   lines: LineMetric[];
 }
 
+/** Reuse immutable source measurements after schema round-trips, with bounded ownership. */
+class SourceMeasurements<T> {
+  private weak = new WeakMap<ModelNode, T>();
+  private stable = new Map<
+    string,
+    { node: ModelNode; value: T; bytes: number }
+  >();
+  private bytes = 0;
+  private readonly budget = 4 * 1024 * 1024;
+  private key(node: ModelNode) {
+    return node.attrs.id ? `${node.type.name}\0${node.attrs.id}` : undefined;
+  }
+  get(node: ModelNode) {
+    const direct = this.weak.get(node);
+    if (direct) return direct;
+    const key = this.key(node),
+      entry = key && this.stable.get(key);
+    if (!entry || !entry.node.eq(node)) return;
+    this.stable.delete(key!);
+    this.stable.set(key!, entry);
+    this.weak.set(node, entry.value);
+    return entry.value;
+  }
+  set(node: ModelNode, value: T) {
+    this.weak.set(node, value);
+    const key = this.key(node);
+    if (!key) return;
+    const bytes =
+      2 * (JSON.stringify(node.toJSON()).length + JSON.stringify(value).length);
+    const previous = this.stable.get(key);
+    if (previous) {
+      this.bytes -= previous.bytes;
+      this.stable.delete(key);
+    }
+    if (bytes > this.budget) return;
+    while (this.stable.size && this.bytes + bytes > this.budget) {
+      const oldest = this.stable.keys().next().value!;
+      this.bytes -= this.stable.get(oldest)!.bytes;
+      this.stable.delete(oldest);
+    }
+    this.stable.set(key, { node, value, bytes });
+    this.bytes += bytes;
+  }
+  delete(node: ModelNode) {
+    this.weak.delete(node);
+    const key = this.key(node),
+      entry = key && this.stable.get(key);
+    if (entry) {
+      this.bytes -= entry.bytes;
+      this.stable.delete(key!);
+    }
+  }
+  clear() {
+    this.weak = new WeakMap();
+    this.stable.clear();
+    this.bytes = 0;
+  }
+}
+
+export interface FurnitureMeasurement {
+  height: number;
+  html: string;
+  compact: boolean;
+}
+
 /** Model nodes are immutable: unchanged paragraphs can reuse line measurements. */
 export class FlowCache {
-  private entries = new WeakMap<ModelNode, CachedFlow>();
+  private entries = new SourceMeasurements<CachedFlow>();
+  private furniture = new SourceMeasurements<{
+    key: string;
+    value: FurnitureMeasurement;
+  }>();
   measured = 0;
   reused = 0;
   get(node: ModelNode, width: number, style: string) {
@@ -35,12 +101,22 @@ export class FlowCache {
   }
   invalidate(node: ModelNode) {
     this.entries.delete(node);
+    this.furniture.delete(node);
     node.descendants((child) => {
       this.entries.delete(child);
+      this.furniture.delete(child);
     });
   }
   clear() {
-    this.entries = new WeakMap();
+    this.entries.clear();
+    this.furniture.clear();
+  }
+  getFurniture(node: ModelNode, key: string) {
+    const entry = this.furniture.get(node);
+    return entry?.key === key ? entry.value : undefined;
+  }
+  setFurniture(node: ModelNode, key: string, value: FurnitureMeasurement) {
+    this.furniture.set(node, { key, value });
   }
 }
 
@@ -65,125 +141,37 @@ export async function textFlow(
     computed.paddingTop,
     computed.paddingBottom,
     computed.direction,
+    computed.breakBefore,
   ].join("|");
   let metrics = cache.get(node, box.width, styleKey);
   if (!metrics) {
-    const tokens: {
-      from: number;
-      top: number;
-      bottom: number;
-      atom?: boolean;
-    }[] = [];
-    const lineHeight = parseFloat(getComputedStyle(element).lineHeight) || 24;
-    for (const run of snapshot.textRuns(pos + 1, pos + node.nodeSize - 1)) {
-      let cursor = 0;
-      const range = document.createRange();
-      const at = (offset: number) => {
-        range.setStart(run.node, offset);
-        range.setEnd(run.node, offset + 1);
-        return range.getBoundingClientRect();
-      };
-      while (cursor < run.node.length) {
-        const first = at(cursor);
-        if (first.height)
-          tokens.push({
-            from: run.from + cursor,
-            top: first.top,
-            bottom: first.bottom,
-          });
-        let low = cursor;
-        let high = run.node.length - 1;
-        while (low < high) {
-          const middle = Math.ceil((low + high) / 2);
-          if (
-            Math.abs(at(middle).top - first.top) <
-            Math.min(first.height, lineHeight) / 2
-          )
-            low = middle;
-          else high = middle - 1;
-        }
-        cursor = low + 1;
-        await checkpoint();
-      }
-    }
+    const atoms: FlowAtom[] = [];
     node.descendants((child, offset) => {
       if (!child.isAtom || child.isText) return !child.isText;
-      const from = pos + 1 + offset;
-      const atom = snapshot.elements.get(from);
-      if (!atom) return false;
-      const rect = atom.getBoundingClientRect();
-      if (child.type.name === "hardBreak") {
-        tokens.push({
+      const from = pos + 1 + offset,
+        element = snapshot.elements.get(from);
+      if (element)
+        atoms.push({
           from,
-          top: rect.top,
-          bottom: rect.height ? rect.bottom : rect.top + lineHeight,
-          atom: true,
+          element,
+          hardBreak: child.type.name === "hardBreak",
         });
-      } else {
-        // Inline node wrappers can be only one em high while their visible
-        // contents (fractions, summation limits, etc.) extend above and below.
-        const range = document.createRange();
-        range.selectNodeContents(atom.querySelector(".katex-html") ?? atom);
-        const ink = range.getBoundingClientRect();
-        tokens.push({
-          from,
-          top: ink.height ? Math.min(rect.top, ink.top) : rect.top,
-          bottom: ink.height ? Math.max(rect.bottom, ink.bottom) : rect.bottom,
-          atom: true,
-        });
-      }
       return false;
     });
-    tokens.sort((a, b) => a.top - b.top || a.from - b.from);
-    const groups: typeof tokens = [];
-    for (const token of tokens) {
-      const previous = groups[groups.length - 1];
-      const overlap = previous
-        ? Math.min(previous.bottom, token.bottom) -
-          Math.max(previous.top, token.top)
-        : 0;
-      if (
-        previous &&
-        overlap >
-          Math.min(previous.bottom - previous.top, token.bottom - token.top) *
-            0.3
-      ) {
-        previous.from = Math.min(previous.from, token.from);
-        previous.top = Math.min(previous.top, token.top);
-        previous.bottom = Math.max(previous.bottom, token.bottom);
-        // Prefer a model text position; atom geometry can have different ink.
-        previous.atom = previous.atom && token.atom;
-      } else groups.push({ ...token });
-    }
-    if (!groups.length)
-      groups.push({
-        from: pos + 1,
-        top: box.top,
-        bottom: box.bottom,
-        atom: true,
-      });
-    const style = getComputedStyle(element);
-    const innerTop = box.top + (parseFloat(style.paddingTop) || 0);
-    const innerBottom = box.bottom - (parseFloat(style.paddingBottom) || 0);
-    metrics = groups.map((group, index) => {
-      const anchor =
-        snapshot.charRect(group.from) ??
-        snapshot.elements.get(group.from)?.getBoundingClientRect() ??
-        box;
-      const top =
-        index === 0
-          ? Math.min(innerTop, group.top)
-          : Math.min(group.top, (groups[index - 1].bottom + group.top) / 2);
-      const bottom =
-        index === groups.length - 1
-          ? Math.max(group.bottom, innerBottom)
-          : Math.max(group.bottom, (group.bottom + groups[index + 1].top) / 2);
-      return {
-        from: group.from - pos,
-        top: top - anchor.top,
-        bottom: bottom - anchor.top,
-      };
-    });
+    metrics = (
+      await measureTextLines(
+        {
+          element,
+          runs: snapshot.textRuns(pos + 1, pos + node.nodeSize - 1),
+          atoms,
+          emptyFrom: pos + 1,
+          anchor: (from) =>
+            snapshot.charRect(from) ??
+            snapshot.elements.get(from)?.getBoundingClientRect(),
+        },
+        checkpoint,
+      )
+    ).map((line) => ({ ...line, from: line.from - pos }));
     cache.set(node, box.width, styleKey, metrics);
   }
   return metrics.map((metric, index) => {
@@ -203,6 +191,9 @@ export async function textFlow(
       from,
       ...bounds(),
       kind: "line",
+      breakBefore:
+        index === 0 &&
+        ["page", "always", "left", "right"].includes(computed.breakBefore),
       group: pos,
       lineIndex: index,
       lineCount: metrics!.length,
@@ -239,12 +230,8 @@ export async function collectFlow(
       continue;
     }
     const element = snapshot.elements.get(childPos);
-    if (
-      child.isTextblock ||
-      (!child.isAtom &&
-        child.type.name !== "imageFigure" &&
-        child.type.name !== "table")
-    ) {
+    const target = paginationNode(child, childPos);
+    if (child.isTextblock || !target || target.kind === "image-figure") {
       const lines = await collectFlow(
         snapshot,
         child,
@@ -287,5 +274,37 @@ export async function collectFlow(
     offset += child.nodeSize;
     await checkpoint();
   }
+  if (node.type.name === "imageFigure" && result[0]?.kind === "block") {
+    const element = snapshot.elements.get(pos)!;
+    result[0].keepWithNext = true;
+    result[0].lineIndex = 0;
+    result[0].anchor = {
+      from: pos,
+      to: pos + node.nodeSize,
+      top: element.getBoundingClientRect().top - snapshot.origin,
+      marginTop: parseFloat(getComputedStyle(element).marginTop) || 0,
+    };
+  }
   return result;
+}
+
+/** Drop measuring callbacks before units become portable page-plan effects. */
+export function flowUnits(
+  lines: readonly FlowLine[],
+  keepWithNext = false,
+): LayoutUnit[] {
+  return lines.map((line) => ({
+    from: line.from,
+    to: line.to,
+    top: line.top,
+    bottom: line.bottom,
+    kind: line.kind,
+    marginTop: line.marginTop,
+    group: line.group,
+    lineIndex: line.lineIndex,
+    lineCount: line.lineCount,
+    anchor: line.anchor,
+    keepWithNext: keepWithNext || line.keepWithNext,
+    breakBefore: line.breakBefore,
+  }));
 }

@@ -1,53 +1,14 @@
 // Opt-in local archives only. No document contents or filenames enter shared fixtures.
 // HIGHTEX_PAGINATION_DOCUMENTS=/path/to/archives HIGHTEX_PAGINATION_CATEGORIES=/path/to/directory.json \
 // env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron tests/integration/editor-pagination.cjs
-const { createHash } = require("node:crypto");
-const {
-  readdirSync,
-  readFileSync,
-  copyFileSync,
-  mkdirSync,
-  writeFileSync,
-} = require("node:fs");
+const { readFileSync, writeFileSync } = require("node:fs");
 const path = require("node:path");
 const assert = require("node:assert/strict");
-const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const { prepare, hash } = require("./local-archives.cjs");
 exports.prepare = ({ artifacts }) => {
-  assert(
-    process.env.HIGHTEX_PAGINATION_CATEGORIES,
-    "A local category directory is required",
-  );
-  const directory = path.resolve(process.env.HIGHTEX_PAGINATION_DOCUMENTS);
-  const inputs = readdirSync(directory)
-    .filter((name) => name.endsWith(".hightex"))
-    .sort();
-  assert(inputs.length, "No .hightex archives found");
-  const copies = path.join(artifacts, "private-inputs");
-  mkdirSync(copies);
-  const files = inputs.map((name, index) => {
-    const label = `doc-${String(index + 1).padStart(2, "0")}`;
-    const source = path.join(directory, name),
-      copy = path.join(copies, label + ".hightex");
-    const originalHash = hash(readFileSync(source));
-    copyFileSync(source, copy);
-    return { label, source, copy, originalHash };
-  });
-  const categories = readFileSync(process.env.HIGHTEX_PAGINATION_CATEGORIES);
+  const { files, serve } = prepare({ artifacts });
   return {
-    serve(req, res) {
-      if (req.url === "/document-test/categories") {
-        res.setHeader("content-type", "application/json");
-        res.end(categories);
-        return true;
-      }
-      const file = files.find(
-        (file) => req.url === `/document-test/${file.label}`,
-      );
-      if (!file) return false;
-      res.setHeader("content-type", "application/octet-stream");
-      res.end(readFileSync(file.copy));
-      return true;
-    },
+    serve,
     async run({ execute, win }) {
       const report = {
         documents: [],
@@ -114,7 +75,7 @@ exports.prepare = ({ artifacts }) => {
           return {lines,overflow};
         };
         window.localMarginFailures=[];
-        const {LayoutSnapshot}=await import('/src/editor/pagination/snapshot.ts');
+        const {LayoutSnapshot}=await import('/src/editor/pagination/measurement/layout-snapshot.ts');
         const originalMargin=LayoutSnapshot.prototype.margin;
         LayoutSnapshot.prototype.margin=function(from,height){
           try{return originalMargin.call(this,from,height)}catch(error){

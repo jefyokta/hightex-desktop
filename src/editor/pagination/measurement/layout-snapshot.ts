@@ -1,6 +1,21 @@
 import type { Node as ModelNode } from "@tiptap/pm/model";
 import type { EditorView } from "@tiptap/pm/view";
-import { DEFAULT_PAGINATION, applyPageGeometry, type PaginationGeometry } from "./options";
+import {
+  DEFAULT_PAGINATION,
+  applyPageGeometry,
+  type PaginationGeometry,
+} from "../options";
+import {
+  clearPaginationPresentation,
+  editorNonContentSelector,
+  paginationSpacer,
+} from "../presentation/decorations";
+import { PageImageSnapshot } from "./image-snapshot";
+import { freezeReadOnlyBoundary } from "../presentation/read-only-content";
+import { calibratePageMargin } from "./block-margin";
+import type { SectionComposition } from "@/document-engine/composition/section-composition";
+
+import { textPoint, textPointRect } from "../flow/text-lines";
 
 interface TextRun {
   from: number;
@@ -13,19 +28,26 @@ export class LayoutSnapshot {
   readonly host: HTMLElement;
   readonly root: HTMLElement;
   readonly elements = new Map<number, HTMLElement>();
+  readonly images = new Map<number, { width: number; height: number }>();
   readonly runs: TextRun[] = [];
   /** Table subtrees delegated to their own pass; includes deferred children. */
   readonly completedTables = new Set<number>();
   readonly origin: number;
   readonly left: number;
+  readonly generated = new Map<string, HTMLElement>();
 
   private copies = new Map<Node, Node>();
+  private authoredImages: ReadonlySet<HTMLImageElement>;
 
-  constructor(view: EditorView, readonly geometry: PaginationGeometry = DEFAULT_PAGINATION) {
+  constructor(
+    view: EditorView,
+    readonly geometry: PaginationGeometry = DEFAULT_PAGINATION,
+    composition?: SectionComposition,
+  ) {
     this.model = view.state.doc;
     const page = view.dom.closest<HTMLElement>(".page");
     if (!page || !view.dom.isConnected) throw Error("Editor is not mounted");
-    this.root = this.copy(view.dom) as HTMLElement;
+    this.authoredImages = new Set(new PageImageSnapshot(view).images);
     this.host = page.cloneNode(false) as HTMLElement;
     this.host.removeAttribute("id");
     this.host.setAttribute("aria-hidden", "true");
@@ -39,10 +61,26 @@ export class LayoutSnapshot {
     );
     this.host.setAttribute("data-pagination-surface", "");
     applyPageGeometry(this.host, geometry);
-    const wrapper = document.createElement("div");
-    wrapper.append(this.root);
-    this.host.append(wrapper);
+    if (composition) {
+      if (!composition.body.contains(view.dom))
+        throw Error("Composition does not own this editor");
+      const shell = this.copy(composition.element) as HTMLElement;
+      const body = this.copies.get(composition.body) as HTMLElement;
+      // Reuse the canonical copy mapping of the editor after copying the shell.
+      this.root = this.copies.get(view.dom) as HTMLElement;
+      if (!body.contains(this.root))
+        throw Error("Missing composition body copy");
+      this.host.append(shell);
+      for (const [slot, block] of composition.blocks)
+        this.generated.set(slot, this.copies.get(block) as HTMLElement);
+    } else {
+      this.root = this.copy(view.dom) as HTMLElement;
+      const wrapper = document.createElement("div");
+      wrapper.append(this.root);
+      this.host.append(wrapper);
+    }
     document.body.append(this.host);
+    this.root.inert = true;
     const bounds = this.host.getBoundingClientRect();
     this.origin = bounds.top + geometry.margins.top;
     this.left = bounds.left;
@@ -51,15 +89,28 @@ export class LayoutSnapshot {
       const dom = view.nodeDOM(pos);
       const copy = dom && this.copies.get(dom);
       if (copy instanceof HTMLElement) this.elements.set(pos, copy);
+      if (node.type.name === "image" && dom instanceof HTMLElement) {
+        const image =
+          dom instanceof HTMLImageElement ? dom : dom.querySelector("img");
+        if (image?.naturalWidth && image.naturalHeight)
+          this.images.set(pos, {
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+          });
+      }
       return true;
     });
     const walker = document.createTreeWalker(view.dom, NodeFilter.SHOW_TEXT);
     let original: Node | null;
     while ((original = walker.nextNode())) {
+      // A read-only editor marks its root non-editable. Only descendant atom
+      // views are opaque; authored text still needs the same line measurement.
+      const nonEditable = original.parentElement?.closest(
+        '[contenteditable="false"]',
+      );
       if (
-        original.parentElement?.closest(
-          '[data-editor-page-break], [contenteditable="false"]',
-        )
+        original.parentElement?.closest(editorNonContentSelector) ||
+        (nonEditable && nonEditable !== view.dom)
       )
         continue;
       const copy = this.copies.get(original);
@@ -70,34 +121,45 @@ export class LayoutSnapshot {
   }
 
   private copy(node: Node): Node | null {
-    if (node instanceof Element && node.hasAttribute("data-editor-page-break"))
+    if (node instanceof Element && node.matches(editorNonContentSelector))
       return null;
-    const clone = node.cloneNode(false);
+    // Native deep cloning avoids rebuilding every text/element subtree through
+    // JS DOM mutations. Pair the trees once to retain exact source mappings.
+    const clone = node.cloneNode(true);
+    this.prepareCopy(node, clone);
+    return clone;
+  }
+
+  private prepareCopy(node: Node, clone: Node) {
     this.copies.set(node, clone);
     if (clone instanceof HTMLElement) {
+      if (node instanceof HTMLElement && node.hasAttribute("contenteditable"))
+        freezeReadOnlyBoundary(clone, getComputedStyle(node).whiteSpace);
       clone.removeAttribute("id");
-      clone.removeAttribute("contenteditable");
-      clone.classList.remove(
-        "editor-pagination-block",
-        "editor-pagination-row",
-        "editor-pagination-scaled",
-      );
       // Decoration styles must disappear with their classes. Otherwise table
       // continuation HTML retains stale row heights and changes on every pass.
-      for (const property of ["--editor-row-height", "--editor-break-height", "--editor-original-margin", "--editor-atom-scale"])
-        clone.style.removeProperty(property);
+      clearPaginationPresentation(clone);
       if (!clone.className) clone.removeAttribute("class");
       if (!clone.style.length) clone.removeAttribute("style");
     }
-    if (node instanceof HTMLImageElement && clone instanceof HTMLImageElement) {
-      clone.style.width = `${node.offsetWidth}px`;
-      clone.style.height = `${node.offsetHeight}px`;
+    if (
+      node instanceof HTMLImageElement &&
+      clone instanceof HTMLImageElement &&
+      this.authoredImages.has(node)
+    ) {
+      // Preserve the authored width and intrinsic ratio. Freezing the current
+      // responsive size makes subsequent measurements depend on prior effects.
+      if (node.naturalWidth && node.naturalHeight)
+        clone.style.aspectRatio = `${node.naturalWidth} / ${node.naturalHeight}`;
+      clone.style.height = "auto";
     }
-    for (const child of node.childNodes) {
-      const copy = this.copy(child);
-      if (copy) clone.appendChild(copy);
-    }
-    return clone;
+    const children = Array.from(clone.childNodes);
+    Array.from(node.childNodes).forEach((child, index) => {
+      const copy = children[index];
+      if (child instanceof Element && child.matches(editorNonContentSelector))
+        copy.remove();
+      else this.prepareCopy(child, copy);
+    });
   }
 
   /** Only visit runs owned by this textblock, avoiding a chapter-wide scan. */
@@ -109,38 +171,24 @@ export class LayoutSnapshot {
       if (this.runs[middle].from < from) low = middle + 1;
       else high = middle;
     }
-    for (let index = low; index < this.runs.length && this.runs[index].from < to; index++)
+    for (
+      let index = low;
+      index < this.runs.length && this.runs[index].from < to;
+      index++
+    )
       yield this.runs[index];
   }
 
   point(from: number): { node: Text; offset: number } | null {
-    let low = 0;
-    let high = this.runs.length - 1;
-    while (low <= high) {
-      const middle = (low + high) >>> 1;
-      const run = this.runs[middle];
-      if (from < run.from) high = middle - 1;
-      else if (from >= run.from + run.node.length) low = middle + 1;
-      else return { node: run.node, offset: from - run.from };
-    }
-    return null;
+    return textPoint(this.runs, from);
   }
 
   charRect(from: number): DOMRect | null {
-    const point = this.point(from);
-    if (!point) return null;
-    const range = document.createRange();
-    range.setStart(point.node, point.offset);
-    range.setEnd(point.node, point.offset + 1);
-    return range.getBoundingClientRect();
+    return textPointRect(this.point(from));
   }
 
   spacer(from: number, height: number) {
-    const spacer = document.createElement("span");
-    spacer.setAttribute("data-editor-page-break", "");
-    spacer.contentEditable = "false";
-    spacer.textContent = "\u2060";
-    spacer.style.height = `${height}px`;
+    const spacer = paginationSpacer(height);
     const point = this.point(from);
     if (point) {
       const right = point.node.splitText(point.offset);
@@ -166,37 +214,15 @@ export class LayoutSnapshot {
   margin(from: number, height: number) {
     const element = this.elements.get(from);
     if (!element) throw Error("Unable to locate a block");
-    const before = element.getBoundingClientRect().top;
-    const original = parseFloat(getComputedStyle(element).marginTop) || 0;
-    element.style.setProperty("--editor-original-margin", `${original}px`);
-    element.classList.add("editor-pagination-block");
-    // Margins are not additive: siblings and node-view descendants can collapse
-    // with this margin. Calibrate the CSS margin against the actual displacement
-    // instead of assuming that a 250px margin moves the block by 250px.
-    let cssHeight = height;
-    let previous: { css: number; moved: number } | undefined;
-    // A table cell's minimum height can absorb part of the first displacement.
-    // The slope then changes when its contents start growing the row. Allow the
-    // bounded calibration to settle across that transition and pixel rounding.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      element.style.setProperty("--editor-break-height", `${cssHeight}px`);
-      const moved = element.getBoundingClientRect().top - before;
-      const error = height - moved;
-      if (Math.abs(error) <= 0.05)
-        return { height: cssHeight, marginTop: original };
-      const slope = previous
-        ? (moved - previous.moved) / (cssHeight - previous.css)
-        : 1;
-      previous = { css: cssHeight, moved };
-      cssHeight += error / (Number.isFinite(slope) && slope > 0 ? slope : 1);
-    }
-    throw Error("A block page break did not reach its measured position");
+    return calibratePageMargin(element, height);
   }
 
   destroy() {
     this.host.remove();
     this.copies.clear();
     this.elements.clear();
+    this.images.clear();
+    this.generated.clear();
     this.runs.length = 0;
   }
 }

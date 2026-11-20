@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
   paginationFeedbackText,
   type PaginationDiagnostics,
 } from "@/editor/pagination/feedback";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export function PaginationFeedback({ editor }: { editor: Editor | null }) {
   useAppLanguage();
