@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 import en from "@/locales/en.json";
 import id from "@/locales/id.json";
 type TranslationKey<T> = {
@@ -105,35 +103,6 @@ export const setCurrentLanguage = (
   root.dataset.lang = currentLanguage;
 };
 
-export const useAppLanguage = (): SupportedLanguage => {
-  const [language, setLanguage] = useState<SupportedLanguage>(() =>
-    getCurrentLanguage(),
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.config?.onChange) {
-      return;
-    }
-
-    const unsubscribe = window.config.onChange((config) => {
-      const configuredLanguage = config.language;
-
-      const language = SUPPORTED_LANGUAGES.includes(
-        configuredLanguage as SupportedLanguage,
-      )
-        ? (configuredLanguage as SupportedLanguage)
-        : "en";
-
-      setCurrentLanguage(language);
-      setLanguage(language);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  return language;
-};
-
 const interpolate = (message: string, values?: TranslationValues): string => {
   if (!values) {
     return message;
@@ -162,21 +131,3 @@ export const t = (key: LocaleKey, values?: TranslationValues): string => {
 
   return interpolate(message, values);
 };
-
-export const applyLanguage = (language: SupportedLanguage = "en"): void => {
-  setCurrentLanguage(language);
-};
-
-if (typeof window !== "undefined" && window.config?.onChange) {
-  window.config.onChange((config) => {
-    const configuredLanguage = config.language;
-
-    const language = SUPPORTED_LANGUAGES.includes(
-      configuredLanguage as SupportedLanguage,
-    )
-      ? (configuredLanguage as SupportedLanguage)
-      : "en";
-
-    setCurrentLanguage(language);
-  });
-}
