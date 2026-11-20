@@ -1,7 +1,8 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import React, { useState, useCallback } from "react";
 import Tippy from "@tippyjs/react";
 import { GripVertical } from "lucide-react";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 import {
   Command,
   CommandGroup,
@@ -78,6 +79,8 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
 
   return (
     <div
+      data-editor-ui
+      contentEditable={false}
       className={`absolute top-2 right-2 flex items-center justify-center z-20 ${className}`}
     >
       <Tippy

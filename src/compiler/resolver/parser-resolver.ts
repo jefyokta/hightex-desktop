@@ -1,5 +1,5 @@
 import { Engine } from "../engine";
-import { Parser } from "tjsn-parser";
+import { createLegacyDocumentParser } from "../parser";
 import { Resolver } from "./resolver";
 import { AttachmentBuilder } from "../builder/attachment-builder";
 import { HighTexDB } from "@/editor/storage/hightex-db";
@@ -11,7 +11,7 @@ export class ParserResolver implements Resolver {
     if (!root) {
       throw new Error("ParserResolver: root not mounted");
     }
-    const parser = new Parser();
+    const parser = createLegacyDocumentParser();
     const ctx = engine.config.parser;
     if (ctx.mode === "single") {
       const chapter = ctx.chapter;

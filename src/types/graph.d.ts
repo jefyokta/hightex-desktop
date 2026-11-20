@@ -10,6 +10,7 @@ declare global {
   }
   interface HeadingGraph extends Graph {
     level: number;
+    path?: number[];
   }
 
   interface ImageGraph extends Graph {

@@ -1,10 +1,13 @@
 import { Table } from "dexie";
+import type { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../storage/hightex-db";
 import { Chapter } from "../chapter";
+import { ChapterGraph } from "../chapter/chapter-graph";
 import { DocumentNotFound } from "../../exception/document-not-found";
 import { Manager } from "../manager";
 import { CategoryEmpty } from "@/exception/categories-empty";
 import { Symbols } from "@/utils/symbol";
+import { DocumentIdentities } from "./identities";
 import {
   getWorkspaceAuthorProfile,
   resolveAuthorProfile,
@@ -24,6 +27,8 @@ export class Document {
 
   public scheme?: Category["chapters"];
   public chapters: Chapter[] = [];
+  readonly identities = new DocumentIdentities();
+
   public counters = {
     equations: 0,
   };
@@ -38,6 +43,37 @@ export class Document {
     this.table = HighTexDB.getInstance().documents;
     this.id = documentId;
     this.version = version;
+  }
+
+  getVersion() {
+    return this.version;
+  }
+
+  /** Read-only rendering context; never warm, activate or write the draft store. */
+  static fromSnapshot(
+    data: HighTexDocument,
+    category: Category,
+    version?: string,
+  ) {
+    const snapshot = new Document(data.id, version);
+    snapshot.doc = structuredClone(data);
+    snapshot.category = structuredClone(category);
+    snapshot.scheme = snapshot.category.chapters;
+    snapshot.chapters = snapshot.buildChaptersFromScheme();
+    snapshot.ready = true;
+    return snapshot;
+  }
+
+  orderedSnapshotChapters<Content extends JSONContent>(
+    chapters: readonly { id: string; content: Content[] }[],
+  ) {
+    const content = new Map(
+      chapters.map((chapter) => [chapter.id, chapter.content]),
+    );
+    return this.chapters.map((chapter) => ({
+      id: chapter.getChapter(),
+      content: content.get(chapter.getId().slice(this.id.length + 1)) ?? [],
+    }));
   }
 
   async get(): Promise<HighTexDocument> {
@@ -66,7 +102,12 @@ export class Document {
   async warm({
     activate = true,
     workspaceIdentity = true,
-  }: { activate?: boolean; workspaceIdentity?: boolean } = {}) {
+    forEditing = false,
+  }: {
+    activate?: boolean;
+    workspaceIdentity?: boolean;
+    forEditing?: boolean;
+  } = {}) {
     try {
       this.doc = await this.get();
       if (workspaceIdentity) {
@@ -78,6 +119,12 @@ export class Document {
       }
       this.scheme = await this.loadSchemeFromExternal();
       this.chapters = this.buildChaptersFromScheme();
+      const chapterIds = this.chapters
+        .filter((chapter) => !chapter.frozen)
+        .map((chapter) => chapter.getId());
+      // Only the editing entry point repairs storage, before a live editor exists.
+      if (forEditing) await this.identities.prepare(this.id, chapterIds);
+      else await this.identities.load(chapterIds);
       await this.createVars();
       await Promise.all(
         this.chapters.map(async (c) => {
@@ -134,14 +181,7 @@ export class Document {
   }
 
   async getEquations(): Promise<EquationGraph[]> {
-    const graphs = await this.getGraphs();
-    let counter = 0;
-    return graphs
-      .flatMap((g) => g.equations)
-      .map((eq) => {
-        counter++;
-        return { ...eq, numbering: counter.toString(), pos: counter };
-      });
+    return ChapterGraph.numberEquations(await this.getGraphs());
   }
 
   private async ensureWarmed() {

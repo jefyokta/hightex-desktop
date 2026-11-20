@@ -1,5 +1,5 @@
 import type { Editor } from "@tiptap/core";
-import { ensureUniqueId } from "../extensions/utilites";
+import { ensureUniqueId } from "../extensions/uuid/normalize-editor";
 import { EditorState } from "@tiptap/pm/state";
 import type { Chapter } from "../chapter/chapter";
 import { Storage } from "../storage";
@@ -49,7 +49,9 @@ export const events = {
     const fixed = ContentFixer(migrated, editor.state.schema);
     editor.commands.setContent(fixed, { emitUpdate: false });
     if ("fixTables" in editor.commands) editor.commands.fixTables();
-    ensureUniqueId(editor);
+    const identities = chapter.document?.identities;
+    const ids = ensureUniqueId(editor, identities?.reserved(chapter.getId()));
+    identities?.remember(chapter.getId(), ids);
     // convertTableHeaderLikeCells(editor);
     if (!active()) return false;
     editor.view.updateState(
@@ -71,7 +73,9 @@ export const events = {
     normalizing.add(editor);
     try {
       // Persist stable IDs now, so reopening does not repair the saved archive.
-      ensureUniqueId(editor);
+      const identities = chapter.document?.identities;
+      const ids = ensureUniqueId(editor, identities?.reserved(chapter.getId()));
+      identities?.remember(chapter.getId(), ids);
     } finally {
       normalizing.delete(editor);
     }

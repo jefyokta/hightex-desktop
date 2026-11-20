@@ -14,7 +14,9 @@ declare global {
       };
       equation: number;
     };
-    chapter: Chapter;
+    chapter: Pick<Chapter, "getChapter" | "getId"> & {
+      query: Pick<Chapter["query"], "isAttachmentChapter">;
+    };
   }
 
   interface ChapterOptions {

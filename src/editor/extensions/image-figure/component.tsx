@@ -1,10 +1,14 @@
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { useAppLanguage } from "@/hooks/use-app-language";
+import type { ChapterControlProps } from "@/editor/chapter/content-node-view";
 import { Quote, Trash } from "lucide-react";
 import { NodeActionButton } from "@/editor/components/node-action-button";
 import { toast } from "sonner";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
-export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
+export const ImageFigure: React.FC<ChapterControlProps> = ({
+  node,
+  deleteNode,
+}) => {
   useAppLanguage();
   const copy = () => {
     if (typeof window === "undefined") return;
@@ -32,20 +36,10 @@ export const ImageFigure: React.FC<NodeViewProps> = ({ node, deleteNode }) => {
   ];
 
   return (
-    <NodeViewWrapper
-      as="figure"
-      data-type="imageFigure"
-      id={node.attrs.id}
-      className="relative w-full group"
-      dragabble="true"
-      data-copy={`@imageFigure[${node.attrs.id}]`}
-    >
-      <NodeActionButton
-        className="hidden group-hover:flex"
-        label={t("editor.inline.image_figure")}
-        items={items}
-      />
-      <NodeViewContent className="w-full h-auto pointer-events-none-content group-hover:border group-hover:border-blue-600 group-hover:rounded" />
-    </NodeViewWrapper>
+    <NodeActionButton
+      className="hidden group-hover:flex"
+      label={t("editor.inline.image_figure")}
+      items={items}
+    />
   );
 };

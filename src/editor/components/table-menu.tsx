@@ -55,10 +55,11 @@ const ToolButton = ({ icon, tooltip, onClick, destructive = false }: any) => (
                     rounded-md
                     transition
                     shrink-0
-                    ${destructive
-            ? "hover:bg-destructive/10 text-destructive"
-            : "hover:bg-muted"
-          }
+                    ${
+                      destructive
+                        ? "hover:bg-destructive/10 text-destructive"
+                        : "hover:bg-muted"
+                    }
                 `}
       >
         {icon}

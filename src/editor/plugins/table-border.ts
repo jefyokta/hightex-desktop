@@ -21,15 +21,45 @@ interface TableCell {
 /** Rowspan boundaries shared by the live editor and static comparison rendering. */
 export function headerLikeRowIndexes(
   rows: readonly (readonly { header: boolean; rowspan: number }[])[],
+  firstRowAsHeader = false,
 ): number[] {
   const indexes = new Set<number>();
+  if (firstRowAsHeader && rows.length) indexes.add(0);
   rows.forEach((row, index) =>
     row.forEach((cell) => {
       const end = index + Math.max(1, cell.rowspan) - 1;
-      if (cell.header && end > index && end < rows.length) indexes.add(end);
+      if (
+        (cell.header || (firstRowAsHeader && index === 0)) &&
+        end > index &&
+        end < rows.length
+      )
+        indexes.add(end);
     }),
   );
   return [...indexes];
+}
+
+/** Repeated headers follow the same authored/legacy first-row presentation. */
+export function tableHeaderRowCount(
+  rows: readonly (readonly { header: boolean; rowspan: number }[])[],
+  firstRowAsHeader = false,
+) {
+  let count = 0;
+  while (
+    count < rows.length &&
+    rows[count].length &&
+    ((count === 0 && firstRowAsHeader) ||
+      rows[count].every((cell) => cell.header))
+  ) {
+    count = Math.min(
+      rows.length,
+      Math.max(
+        count + 1,
+        ...rows[count].map((cell) => count + Math.max(1, cell.rowspan)),
+      ),
+    );
+  }
+  return count;
 }
 
 export function createTableBorderPlugin() {
@@ -66,7 +96,12 @@ function buildDecorations(doc: PMNode): DecorationSet {
       return;
     }
 
-    decorateTable(node, pos, decorations);
+    decorateTable(
+      node,
+      pos,
+      decorations,
+      doc.resolve(pos).parent.type.name === "figureTable",
+    );
   });
 
   return DecorationSet.create(doc, decorations);
@@ -76,6 +111,7 @@ function decorateTable(
   table: PMNode,
   tablePos: number,
   decorations: Decoration[],
+  firstRowAsHeader: boolean,
 ) {
   const rows = getRows(table, tablePos);
   const indexes = headerLikeRowIndexes(
@@ -85,6 +121,7 @@ function decorateTable(
         rowspan: Number(cell.node.attrs.rowspan ?? 1),
       })),
     ),
+    firstRowAsHeader,
   );
   for (const index of indexes) decorateRow(rows[index], decorations);
 }

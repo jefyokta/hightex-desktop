@@ -121,7 +121,7 @@ export const Constent = () => {
             <br />
             <br />
             <br />
-            <br />
+            <br className="consent-signature-gap" />
 
             <span
               style={{
@@ -151,7 +151,7 @@ export const Constent = () => {
             <br />
             <br />
             <br />
-            <br />
+            <br className="consent-signature-gap" />
 
             <span
               style={{
@@ -187,7 +187,7 @@ export const Constent = () => {
             <br />
             <br />
             <br />
-            <br />
+            <br className="consent-signature-gap" />
 
             <span
               style={{
@@ -220,7 +220,7 @@ export const Constent = () => {
   };
 
   return (
-    <section className="introduction page-break new-page">
+    <section className="introduction page-break new-page consent-sheet">
       <h1 className="chapter" id="consent">
         LEMBAR PERSETUJUAN
       </h1>
@@ -231,7 +231,7 @@ export const Constent = () => {
 
       <div
         style={{
-          marginTop: "1.5cm",
+          marginTop: "var(--consent-section-gap, 1.5cm)",
           textAlign: "center",
         }}
       >
@@ -240,9 +240,9 @@ export const Constent = () => {
         <div
           style={{
             fontSize: "13.5pt",
-            marginBottom: "1.5cm",
+            marginBottom: "var(--consent-section-gap, 1.5cm)",
             lineHeight: "16.2pt",
-            marginTop: "1.5cm",
+            marginTop: "var(--consent-section-gap, 1.5cm)",
           }}
         >
           Oleh:

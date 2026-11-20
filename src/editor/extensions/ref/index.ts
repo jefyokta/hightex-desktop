@@ -42,10 +42,15 @@ export const Ref = Node.create({
   },
   parseHTML() {
     return [
+      { tag: 'a[data-type="ref-component"]', priority: 60 },
       {
         tag: 'ref-component[data-type="ref-component"]',
       },
     ];
+  },
+
+  renderText({ node }) {
+    return `@${node.attrs.ref}[${node.attrs.link}]`;
   },
 
   addNodeView() {
@@ -58,9 +63,12 @@ export const Ref = Node.create({
       new Plugin({
         key: new PluginKey("refPaste"),
         props: {
-          handlePaste(view, _, slice) {
+          handlePaste(view, event, slice) {
+            // Structured clipboard content has already passed the schema parser.
+            if (event.clipboardData?.getData("text/html")) return false;
             const text = slice.content.textBetween(0, slice.content.size, "\n");
-            const pasteRegex = /@(imageFigure|figureTable|head)\[([^\]]+)\]/g;
+            const pasteRegex =
+              /@(imageFigure|figureTable|head|equation)\[([^\]]+)\]/g;
             let lastIndex = 0;
             let match;
             const { tr, schema } = view.state;

@@ -1,6 +1,7 @@
 import type { DocumentNode, ImportedHighTexV2 } from "@hightex/importer";
 import { Exporter } from "@/utils/htx/exporter";
 import { readImportModel } from "@/utils/htx/import-model";
+import { aliasKey } from "@/utils/alias-key";
 import { textOf } from "@/utils/text-of";
 import { HighTexDB } from "./hightex-db";
 
@@ -112,10 +113,9 @@ const normalizeBib = (bib: string) =>
     .trim();
 
 const aliasMap = (model: ImportedHighTexV2) => {
-  const prefix = `${model.document.id}.`;
   return new Map(
     model.aliases.map(({ key, value }) => [
-      key.startsWith(prefix) ? key.slice(prefix.length) : key,
+      aliasKey(key, model.document.id),
       value,
     ]),
   );

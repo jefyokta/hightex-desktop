@@ -25,5 +25,6 @@ declare global {
     nip: string;
     source_type: LecturerSource["type"];
     source_detail: string | null;
+    remote_id: string | null;
   }
 }

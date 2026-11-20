@@ -1,6 +1,13 @@
 import { bibToObject, objectToBib, CiteUtils } from "bibtex.js";
 //@ts-ignore
 import Cite from "citation-js";
+export function formatBibliography(entries: readonly string[]): string {
+  if (!entries.length) return "";
+  return new Cite(entries.join("\n")).format("bibliography", {
+    format: "html",
+    template: "apa",
+  });
+}
 export const formatManual = (text: string, year: string, citeA?: boolean) => {
   return citeA ? `${text} (${year})` : `(${text}, ${year})`;
 };

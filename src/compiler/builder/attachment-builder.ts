@@ -1,5 +1,6 @@
 import { Engine } from "../engine";
-import { Counter, Parser } from "tjsn-parser";
+import { Counter } from "tjsn-parser";
+import { createLegacyDocumentParser } from "../parser";
 
 export class AttachmentBuilder {
   private static createWrapper() {
@@ -13,7 +14,7 @@ export class AttachmentBuilder {
     const chapter = this.getChapter(engine);
     if (!chapter) return;
 
-    const parser = new Parser();
+    const parser = createLegacyDocumentParser();
 
     const content = await chapter.getContent();
     const wrapper = this.createWrapper();

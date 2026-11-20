@@ -1,9 +1,13 @@
 import { Document } from "@/editor/document";
-import { Parser } from "tjsn-parser";
+import { createLegacyDocumentParser } from "../parser";
 
 export abstract class StaticChapterBuilder {
   protected abstract selector: string;
   protected abstract chapterId: string;
+
+  get target() {
+    return { selector: this.selector, chapterId: this.chapterId };
+  }
 
   async build(doc: Document) {
     if (doc.category?.min) return;
@@ -28,7 +32,7 @@ export abstract class StaticChapterBuilder {
     if (!parent) {
       return;
     }
-    const parser = new Parser();
+    const parser = createLegacyDocumentParser();
 
     parser.render(content as any, parent as HTMLElement);
   }

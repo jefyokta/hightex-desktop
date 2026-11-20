@@ -1,4 +1,5 @@
 import { JSONContent, Editor } from "@tiptap/core";
+import { assertSupportedContent } from "./document-content";
 
 type Input = JSONContent | JSONContent[] | null | undefined;
 
@@ -6,6 +7,7 @@ export const ContentFixer = (
   content: Input,
   schema: Editor["schema"],
 ): JSONContent => {
+  assertSupportedContent(content);
   let json: any = content;
 
   if (!json) {
@@ -106,7 +108,7 @@ export const ContentFixer = (
       });
 
       return {
-        type: "listItem",
+        ...node,
         content,
       };
     }

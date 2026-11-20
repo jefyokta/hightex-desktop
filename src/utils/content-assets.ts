@@ -3,7 +3,10 @@ import type { JSONContent } from "@tiptap/core";
 export const contentAssets = (chapters: HighTexChapter[]) => {
   const images = new Set<string>();
   const references = new Set<string>();
+  const anchors = new Set<string>();
   const visit = (node: JSONContent) => {
+    if (typeof node.attrs?.id === "string" && node.attrs.id)
+      anchors.add(node.attrs.id);
     if (node.type === "image" && typeof node.attrs?.src === "string")
       images.add(node.attrs.src);
     if (node.type === "cite" && typeof node.attrs?.cite === "string")
@@ -14,5 +17,5 @@ export const contentAssets = (chapters: HighTexChapter[]) => {
     node.content?.forEach(visit);
   };
   chapters.forEach((chapter) => chapter.content.forEach(visit));
-  return { images, references };
+  return { images, references, anchors };
 };

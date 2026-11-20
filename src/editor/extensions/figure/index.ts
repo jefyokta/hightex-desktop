@@ -47,9 +47,21 @@ export const Figure = UUID.extend<FigureAttributes>({
       "figure",
       mergeAttributes(HTMLAttributes, {
         "data-type": this.name,
-        id: node.attrs.figureId,
+        id: node.attrs.id,
+        class: "relative group w-full",
+        style: "white-space:normal;overflow:visible",
       }),
-      0,
+      [
+        "div",
+        {
+          style: "white-space:pre-wrap",
+          class:
+            this.name === "imageFigure"
+              ? "editor-image-figure-content w-full"
+              : "w-full",
+        },
+        0,
+      ],
     ];
   },
 

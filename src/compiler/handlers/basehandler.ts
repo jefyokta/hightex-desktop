@@ -95,13 +95,14 @@ export default class BaseHandler extends Handler {
 
     document.querySelectorAll(".spacer").forEach((e) => e.remove());
     //hotfix only: need to reinvestigated the causes
-    const tables = Array.from(document.querySelectorAll("table"))
+    const tables = Array.from(document.querySelectorAll("table"));
 
     for (const table of tables) {
-        const colgroups = Array.from(table.children)
-            .filter(c => c.nodeName === 'COLGROUP');
+      const colgroups = Array.from(table.children).filter(
+        (c) => c.nodeName === "COLGROUP",
+      );
 
-        colgroups.slice(1).forEach(colgroup => colgroup.remove());
+      colgroups.slice(1).forEach((colgroup) => colgroup.remove());
     }
     this.injectWatermark();
 

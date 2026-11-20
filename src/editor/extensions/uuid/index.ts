@@ -14,7 +14,9 @@ export const UUID = Node.create({
 export function UUIDAttributes(prefix?: string) {
   return {
     id: {
-      default: `${prefix ? prefix + "-" : ""}${uniqId()}`,
+      // Schema defaults are shared by every node of this type. The editor's
+      // ID normalizer assigns each new node its own stored identity.
+      default: null,
 
       parseHTML(element: HTMLElement) {
         return (

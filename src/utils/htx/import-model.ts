@@ -2,12 +2,7 @@ import { parseHighTexV2, HighTexImportError } from "@hightex/importer";
 import { HighTexImportError as DesktopImportError } from "@/exception/hightex-import";
 import { t } from "@/utils/lang";
 
-export async function archiveSha256(bytes: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes));
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
-}
+export { sha256Bytes as archiveSha256 } from "../sha256";
 
 export function readImportModel(bytes: Uint8Array) {
   try {

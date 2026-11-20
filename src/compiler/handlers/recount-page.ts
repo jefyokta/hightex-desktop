@@ -1,3 +1,5 @@
+import { toLowerRoman } from "@/utils/page-number";
+
 export default class RecountPage {
   getIntroductionTotalPage() {
     return (
@@ -95,36 +97,6 @@ export default class RecountPage {
   }
 
   toLowerRoman(num: number) {
-    if (typeof num !== "number" || num < 1 || num > 3999) {
-      return num.toString();
-    }
-
-    const lookup = {
-      M: 1000,
-      CM: 900,
-      D: 500,
-      CD: 400,
-      C: 100,
-      XC: 90,
-      L: 50,
-      XL: 40,
-      X: 10,
-      IX: 9,
-      V: 5,
-      IV: 4,
-      I: 1,
-    };
-
-    let roman = "";
-    for (const i in lookup) {
-      //@ts-ignore
-      while (num >= lookup[i as any]) {
-        roman += i;
-        //@ts-ignore
-        num -= lookup[i as any];
-      }
-    }
-
-    return roman.toLowerCase();
+    return toLowerRoman(num);
   }
 }

@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Plus, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -10,14 +11,10 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { HighTexDB } from "@/editor/storage/hightex-db";
-import { formatInTextCitation } from "@/utils/citation";
+import { citationFallback, resolveCitation } from "./resolve";
 import { CiteUtils } from "bibtex.js";
-import { t, useAppLanguage } from "@/utils/lang";
-
-interface CiteRecord {
-  key: string;
-  bib: string;
-}
+import { t } from "@/utils/lang";
+import { CitationPresentation, type CitationStatus } from "./presentation";
 
 type CitationItemProps = {
   cite: CiteRecord;
@@ -97,10 +94,13 @@ export const Citation: React.FC<NodeViewProps> = ({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"view" | "add">("view");
 
-  const [cites, setCites] = useState<CiteRecord[]>([]);
+  const [loaded, setLoaded] = useState<{
+    ids: readonly string[];
+    records: CiteRecord[];
+    error?: boolean;
+  }>();
   const [bibliography, setBibliography] = useState<CiteRecord[]>([]);
 
-  const [fetchedCite, setFetchedCite] = useState(t("common.loading"));
   const [search, setSearch] = useState("");
 
   const citeIds = useMemo(
@@ -112,23 +112,26 @@ export const Citation: React.FC<NodeViewProps> = ({
     let mounted = true;
 
     const loadCites = async () => {
-      const db = HighTexDB.getInstance();
-
-      const result = (
-        await Promise.all(citeIds.map((id: string) => db.cite.get(id)))
-      ).filter((cite): cite is CiteRecord => cite !== undefined);
-
-      if (mounted) {
-        setCites(result);
+      if (node.attrs.manual) {
+        if (mounted) setLoaded({ ids: citeIds, records: [] });
+        return;
+      }
+      try {
+        const db = HighTexDB.getInstance();
+        const result = (
+          await Promise.all(citeIds.map((id: string) => db.cite.get(id)))
+        ).filter((cite): cite is CiteRecord => cite !== undefined);
+        if (mounted) setLoaded({ ids: citeIds, records: result });
+      } catch {
+        if (mounted) setLoaded({ ids: citeIds, records: [], error: true });
       }
     };
-
-    loadCites();
+    void loadCites();
 
     return () => {
       mounted = false;
     };
-  }, [citeIds]);
+  }, [citeIds, node.attrs.manual]);
 
   useEffect(() => {
     if (!open || mode !== "add") {
@@ -152,11 +155,21 @@ export const Citation: React.FC<NodeViewProps> = ({
     };
   }, [open, mode]);
 
-  useEffect(() => {
-    const { inText } = formatInTextCitation(cites, node.attrs.citeA);
-
-    setFetchedCite(inText);
-  }, [cites, node.attrs.citeA]);
+  const citation: { status: CitationStatus; text: string } = (() => {
+    if (!node.attrs.manual && loaded?.ids !== citeIds)
+      return { status: "loading", text: t("common.loading") };
+    try {
+      if (!node.attrs.manual && loaded?.error)
+        throw Error("Citation unavailable");
+      return {
+        status: "ready",
+        text: resolveCitation(node.attrs, loaded?.records ?? []),
+      };
+    } catch {
+      return { status: "error", text: citationFallback(node.attrs.cite) };
+    }
+  })();
+  const cites = loaded?.records ?? [];
 
   const addCitation = (id: string) => {
     if (citeIds.includes(id)) {
@@ -206,18 +219,11 @@ export const Citation: React.FC<NodeViewProps> = ({
         }}
       >
         <PopoverTrigger asChild>
-          <cite
+          <CitationPresentation
             data-cite={node.attrs.id}
-            className="
-              cursor-pointer rounded px-0.5
-              text-neutral-700
-              hover:bg-yellow-200
-              dark:text-neutral-300
-              dark:hover:bg-yellow-900/40
-            "
-          >
-            {fetchedCite}
-          </cite>
+            status={citation.status}
+            text={citation.text}
+          />
         </PopoverTrigger>
 
         <PopoverContent

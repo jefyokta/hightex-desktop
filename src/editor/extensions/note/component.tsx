@@ -1,15 +1,16 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { getRandomColor } from "@/utils/sharing";
+import { notePresentation } from "./presentation";
 import type { MarkViewRendererProps } from "@tiptap/core";
 import { MarkViewContent } from "@tiptap/react";
 import { Clock3, MessageSquareText, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
 export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
   useAppLanguage();
@@ -22,9 +23,9 @@ export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
   const createdText =
     createdDate && !Number.isNaN(createdDate.getTime())
       ? new Intl.DateTimeFormat(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(createdDate)
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(createdDate)
       : null;
 
   const handleUnset = () => {
@@ -73,12 +74,7 @@ export const NoteComponent = ({ mark, editor }: MarkViewRendererProps) => {
   };
 
   return (
-    <span
-      style={{
-        backgroundColor: getRandomColor(id),
-      }}
-      className="mix-blend-multiply"
-    >
+    <span style={notePresentation(id)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <span className="cursor-pointer">

@@ -23,17 +23,17 @@ export class VariableResolver implements Resolver {
         "preserve") as VariableCase;
       const value = (await HighTexDB.getInstance().getVar(name, doc.id)) || "";
       const finalValue = applyCase(value, mode);
-      const texts =parseItalic(finalValue).map(t=>{
-        if (t.type !=='italic') {   
-          const text = document.createElement("text")
-          text.textContent = t.text
-          return text
+      const texts = parseItalic(finalValue).map((t) => {
+        if (t.type !== "italic") {
+          const text = document.createElement("text");
+          text.textContent = t.text;
+          return text;
         }
-        const text = document.createElement('em')
-        text.textContent = t.text
-        return text
-      })
-      span.classList.add(`var-${mode}`)
+        const text = document.createElement("em");
+        text.textContent = t.text;
+        return text;
+      });
+      span.classList.add(`var-${mode}`);
       span.append(...texts);
     }
   }

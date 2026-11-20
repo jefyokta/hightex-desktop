@@ -1,12 +1,12 @@
 import { Figure } from "../figure";
-import { ReactNodeViewRenderer } from "@tiptap/react";
+import { chapterContentNodeView } from "@/editor/chapter/content-node-view";
 import { FigureTableComponent } from "./figure-table";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     figureTable: {
-      addFigureTable: () => boolean;
+      addFigureTable: () => ReturnType;
       deleteFigureTable: () => ReturnType;
     };
   }
@@ -15,6 +15,11 @@ declare module "@tiptap/core" {
 export const FigureTable = Figure.extend({
   name: "figureTable",
   content: "figcaption table",
+  extendNodeSchema(extension) {
+    return extension.name === "figureTable"
+      ? { editorPagination: { kind: "table", content: "table" } }
+      : {};
+  },
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -27,22 +32,22 @@ export const FigureTable = Figure.extend({
     };
   },
 
-  addCommands(): any {
+  addCommands() {
     return {
-      addFigureTable: () => {
-        return this.editor
-          .chain()
-          .focus()
-          .insertContent(createFigureTable())
-          .run();
-      },
-      deleteFigureTable: () => {
-        return this.editor.chain().focus().deleteNode("figureTable");
-      },
+      addFigureTable:
+        () =>
+        ({ chain }) => {
+          return chain().focus().insertContent(createFigureTable()).run();
+        },
+      deleteFigureTable:
+        () =>
+        ({ chain }) => {
+          return chain().focus().deleteNode("figureTable").run();
+        },
     };
   },
   addNodeView() {
-    return ReactNodeViewRenderer(FigureTableComponent);
+    return chapterContentNodeView(FigureTableComponent);
   },
   addProseMirrorPlugins() {
     return [];

@@ -1,7 +1,40 @@
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Chapter } from "../chapter";
-// import { Provider } from "@/Provider";
+import { ChapterGraph } from "../chapter/chapter-graph";
+import type { Node as ModelNode } from "@tiptap/pm/model";
+import { formatReferenceLabel } from "../extensions/ref/label";
+
+/** Consume the same chapter/appendix numbering as references and snapshot rendering. */
+function captionDecorations(doc: ModelNode) {
+  const chapter = Chapter.instance;
+  if (!chapter) return DecorationSet.empty;
+  const graph = ChapterGraph.extractFromContent({
+    chapter,
+    content: doc.toJSON(),
+  });
+  const figures = {
+    imageFigure: graph.images.values(),
+    figureTable: graph.tables.values(),
+  };
+  const decorations: Decoration[] = [];
+  doc.descendants((node, pos) => {
+    if (node.type.name !== "imageFigure" && node.type.name !== "figureTable")
+      return;
+    const type = node.type.name;
+    const figure = figures[type].next().value;
+    if (!figure) return;
+    const label = formatReferenceLabel(type, figure.numbering);
+    node.forEach((child, offset) => {
+      if (child.type.name !== "figcaption") return;
+      const from = pos + 1 + offset;
+      decorations.push(
+        Decoration.node(from, from + child.nodeSize, { "data-label": label }),
+      );
+    });
+  });
+  return DecorationSet.create(doc, decorations);
+}
 
 export const FigureNumberPluginKey = new PluginKey("figure-number");
 
@@ -9,46 +42,13 @@ export const FigureNumberPlugin = new Plugin({
   key: FigureNumberPluginKey,
 
   state: {
-    init() {
-      return DecorationSet.empty;
+    init(_config, state) {
+      return captionDecorations(state.doc);
     },
     apply(tr, old) {
       if (!tr.docChanged) return old;
 
-      const decorations: Decoration[] = [];
-      let image = 0;
-      let table = 0;
-      const chapter = Chapter.instance!.getChapter();
-      const figureStack: {
-        type: "imageFigure" | "figureTable";
-        pos: number;
-      }[] = [];
-
-      tr.doc.descendants((node, pos) => {
-        if (
-          node.type.name === "imageFigure" ||
-          node.type.name === "figureTable"
-        ) {
-          node.type.name === "imageFigure" && image++;
-          node.type.name === "figureTable" && table++;
-          figureStack.push({ type: node.type.name, pos });
-        }
-        if (node.type.name === "figcaption") {
-          const parent = figureStack[figureStack.length - 1];
-          if (!parent) {
-            return;
-          }
-          let label =
-            parent.type === "imageFigure"
-              ? `Gambar ${chapter}.${image}`
-              : `Tabel ${chapter}.${table}`;
-          decorations.push(
-            Decoration.node(pos, pos + node.nodeSize, { "data-label": label }),
-          );
-        }
-      });
-
-      return DecorationSet.create(tr.doc as any, decorations);
+      return captionDecorations(tr.doc);
     },
   },
 

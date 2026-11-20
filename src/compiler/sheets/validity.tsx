@@ -37,7 +37,7 @@ export const Validity = () => {
   ];
 
   return (
-    <section className="introduction page-break new-page">
+    <section className="introduction page-break new-page validity-sheet">
       <h1 className="chapter" id="validity">
         LEMBAR PENGESAHAN
       </h1>
@@ -107,7 +107,7 @@ export const Validity = () => {
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          marginTop: "20px",
+          marginTop: "var(--validity-table-gap, 20px)",
         }}
       >
         <tbody>
@@ -130,7 +130,7 @@ export const Validity = () => {
                   <div style={{ fontWeight: "bold", marginTop: "15pt" }}>
                     Dekan
                   </div>
-                  <div className="space" style={{ height: "70pt" }}></div>
+                  <div className="space" style={{ height: "var(--validity-signature-space, 70pt)" }}></div>
                   <div>
                     {" "}
                     <span
@@ -166,7 +166,7 @@ export const Validity = () => {
                   <div style={{ fontWeight: "bold", marginTop: "10pt" }}>
                     Ketua Program Studi
                   </div>
-                  <div className="space" style={{ height: "70pt" }}></div>
+                  <div className="space" style={{ height: "var(--validity-signature-space, 70pt)" }}></div>
 
                   <div style={{ fontWeight: "bold" }}>
                     {" "}
@@ -193,8 +193,10 @@ export const Validity = () => {
                   </div>
                 </div>
               </div>
-              <br />
-              <br />
+              <div className="validity-committee-gap">
+                <br />
+                <br />
+              </div>
 
               <table
                 style={{
@@ -210,7 +212,7 @@ export const Validity = () => {
                   </tr>
 
                   <tr>
-                    <td colSpan={5} style={{ height: "30px" }}></td>
+                    <td colSpan={5} style={{ height: "var(--validity-member-gap, 30px)" }}></td>
                   </tr>
 
                   {members.map((member, index) => {
@@ -268,7 +270,7 @@ export const Validity = () => {
 
                         {index < members.length - 1 && (
                           <tr>
-                            <td colSpan={5} style={{ height: "30px" }}></td>
+                            <td colSpan={5} style={{ height: "var(--validity-member-gap, 30px)" }}></td>
                           </tr>
                         )}
                       </React.Fragment>

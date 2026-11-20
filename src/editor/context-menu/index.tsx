@@ -14,7 +14,6 @@ import {
   ListOrdered,
   CornerUpLeft,
   CornerUpRight,
-  Quote,
   Sigma,
   Trash2,
   AlignCenter,
@@ -31,7 +30,6 @@ export const getContextMenuItems = (editor: Editor): ContextMenuAction[] => {
     ...ImageContextMenuItems(editor),
     ...FigureTableContextMenuItems(editor),
     ...MathContextMenuItems(editor),
-    ...BlockquoteContextMenuItems(editor),
     ...GridContextMenuItems(editor),
   ];
 };
@@ -286,20 +284,6 @@ const MathContextMenuItems = (editor: Editor): ContextMenuAction[] => {
         icon: <Sigma className="h-4 w-4" />,
         danger: true,
         onClick: () => editor.commands.deleteSelection(),
-      },
-    ];
-  }
-
-  return [];
-};
-
-const BlockquoteContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("blockquote")) {
-    return [
-      {
-        label: t("editor.context_menu.remove_quote"),
-        icon: <Quote className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().toggleBlockquote().run(),
       },
     ];
   }

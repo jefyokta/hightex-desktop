@@ -7,6 +7,7 @@ import { Symbols } from "@/utils/symbol";
 import { ActionCanceled } from "@/exception/action-canceled";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { sortAliases } from "@/utils/sort-aliases";
+import { aliasKey } from "@/utils/alias-key";
 import {
   getProfileVariables,
   isProfileVariable,
@@ -329,9 +330,8 @@ export class HighTexDB extends Dexie {
     return sortAliases(
       (await this.aliases.where("documentId").equals(documentId).toArray()).map(
         (e) => {
-          const prefix = `${e.documentId}.`;
           return {
-            key: e.key.slice(prefix.length),
+            key: aliasKey(e.key, e.documentId),
             value: e.value,
           };
         },

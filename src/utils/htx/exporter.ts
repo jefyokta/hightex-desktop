@@ -2,18 +2,10 @@ import { HighTexDB } from "@/editor/storage/hightex-db";
 import { HighTexExportError } from "@/exception/hightex-export";
 import { Schema } from "./schema";
 import { zipSync } from "fflate";
-import { isStaticVar } from "../is-static-var";
 import { t } from "@/utils/lang";
 import { writeProfileEntries } from "./profile";
-import { contentAssets } from "../content-assets";
-import { applyCloudAcademic } from "../cloud-academic";
 import { contentFingerprint } from "./content-fingerprint";
-import { previewDocumentDraft } from "@/editor/document-drafts";
-import { migrateDocumentCommittee } from "../document-committee";
-import {
-  getWorkspaceAuthorProfile,
-  resolveAuthorProfile,
-} from "../document-profile";
+import { readDocumentSnapshot } from "@/editor/storage/document-snapshot";
 
 /**
  * export to ht | htx | hightex file
@@ -66,67 +58,10 @@ export class Exporter {
   }
 
   async buildExport(academic?: CloudAcademicData, draft?: HighTexDocument) {
-    const workspaceProfile = await getWorkspaceAuthorProfile();
-    const snapshot = await this.db.transaction(
-      "r",
-      [
-        this.db.documents,
-        this.db.chapters,
-        this.db.cite,
-        this.db.aliases,
-        this.db.documentVariables,
-        this.db.images,
-      ],
-      async () => {
-        const current = await this.db.documents.get(this.documentId);
-        const document = current
-          ? previewDocumentDraft(current, draft)
-          : undefined;
-        if (!document)
-          throw new HighTexExportError(
-            t("error.htx.document_not_found_for_export"),
-          );
-        const chapters = await this.db.chapters
-          .where("id")
-          .startsWith(`${document.id}.`)
-          .toArray();
-        const assets = contentAssets(chapters);
-        const resolved = {
-          ...document,
-          authorProfileMode: "workspace" as const,
-          profile: resolveAuthorProfile(document, workspaceProfile),
-        };
-        return {
-          document: migrateDocumentCommittee(
-            academic ? applyCloudAcademic(resolved, academic) : resolved,
-          ),
-          chapters,
-          cites: await this.db.cite
-            .filter(
-              (cite) =>
-                !cite.documentId ||
-                cite.documentId === document.id ||
-                assets.references.has(cite.key),
-            )
-            .toArray(),
-          aliases: await this.db.aliases
-            .where("documentId")
-            .equals(document.id)
-            .toArray(),
-          variables: await this.db.documentVariables
-            .where("documentId")
-            .equals(document.id)
-            .filter((x) => !isStaticVar(x.name))
-            .toArray(),
-          images: await this.db.images
-            .filter(
-              (image) =>
-                image.documentId === document.id || assets.images.has(image.id),
-            )
-            .toArray(),
-        };
-      },
-    );
+    const snapshot = await readDocumentSnapshot(this.documentId, {
+      academic,
+      draft,
+    });
     const { document } = snapshot;
     // A new writer prevents deleted chapters/images surviving a second export.
     this.scheme = new Schema();

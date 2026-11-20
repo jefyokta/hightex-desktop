@@ -61,7 +61,7 @@ declare global {
     "documents:deleted": DocumentsDeleted;
     "document:deleted": DocumentDeleted;
     "chapter:reload": ChapterReload;
-    "navigate:next":WantsNavigateToNext
+    "navigate:next": WantsNavigateToNext;
   }
 }
 

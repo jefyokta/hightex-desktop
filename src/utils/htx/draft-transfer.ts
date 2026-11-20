@@ -1,5 +1,6 @@
 import { CloudError } from "@/exception/cloud-error";
 import type { ImportedHighTexV2 } from "@hightex/importer";
+import { aliasKey } from "../alias-key";
 import type { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { isProfileVariable } from "@/utils/document-profile";
@@ -215,7 +216,7 @@ export const prepareDraftImport = async (
       .filter((variable) => !isProfileVariable(variable.name))
       .map((variable) => ({ ...variable, documentId: id })),
     aliases: model.aliases.map((alias) => ({
-      key: `${id}.${alias.key.startsWith(`${model.document.id}.`) ? alias.key.slice(model.document.id.length + 1) : alias.key}`,
+      key: `${id}.${aliasKey(alias.key, model.document.id)}`,
       value: alias.value,
       documentId: id,
     })),

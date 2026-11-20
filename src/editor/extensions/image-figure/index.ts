@@ -1,4 +1,4 @@
-import { CommandProps, ReactNodeViewRenderer } from "@tiptap/react";
+import { chapterContentNodeView } from "@/editor/chapter/content-node-view";
 import { ImageFigure as ImageFigureComponent } from "./component";
 import { Figure } from "../figure";
 import { createFigureImage } from "@/editor/utils/create-figure-image";
@@ -6,24 +6,29 @@ import { createFigureImage } from "@/editor/utils/create-figure-image";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     figureImage: {
-      addFigureImage: (imgUrl: string) => boolean;
+      addFigureImage: (imgUrl: string) => ReturnType;
     };
   }
 }
 export const ImageFigure = Figure.extend({
   name: "imageFigure",
   content: "image figcaption",
+  extendNodeSchema(extension) {
+    return extension.name === "imageFigure"
+      ? { editorPagination: { kind: "image-figure" } }
+      : {};
+  },
   draggable: true,
-  addCommands: (): any => {
+  addCommands() {
     return {
       addFigureImage:
         (imgUrl: string) =>
-        ({ editor }: CommandProps) => {
-          return editor.commands.insertContent(createFigureImage(imgUrl));
+        ({ commands }) => {
+          return commands.insertContent(createFigureImage(imgUrl));
         },
     };
   },
   addNodeView() {
-    return ReactNodeViewRenderer(ImageFigureComponent);
+    return chapterContentNodeView(ImageFigureComponent);
   },
 });

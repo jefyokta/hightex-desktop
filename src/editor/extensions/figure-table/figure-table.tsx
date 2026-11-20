@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,19 +7,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import { EventBus } from "@/Event/Bus";
-import {
-  Editor,
-  NodeViewContent,
-  NodeViewProps,
-  NodeViewWrapper,
-} from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
+import type { ChapterControlProps } from "@/editor/chapter/content-node-view";
 import { Copy, Delete } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
 
-export const FigureTableComponent: React.FC<NodeViewProps> = ({
+export const FigureTableComponent: React.FC<ChapterControlProps> = ({
   node,
   editor,
   getPos,
@@ -36,7 +32,7 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
     const handler = ({ editor }: { editor: Editor }) => {
       const { from, to } = editor.state.selection;
       const pos = getPos();
-      if (!pos) {
+      if (pos === undefined) {
         return;
       }
       if (pos <= from && to <= pos + node.nodeSize) {
@@ -46,128 +42,66 @@ export const FigureTableComponent: React.FC<NodeViewProps> = ({
       }
     };
 
+    handler({ editor });
     editor.on("selectionUpdate", handler);
     return () => {
       editor.off("selectionUpdate", handler);
     };
   }, [editor, getPos, node.nodeSize]);
 
-  useEffect(() => {
-    const table = node.content.content[1];
-
-    if (!table || table.type.name !== "table") {
-      return;
-    }
-
-    const firstRow = table.content.content[0];
-
-    if (!firstRow || firstRow.type.name !== "tableRow") {
-      return;
-    }
-
-    const figurePos = getPos();
-
-    if (typeof figurePos !== "number") {
-      return;
-    }
-
-    const { state, view } = editor;
-    const { tr } = state;
-
-    let firstRowPos = -1;
-
-    node.descendants((child, pos) => {
-      if (child === firstRow) {
-        firstRowPos = pos;
-        return false;
-      }
-
-      return true;
-    });
-
-    if (firstRowPos < 0) {
-      return;
-    }
-
-    let cellOffset = 0;
-
-    for (const cell of firstRow.content.content) {
-      if (cell.type.name !== "tableHeader") {
-        const cellPos = figurePos + 1 + firstRowPos + 1 + cellOffset;
-
-        tr.setNodeMarkup(cellPos, editor.schema.nodes.tableHeader, cell.attrs);
-      }
-
-      cellOffset += cell.nodeSize;
-    }
-
-    if (tr.docChanged) {
-      view.dispatch(tr);
-    }
-  }, [editor, getPos, node]);
   return (
-    <NodeViewWrapper
-      style={{ overflow: "visible" }}
-      className="relative border-indigo-500 dark:border-indigo-400"
-      as="figure"
-      data-type="figureTable"
-      data-groupid={node.attrs.groupId || null}
-      data-figureid={node.attrs.figureId}
-      id={node.attrs.id}
-      data-copy={`@figureTable[${node.attrs.id}]`}
-    >
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className={`absolute ${insideNode ? "visible opacity-100" : "invisible opacity-0"
-            } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        data-editor-ui
+        contentEditable={false}
+        className={`absolute ${
+          insideNode ? "visible opacity-100" : "invisible opacity-0"
+        } -right-10 p-1 cursor-pointer px-0.5 text-neutral-500 dark:text-neutral-400 transition-200 ease-in rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="lucide lucide-grip-vertical w-4 h-4"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-grip-vertical w-4 h-4"
-          >
-            <circle cx="9" cy="12" r="1" />
-            <circle cx="9" cy="5" r="1" />
-            <circle cx="9" cy="19" r="1" />
-            <circle cx="15" cy="12" r="1" />
-            <circle cx="15" cy="5" r="1" />
-            <circle cx="15" cy="19" r="1" />
-          </svg>
-        </DropdownMenuTrigger>
+          <circle cx="9" cy="12" r="1" />
+          <circle cx="9" cy="5" r="1" />
+          <circle cx="9" cy="19" r="1" />
+          <circle cx="15" cy="12" r="1" />
+          <circle cx="15" cy="5" r="1" />
+          <circle cx="15" cy="19" r="1" />
+        </svg>
+      </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-          <DropdownMenuLabel className="text-neutral-700 dark:text-neutral-300">
-            {t("editor.inline.figure_table")}
-          </DropdownMenuLabel>
+      <DropdownMenuContent className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+        <DropdownMenuLabel className="text-neutral-700 dark:text-neutral-300">
+          {t("editor.inline.figure_table")}
+        </DropdownMenuLabel>
 
-          <DropdownMenuSeparator className="bg-neutral-200 dark:bg-neutral-700" />
+        <DropdownMenuSeparator className="bg-neutral-200 dark:bg-neutral-700" />
 
-          <DropdownMenuItem
-            onSelect={copy}
-            className="text-neutral-800 dark:text-neutral-200 focus:bg-neutral-100 dark:focus:bg-neutral-800"
-          >
-            <Copy className="mr-2" />
-            {t("editor.inline.copy_reference")}
-          </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={copy}
+          className="text-neutral-800 dark:text-neutral-200 focus:bg-neutral-100 dark:focus:bg-neutral-800"
+        >
+          <Copy className="mr-2" />
+          {t("editor.inline.copy_reference")}
+        </DropdownMenuItem>
 
-          <DropdownMenuItem
-            onSelect={deleteNode}
-            className="text-red-500 focus:bg-red-50 dark:focus:bg-red-950"
-          >
-            <Delete className="mr-2" />
-            {t("editor.inline.delete")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <NodeViewContent />
-    </NodeViewWrapper>
+        <DropdownMenuItem
+          onSelect={deleteNode}
+          className="text-red-500 focus:bg-red-50 dark:focus:bg-red-950"
+        >
+          <Delete className="mr-2" />
+          {t("editor.inline.delete")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

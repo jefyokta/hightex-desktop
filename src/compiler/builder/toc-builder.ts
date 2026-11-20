@@ -1,4 +1,4 @@
-import { Engine } from "../engine";
+import type { Engine } from "../engine";
 
 export class TocBuilder {
   private static createWrapper(id: string) {
@@ -13,7 +13,7 @@ export class TocBuilder {
     return section;
   }
 
-  private static createItem(heading: Element) {
+  static createItem(heading: Element) {
     const tag = heading.tagName.toLowerCase();
 
     const row = document.createElement("a");
@@ -129,32 +129,26 @@ export class TocBuilder {
     await TocBuilder.fillLeaders();
   }
 
-  static fillLeaders(): Promise<void> {
+  static fillLeaders(root: ParentNode = document): Promise<void> {
     return new Promise((resolve) => {
       const run = () => {
-        document.querySelectorAll<HTMLElement>(".toc-row").forEach((row) => {
+        root.querySelectorAll<HTMLElement>(".toc-row").forEach((row) => {
           const text = row.querySelector<HTMLElement>(".toc-text");
           const dots = row.querySelector<HTMLElement>(".toc-dots");
           const page = row.querySelector<HTMLElement>(".toc-page");
           if (!text || !dots || !page) return;
 
-          dots.textContent = "";
-
-          const textRects = text.getClientRects();
-          if (!textRects.length) return;
-
-          const lastLine = textRects[textRects.length - 1];
-          const pageRect = page.getBoundingClientRect();
-          const available = pageRect.left - lastLine.right - 6;
-
-          if (available <= 4) return;
-
-          dots.textContent = ".";
-          const dotW = dots.getBoundingClientRect().width;
-          dots.textContent = "";
-
-          const n = Math.floor(available / dotW);
-          if (n > 0) dots.textContent = ".".repeat(n);
+          if (!text.getClientRects().length) return;
+          // Reserve a visible leader first. If the title fills its last line,
+          // this moves the leader to the next line with the bottom-aligned page.
+          dots.textContent = "...";
+          const box = dots.getBoundingClientRect();
+          const dotWidth = box.width / 3;
+          if (!dotWidth) return;
+          const available = page.getBoundingClientRect().left - box.left - 6;
+          dots.textContent = ".".repeat(
+            Math.max(3, Math.floor(available / dotWidth)),
+          );
         });
 
         resolve();

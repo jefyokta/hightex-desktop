@@ -1,12 +1,7 @@
-import { parseHighTexV2, type ImportedHighTexV2 } from "@hightex/importer";
+import { parseHighTexV2 } from "@hightex/importer";
+import type { DocumentRenderModel } from "@/types/document-snapshot";
 
-async function hashBytes(input: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(input));
-
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
-}
+import { sha256Bytes as hashBytes } from "../sha256";
 
 const compare = (left: string, right: string) =>
   left < right ? -1 : left > right ? 1 : 0;
@@ -21,7 +16,17 @@ const canonical = (value: unknown): unknown => {
   return value;
 };
 export async function contentFingerprint(
-  input: Uint8Array | ImportedHighTexV2,
+  input:
+    | Uint8Array
+    | Pick<
+        DocumentRenderModel,
+        | "config"
+        | "references"
+        | "variables"
+        | "aliases"
+        | "chapters"
+        | "images"
+      >,
 ): Promise<string> {
   const model = input instanceof Uint8Array ? parseHighTexV2(input) : input;
   const encoder = new TextEncoder();

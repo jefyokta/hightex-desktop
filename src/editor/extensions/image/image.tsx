@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   Tooltip,
   TooltipContent,
@@ -6,11 +7,19 @@ import {
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { convertImage, convertToPng } from "@/utils/images-to-webp";
 import { ImageIsInFigure } from "@/exception/image-is-in-figure";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { GalleryThumbnails, Images, Loader2, Trash, X } from "lucide-react";
+import type { ChapterControlProps } from "@/editor/chapter/content-node-view";
+import {
+  GalleryThumbnails,
+  Images,
+  Loader2,
+  Upload,
+  Trash,
+  X,
+} from "lucide-react";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type MouseEvent as RMouseEvent,
@@ -21,7 +30,11 @@ import { ImageConvertError } from "@/exception/image-convert";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 import { toast } from "sonner";
-import { t, useAppLanguage } from "@/utils/lang";
+import { t } from "@/utils/lang";
+import { MISSING_IMAGE_SOURCE } from "./fallback";
+import { imageWidth } from "./size";
+import { paginationReport } from "@/editor/pagination/report-error";
+import { liveQuery } from "dexie";
 
 type LoadState =
   | { status: "idle" }
@@ -29,26 +42,50 @@ type LoadState =
   | { status: "ready"; blobUrl: string }
   | { status: "error"; message: string };
 
-export const ImageComponent: React.FC<NodeViewProps> = ({
+export const ImageComponent: React.FC<ChapterControlProps> = ({
   node,
   updateAttributes,
   deleteNode,
   getPos,
   editor,
+  content,
 }) => {
   useAppLanguage();
   const dbId = node.attrs["src"] as string | null;
-  const initWidth = (node.attrs["width"] as number) ?? 400;
+  const width = imageWidth(node.attrs["width"]);
 
   const [load, setLoad] = useState<LoadState>({ status: "idle" });
-  const [width, setWidth] = useState<number>(initWidth);
 
-  const imgRef = useRef<HTMLImageElement>(null);
+  const image = content.querySelector("img")!;
   const resizing = useRef(false);
   const blobUrlRef = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    let active = true;
+    content.dataset.imageStatus = "loading";
+    image.src = load.status === "ready" ? load.blobUrl : MISSING_IMAGE_SOURCE;
+    image.alt = load.status === "ready" ? "" : "Gambar tidak tersedia";
+    const unavailable = () =>
+      setLoad({ status: "error", message: "Gambar tidak tersedia" });
+    image.addEventListener("error", unavailable);
+    if (load.status !== "loading")
+      void image.decode().then(
+        () => {
+          if (active)
+            content.dataset.imageStatus =
+              load.status === "ready" ? "ready" : "missing";
+        },
+        () => {
+          if (active) unavailable();
+        },
+      );
+    return () => {
+      active = false;
+      image.removeEventListener("error", unavailable);
+    };
+  }, [content, image, load]);
 
   useEffect(() => {
-    if (dbId === null) {
+    if (!dbId) {
       setLoad({ status: "idle" });
       return;
     }
@@ -58,43 +95,53 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
 
     const db = HighTexDB.getInstance();
     const documentId = Document.instance!.id;
-    const resolve = async () => {
-      if (dbId.startsWith("data:")) {
-        const newId = await convertImage(dbId, documentId);
-        if (cancelled) return;
-
-        updateAttributes({ src: newId });
-        return;
+    const failed = (err: unknown) => {
+      if (!cancelled) {
+        setLoad({ status: "error", message: String(err) });
+        const report = paginationReport(err, "Memuat gambar editor");
+        if (report) throw report;
       }
-
-      const url = await db.getBlobUrl(dbId);
-      if (cancelled) return;
-      if (url === null) {
-        setLoad({ status: "error", message: `Image not found (id: ${dbId})` });
-        return;
-      }
-      if (blobUrlRef.current !== null) URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = url;
-      setLoad({ status: "ready", blobUrl: url });
     };
-
-    resolve().catch((err: unknown) => {
-      if (!cancelled) setLoad({ status: "error", message: String(err) });
-    });
+    // Only this record is observed. Allocate URLs on delivery, so an async read
+    // finishing after unsubscribe cannot allocate an unowned URL.
+    const subscription = dbId.startsWith("data:")
+      ? undefined
+      : liveQuery(() => db.images.get(dbId)).subscribe({
+          next: (record) => {
+            if (cancelled) return;
+            try {
+              const previous = blobUrlRef.current;
+              const url = record ? URL.createObjectURL(record.blob) : null;
+              blobUrlRef.current = url;
+              if (url) setLoad({ status: "ready", blobUrl: url });
+              else
+                setLoad({
+                  status: "error",
+                  message: `Image not found (id: ${dbId})`,
+                });
+              if (previous) URL.revokeObjectURL(previous);
+            } catch (error) {
+              failed(error);
+            }
+          },
+          error: failed,
+        });
+    if (dbId.startsWith("data:"))
+      void convertImage(dbId, documentId)
+        .then((newId) => {
+          if (!cancelled) updateAttributes({ src: newId });
+        })
+        .catch(failed);
 
     return () => {
       cancelled = true;
+      subscription?.unsubscribe();
       if (blobUrlRef.current !== null) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
       }
     };
   }, [dbId, editor, updateAttributes]);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => updateAttributes({ width }));
-    return () => cancelAnimationFrame(id);
-  }, [width, updateAttributes]);
 
   const handleDelete = useCallback(async () => {
     if (dbId !== null) await HighTexDB.getInstance().deleteImageById(dbId);
@@ -123,11 +170,13 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
       e.preventDefault();
       resizing.current = true;
       const startX = e.clientX;
-      const startWidth = imgRef.current?.offsetWidth ?? width;
+      const startWidth = image.offsetWidth || width;
 
       const onMove = (mv: MouseEvent) => {
         if (!resizing.current) return;
-        setWidth(Math.max(50, startWidth + mv.clientX - startX));
+        updateAttributes({
+          width: Math.max(50, startWidth + mv.clientX - startX),
+        });
       };
       const onUp = () => {
         resizing.current = false;
@@ -137,7 +186,7 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     },
-    [width],
+    [width, image, updateAttributes],
   );
 
   const toFigure = useCallback(() => {
@@ -167,40 +216,63 @@ export const ImageComponent: React.FC<NodeViewProps> = ({
       } catch (err) {
         if (err instanceof ImageConvertError) {
           setLoad({ status: "error", message: err.message });
-        }
+        } else throw err;
       }
     },
     [editor, updateAttributes],
   );
 
   return (
-    <NodeViewWrapper className="relative group flex ">
+    <>
       {load.status === "ready" ? (
         <ReadyView
-          blobUrl={load.blobUrl}
-          width={width}
-          imgRef={imgRef}
           onStartResize={startResize}
           onCopy={handleCopy}
           onToFigure={toFigure}
           onDeleteImage={handleDelete}
           onDeleteNode={deleteNode}
         />
-      ) : load.status === "loading" ? (
-        <LoadingView width={width} />
-      ) : load.status === "error" ? (
-        <UploadView onSelect={handleUpload} onDeleteNode={deleteNode} />
       ) : (
-        <UploadView onSelect={handleUpload} onDeleteNode={deleteNode} />
+        <>
+          <div
+            data-editor-ui
+            contentEditable={false}
+            className="absolute top-2 left-2 flex items-center gap-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto"
+          >
+            {load.status === "loading" && (
+              <Loader2 className="size-4 animate-spin" />
+            )}
+            <label className="cursor-pointer rounded border bg-white px-2 py-1 text-sm text-neutral-900 focus-within:ring-2">
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  const file = event.target.files?.[0];
+                  if (file) void handleUpload(file);
+                  event.target.value = "";
+                }}
+              />
+              <span className="flex items-center gap-1">
+                <Upload className="size-4" />
+                {t("editor.inline.image_drop")}
+              </span>
+            </label>
+            <IconBtn
+              tooltip={t("editor.inline.delete")}
+              variant="danger"
+              onClick={deleteNode}
+            >
+              <X className="size-4" />
+            </IconBtn>
+          </div>
+        </>
       )}
-    </NodeViewWrapper>
+    </>
   );
 };
 
 interface ReadyViewProps {
-  blobUrl: string;
-  width: number;
-  imgRef: React.RefObject<HTMLImageElement>;
   onStartResize: (e: RMouseEvent) => void;
   onCopy: () => void;
   onToFigure: () => void;
@@ -209,9 +281,6 @@ interface ReadyViewProps {
 }
 
 const ReadyView: React.FC<ReadyViewProps> = ({
-  blobUrl,
-  width,
-  imgRef,
   onStartResize,
   onCopy,
   onToFigure,
@@ -219,25 +288,21 @@ const ReadyView: React.FC<ReadyViewProps> = ({
   onDeleteNode,
 }) => (
   <>
-    <img
-      ref={imgRef}
-      src={blobUrl}
-      alt=""
-      style={{ width }}
-      className="h-auto"
-    />
     <span
+      data-editor-ui
+      contentEditable={false}
       className="absolute top-1/2 right-0 cursor-ew-resize bg-blue-100 dark:bg-blue-900/50 w-1.5 h-6 rounded-sm hidden group-hover:block"
       onMouseDown={onStartResize}
     />
-    <div className="absolute top-2 left-2 z-50 hidden group-hover:flex space-x-2">
+    <div
+      data-editor-ui
+      contentEditable={false}
+      className="absolute top-2 left-2 z-50 hidden group-hover:flex space-x-2"
+    >
       <IconBtn tooltip={t("editor.inline.image_copy")} onClick={onCopy}>
         <Images className="w-4 h-4" />
       </IconBtn>
-      <IconBtn
-        tooltip={t("editor.inline.wrap_figure")}
-        onClick={onToFigure}
-      >
+      <IconBtn tooltip={t("editor.inline.wrap_figure")} onClick={onToFigure}>
         <GalleryThumbnails className="w-4 h-4" />
       </IconBtn>
       <IconBtn
@@ -257,50 +322,6 @@ const ReadyView: React.FC<ReadyViewProps> = ({
     </div>
   </>
 );
-
-const LoadingView: React.FC<{ width: number }> = ({ width }) => (
-  <div
-    className="flex items-center justify-center w-full bg-neutral-100 dark:bg-neutral-800 rounded"
-    style={{ height: Math.round(width * 0.6) }}
-  >
-    <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
-  </div>
-);
-
-interface UploadViewProps {
-  onSelect: (file: File) => void;
-  onDeleteNode: () => void;
-}
-
-const UploadView: React.FC<UploadViewProps> = ({ onSelect, onDeleteNode }) => {
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file !== undefined) onSelect(file);
-  };
-
-  return (
-    <div className="relative">
-      <div className="absolute top-2 right-2 z-50">
-        <IconBtn
-          tooltip={t("editor.inline.delete")}
-          variant="danger"
-          onClick={onDeleteNode}
-        >
-          <X className="w-4 h-4" />
-        </IconBtn>
-      </div>
-      <label className="border border-dashed border-neutral-300 dark:border-neutral-700 flex flex-col justify-center items-center rounded text-sm text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900/50 w-72 h-40 p-4 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors">
-        <input
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={handleChange}
-        />
-        <span>{t("editor.inline.image_drop")}</span>
-      </label>
-    </div>
-  );
-};
 
 type BtnVariant = "default" | "danger-soft" | "danger";
 

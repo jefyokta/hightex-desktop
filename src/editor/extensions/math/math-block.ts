@@ -35,7 +35,7 @@ export const MathBlock = Node.create({
   renderHTML({ node }) {
     return [
       "div",
-      { "data-latex": node.attrs.latex },
+      { "data-latex": node.attrs.latex, id: node.attrs.id },
       katex.renderToString(node.attrs.latex, {
         throwOnError: false,
         displayMode: true,
@@ -52,7 +52,7 @@ export const MathBlock = Node.create({
       new InputRule({
         find: MathBlockRegex,
         handler: ({ range, match, chain }) => {
-          const [_, latex] = match;
+          const [, latex] = match;
           chain()
             .deleteRange(range)
             .insertContentAt(range.from, {

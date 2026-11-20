@@ -1,5 +1,5 @@
 import { Node, Fragment, Slice } from "@tiptap/pm/model";
-import { Editor, Range } from "@tiptap/react";
+import type { Range } from "@tiptap/react";
 import { Plugin } from "@tiptap/pm/state";
 
 import {
@@ -13,14 +13,12 @@ import {
 
 import { SuggestionKeyDownProps, SuggestionProps } from "@tiptap/suggestion";
 
-import { uniqId } from "../../utils/uniq-id";
-
 export type RendererItem = {
   label: string;
   subLabel?: string;
   icon?: string;
   keywords?: string[];
-  onClick: (range: Range) => any;
+  onClick: (range: Range) => unknown;
 };
 
 type CreateRendererOptions<T extends RendererItem> = {
@@ -466,59 +464,6 @@ export const createRenderer = <T extends RendererItem>(
   };
 
   return renderer;
-};
-
-export const ensureUniqueId = (editor: Editor) => {
-  const transaction = editor.state.tr;
-
-  const seenIds = new Set<string>();
-
-  editor.state.doc.descendants((node, pos) => {
-    if (node.attrs.shouldUnique) {
-      let id: string | undefined = node.attrs.id;
-
-      if (!id || typeof id !== "string") {
-        id = `${node.type.name}-${uniqId()}`;
-
-        transaction.setNodeMarkup(pos, undefined, {
-          ...node.attrs,
-          id,
-        });
-
-        seenIds.add(id);
-      } else {
-        if (typeof id === "string" && id.includes(":") && /^[0-9]/.test(id)) {
-          const newId = `${node.type.name}.${uniqId()}`;
-
-          transaction.setNodeMarkup(pos, undefined, {
-            ...node.attrs,
-            id: newId,
-          });
-        }
-
-        if (seenIds.has(id)) {
-          const newId = `${node.type.name}.${uniqId()}`;
-
-          transaction.setNodeMarkup(pos, undefined, {
-            ...node.attrs,
-            id: newId,
-          });
-
-          seenIds.add(newId);
-
-          console.warn(
-            `Duplicate id found at pos ${pos}. Changed id from ${id} to ${newId}`,
-          );
-        } else {
-          seenIds.add(id);
-        }
-      }
-    }
-  });
-
-  if (transaction.docChanged) {
-    editor.view.dispatch(transaction);
-  }
 };
 
 export interface NodePasteRuleConfig {

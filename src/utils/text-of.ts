@@ -20,9 +20,7 @@ export const textOf = (
 
       const text = textOf(n.content, options);
       return options.preserveBlockBreaks &&
-        ["paragraph", "heading", "listItem", "tableRow"].includes(
-          n.type ?? "",
-        )
+        ["paragraph", "heading", "listItem", "tableRow"].includes(n.type ?? "")
         ? `${text}\n`
         : text;
     })
