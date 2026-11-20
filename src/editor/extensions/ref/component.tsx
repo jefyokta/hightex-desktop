@@ -23,7 +23,7 @@ import {
   useRef,
   useState,
   type FC,
-  type KeyboardEvent,
+  // type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from "react";
@@ -35,6 +35,7 @@ import {
   INVALID_REFERENCE_LABEL,
   type RefKind,
 } from "./label";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 type RefProps = {
   reference: string;
@@ -140,7 +141,11 @@ function useOpenRef(reference: string, chapterId: string | undefined) {
   const nav = useNavigate();
   const { setParams } = useParams();
 
+  console.log(reference, chapterId);
   return useCallback(() => {
+
+    // return
+    if (reference == '#') return
     if (!chapterId) return;
 
     if (chapterId === Document.current?.getId()) {
@@ -203,7 +208,7 @@ function refLinkProps(
   open: () => void,
 ) {
   return {
-    role: "link",
+    // role: "link",
     tabIndex: 0,
     "data-ref": reference,
     "data-href": chapterId ? refHref(chapterId, reference) : "",
@@ -212,13 +217,16 @@ function refLinkProps(
     className: cn(isBroken(status) && "text-destructive"),
     onClick: (e: MouseEvent) => {
       e.preventDefault();
+      if (status == "missing" || status == 'error') throw new ShouldNotified("the target component is missing")
       open();
     },
-    onKeyDown: (e: KeyboardEvent) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      open();
-    },
+    // onKeyDown: (e: KeyboardEvent) => {
+    //   if (e.key !== "Enter") return;
+    //   e.preventDefault();
+    //   if (status == "missing" || status == 'error') return
+
+    //   open();
+    // },
   };
 }
 
@@ -238,7 +246,16 @@ const RefPreview: FC<RefPreviewProps> = ({
   children,
 }) => (
   <PreviewCard>
-    <PreviewCardTrigger render={<a {...link}>{label}</a>} />
+    <PreviewCardTrigger render={
+
+
+      (status == 'missing' || status == 'error' ? <span {...{
+        ...link, onClick: () => {
+          throw new ShouldNotified("The Target Component is missing")
+        }
+      }}>{label}</span> : <a {...link}>{label}</a>)
+
+    } />
 
     <PreviewCardPanel>
       {status === "ready" ? (
@@ -277,16 +294,18 @@ const HeadRef: FC<RefProps> = ({ reference, locate }) => {
   );
 
   return (
-    <a
-      {...refLinkProps(
-        reference,
-        head?.chapterId,
-        status,
-        isBroken(status) ? locate : open,
-      )}
-    >
-      {label}
-    </a>
+    <>
+      <a
+        {...refLinkProps(
+          reference,
+          head?.chapterId,
+          status,
+          isBroken(status) ? locate : open,
+        )}
+      >
+        {label}
+      </a>
+    </>
   );
 };
 
@@ -298,6 +317,7 @@ const ImageRef: FC<RefProps> = ({ reference, locate }) => {
 
   const open = useOpenRef(reference, image?.chapterId);
   const src = useImageSrc(image?.imgSrc);
+
 
   return (
     <RefPreview
