@@ -94,14 +94,14 @@ test("APP_ENV cannot override Electron's packaging status", () => {
   ).toBe("https://hightex.jefyokta.dev/api/");
 });
 
-test("cloud workspaces cannot override the server configured for this build", () => {
+test("cloud workspaces always use the configured server regardless of their previous login host", () => {
   const ServerUrl = fixture(
     true,
     "http://localhost:9000",
     undefined,
     "https://university.test:8443/api/",
   );
-  expect(() => ServerUrl.instance).toThrow("unsupported cloud host");
+  expect(ServerUrl.instance.api.href).toBe("https://hightex.jefyokta.dev/api/");
 });
 
 test("API routes retain the API prefix, nested paths and encoded query values", () => {

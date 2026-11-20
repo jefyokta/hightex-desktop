@@ -4,14 +4,8 @@ import { normalizeWorkspaceServer } from "./identity";
 export function cloudWorkspace(
   serverUrl: string,
   accountId: string,
-  allowedServerUrl?: string,
 ): WorkspaceProfile {
   serverUrl = normalizeWorkspaceServer(serverUrl);
-  if (
-    allowedServerUrl &&
-    normalizeWorkspaceServer(allowedServerUrl) !== serverUrl
-  )
-    throw Error("This cloud server is not supported by this build");
   if (!accountId) throw Error("Missing cloud account");
   return {
     id: `cloud-${createHash("sha256")
@@ -28,7 +22,6 @@ export function cloudWorkspace(
 export function planWorkspaceMigration(
   documents: HighTexDocument[],
   bindings: CloudBinding[],
-  allowedServerUrl?: string,
 ): WorkspaceMigrationPlan {
   const profiles = new Map<string, WorkspaceProfile>([
     [
@@ -74,15 +67,11 @@ export function planWorkspaceMigration(
       ids.has(binding.localDocumentId),
     )) {
       try {
-        const profile = cloudWorkspace(
-          binding.serverUrl,
-          binding.accountId,
-          allowedServerUrl,
-        );
+        const profile = cloudWorkspace(binding.serverUrl, binding.accountId);
         if (!profiles.has(profile.id)) {
-          const number = [...profiles.values()].filter(
-            (item) => item.type === "cloud",
-          ).length + 1;
+          const number =
+            [...profiles.values()].filter((item) => item.type === "cloud")
+              .length + 1;
           profiles.set(profile.id, { ...profile, name: `Cloud ${number}` });
         }
         candidates.add(profile.id);

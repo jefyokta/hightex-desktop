@@ -8,6 +8,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { canonicalWorkspaceSnapshot } from "../shared/workspace-snapshot";
 import {
   workspaceHost,
   workspaceIdFromUrl,
@@ -24,6 +25,15 @@ import {
 } from "../electron/workspaces/migration-plan";
 
 const directories: string[] = [];
+
+test("migration and renderer snapshots compare stable data across key order while retaining typed bytes and array order", () => {
+  const timestamp = new Date("2025-01-01T00:00:00Z");
+  const left = { tables: { images: [{ bytes: new Uint8Array([1, 2]), timestamp }] }, ignored: undefined };
+  const right = { tables: { images: [{ timestamp, bytes: new Uint8Array([1, 2]) }] } };
+  expect(canonicalWorkspaceSnapshot(left)).toBe(canonicalWorkspaceSnapshot(right));
+  expect(canonicalWorkspaceSnapshot(left)).not.toBe(canonicalWorkspaceSnapshot({ tables: { images: [{ bytes: new Uint8Array([2, 1]), timestamp }] } }));
+  expect(canonicalWorkspaceSnapshot(["a", "b"])).not.toBe(canonicalWorkspaceSnapshot(["b", "a"]));
+});
 const directory = () => {
   const root = mkdtempSync(path.join(tmpdir(), "hightex-workspaces-test-"));
   directories.push(root);
@@ -252,4 +262,114 @@ test("selected data includes referenced assets and shared data while isolating d
   expect(a.tables.chapterGraphs).toEqual([{ id: "a.1" }]);
   expect(a.localStorage).toEqual({ "hightex:forms:v1:a": "form-a" });
   expect(snapshot.tables.images).toHaveLength(2);
+});
+
+test("changing the configured server preserves workspace identity and allows authenticated login there", () => {
+  const root = directory(),
+    old = new WorkspaceRegistry(root, "https://old.test/api/");
+  const state = old.create({ name: "My research", type: "cloud" }),
+    profile = state.profiles[1];
+  old.write({ ...state, activeId: profile.id });
+  old.bindAccount("old-id", "writer@example.test");
+  const file = path.join(old.directory(profile.id), "retained.txt");
+  writeFileSync(file, "Retained documents");
+  const current = new WorkspaceRegistry(root, "http://localhost:9000/api/");
+  expect(current.read().profiles[1]).toMatchObject({
+    id: profile.id,
+    type: "cloud",
+    accountId: "old-id",
+    accountEmail: "writer@example.test",
+  });
+  expect(current.bindAccount("new-id", "writer@example.test")).toMatchObject({
+    id: profile.id,
+    type: "cloud",
+    serverUrl: "http://localhost:9000/api/",
+    accountId: "new-id",
+    accountEmail: "writer@example.test",
+  });
+  expect(existsSync(file)).toBe(true);
+  expect(new WorkspaceRegistry(root, current.cloudServerUrl).read()).toEqual(
+    current.read(),
+  );
+});
+
+test("previously downgraded cloud workspaces recover their binding in place", () => {
+  const registry = new WorkspaceRegistry(
+    directory(),
+    "https://current.test/api/",
+  );
+  const state = registry.create({ name: "Existing", type: "local" }),
+    profile = state.profiles[1];
+  profile.legacyCloudBinding = {
+    serverUrl: "https://old.test/api/",
+    accountId: "old-id",
+  };
+  registry.write({ ...state, activeId: profile.id });
+  expect(registry.read().profiles[1]).toMatchObject({
+    id: profile.id,
+    type: "cloud",
+    accountId: "old-id",
+    serverUrl: "https://old.test/api/",
+  });
+  expect(registry.read().profiles[1]).not.toHaveProperty("legacyCloudBinding");
+});
+
+test("workspace email migrates only from its matching persisted account and survives sign-out", () => {
+  const registry = new WorkspaceRegistry(
+    directory(),
+    "https://cloud.test/api/",
+  );
+  const state = registry.create({ name: "Account", type: "cloud" }),
+    profile = state.profiles[1];
+  registry.write({ ...state, activeId: profile.id });
+  registry.bindAccount("one");
+  const config = path.join(registry.directory(profile.id), "config.json");
+  writeFileSync(
+    config,
+    JSON.stringify({
+      session: {
+        user: { id: "other", email: "wrong@example.test" },
+        serverUrl: registry.cloudServerUrl,
+      },
+    }),
+  );
+  expect(registry.read().profiles[1].accountEmail).toBeUndefined();
+  writeFileSync(
+    config,
+    JSON.stringify({
+      session: {
+        user: { id: "one", email: "owner@example.test" },
+        serverUrl: registry.cloudServerUrl,
+      },
+    }),
+  );
+  expect(registry.read().profiles[1].accountEmail).toBe("owner@example.test");
+  writeFileSync(config, "{}");
+  expect(registry.read().profiles[1].accountEmail).toBe("owner@example.test");
+  expect(registry.bindAccount("one", "new@example.test").accountEmail).toBe(
+    "new@example.test",
+  );
+});
+
+test("malformed historical server metadata cannot block login to the configured server", () => {
+  const registry = new WorkspaceRegistry(
+    directory(),
+    "http://localhost:9000/api/",
+  );
+  const state = registry.create({ name: "Recovered", type: "local" }),
+    profile = state.profiles[1];
+  profile.legacyCloudBinding = {
+    serverUrl: "unparseable-old-value",
+    accountId: "old",
+  };
+  registry.write({ ...state, activeId: profile.id });
+  expect(registry.read().profiles[1].type).toBe("local");
+  registry.beginCloudBinding(profile.id);
+  expect(registry.bindAccount("new", "writer@localhost")).toMatchObject({
+    id: profile.id,
+    type: "cloud",
+    serverUrl: registry.cloudServerUrl,
+    accountEmail: "writer@localhost",
+  });
+  expect(registry.read().profiles[1]).not.toHaveProperty("legacyCloudBinding");
 });

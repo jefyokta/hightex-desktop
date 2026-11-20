@@ -20,7 +20,6 @@ export function parseLecturerPerson(
     row.nip.length > 200
   )
     throw Error("Invalid lecturer");
-  // NIPs remain strings: coercing a JSON number could lose leading zeroes.
   return {
     name: row.name.trim(),
     nip: row.nip.trim(),

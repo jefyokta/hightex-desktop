@@ -1,6 +1,5 @@
 import { ApplicationRuntime } from "../main/application-runtime";
 import "dotenv/config";
-import { WorkspaceRuntime } from "../workspaces/runtime";
 import { normalizeWorkspaceServer } from "../workspaces/identity";
 
 export class ServerUrl {
@@ -26,11 +25,7 @@ export class ServerUrl {
   }
 
   public static get instance(): ServerUrl {
-    const configured = (this._instance ??= new ServerUrl());
-    const profile = WorkspaceRuntime.profile;
-    if (profile?.type === "cloud" && profile.serverUrl !== configured.api.href)
-      throw new Error("This workspace is bound to an unsupported cloud host");
-    return configured;
+    return (this._instance ??= new ServerUrl());
   }
 
   /**

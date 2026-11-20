@@ -9,7 +9,7 @@ export interface LocalDirectoryStorage {
   read(): unknown;
   save(entry: LecturerDirectoryEntry): void;
   remove(id: string): void;
-  insert(entries: LecturerDirectoryEntry[]): void;
+  upsert(entries: LecturerDirectoryEntry[]): void;
   createId(): string;
 }
 
@@ -45,8 +45,6 @@ export function parseLocalLecturerEntries(
     };
   });
 }
-
-/** Local entries persist independently of login and never ship in the installer. */
 export class LocalLecturerDirectory {
   constructor(private storage: LocalDirectoryStorage) {}
 
@@ -81,7 +79,6 @@ export class LocalLecturerDirectory {
     const entry = {
       id: index < 0 ? `local:${this.storage.createId()}` : data[index].id,
       ...value,
-      // Provenance is assigned by the ingestion flow, never chosen in a form.
       source: index < 0 ? { type: "manual" as const } : data[index].source,
     };
     this.storage.save(entry);
@@ -106,13 +103,68 @@ export class LocalLecturerDirectory {
     return this.append(rows, source);
   }
 
-  /** Called by the authenticated main-process fetch flow, never with a renderer URL. */
-  importCloud(rows: { name: string; nip: string }[], url: string) {
+  importCloud(
+    rows: { id: string; name: string; nip: string }[],
+    url: string,
+  ): LecturerDirectoryImportResult {
     const source = parseLecturerSource({ type: "cloud", url });
-    return this.append(
-      rows.map((row) => parseLecturerPerson(row)),
-      source,
-    );
+    if (source.type !== "cloud") throw Error("Invalid cloud source");
+    const data = this.entries(),
+      changes: LecturerDirectoryEntry[] = [];
+    const byRemote = new Map<string, number>(),
+      legacyByNip = new Map<string, number>(),
+      nips = new Map<string, number>();
+    data.forEach((entry, index) => {
+      if (entry.nip) nips.set(entry.nip, (nips.get(entry.nip) ?? 0) + 1);
+      if (entry.source.type === "cloud" && entry.source.url === source.url) {
+        if (entry.source.remoteId) byRemote.set(entry.source.remoteId, index);
+        else legacyByNip.set(entry.nip, index);
+      }
+    });
+    let added = 0,
+      updated = 0,
+      skipped = 0;
+    for (const row of rows) {
+      const value = parseLecturerPerson(row);
+      const provenance = parseLecturerSource({ ...source, remoteId: row.id });
+      const index = byRemote.get(row.id) ?? legacyByNip.get(value.nip);
+      const previous = index === undefined ? undefined : data[index];
+      const ownNip = previous?.nip === value.nip ? 1 : 0;
+      if ((nips.get(value.nip) ?? 0) > ownNip) {
+        skipped++;
+        continue;
+      }
+      if (
+        previous &&
+        previous.name === value.name &&
+        previous.nip === value.nip &&
+        previous.source.type === "cloud" &&
+        previous.source.remoteId === row.id
+      ) {
+        skipped++;
+        continue;
+      }
+      const entry = {
+        id: previous?.id ?? `local:${this.storage.createId()}`,
+        ...value,
+        source: provenance,
+      };
+      if (previous && index !== undefined) {
+        nips.set(previous.nip, (nips.get(previous.nip) ?? 1) - 1);
+        legacyByNip.delete(previous.nip);
+        data[index] = entry;
+        updated++;
+      } else {
+        data.push(entry);
+        added++;
+      }
+      byRemote.set(row.id, index ?? data.length - 1);
+      nips.set(value.nip, (nips.get(value.nip) ?? 0) + 1);
+      changes.push(entry);
+    }
+    if (data.length > MAX_LECTURERS) throw Error("Directory is full");
+    if (changes.length) this.storage.upsert(changes);
+    return { ...this.state(data), added, updated, skipped };
   }
 
   private append(
@@ -129,7 +181,7 @@ export class LocalLecturerDirectory {
     }
     if (data.length + added.length > MAX_LECTURERS)
       throw Error("Directory is full");
-    if (added.length) this.storage.insert(added);
+    if (added.length) this.storage.upsert(added);
     return {
       ...this.state([...data, ...added]),
       added: added.length,

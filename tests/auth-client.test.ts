@@ -229,3 +229,18 @@ test("logout with an unreadable token cannot claim server revocation for a cache
   expect(f.session()).toEqual({});
   expect(f.calls).toHaveLength(0);
 });
+
+test("an account absent from the configured server is a failed login, not an unsupported workspace", async () => {
+  const f = fixture();
+  f.respond(async () => ({
+    ok: false,
+    status: 404,
+    data: { message: "User not found" },
+  }));
+  expect(await f.client.login("missing@test", "password")).toEqual({
+    ok: false,
+    error: "invalid_credentials",
+  });
+  expect(f.calls.map((call) => call.endpoint)).toEqual(["/login"]);
+  expect(f.session()).toEqual({});
+});

@@ -31,7 +31,20 @@ export function parseLecturerSource(value: unknown): LecturerSource {
         url.password
       )
         throw Error("Invalid source URL");
-      return { type: "cloud", url: url.href };
+      if (
+        row.remoteId !== undefined &&
+        (typeof row.remoteId !== "string" ||
+          !row.remoteId.trim() ||
+          row.remoteId.length > 200)
+      )
+        throw Error("Invalid cloud lecturer ID");
+      return {
+        type: "cloud",
+        url: url.href,
+        ...(row.remoteId === undefined
+          ? {}
+          : { remoteId: row.remoteId as string }),
+      };
     }
     default:
       throw Error("Invalid lecturer source");

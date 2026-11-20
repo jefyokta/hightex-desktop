@@ -21,6 +21,7 @@ import {UserContext} from '/src/context/user-context.tsx';
 import {AuthModalProvider} from '/src/context/auth-modal-context.tsx';
 import {useAuthModal} from '/src/context/auth-modal-context.tsx';
 import {LoginModal} from '/src/components/login-modal.tsx';
+import {WorkspaceProfiles} from '/src/components/workspace-profiles.tsx';
 import {ConfirmProvider} from '/src/context/confrim-context.tsx';
 import {TooltipProvider} from '/src/components/ui/tooltip.tsx';
 import {Toaster} from 'sonner';
@@ -36,16 +37,16 @@ window.accountData={session:{sessionId:'session-a',accountId:'12',serverUrl:'htt
 window.compromised=false;window.updates=[];window.loads=0;window.localSaves=0;window.failLocalLoad=false;window.failUpdate=false;window.draftBusy=false;
 window.application={setProfileDraftBusy:async busy=>{window.draftBusy=busy}};
 window.authCalls=[];window.browserState={status:'idle'};
-window.session={signIn:async()=>{window.authCalls.push('direct');window.setUser(true);return {ok:true,data:{id:'12',name:'Account Writer',roles:[]}}},browser:{start:async()=>{window.authCalls.push('browser');window.browserState={status:'waiting',expiresAt:Date.now()+300000};return {ok:true,data:window.browserState}},status:async()=>window.browserState,cancel:async()=>{window.authCalls.push('cancel');window.browserState={status:'idle'}}}};
-window.profile={get:async()=>{if(window.failLocalLoad)throw Error('Failed read');return {...window.savedLocal,isCloud:false}},picture:async()=>false,cachedCloud:async()=>window.cachedCloud,set:async profile=>{window.localSaves++;if(window.delaySave)await new Promise(resolve=>window.finishSave=resolve);window.savedLocal={...window.savedLocal,...profile};return window.savedLocal},setPicture:async()=>{}};
+window.session={signIn:async()=>{window.authCalls.push('direct');if(window.fixtureLoginError)return {ok:false,error:'invalid_credentials'};window.setUser(true);return {ok:true,data:{id:'12',name:'Account Writer',roles:[]}}},browser:{start:async()=>{window.authCalls.push('browser');window.browserState={status:'waiting',expiresAt:Date.now()+300000};return {ok:true,data:window.browserState}},status:async()=>window.browserState,cancel:async()=>{window.authCalls.push('cancel');window.browserState={status:'idle'}}}};
+window.profile={get:async()=>{if(window.failLocalLoad)throw Error('Failed read');return window.mode==='cloud'?{...window.cachedCloud,isCloud:true}:{...window.savedLocal,isCloud:false}},picture:async()=>false,cachedCloud:async()=>window.cachedCloud,set:async profile=>{window.localSaves++;if(window.delaySave)await new Promise(resolve=>window.finishSave=resolve);window.savedLocal={...window.savedLocal,...profile};return window.savedLocal},setPicture:async()=>{}};
 window.hightex={onboarding:{acknowledgeProfileSetup:async()=>{}},lecturers:{list:async()=>({data:[]})}};
-window.workspaces={onChange:()=>()=>{},state:async()=>({activeId:window.mode,profiles:[{id:window.mode,name:window.mode==='local'?'My Local':'My Cloud',type:window.mode,accountId:window.mode==='cloud'?'12':null}],migrationComplete:true})};
+window.workspaces={onChange:()=>()=>{},state:async()=>({activeId:window.mode,profiles:[{id:window.mode,name:window.mode==='local'?'My Local':'My Cloud',type:window.mode,accountId:window.mode==='cloud'?'12':null,accountEmail:window.mode==='cloud'?'account@fixture.test':undefined,serverUrl:window.mode==='cloud'?'https://previous-server.test/api/':null}],migrationComplete:true})};
 window.account={load:async()=>{window.loads++;if(!window.fixtureOnline)return {ok:false,error:'request_failed'};return {ok:true,data:structuredClone(window.accountData)}},picture:async()=>({ok:true,data:null}),update:async input=>{window.updates.push(input);if(window.failUpdate)return {ok:false,error:'validation',fields:{cv:['Fixture rejects CV']}};window.accountData={...window.accountData,cv:input.cv??window.accountData.cv};window.cachedCloud={name:window.accountData.name,nim:window.accountData.nim,cv:window.accountData.cv};return {ok:true,data:structuredClone(window.accountData)}},settings:async()=>({ok:true,data:null})};
 const actor={id:'12',name:'Account Writer',roles:[{name:'student'}]};
 function LoginActions(){window.openLogin=useAuthModal().openLogin;return React.createElement(LoginModal)}
 function Providers({router,authenticated}){const [user,setUser]=React.useState(authenticated?actor:false);window.setUser=enabled=>setUser(enabled?actor:false);return React.createElement(UserContext.Provider,{value:{user,refresh:async()=>{}}},React.createElement(AuthModalProvider,null,React.createElement(ConfirmProvider,null,React.createElement(TooltipProvider,null,React.createElement(RouterProvider,{router}),React.createElement(Toaster),React.createElement(LoginActions)))))}
 const root=createRoot(document.getElementById('root'));let mounted=0;
-window.mountProfile=(mode,online=true,authenticated=true,route='/profile')=>{window.mode=mode;window.fixtureOnline=online;window.router=createMemoryRouter([{path:'/profile',element:React.createElement(Profile)},{path:'/profile/cv',element:React.createElement(ProfileCV)},{path:'/elsewhere',element:React.createElement('p',{'data-elsewhere':true},'Other page')}],{initialEntries:[route]});root.render(React.createElement(React.StrictMode,null,React.createElement(Providers,{key:++mounted,router:window.router,authenticated})))};
+window.mountProfile=(mode,online=true,authenticated=true,route='/profile')=>{window.mode=mode;window.fixtureOnline=online;window.router=createMemoryRouter([{path:'/profile',element:React.createElement(Profile)},{path:'/profile/cv',element:React.createElement(ProfileCV)},{path:'/workspaces',element:React.createElement(WorkspaceProfiles)},{path:'/elsewhere',element:React.createElement('p',{'data-elsewhere':true},'Other page')}],{initialEntries:[route]});root.render(React.createElement(React.StrictMode,null,React.createElement(Providers,{key:++mounted,router:window.router,authenticated})))};
 window.mountProfile('local');
 </script></body></html>`;
 const execute = (code) => win.webContents.executeJavaScript(code, true);
@@ -283,6 +284,17 @@ app
     await execute(
       `(()=>{for(const [type,value] of [['email','account@fixture.test'],['password','fixture-password']]){const input=document.querySelector('input[type='+type+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}))}})()`,
     );
+    await execute("window.fixtureLoginError=true");
+    await click("Sign in");
+    await until(
+      "document.querySelector('[data-sonner-toast][data-type=error]')&&document.querySelector('input[type=password]')&&!document.querySelector('button[type=submit]').disabled",
+    );
+    assert.ok(
+      await execute(
+        "document.querySelector('[role=alert]').textContent.length>0",
+      ),
+    );
+    await execute("window.fixtureLoginError=false");
     await click("Sign in");
     await until(
       `!document.querySelector('input[type=password]') && document.querySelector(${JSON.stringify(cvSelector)}).isContentEditable`,
@@ -291,7 +303,24 @@ app
       "browser",
       "cancel",
       "direct",
+      "direct",
     ]);
+    await execute("window.router.navigate('/workspaces')");
+    await until(
+      "document.querySelector('[data-workspace-account]')?.textContent.includes('account@fixture.test')",
+    );
+    assert.ok(
+      !(await execute("document.body.textContent")).includes(
+        "unsupported server",
+      ),
+    );
+    await execute("window.setUser(false);window.setOnline(false)");
+    await until(
+      "document.querySelector('[data-workspace-account]')?.textContent.includes('account@fixture.test')",
+    );
+    console.log(
+      "PASS: failed configured-server login shows a toast and can be retried; workspace email remains visible after logout/offline regardless of previous server metadata.",
+    );
     console.log(
       "PASS: separate Local/Cloud CV pages from Profile; shared paper editor; identity preserved on CV save; draft stay/discard; pending-save protection; native close prevention; Cloud offline cache and sanitization; draft retained across offline/session expiry; explicit save and validation recovery; browser login cancellation and direct re-login.",
     );

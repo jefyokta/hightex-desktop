@@ -4,7 +4,7 @@ declare global {
   type LecturerSource =
     | { type: "manual" }
     | { type: "file"; filename?: string }
-    | { type: "cloud"; url: string }
+    | { type: "cloud"; url: string; remoteId?: string }
     | { type: "unknown" };
   interface LecturerDirectoryEntry extends AcademicPerson {
     id: string;
@@ -22,6 +22,7 @@ declare global {
   interface LecturerDirectoryImportResult extends LecturerDirectoryState {
     added: number;
     skipped: number;
+    updated?: number;
   }
   type LecturerCloudError =
     | "local_workspace"

@@ -174,35 +174,13 @@ app
     const createLecturerStorage = (database) => {
       const model = new LocalLecturer(database);
       model.boot();
-      const toEntity = (entry) => {
-        const source = entry.source ?? { type: "unknown" };
-        return {
-          id: entry.id,
-          name: entry.name,
-          nip: entry.nip,
-          source_type: source.type,
-          source_detail:
-            source.type === "cloud"
-              ? source.url
-              : source.type === "file"
-                ? (source.filename ?? null)
-                : null,
-        };
-      };
-      const fromEntity = (row) => ({
-        id: row.id,
-        name: row.name,
-        nip: row.nip,
-        source:
-          row.source_type === "cloud"
-            ? { type: "cloud", url: row.source_detail ?? "" }
-            : row.source_type === "file"
-              ? {
-                  type: "file",
-                  ...(row.source_detail ? { filename: row.source_detail } : {}),
-                }
-              : { type: row.source_type },
-      });
+      const { lecturerToEntity: toEntity, lecturerFromEntity: fromEntity } =
+        loadModule(
+          path.resolve(
+            __dirname,
+            "../../electron/directory/lecturer-record.ts",
+          ),
+        );
       const storage = {
         read: () => model.orderBy("rowid", "ASC").get().map(fromEntity),
         save: (entry) => {
@@ -212,9 +190,13 @@ app
           else model.create(row);
         },
         remove: (id) => model.where("id", id).delete(),
-        insert: (entries) =>
+        upsert: (entries) =>
           database.transaction(() => {
-            for (const entry of entries) model.create(toEntity(entry));
+            for (const entry of entries) {
+              const { id, ...fields } = toEntity(entry);
+              if (model.find(id)) model.where("id", id).update(fields);
+              else model.create({ id, ...fields });
+            }
           })(),
         createId: randomUUID,
       };
@@ -659,6 +641,9 @@ app
       "window.directory.data.length===2 && !document.querySelector('[data-lecturer-cloud] button').disabled",
     );
     assert.equal(directoryRequests, 1);
+    const cloudLocalId = client
+      .list()
+      .data.find((entry) => entry.source.type === "cloud").id;
     assert.equal(
       await execute(
         "return document.querySelector('[data-lecturer-source=cloud] a').getAttribute('href')",
@@ -675,12 +660,57 @@ app
       await execute("return JSON.stringify(window.profileValue)"),
       selected,
     );
+    cloudPayload.data = [
+      { id: "12", name: "Cloud Lecturer Updated", nip: "000988" },
+    ];
     await clickText("Ambil dari Cloud");
     await until(
       "!document.querySelector('[data-lecturer-cloud] button').disabled",
     );
     assert.equal(directoryRequests, 2);
     assert.equal(await execute("return window.directory.data.length"), 2);
+    assert.deepEqual(
+      JSON.parse(
+        JSON.stringify(
+          client.list().data.find((entry) => entry.id === cloudLocalId),
+        ),
+      ),
+      {
+        id: cloudLocalId,
+        name: "Cloud Lecturer Updated",
+        nip: "000988",
+        source: {
+          type: "cloud",
+          url: origin + "/api/lecturers",
+          remoteId: "12",
+        },
+      },
+    );
+    assert.ok(
+      await execute(
+        "return document.body.textContent.includes('1 diperbarui')",
+      ),
+    );
+    assert.equal(
+      db
+        .prepare("SELECT remote_id FROM local_lecturers WHERE id=?")
+        .get(cloudLocalId).remote_id,
+      "12",
+    );
+    const beforeFailedBatch = client.list();
+    db.exec(
+      "CREATE TRIGGER reject_cloud BEFORE INSERT ON local_lecturers WHEN NEW.name = 'Reject row' BEGIN SELECT RAISE(ABORT, 'Fixture disk failure'); END",
+    );
+    cloudPayload.data = [
+      { id: "12", name: "Must roll back", nip: "000988" },
+      { id: "13", name: "Reject row", nip: "002244" },
+    ];
+    await clickText("Ambil dari Cloud");
+    await until(
+      "!document.querySelector('[data-lecturer-cloud] button').disabled && document.querySelector('[data-lecturer-cloud] [role=alert]')",
+    );
+    assert.deepEqual(client.list(), beforeFailedBatch);
+    db.exec("DROP TRIGGER reject_cloud");
 
     for (const status of [403, 500, 413, 302]) {
       cloudStatus = status;

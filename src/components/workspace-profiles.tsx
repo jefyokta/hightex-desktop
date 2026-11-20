@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useState } from "react";
 import {
   ArrowRightLeft,
@@ -11,15 +12,11 @@ import {
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useAuthModal } from "@/context/auth-modal-context";
 import { useOnline } from "@/hooks/use-online";
-import {
-  LANGUAGE_OPTIONS,
-  t,
-  useAppLanguage,
-  type SupportedLanguage,
-} from "@/utils/lang";
+import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { NativeSelect } from "./ui/native-select";
+import { WorkspaceAccount } from "./workspace-account";
 import {
   Card,
   CardContent,
@@ -86,7 +83,9 @@ export function WorkspaceProfiles() {
     run(async () => {
       const previousIds = new Set(state.profiles.map((profile) => profile.id));
       const next = await window.workspaces.create({ name, type });
-      const created = next.profiles.find((profile) => !previousIds.has(profile.id));
+      const created = next.profiles.find(
+        (profile) => !previousIds.has(profile.id),
+      );
       setState(next);
       window.dispatchEvent(new Event("workspaces:changed"));
       setName("");
@@ -175,7 +174,9 @@ export function WorkspaceProfiles() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="truncate text-sm font-medium">{profile.name}</p>
+                    <p className="truncate text-sm font-medium">
+                      {profile.name}
+                    </p>
                     {active && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
                         <Check className="size-3" />
@@ -192,14 +193,10 @@ export function WorkspaceProfiles() {
                           : t("workspace_profiles.cloud_unbound")
                         : t("workspace_profiles.local")}
                   </p>
+                  <WorkspaceAccount profile={profile} />
                   {active && profile.id !== "local" && (
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t("workspace_profiles.delete_active_hint")}
-                    </p>
-                  )}
-                  {profile.legacyCloudBinding && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t("workspace_profiles.legacy_cloud_unavailable")}
                     </p>
                   )}
                 </div>
@@ -214,7 +211,9 @@ export function WorkspaceProfiles() {
                     }}
                   >
                     <Pencil />
-                    <span className="sr-only">{t("workspace_profiles.rename")}</span>
+                    <span className="sr-only">
+                      {t("workspace_profiles.rename")}
+                    </span>
                   </Button>
                   {!active && profile.id !== "local" && (
                     <Button
@@ -254,9 +253,7 @@ export function WorkspaceProfiles() {
                           onClick={() => void connectWorkspace(profile)}
                         >
                           <Cloud />
-                          {t(
-                            "workspace_profiles.continue_login",
-                          )}
+                          {t("workspace_profiles.continue_login")}
                         </Button>
                         <Button
                           size="sm"
@@ -277,18 +274,16 @@ export function WorkspaceProfiles() {
                         {t("workspace_profiles.connect_cloud")}
                       </Button>
                     ))}
-                  {active &&
-                    profile.type === "cloud" &&
-                    !profile.accountId && (
-                      <Button
-                        size="sm"
-                        disabled={busy || !online}
-                        onClick={() => void connectWorkspace(profile)}
-                      >
-                        <Cloud />
-                        {t("workspace_profiles.continue_login")}
-                      </Button>
-                    )}
+                  {active && profile.type === "cloud" && !profile.accountId && (
+                    <Button
+                      size="sm"
+                      disabled={busy || !online}
+                      onClick={() => void connectWorkspace(profile)}
+                    >
+                      <Cloud />
+                      {t("workspace_profiles.continue_login")}
+                    </Button>
+                  )}
                   {!active &&
                     profile.type === "local" &&
                     profile.pendingCloudBinding && (
@@ -351,8 +346,12 @@ export function WorkspaceProfiles() {
                   setType(event.target.value as "local" | "cloud")
                 }
               >
-                <option value="local">{t("workspace_profiles.local_type")}</option>
-                <option value="cloud">{t("workspace_profiles.cloud_type")}</option>
+                <option value="local">
+                  {t("workspace_profiles.local_type")}
+                </option>
+                <option value="cloud">
+                  {t("workspace_profiles.cloud_type")}
+                </option>
               </NativeSelect>
             </label>
             {state.profiles.length === 1 && (
@@ -395,9 +394,7 @@ export function WorkspaceProfiles() {
                 {t("common.cancel")}
               </Button>
               <Button type="submit" disabled={busy || !name.trim()}>
-                {busy
-                  ? t("common.loading")
-                  : t("workspace_profiles.create")}
+                {busy ? t("common.loading") : t("workspace_profiles.create")}
               </Button>
             </DialogFooter>
           </form>
@@ -444,10 +441,7 @@ export function WorkspaceProfiles() {
               >
                 {t("common.cancel")}
               </Button>
-              <Button
-                type="submit"
-                disabled={busy || !renameName.trim()}
-              >
+              <Button type="submit" disabled={busy || !renameName.trim()}>
                 {t("workspace_profiles.rename_action")}
               </Button>
             </DialogFooter>

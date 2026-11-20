@@ -44,11 +44,10 @@ export function parseCloudLecturers(value: unknown) {
     )
       throw Error("Invalid lecturer ID");
     ids.add(row.id);
-    return parseLecturerPerson(row);
+    return { id: row.id, ...parseLecturerPerson(row) };
   });
 }
 
-/** Fetch only on explicit intent. Late responses cannot cross a login/server change. */
 export class LecturerCloudClient {
   private pending = new Map<string, Promise<LecturerCloudResult>>();
   constructor(
@@ -121,7 +120,7 @@ export class LecturerCloudClient {
     }
     if (response.status === 403) return { ok: false, error: "forbidden" };
     if (response.status !== 200) return { ok: false, error: "network" };
-    let rows: { name: string; nip: string }[];
+    let rows: ReturnType<typeof parseCloudLecturers>;
     try {
       rows = parseCloudLecturers(response.data);
     } catch {

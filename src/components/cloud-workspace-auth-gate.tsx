@@ -3,9 +3,15 @@ import { Link } from "react-router-dom";
 import { useAuthModal } from "@/context/auth-modal-context";
 import { t } from "@/utils/lang";
 import { Button, buttonVariants } from "./ui/button";
+import { useWorkspaces } from "@/hooks/use-workspaces";
+import { WorkspaceAccount } from "./workspace-account";
 
 export function CloudWorkspaceAuthGate() {
   const { openLogin } = useAuthModal();
+  const { state } = useWorkspaces();
+  const active = state?.profiles.find(
+    (profile) => profile.id === state.activeId,
+  );
   return (
     <main className="workspace flex min-h-screen items-center justify-center bg-background px-5 py-12 text-foreground">
       <section className="w-full max-w-md space-y-5 text-center">
@@ -20,6 +26,7 @@ export function CloudWorkspaceAuthGate() {
             {t("workspace_profiles.cloud_login_description")}
           </p>
         </div>
+        {active && <WorkspaceAccount profile={active} />}
         <div className="flex flex-col justify-center gap-2 sm:flex-row">
           <Button onClick={openLogin}>
             <LogIn />

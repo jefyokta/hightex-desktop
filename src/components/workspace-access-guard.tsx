@@ -16,12 +16,14 @@ export function WorkspaceAccessGuard({
   const { openLogin } = useAuthModal();
   const { state } = useWorkspaces();
   const prompted = useRef<string>();
-  const active = state?.profiles.find((profile) => profile.id === state.activeId);
+  const active = state?.profiles.find(
+    (profile) => profile.id === state.activeId,
+  );
   const requiresLogin = Boolean(
     online &&
-      active &&
-      (active.pendingCloudBinding ||
-        (active.type === "cloud" && !active.accountId)),
+    active &&
+    (active.pendingCloudBinding ||
+      (active.type === "cloud" && !active.accountId)),
   );
 
   useEffect(() => {

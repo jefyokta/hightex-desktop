@@ -18,11 +18,8 @@ import {
   planWorkspaceMigration,
   selectWorkspaceData,
 } from "./migration-plan";
-import { canonicalWorkspaceSnapshot } from "../../src/workspaces/snapshot";
-import {
-  normalizeWorkspaceServer,
-  workspaceHost,
-} from "./identity";
+import { canonicalWorkspaceSnapshot } from "../../shared/workspace-snapshot";
+import { normalizeWorkspaceServer, workspaceHost } from "./identity";
 import { Snapshot } from "../database/models/snapshot";
 import { Comment } from "../database/models/comment";
 import { LocalLecturer } from "../database/models/lecturer";
@@ -86,7 +83,6 @@ export class WorkspaceMigration {
     this.plan = planWorkspaceMigration(
       snapshot.tables.documents as unknown as HighTexDocument[],
       bindings,
-      this.registry.cloudServerUrl,
     );
     const session = readJson(
       path.join(this.registry.root, "config.json"),
@@ -96,7 +92,6 @@ export class WorkspaceMigration {
         const profile = cloudWorkspace(
           session.serverUrl,
           String(session.user.id),
-          this.registry.cloudServerUrl,
         );
         if (!this.plan.profiles.some((item) => item.id === profile.id))
           this.plan.profiles.push({
@@ -104,7 +99,7 @@ export class WorkspaceMigration {
             name: `Cloud ${this.plan.profiles.filter((item) => item.type === "cloud").length + 1}`,
           });
       } catch {
-        // Unsupported legacy sessions remain in the untouched source backup.
+        // Malformed legacy sessions remain in the untouched source backup.
       }
     }
     this.plan.summary = Object.fromEntries(
@@ -123,9 +118,9 @@ export class WorkspaceMigration {
             documents: documents.length,
             branches: documents.filter((id) =>
               Boolean(
-                (snapshot.tables.documents as unknown as HighTexDocument[]).find(
-                  (document) => document.id === id,
-                )?.parentId,
+                (
+                  snapshot.tables.documents as unknown as HighTexDocument[]
+                ).find((document) => document.id === id)?.parentId,
               ),
             ).length,
             assets: selected.tables.images?.length ?? 0,
@@ -333,14 +328,14 @@ export class WorkspaceMigration {
         : undefined;
     const expectedName =
       profile.type === "local"
-        ? legacy.profile?.name ?? ""
-        : oldAccount?.name ?? "";
+        ? (legacy.profile?.name ?? "")
+        : (oldAccount?.name ?? "");
     const expectedNim =
       profile.type === "local"
-        ? legacy.profile?.nim ?? ""
-        : oldAccount?.identity_number ?? "";
+        ? (legacy.profile?.nim ?? "")
+        : (oldAccount?.identity_number ?? "");
     const expectedCv =
-      profile.type === "local" ? legacy.profile?.cv ?? "" : "";
+      profile.type === "local" ? (legacy.profile?.cv ?? "") : "";
     if (
       (author?.name && author.name !== expectedName) ||
       (author?.nim && author.nim !== expectedNim) ||
@@ -352,10 +347,17 @@ export class WorkspaceMigration {
       | { __hightexWorkspaceBlob?: boolean; bytes?: Uint8Array }
       | undefined;
     if (!picture) return true;
-    if (!picture.__hightexWorkspaceBlob || !(picture.bytes instanceof Uint8Array))
+    if (
+      !picture.__hightexWorkspaceBlob ||
+      !(picture.bytes instanceof Uint8Array)
+    )
       return false;
     if (profile.type !== "local") return false;
-    const defaultPicture = path.join(this.registry.root, "images", "profile_picture.webp");
+    const defaultPicture = path.join(
+      this.registry.root,
+      "images",
+      "profile_picture.webp",
+    );
     if (!existsSync(defaultPicture)) return false;
     return Buffer.from(picture.bytes).equals(readFileSync(defaultPicture));
   }

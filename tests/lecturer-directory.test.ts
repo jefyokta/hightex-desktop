@@ -25,8 +25,12 @@ function fixture(initial?: unknown) {
       commit((data) => [...data.filter((row) => row.id !== entry.id), entry]),
     remove: (id: string) =>
       commit((data) => data.filter((row) => row.id !== id)),
-    insert: (entries: LecturerDirectoryEntry[]) =>
-      commit((data) => [...data, ...entries]),
+    upsert: (entries: LecturerDirectoryEntry[]) =>
+      commit((data) => {
+        const next = new Map(data.map((row) => [row.id, row]));
+        entries.forEach((row) => next.set(row.id, row));
+        return [...next.values()];
+      }),
     createId: () => String(++serial),
   };
   return {

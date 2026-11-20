@@ -40,8 +40,7 @@ export function registerWorkspaceHandlers(application: Application) {
   };
   const broadcastWorkspaceChange = () => {
     BrowserWindow.getAllWindows().forEach((window) => {
-      if (!window.isDestroyed())
-        window.webContents.send("workspaces:changed");
+      if (!window.isDestroyed()) window.webContents.send("workspaces:changed");
     });
   };
   IPCMain.handle("workspaces:state", () => registry.read());
@@ -118,7 +117,9 @@ export function registerWorkspaceHandlers(application: Application) {
       if (!(await EditorWindow.prepareForWorkspaceSwitch()))
         throw Error("Workspace switch canceled; an editor remains open.");
       if (WorkspaceRuntime.switchInterrupted)
-        throw Error("Workspace switch canceled because a file or link was opened.");
+        throw Error(
+          "Workspace switch canceled because a file or link was opened.",
+        );
       if (
         BrowserWindow.getAllWindows().some(
           (window) => window !== sender && !window.isDestroyed(),

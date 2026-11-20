@@ -222,7 +222,7 @@ export class AuthClient {
         return this.failure(
           response.status === 403
             ? "forbidden"
-            : [401, 422].includes(response.status)
+            : [401, 404, 422].includes(response.status)
               ? "invalid_credentials"
               : "request_failed",
         );

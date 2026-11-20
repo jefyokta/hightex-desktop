@@ -14,44 +14,14 @@ import { SessionService } from "./session-service";
 import { SessionHandler } from "../handlers/session-handlers";
 import { desktopAuth } from "./auth-service";
 
+import {
+  lecturerToEntity,
+  lecturerFromEntity,
+} from "../directory/lecturer-record";
+
 const db = Connection.get();
 let storage: LocalDirectoryStorage | undefined;
 let localLecturers: LocalLecturer | undefined;
-
-function toEntity(
-  entry: LecturerDirectoryEntry,
-): Omit<LecturerEntity, "createdAt"> {
-  const source = entry.source ?? { type: "unknown" as const };
-  return {
-    id: entry.id,
-    name: entry.name,
-    nip: entry.nip,
-    source_type: source.type,
-    source_detail:
-      source.type === "cloud"
-        ? source.url
-        : source.type === "file"
-          ? (source.filename ?? null)
-          : null,
-  };
-}
-
-function fromEntity(row: LecturerEntity): LecturerDirectoryEntry {
-  return {
-    id: row.id,
-    name: row.name,
-    nip: row.nip,
-    source:
-      row.source_type === "cloud"
-        ? { type: "cloud", url: row.source_detail ?? "" }
-        : row.source_type === "file"
-          ? {
-              type: "file",
-              ...(row.source_detail ? { filename: row.source_detail } : {}),
-            }
-          : ({ type: row.source_type } as LecturerSource),
-  };
-}
 
 function getModel() {
   if (localLecturers) return localLecturers;
@@ -74,26 +44,27 @@ function getStorage() {
   if (!previous.get("entries-migrated", false)) {
     const entries = parseLocalLecturerEntries(previous.get("entries"));
     db.transaction(() => {
-      for (const entry of entries) model.create(toEntity(entry), "IGNORE");
+      for (const entry of entries)
+        model.create(lecturerToEntity(entry), "IGNORE");
     })();
     previous.set("entries-migrated", true);
   }
   previous.delete("entries");
   previous.delete("snapshots");
+  const save = (entry: LecturerDirectoryEntry) => {
+    const { id, ...fields } = lecturerToEntity(entry);
+    if (model.find(id)) model.where("id", id).update(fields);
+    else model.create({ id, ...fields });
+  };
   storage = {
-    read: () => model.orderBy("rowid", "ASC").get().map(fromEntity),
-    save: (entry) => {
-      const row = toEntity(entry);
-      const { id, ...fields } = row;
-      if (model.find(id)) model.where("id", id).update(fields);
-      else model.create(row);
-    },
+    read: () => model.orderBy("rowid", "ASC").get().map(lecturerFromEntity),
+    save,
     remove: (id) => {
       model.where("id", id).delete();
     },
-    insert: (entries) => {
+    upsert: (entries) => {
       db.transaction(() => {
-        for (const entry of entries) model.create(toEntity(entry));
+        entries.forEach(save);
       })();
     },
     createId: randomUUID,
@@ -106,7 +77,7 @@ export const lecturerDirectory = new LocalLecturerDirectory({
   read: () => getStorage().read(),
   save: (entry) => getStorage().save(entry),
   remove: (id) => getStorage().remove(id),
-  insert: (entries) => getStorage().insert(entries),
+  upsert: (entries) => getStorage().upsert(entries),
   createId: () => getStorage().createId(),
 });
 

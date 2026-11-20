@@ -6,6 +6,7 @@ import { ServerUrl } from "../url/server-url";
 import { WorkspaceRuntime } from "../workspaces/runtime";
 import { ProfileService } from "./profile-service";
 import { cloudProfileFromUser } from "../clients/cloud-profile";
+import { WorkspaceRegistry } from "../workspaces/registry";
 
 export class SessionService {
   private static cachedToken: string | null = null;
@@ -47,9 +48,10 @@ export class SessionService {
       return undefined;
     const expiry = this.store.get("session.expiresAt") as string | undefined;
     const server = this.store.get("session.serverUrl") as string | undefined;
+    const tokenServer = server ?? WorkspaceRuntime.profile?.serverUrl;
     if (
       (expiry && Date.parse(expiry) <= Date.now()) ||
-      (server && server !== ServerUrl.instance.api.href)
+      (tokenServer && tokenServer !== ServerUrl.instance.api.href)
     ) {
       this.clear();
       this.onExpired?.();
@@ -115,6 +117,18 @@ export class SessionService {
       (user as User).role = user.roles?.[0]?.name ?? null;
     }
     const workspace = WorkspaceRuntime.profile;
+    if (
+      workspace?.type === "cloud" &&
+      workspace.accountId === String(user.id) &&
+      WorkspaceRuntime.root &&
+      WorkspaceRuntime.serverUrl &&
+      workspace.accountEmail !== user.email
+    ) {
+      WorkspaceRuntime.profile = new WorkspaceRegistry(
+        WorkspaceRuntime.root,
+        WorkspaceRuntime.serverUrl,
+      ).bindAccount(String(user.id), user.email);
+    }
     const profile =
       workspace?.type === "cloud" && workspace.accountId === String(user.id)
         ? cloudProfileFromUser(user as User, ProfileService.getCloudProfile())

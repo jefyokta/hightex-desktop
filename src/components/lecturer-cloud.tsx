@@ -98,6 +98,7 @@ function AuthenticatedLecturerCloudButton({ disabled }: { disabled: boolean }) {
       toast.success(
         t("lecturers.cloud_success", {
           added: result.result.added,
+          updated: result.result.updated ?? 0,
           skipped: result.result.skipped,
         }),
       );

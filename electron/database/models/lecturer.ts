@@ -15,6 +15,7 @@ export class LocalLecturer extends Model<LecturerEntity> {
     nip: table.text().default(""),
     source_type: table.text().default("unknown"),
     source_detail: table.text().nullable(),
+    remote_id: table.text().nullable(),
   };
 
   protected indexes = [table.index("name"), table.index("nip")];

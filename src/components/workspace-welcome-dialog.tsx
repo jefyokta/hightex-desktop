@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Languages, Sparkles, UserRound } from "lucide-react";
@@ -14,12 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  LANGUAGE_OPTIONS,
-  t,
-  useAppLanguage,
-  type SupportedLanguage,
-} from "@/utils/lang";
+import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 
 export function WorkspaceWelcomeDialog() {
   const language = useAppLanguage();

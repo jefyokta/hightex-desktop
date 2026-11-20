@@ -9,6 +9,9 @@ function fixture(type: "local" | "cloud" | undefined) {
   let fetched = 0;
   const runtime = { profile: type ? { type } : undefined };
   const modules: Record<string, unknown> = {
+    "./editor-pdf-experimental-handlers": {
+      EditorPDFExperimentalHandlers: { register: () => {} },
+    },
     electron: {
       shell: {
         openExternal: async (url: string) => {

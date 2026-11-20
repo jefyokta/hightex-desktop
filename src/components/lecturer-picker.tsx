@@ -131,7 +131,8 @@ export function LecturerPicker({
                         {name(row.name)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {t("lecturers.nip_label")}: {row.nip || t("lecturers.nip_missing")}
+                        {t("lecturers.nip_label")}:{" "}
+                        {row.nip || t("lecturers.nip_missing")}
                       </div>
                     </div>
                     {row.name === value.name && row.nip === value.nip && (

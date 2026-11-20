@@ -9,10 +9,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { normalizeWorkspaceServer, workspaceHost } from "./identity";
 import {
-  normalizeWorkspaceServer,
-  workspaceHost,
-} from "./identity";
+  cachedWorkspaceEmail,
+  workspaceAccountEmail,
+} from "./account-identity";
 
 export class WorkspaceRegistry {
   constructor(
@@ -58,86 +59,50 @@ export class WorkspaceRegistry {
         state.profiles.length
     )
       throw Error("Invalid workspace registry");
+    const before = JSON.stringify(state);
     let cloudNumber = 0;
-    let localCopyNumber = 0;
-    let needsFirstLoginFlag = false;
     state.profiles.forEach((profile) => {
-      if (
-        profile.type === "cloud" &&
-        !profile.accountId &&
-        profile.loginOnFirstUse === undefined
-      ) {
-        profile.loginOnFirstUse = true;
-        needsFirstLoginFlag = true;
+      if (profile.legacyCloudBinding) {
+        const binding = profile.legacyCloudBinding;
+        let previousServer: string | undefined;
+        try {
+          previousServer = normalizeWorkspaceServer(binding.serverUrl);
+        } catch {
+          // Preserve malformed historical metadata; it cannot choose a login endpoint.
+        }
+        // Recover profiles downgraded by earlier builds without moving their data.
+        if (previousServer) {
+          profile.serverUrl = previousServer;
+          profile.accountId = binding.accountId;
+          profile.type = "cloud";
+          delete profile.legacyCloudBinding;
+        }
+      }
+      const legacyType = !profile.type;
+      profile.type ??= profile.serverUrl ? "cloud" : "local";
+      profile.accountId ??= null;
+      profile.serverUrl ??= null;
+      if (profile.type === "cloud") {
+        cloudNumber++;
+        profile.serverUrl = normalizeWorkspaceServer(profile.serverUrl ?? "");
+        if (
+          legacyType &&
+          profile.name ===
+            `${new URL(profile.serverUrl).host} · ${profile.accountId}`
+        )
+          profile.name = `Cloud ${cloudNumber}`;
+        if (!profile.accountId) profile.loginOnFirstUse ??= true;
+        profile.accountEmail =
+          workspaceAccountEmail(profile.accountEmail) ??
+          cachedWorkspaceEmail(
+            path.join(this.directory(profile.id), "config.json"),
+            profile,
+          );
+        if (!profile.accountEmail) delete profile.accountEmail;
+      } else {
+        delete profile.accountEmail;
       }
     });
-    const legacyProfiles = state.profiles.some(
-      (profile) =>
-        !profile.type ||
-        (profile.type === "cloud" &&
-          profile.serverUrl !== this.cloudServerUrl),
-    );
-    if (legacyProfiles) {
-      state.profiles = state.profiles.map((profile) => {
-        const type = profile.type ?? (profile.serverUrl ? "cloud" : "local");
-        if (type !== "cloud")
-          return {
-            ...profile,
-            type,
-            serverUrl: profile.serverUrl ?? null,
-            accountId: profile.accountId ?? null,
-          };
-        let serverUrl = "";
-        try {
-          serverUrl = normalizeWorkspaceServer(profile.serverUrl ?? "");
-        } catch {
-          serverUrl = String(profile.serverUrl ?? "");
-        }
-        if (serverUrl === this.cloudServerUrl) {
-          if (!profile.type) cloudNumber++;
-          const generatedName = (() => {
-            try {
-              return `${new URL(serverUrl).host} · ${profile.accountId}`;
-            } catch {
-              return undefined;
-            }
-          })();
-          return {
-            ...profile,
-            name:
-              profile.name === generatedName
-                ? `Cloud ${cloudNumber}`
-                : profile.name,
-            type,
-            serverUrl,
-            accountId: profile.accountId ?? null,
-            ...(!profile.accountId ? { loginOnFirstUse: true } : {}),
-          };
-        }
-        localCopyNumber++;
-        const oldGeneratedName = (() => {
-          try {
-            return `${new URL(serverUrl).host} · ${profile.accountId}`;
-          } catch {
-            return undefined;
-          }
-        })();
-        const oldNameWasGenerated = profile.name === oldGeneratedName;
-        return {
-          ...profile,
-          name: oldNameWasGenerated
-            ? `Salinan lokal ${localCopyNumber}`
-            : profile.name,
-          type: "local" as const,
-          serverUrl: null,
-          accountId: null,
-          legacyCloudBinding: {
-            serverUrl,
-            accountId: profile.accountId ?? null,
-          },
-        };
-      });
-    }
     state.profiles.forEach((profile) => {
       workspaceHost(profile.id);
       if (typeof profile.name !== "string" || !profile.name.trim())
@@ -164,7 +129,7 @@ export class WorkspaceRegistry {
           throw Error("Local workspaces cannot have a cloud account");
       }
     });
-    if (legacyProfiles || needsFirstLoginFlag) this.write(state);
+    if (JSON.stringify(state) !== before) this.write(state);
     return state;
   }
 
@@ -225,7 +190,8 @@ export class WorkspaceRegistry {
     if (!state.profiles.some((profile) => profile.id === id))
       throw Error("Unknown workspace");
     if (id === "local") throw Error("The default workspace cannot be deleted");
-    if (id === state.activeId) throw Error("The active workspace cannot be deleted");
+    if (id === state.activeId)
+      throw Error("The active workspace cannot be deleted");
     if (state.profiles.length <= 1)
       throw Error("At least one workspace must remain");
     return state;
@@ -245,8 +211,6 @@ export class WorkspaceRegistry {
     if (!profile) throw Error("Unknown workspace");
     if (profile.type !== "local")
       throw Error("Only local workspaces can be connected to Cloud");
-    if (profile.legacyCloudBinding)
-      throw Error("This workspace has an unsupported legacy Cloud binding");
     profile.pendingCloudBinding = true;
     this.write(state);
     return state;
@@ -263,7 +227,11 @@ export class WorkspaceRegistry {
     return state;
   }
 
-  private assertNameAvailable(state: WorkspaceState, name: string, exceptId?: string) {
+  private assertNameAvailable(
+    state: WorkspaceState,
+    name: string,
+    exceptId?: string,
+  ) {
     if (
       state.profiles.some(
         (profile) =>
@@ -274,7 +242,7 @@ export class WorkspaceRegistry {
       throw Error("Workspace name already exists");
   }
 
-  bindAccount(accountId: string) {
+  bindAccount(accountId: string, email?: string) {
     if (typeof accountId !== "string" || !accountId)
       throw Error("Invalid workspace account");
     const state = this.read();
@@ -283,9 +251,9 @@ export class WorkspaceRegistry {
       profile.type === "local" && profile.pendingCloudBinding;
     if (
       (!upgradingLocal && profile.type !== "cloud") ||
-      (profile.type === "cloud" &&
-        profile.serverUrl !== this.cloudServerUrl) ||
-      (profile.accountId && profile.accountId !== accountId)
+      (profile.serverUrl === this.cloudServerUrl &&
+        profile.accountId &&
+        profile.accountId !== accountId)
     )
       throw Error("This account belongs in a different workspace");
     if (
@@ -301,6 +269,12 @@ export class WorkspaceRegistry {
     profile.type = "cloud";
     profile.serverUrl = this.cloudServerUrl;
     profile.accountId = accountId;
+    delete profile.legacyCloudBinding;
+    if (email !== undefined) {
+      const normalized = workspaceAccountEmail(email);
+      if (!normalized) throw Error("Invalid workspace email");
+      profile.accountEmail = normalized;
+    }
     profile.loginOnFirstUse = false;
     delete profile.pendingCloudBinding;
     this.write(state);

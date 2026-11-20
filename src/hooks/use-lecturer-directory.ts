@@ -14,8 +14,8 @@ export async function loadLecturerDirectory(): Promise<void> {
   try {
     const api = window.hightex.lecturers;
     publish(api ? await api.list() : { data: [], error: "storage" });
-  } catch (e){
-    console.error(e)
+  } catch (e) {
+    console.error(e);
     publish({
       data: state.data,
       error: "storage",

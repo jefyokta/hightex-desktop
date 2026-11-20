@@ -36,9 +36,11 @@ function fixture() {
     remove: (id) => {
       saved = saved.filter((row) => row.id !== id);
     },
-    insert: (rows) => {
+    upsert: (rows) => {
       if (failWrite) throw Error("Disk full");
-      saved = [...saved, ...structuredClone(rows)];
+      const next = new Map(saved.map((row) => [row.id, row]));
+      rows.forEach((row) => next.set(row.id, structuredClone(row)));
+      saved = [...next.values()];
     },
     createId: () => String(++id),
   });
@@ -114,7 +116,11 @@ test("authenticated fetch stores only local identity fields and server provenanc
       id: "local:1",
       name: "Cloud Lecturer",
       nip: "000123",
-      source: { type: "cloud", url: "https://faculty.example/api/lecturers" },
+      source: {
+        type: "cloud",
+        url: "https://faculty.example/api/lecturers",
+        remoteId: "12",
+      },
     },
   ]);
   expect(JSON.stringify(result)).not.toContain("secret");
@@ -289,4 +295,82 @@ test("a legitimate empty cloud directory leaves saved entries intact", async () 
   });
   expect(f.directory.list().data).toHaveLength(1);
   expect(parseCloudLecturers(payload([]))).toEqual([]);
+});
+
+test("server changes update an existing cloud row by remote identity, including a changed NIP", async () => {
+  const f = fixture();
+  await f.client.fetch();
+  const original = f.directory.list().data[0];
+  const document = { advisorName: original.name, advisorNip: original.nip };
+  f.respond(async () => ({
+    status: 200,
+    data: payload([{ id: "12", name: "Server correction", nip: "009999" }]),
+  }));
+  expect(await f.client.fetch()).toMatchObject({
+    ok: true,
+    result: { added: 0, updated: 1, skipped: 0 },
+  });
+  expect(f.directory.list().data).toEqual([
+    { ...original, name: "Server correction", nip: "009999" },
+  ]);
+  expect(document).toEqual({
+    advisorName: "Cloud Lecturer",
+    advisorNip: "000123",
+  });
+  expect(await f.client.fetch()).toMatchObject({
+    ok: true,
+    result: { added: 0, updated: 0, skipped: 1 },
+  });
+});
+
+test("older cloud rows acquire server identity on refresh without changing the local ID", async () => {
+  const old = {
+    id: "local:legacy",
+    name: "Old cloud name",
+    nip: "000123",
+    source: {
+      type: "cloud" as const,
+      url: "https://faculty.example/api/lecturers",
+    },
+  };
+  // Read pre-upgrade storage through the same directory, then refresh from the server.
+  let saved = [old] as LecturerDirectoryEntry[];
+  const directory = new LocalLecturerDirectory({
+    read: () => structuredClone(saved),
+    save: () => {},
+    remove: () => {},
+    upsert: (rows) => {
+      saved = structuredClone(rows);
+    },
+    createId: () => {
+      throw Error("Identity must be retained");
+    },
+  });
+  const result = directory.importCloud(
+    parseCloudLecturers(payload()),
+    old.source.url,
+  );
+  expect(result).toMatchObject({ added: 0, updated: 1, skipped: 0 });
+  expect(saved[0]).toMatchObject({
+    id: old.id,
+    name: "Cloud Lecturer",
+    source: { ...old.source, remoteId: "12" },
+  });
+  expect(directory.list().data).toEqual(saved);
+});
+
+test("a failed batch containing cloud updates and inserts preserves the complete previous directory", async () => {
+  const f = fixture();
+  await f.client.fetch();
+  const before = f.directory.list();
+  f.failWrites();
+  f.respond(async () => ({
+    status: 200,
+    data: payload([
+      { id: "12", name: "Changed", nip: "000123" },
+      { id: "13", name: "New", nip: "000456" },
+    ]),
+  }));
+  expect(await f.client.fetch()).toEqual({ ok: false, error: "storage" });
+  expect(f.directory.list()).toEqual(before);
 });

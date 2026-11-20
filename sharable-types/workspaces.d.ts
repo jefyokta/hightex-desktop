@@ -5,8 +5,10 @@ declare global {
     id: string;
     name: string;
     type: "local" | "cloud";
+    /** Last successful login context; requests always use the app's configured server. */
     serverUrl: string | null;
     accountId: string | null;
+    accountEmail?: string;
     legacyCloudBinding?: { serverUrl: string; accountId: string | null };
     loginOnFirstUse?: boolean;
     pendingCloudBinding?: boolean;
