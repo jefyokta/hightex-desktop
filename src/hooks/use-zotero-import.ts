@@ -1,3 +1,4 @@
+import { useConfig } from "./use-config";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMultiSelect } from "@/hooks/use-multi-select";
@@ -6,14 +7,11 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { DEFAULT_ZOTERO_CONFIG, type ZoteroItem } from "@/utils/zotero";
 import { t } from "@/utils/lang";
 
-async function getConfig() {
-  await window.config.ready();
-  return window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
-}
-
 export function useZoteroImport(
   importBibtex: (content: string) => Promise<number>,
 ) {
+  const { config } = useConfig();
+  const zotero = config?.zotero ?? DEFAULT_ZOTERO_CONFIG;
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<ZoteroItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,7 +20,7 @@ export function useZoteroImport(
     useMultiSelect<string>("zotero");
 
   const refreshConnection = async () => {
-    const { host, port, enabled } = await getConfig();
+    const { host, port, enabled } = zotero;
     if (!enabled) {
       setConnected(false);
       throw new ShouldNotified({
@@ -56,7 +54,7 @@ export function useZoteroImport(
   };
 
   const loadItems = async () => {
-    const { host, port } = await getConfig();
+    const { host, port } = zotero;
     setLoading(true);
     try {
       const references = await window.zotero.listItems(host, port, 100);
@@ -100,7 +98,7 @@ export function useZoteroImport(
         description: t("citation.zotero.no_matching_references"),
       });
     }
-    const { host, port } = await getConfig();
+    const { host, port } = zotero;
     try {
       const payloads = await Promise.all(
         selectedItems.map((item) =>

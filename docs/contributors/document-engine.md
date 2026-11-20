@@ -703,3 +703,24 @@ path with history disabled. `applyPaginationTransaction` remains the sole owner
 of plugin state transitions, including retention of visible composition during
 pending work. Source/options freshness, composition/font readiness and abort
 checks are lifecycle requirements, rather than assertions to remove during cleanup.
+
+
+Chapter targets are applied by `useChapterTarget` after the ready content mounts.
+The hook waits while local pagination is pending and follows content resizing or
+image loading until user interaction takes control. Cleanup cancels its animation
+frame and observers. This replaces a one-shot frame scheduled before React commits
+ready content; source path/ID resolution stays with the existing navigation owner.
+Pending navigation parameters are consumed through their context setter rather
+than mutating the shared parameter array.
+
+`DocumentResources.prepare` embeds images in batches of four, waits for each batch
+to settle before propagating a resource failure, then waits for image/font readiness
+before geometry capture. Encoding and bytes are unchanged. `StylesheetSnapshot`
+reuses a fingerprint only for the same captured stylesheet map and root appearance;
+a CSS rebuild/failure clears that value. These are per-owner optimizations and do
+not change print batch limits or native pagination.
+
+Repeated stylesheet requests also reuse the final joined CSS string while the
+stylesheet revisions remain current. A rebuild or capture failure clears that
+string with the fingerprint candidate; presentation guards still run. This avoids
+allocating another font-embedded CSS string per request without reusing stale CSS.

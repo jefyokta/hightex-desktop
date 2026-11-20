@@ -1,3 +1,4 @@
+import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import type { Editor } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
@@ -16,6 +17,7 @@ import "@/css/pagination-controls.css";
 
 export function PaginationStatus({ editor }: { editor: Editor | null }) {
   useAppLanguage();
+  const { saveConfig } = useConfig();
   const state = useEditorState({
     editor,
     selector: ({ editor }) => {
@@ -125,8 +127,7 @@ export function PaginationStatus({ editor }: { editor: Editor | null }) {
                 data-pagination-disable
                 onClick={() => {
                   editor?.commands.setEditorPagination(false);
-                  void window.config
-                    .set({ editor: { pagination: false } })
+                  void saveConfig({ editor: { pagination: false } })
                     .catch(() => {
                       toast.error(t("editor.pagination.disable_save_failed"));
                     });

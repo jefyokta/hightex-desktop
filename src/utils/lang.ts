@@ -70,23 +70,8 @@ export const getLanguageLabel = (
   );
 };
 
-export const getCurrentLanguage = (): SupportedLanguage => {
-  if (typeof window === "undefined" || !window.config?.get) {
-    return currentLanguage;
-  }
-
-  const configuredLanguage = window.config.get()?.language;
-
-  const language = SUPPORTED_LANGUAGES.includes(
-    configuredLanguage as SupportedLanguage,
-  )
-    ? (configuredLanguage as SupportedLanguage)
-    : currentLanguage;
-
-  currentLanguage = language;
-
-  return currentLanguage;
-};
+/** The root config owner updates this value before notifying React consumers. */
+export const getCurrentLanguage = (): SupportedLanguage => currentLanguage;
 
 export const setCurrentLanguage = (
   language: SupportedLanguage = "en",

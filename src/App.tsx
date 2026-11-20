@@ -10,6 +10,7 @@ import {
   createRoutesFromElements,
   RouterProvider,
   Outlet,
+
 } from "react-router-dom";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -65,6 +66,8 @@ function MainWindowNavigation() {
   return null;
 }
 
+
+
 function EditorWindowRoutes({ documentId }: { documentId: string }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -81,10 +84,12 @@ function EditorWindowRoutes({ documentId }: { documentId: string }) {
     if (!allowed) navigate(lastEditorLocation.current, { replace: true });
   }, [allowed, navigate]);
 
-  // Keep the mounted editor and its draft when another page is requested.
   return (
-    <Routes location={lastEditorLocation.current}>
-      <Route element={<MainLayout />}>
+    <Routes location={lastEditorLocation.current}
+
+    >
+      <Route element={<MainLayout />}
+      >
         <Route element={<EditorLayout />}>
           <Route
             path="/document/:id/:chapter?/:version?"

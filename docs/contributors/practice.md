@@ -63,9 +63,13 @@ HighTex Desktop values clarity and type safety. Good practices include:
 - Use the existing project UI system and localized strings instead of adding ad
   hoc interfaces.
 
-`LocaleProvider` at the application root owns the language config subscription.
-Components consume `useAppLanguage` from `hooks/` when translated output must
-update; do not add another config listener per component or editor NodeView.
+`ConfigContextProvider` at the application root owns the renderer config
+subscription. React components read and save through `useConfig`; do not add
+another IPC listener or read `window.config` from a component. Send partial patches
+through `saveConfig`: the main-process service owns merging. Components consume
+`useAppLanguage` from `hooks/` when translated output must update; it reads the
+same config context and adds no language subscription. Non-React services retain
+their owning host/config boundary instead of calling React hooks.
 
 If you are unsure whether a pattern is already established, search the codebase
 before introducing a new abstraction.

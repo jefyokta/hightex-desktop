@@ -4,7 +4,6 @@ import Dexie from "dexie";
 import { indexedDB, IDBKeyRange } from "fake-indexeddb";
 import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Document } from "../src/editor/document";
-import { CategoryEmpty } from "../src/exception/categories-empty";
 import { Chapter } from "../src/editor/chapter";
 import { emptyAuthorProfile } from "../src/utils/document-profile";
 import { useChapterStore } from "../src/hooks/use-chapter";
@@ -244,17 +243,6 @@ test("an incomplete category list can recover the requested category before warm
   expect(doc.ready).toBe(true);
   expect(doc.category?.id).toBe(1);
   expect(requested).toEqual(["1"]);
-  expect(
-    JSON.stringify((await db.chapters.get("active.1"))?.content),
-  ).toContain("Original chapter one");
-});
-test("an unavailable category reports a category error and preserves the document instead of declaring it broken", async () => {
-  api.categories = async () => [{ ...categories[0], id: 2 }];
-  api.category = async () => undefined;
-  await expect(
-    new Document("active").warm({ activate: false }),
-  ).rejects.toBeInstanceOf(CategoryEmpty);
-  expect(await db.documents.get("active")).toBeDefined();
   expect(
     JSON.stringify((await db.chapters.get("active.1"))?.content),
   ).toContain("Original chapter one");

@@ -18,8 +18,20 @@ export class DocumentResources implements DocumentResourceContext {
 
   /** Embed assets before reading presentation or link coordinates from this copy. */
   async prepare(root: HTMLElement) {
-    for (const image of root.querySelectorAll("img"))
-      image.src = await this.data(image.src);
+    const images = Array.from(root.querySelectorAll("img"));
+    // Bound simultaneous fetch/encoding work while avoiding a serial asset waterfall.
+    for (let offset = 0; offset < images.length; offset += 4) {
+      this.signal.throwIfAborted();
+      const batch = await Promise.allSettled(
+        images.slice(offset, offset + 4).map(async image => {
+          const source = image.src;
+          const embedded = await this.data(source);
+          if (embedded !== source) image.src = embedded;
+        }),
+      );
+      const failure = batch.find(result => result.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
+    }
     await waitForPrintImages(root, this.signal);
     await waitForContentFonts(root, this.signal);
   }

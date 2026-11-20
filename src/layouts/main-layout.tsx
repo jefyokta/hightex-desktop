@@ -16,7 +16,7 @@ import { OpenFileSlave } from "@/slaves/open-file";
 import { CliDocumentsSlave } from "@/slaves/cli-documents";
 import { ConfirmProvider } from "@/context/confrim-context";
 import { AskProvider } from "@/context/ask-context";
-import { ConfigContextProvider } from "@/context/config-context";
+import { useConfig } from "@/hooks/use-config";
 import { MultiSelectProvider } from "@/context/multi-select-context";
 import { WorkspaceAccessGuard } from "@/components/workspace-access-guard";
 import { WorkspaceWelcomeDialog } from "@/components/workspace-welcome-dialog";
@@ -40,54 +40,47 @@ const applyTheme = (theme: "light" | "dark" | "system") => {
 };
 
 export const MainLayout = () => {
+  const { config } = useConfig();
+  const theme = config?.theme ?? "system";
   useEffect(() => {
-    const config = window.config.get();
-
-    const theme = config?.theme ?? "system";
     applyTheme(theme);
-
-    const unsubscribe = window.config.onChange((cfg) => {
-      applyTheme(cfg.theme);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+    const system = window.matchMedia("(prefers-color-scheme: dark)");
+    const changed = () => { if (theme === "system") applyTheme(theme); };
+    system.addEventListener("change", changed);
+    return () => system.removeEventListener("change", changed);
+  }, [theme]);
 
   return (
-    <ConfigContextProvider>
-      <ErrorProvider>
-        <ConfirmProvider>
-          <AskProvider>
-            <MultiSelectProvider>
-              <WindowTitleSlave />
-              <OpenFileSlave />
-              <CliDocumentsSlave />
-              <UpdaterStatusListener />
-              <TooltipProvider>
-                <UserProvider>
-                  <AuthModalProvider>
-                    <LogoutModalProvider>
-                      <ErrorSlave />
-                      <LoginModal />
-                      <WorkspaceWelcomeDialog />
-                      <WorkspaceAccessGuard>
-                        <Outlet />
-                      </WorkspaceAccessGuard>
-                    </LogoutModalProvider>
-                  </AuthModalProvider>
-                </UserProvider>
-                <Toaster
-                  position="bottom-right"
-                  theme={window.config.get()?.theme || "system"}
-                  className="flex justify-between toasta"
-                />
-              </TooltipProvider>
-            </MultiSelectProvider>
-          </AskProvider>
-        </ConfirmProvider>
-      </ErrorProvider>
-    </ConfigContextProvider>
+    <ErrorProvider>
+      <ConfirmProvider>
+        <AskProvider>
+          <MultiSelectProvider>
+            <WindowTitleSlave />
+            <OpenFileSlave />
+            <CliDocumentsSlave />
+            <UpdaterStatusListener />
+            <TooltipProvider>
+              <UserProvider>
+                <AuthModalProvider>
+                  <LogoutModalProvider>
+                    <ErrorSlave />
+                    <LoginModal />
+                    <WorkspaceWelcomeDialog />
+                    <WorkspaceAccessGuard>
+                      <Outlet />
+                    </WorkspaceAccessGuard>
+                  </LogoutModalProvider>
+                </AuthModalProvider>
+              </UserProvider>
+              <Toaster
+                position="bottom-right"
+                theme={theme}
+                className="flex justify-between toasta"
+              />
+            </TooltipProvider>
+          </MultiSelectProvider>
+        </AskProvider>
+      </ConfirmProvider>
+    </ErrorProvider>
   );
 };

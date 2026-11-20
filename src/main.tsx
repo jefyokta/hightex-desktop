@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createCommentClass } from "./utils/custom-element/comment.ts";
-import { LocaleProvider } from "./context/locale-context";
+import { ConfigContextProvider } from "./context/config-context";
 
 // The print host paints a frozen snapshot; loading editor/dashboard routes here
 // adds startup work without contributing to document layout.
@@ -15,10 +15,10 @@ if (!window.customElements.get("ht-comment")) {
 }
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <LocaleProvider>
+    <ConfigContextProvider>
       <React.Suspense fallback={null}>
         {printing ? <Print /> : <App />}
       </React.Suspense>
-    </LocaleProvider>
+    </ConfigContextProvider>
   </React.StrictMode>,
 );

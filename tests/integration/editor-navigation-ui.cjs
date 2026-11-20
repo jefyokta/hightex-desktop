@@ -44,6 +44,20 @@ exports.run = async ({execute, until, win, artifacts}) => {
   await until('window.applicationEditor&&window.applicationChapter()==="fixture.attachment"');
   await until('!document.querySelector("[data-chapter-picker-trigger]").disabled');
   await until('headingNavigation.length>1&&headingNavigation.at(-1).exists');
+  const targetNavigation = await execute(`
+    await new Promise(requestAnimationFrame);
+    const before=headingNavigation.length,page=document.getElementById('page');
+    page.style.paddingTop='80px';
+    await new Promise(resolve=>setTimeout(resolve,80));
+    const followed=headingNavigation.length>before;
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+    const stoppedAt=headingNavigation.length;
+    page.style.paddingTop='100px';
+    await new Promise(resolve=>setTimeout(resolve,80));
+    return {followed,stopped:headingNavigation.length===stoppedAt};
+  `);
+  assert.equal(targetNavigation.followed,true);assert.equal(targetNavigation.stopped,true);
+
   await execute('document.querySelector("[data-chapter-picker-trigger]").click()');
   await until('document.querySelector("[data-chapter-picker]")');
   await win.webContents.sendInputEvent({type:'keyDown',keyCode:'ESCAPE'});
@@ -61,7 +75,7 @@ exports.run = async ({execute, until, win, artifacts}) => {
   fs.writeFileSync(path.join(artifacts,'pagination-controls.png'),await win.webContents.capturePage().then(image=>image.toPNG()));
   assert.equal(tree.active,true);assert.equal(tree.focused,true);assert.equal(tree.nested,true);assert.equal(tree.overflow,false);
   assert.equal(await execute('return graphReads'),0);
-  const report={graphReads:0,...tree,search,unchangedSource:true,options:true,headingScroll:true,crossChapter:true,escape:true};
+  const report={targetNavigation,graphReads:0,...tree,search,unchangedSource:true,options:true,headingScroll:true,crossChapter:true,escape:true};
   fs.writeFileSync(path.join(artifacts,'navigation-ui.json'),JSON.stringify(report,null,2));
   console.log('PASS chapter picker and pagination UI:',artifacts,JSON.stringify(report));
 };

@@ -37,12 +37,14 @@ export function installPageViewport(
   root.append(viewport);
   bank.style.cssText = chrome.style.cssText =
     "position:absolute;left:-100000px;top:0";
-  style.textContent = `html,body {margin:0!important;padding:0!important;background:white!important}
+  const baseStyle = `html,body {margin:0!important;padding:0!important;background:white!important}
     [data-print-viewport]{position:relative;overflow:hidden;margin:0;padding:0;font:12pt/1.5 "Times New Roman",serif;background:white;color:black}
     [data-print-viewport] *{break-before:auto!important;break-after:auto!important;break-inside:auto!important;orphans:1!important;widows:1!important}
     @media print{[data-context-bank],[data-chrome-bank],[data-editor-pdf-debug-controls]{display:none!important}}
   `;
+  style.textContent = baseStyle;
   document.head.append(style);
+  let paperSize = "";
   let disposed = false;
   let selected: number | undefined;
   let selectedCount = 0;
@@ -64,29 +66,37 @@ export function installPageViewport(
       if (next.context !== view.context || next.page !== view.page + offset)
         throw Error(`Editor PDF viewport batch crosses a canonical context at page ${index + offset + 1}`);
     }
+    const context = contexts[view.context];
     if (selected !== undefined) {
       const previous = contexts[snapshot.projection.views[selected].context];
-      previous.style.top = "0px";
-      bank.append(previous);
+      // Consecutive batches borrow the same context. Keep it mounted so Chromium
+      // does not invalidate its complete chapter subtree between native prints.
+      if (previous !== context) {
+        previous.style.top = "0px";
+        bank.append(previous);
+      }
       for (const overlay of overlays.slice(selected, selected + selectedCount)) {
         overlay.removeAttribute("style");
         chrome.append(overlay);
       }
     }
     const height = (count - 1) * geometry.stride + geometry.height;
-    style.textContent =
-      style.textContent.replace(/@page\s*\{[^}]*\}/g, "") +
-      `\n@page{size:${geometry.width}px ${height}px;margin:0}`;
+    const size = `${geometry.width}px ${height}px`;
+    if (size !== paperSize) {
+      style.textContent = `${baseStyle}\n@page{size:${size};margin:0}`;
+      paperSize = size;
+    }
     viewport.style.width = `${geometry.width}px`;
     viewport.style.height = `${height}px`;
-    contexts[view.context].style.top =
+    context.style.top =
       `${-(view.page - 1) * geometry.stride}px`;
     const chromePages = overlays.slice(index, index + count);
     if (count > 1)
       chromePages.forEach((overlay, offset) => {
         overlay.style.cssText = `position:absolute;left:0;top:${offset * geometry.stride}px;width:${geometry.width}px;height:${geometry.height}px`;
       });
-    viewport.replaceChildren(contexts[view.context], ...chromePages);
+    if (context.parentElement !== viewport) viewport.prepend(context);
+    viewport.append(...chromePages);
     viewport.dataset.physicalPage = String(index + 1);
     selected = index;
     selectedCount = count;

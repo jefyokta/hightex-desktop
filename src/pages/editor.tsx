@@ -1,4 +1,4 @@
-import { HEADING_PATH_PREFIX, scrollToHeadingPath } from "@/editor/chapter/heading-navigation";
+import { useChapterTarget } from "@/hooks/use-chapter-target";
 import React, {
   useCallback,
   useEffect,
@@ -54,13 +54,7 @@ import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { EditorPagination } from "@/editor/pagination";
 import { PaginationStatus } from "@/components/editor/pagination-status";
 import { AbstractCompositionEditor } from "@/components/editor/abstract-composition-editor";
-import {
-  SCANNER_PARAGRAPH_PREFIX,
-  scrollToPunctuationParagraph,
-  decodeScannerDiagnostic,
-  focusEditorDiagnostic,
-  SCANNER_DIAGNOSTIC_PREFIX,
-} from "@/scanner/navigation";
+
 export const Editor: React.FC = () => {
   const { zoom, showZoomUI, containerRef, zoomIn, zoomOut } = useZoom();
 
@@ -239,7 +233,7 @@ export const Editor: React.FC = () => {
 
 const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const { setEditor } = useCurrentEditor();
-  const { params } = param();
+  const { params, setParams } = param();
   const navigationTargets = useRef(params);
   navigationTargets.current = params;
   const { config } = useConfig();
@@ -260,7 +254,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   const alive = useRef(true);
   const contentError = useRef(false);
   const commitTimer = useRef<ReturnType<typeof setTimeout>>();
-  const navigationFrame = useRef<number>();
+  const [navigationTarget, setNavigationTarget] = useState<string>();
   const removeListeners = useRef<() => void>();
   const extensions = useMemo(
     () => [
@@ -269,7 +263,6 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
     ],
     [chapter, config?.editor.aliasHint],
   );
-
   const { setContent, setOpen } = useExpandableSidebar();
   useEffect(() => {
     return FrameManager.onMessaged((m) => {
@@ -306,40 +299,12 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
       }
       if (!initialized || !alive.current || editor.isDestroyed) return;
 
-      const target = navigationTargets.current.pop();
+      const target = navigationTargets.current[navigationTargets.current.length - 1];
+      if (target) setParams([]);
       setHasNavigationTarget(!!target);
+      setNavigationTarget(target);
       setReady(true);
       setEditor(editor);
-      navigationFrame.current = requestAnimationFrame(() => {
-        if (!alive.current || editor.isDestroyed) return;
-        if (target) {
-          if (target.startsWith(SCANNER_DIAGNOSTIC_PREFIX)) {
-            const diagnostic = decodeScannerDiagnostic(target);
-            if (diagnostic?.chapterId === chapter.getId())
-              void focusEditorDiagnostic(editor, diagnostic).then((focused) => {
-                if (!focused)
-                  toast.info(
-                    t(
-                      diagnostic.source
-                        ? "editor.pagination.source_stale"
-                        : "editor.inline.scanner_stale",
-                    ),
-                  );
-              });
-          } else if (target.startsWith(SCANNER_PARAGRAPH_PREFIX)) {
-            scrollToPunctuationParagraph(
-              editor,
-              Number(target.slice(SCANNER_PARAGRAPH_PREFIX.length)),
-            );
-          } else if (target.startsWith(HEADING_PATH_PREFIX)) {
-            scrollToHeadingPath(editor, target);
-          } else {
-            Manager.scrollTo(target);
-          }
-        } else {
-          editor.commands.focus(undefined, { scrollIntoView: false });
-        }
-      });
       const onInput = () => {
         clearTimeout(commitTimer.current);
         commitTimer.current = setTimeout(() => {
@@ -361,50 +326,50 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
           [
             ...(window.application.isDev
               ? [
-                  {
-                    label: "Inspect Element",
-                    onClick: () =>
-                      window.application.inspectElement(e.clientX, e.clientY),
-                  },
-                ]
+                {
+                  label: "Inspect Element",
+                  onClick: () =>
+                    window.application.inspectElement(e.clientX, e.clientY),
+                },
+              ]
               : []),
             ...(target?.id
               ? [
-                  {
-                    label: t("editor.context_menu.delete"),
-                    danger: true,
-                    icon: <TrashIcon className="h-4 w-4" />,
-                    onClick: () => editor.commands.deleteSelection(),
+                {
+                  label: t("editor.context_menu.delete"),
+                  danger: true,
+                  icon: <TrashIcon className="h-4 w-4" />,
+                  onClick: () => editor.commands.deleteSelection(),
+                },
+                {
+                  label: t("editor.context_menu.see_in_preview"),
+                  icon: <Eye className="h-4 w-4" />,
+                  onClick: () => {
+                    const frame = document.querySelector("iframe");
+                    if (!frame) {
+                      throw new FrameNotOpened({
+                        message: t("error.frame.not.opened"),
+                        description: t("error.frame.not.opened.desc"),
+                        action: (
+                          <Button
+                            onClick={() => {
+                              setContent("previewer");
+                              setOpen(true);
+                            }}
+                          >
+                            {t("editor.inline.open")}
+                          </Button>
+                        ),
+                      });
+                    }
+                    FrameManager.sendMessage(
+                      "node:clicked",
+                      { uuid: target.id, type: "node:clicked" },
+                      frame,
+                    );
                   },
-                  {
-                    label: t("editor.context_menu.see_in_preview"),
-                    icon: <Eye className="h-4 w-4" />,
-                    onClick: () => {
-                      const frame = document.querySelector("iframe");
-                      if (!frame) {
-                        throw new FrameNotOpened({
-                          message: t("error.frame.not.opened"),
-                          description: t("error.frame.not.opened.desc"),
-                          action: (
-                            <Button
-                              onClick={() => {
-                                setContent("previewer");
-                                setOpen(true);
-                              }}
-                            >
-                              {t("editor.inline.open")}
-                            </Button>
-                          ),
-                        });
-                      }
-                      FrameManager.sendMessage(
-                        "node:clicked",
-                        { uuid: target.id, type: "node:clicked" },
-                        frame,
-                      );
-                    },
-                  },
-                ]
+                },
+              ]
               : []),
             ...getContextMenuItems(editor),
           ],
@@ -440,14 +405,13 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
     enableContentCheck: true,
   });
 
+  useChapterTarget(editor, chapter.getId(), navigationTarget, ready, pageRef);
+
   useLayoutEffect(() => {
     alive.current = true;
     return () => {
       alive.current = false;
       clearTimeout(commitTimer.current);
-      if (navigationFrame.current !== undefined) {
-        cancelAnimationFrame(navigationFrame.current);
-      }
       removeListeners.current?.();
       if (editor) Manager.emit("destroy", { editor });
       setEditor((current) => (current === editor ? null : current));

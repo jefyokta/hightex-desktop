@@ -274,12 +274,13 @@ let tempDir: string | undefined;
 let serverPort: number | undefined;
 
 afterEach(async () => {
-  if (server) {
+  const running = server;
+  server = undefined;
+  serverPort = undefined;
+  if (running?.listening) {
     await new Promise<void>((resolve, reject) => {
-      server!.close((err) => (err ? reject(err) : resolve()));
+      running.close(err => err ? reject(err) : resolve());
     });
-    server = undefined;
-    serverPort = undefined;
   }
   if (tempDir) {
     await rm(tempDir, { recursive: true, force: true });
@@ -329,15 +330,20 @@ test("updater checks a local HTTP server for updates and downloads the artifact"
     }
   });
 
-  serverPort = await new Promise<number>((resolve) => {
-    server!.listen(0, "127.0.0.1", () => {
+  serverPort = await new Promise<number>((resolve, reject) => {
+    const listening = () => {
+      server!.removeListener("error", failed);
       const address = server!.address();
-      if (typeof address === "object" && address) {
-        resolve(address.port);
-      } else {
-        throw new Error("Could not get server address");
-      }
-    });
+      if (typeof address === "object" && address) resolve(address.port);
+      else reject(new Error("Could not get server address"));
+    };
+    const failed = (error: Error) => {
+      server!.removeListener("listening", listening);
+      reject(error);
+    };
+    server!.once("error", failed);
+    server!.once("listening", listening);
+    server!.listen(0, "127.0.0.1");
   });
 
   const feedUrl = `http://127.0.0.1:${serverPort}`;

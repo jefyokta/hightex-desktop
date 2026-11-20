@@ -1,3 +1,4 @@
+import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -51,6 +52,7 @@ const getAuthorInputs = (cite: CiteUtils): AuthorInput[] => {
 };
 
 export const Citation = () => {
+  const { config } = useConfig();
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [cites, setCites] = useState<CiteUtils[]>([]);
@@ -144,9 +146,8 @@ export const Citation = () => {
     setZoteroItems([]);
     setBusy(true);
     try {
-      await window.config.ready();
       const { enabled, host, port } =
-        window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
+        config?.zotero ?? DEFAULT_ZOTERO_CONFIG;
       if (!enabled) throw new Error(t("citation.zotero.integration_disabled"));
       const result = await window.zotero.testConnection(host, port);
       if (!result.connected)
@@ -170,9 +171,8 @@ export const Citation = () => {
     try {
       if (mode === "bibtex") await importBib(bibText);
       if (mode === "zotero") {
-        await window.config.ready();
-        const { host, port } =
-          window.config.get()?.zotero ?? DEFAULT_ZOTERO_CONFIG;
+          const { host, port } =
+          config?.zotero ?? DEFAULT_ZOTERO_CONFIG;
         const bibs = await Promise.all(
           selected.map((key) => window.zotero.exportBibtex(host, port, key)),
         );

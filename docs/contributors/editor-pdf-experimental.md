@@ -107,7 +107,7 @@ numeric order and does not change recorded geometry or native print batching.
 `main.tsx` loads the internal print route directly, without importing `App` or its
 editor/dashboard router. `EditorPDFPrint` loads inspection controls only in debug
 mode. Normal application windows still load `App`; both paths use the same root
-locale provider and custom comment element. Print startup does not assemble or
+config provider and custom comment element. Print startup does not assemble or
 replan document content.
 
 Within one `DocumentResources` lifecycle, its `StylesheetSnapshot` owns CSS
@@ -300,3 +300,21 @@ corrupt images share a portable placeholder between the live editor, canonical
 layout and print host, with repair controls outside measured content. Input IDs,
 source JSON and stored assets are not repaired by capture. Any future blocking
 scanner policy belongs to a separate pre-compile stage.
+
+
+Native batch-size experiments must include fractional physical geometry such as
+A4. An integer CSS stride can conceal native paper/crop rounding differences:
+compare page rasters and external link coordinates, not only extracted text and
+page count. The default remains four views with the existing 12000px strip cap;
+a larger batch is not an accepted optimization merely because an integer-size
+fixture passes. `HIGHTEX_NATIVE_BATCHES=1` is an opt-in comparison experiment, not
+a passing release acceptance check for eight-view output.
+
+
+Viewport selection keeps the current canonical context mounted for consecutive
+batches of that section. A context returns to the bank only when changing sections;
+page chrome still follows each selected view. The print stylesheet is replaced only
+when the physical paper dimensions change. This avoids subtree/style invalidation
+without changing batch limits, crop geometry or recorded pagination. Timing claims
+must separate capture, host startup, native print calls and assembly; reducing CSS
+work alone does not establish a substantial whole-document export speedup.

@@ -318,7 +318,8 @@ test("print image readiness waits for decode and reports failed images", async (
   const failed = {
     querySelectorAll: () => [
       {
-        getAttribute: () => "blob:missing",
+        getAttribute: (name: string) => name === "src" ? "blob:missing" : null,
+        closest: () => null,
         decode: async () => {
           throw new Error("Decode failed");
         },

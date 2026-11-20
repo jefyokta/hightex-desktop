@@ -5,13 +5,7 @@ import en from "../src/locales/en.json";
 import id from "../src/locales/id.json";
 import { setCurrentLanguage, t } from "../src/utils/lang";
 
-const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-afterEach(() => {
-  if (originalWindow)
-    Object.defineProperty(globalThis, "window", originalWindow);
-  else Reflect.deleteProperty(globalThis, "window");
-  setCurrentLanguage("en");
-});
+afterEach(() => setCurrentLanguage("en"));
 
 function flatten(object: object, prefix = ""): Record<string, string> {
   return Object.fromEntries(
@@ -138,10 +132,7 @@ test("locale check catches missing and misspelled parameters", () => {
 
 for (const language of ["id", "en"] as const) {
   test(`${language} cleanup and progress messages render counts without unresolved placeholders`, () => {
-    Object.defineProperty(globalThis, "window", {
-      configurable: true,
-      value: { config: { get: () => ({ language }) } },
-    });
+    setCurrentLanguage(language);
     const cleanup = t("settings.data.clear_cache.progress.start", {
       chaptersCount: 4,
       imagesCount: 6,

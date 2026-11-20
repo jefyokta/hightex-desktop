@@ -2,8 +2,9 @@ import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import { sha256Bytes } from "../src/utils/sha256";
 
-function fixture() {
+function fixture(initialImages: unknown[] = []) {
   const flushed: string[] = [];
   let compared = 0,
     stopped = 0,
@@ -15,11 +16,16 @@ function fixture() {
   let flush: (id: string) => Promise<void> = async () => {};
   let complete: (result: unknown) => void = () => {};
   let observer: { next(snapshot: unknown): void } | undefined;
+  let imageObserver: typeof observer;
   const modules: Record<string, unknown> = {
     dexie: {
       liveQuery: () => ({
         subscribe: (listener: typeof observer) => {
-          observer = listener;
+          if (!observer) observer = listener;
+          else {
+            imageObserver = listener;
+            queueMicrotask(() => listener!.next(initialImages));
+          }
           return { unsubscribe: () => stopped++ };
         },
       }),
@@ -35,12 +41,16 @@ function fixture() {
         });
       },
     },
+    "@/utils/sha256": { sha256Bytes },
     "@/utils/content-assets": {},
     "@/utils/is-static-var": {},
   };
   const sandbox = {
     exports: {} as typeof import("../src/editor/storage/comparison-session"),
-    require: (name: string) => modules[name],
+    require: (name: string) => {
+      if (!(name in modules)) throw Error(`Unexpected import: ${name}`);
+      return modules[name];
+    },
     DOMException,
     window: {
       editor: {
@@ -53,6 +63,15 @@ function fixture() {
       session: { onChange: () => () => removed++ },
     },
   };
+  const imageModule = { ...sandbox, exports: {} };
+  vm.runInNewContext(
+    ts.transpileModule(
+      readFileSync(new URL("../src/editor/storage/document-image-observer.ts", import.meta.url), "utf8"),
+      { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } },
+    ).outputText,
+    imageModule,
+  );
+  modules["./document-image-observer"] = imageModule.exports;
   const sourceObserver = { ...sandbox, exports: {} };
   vm.runInNewContext(
     ts.transpileModule(
@@ -91,36 +110,42 @@ function fixture() {
       flush = action;
     },
     emit: (snapshot: unknown) => observer!.next(snapshot),
+    emitImages: (images: unknown[]) => imageObserver!.next(images),
     complete: (result: unknown) => complete(result),
     observing: () => Boolean(observer),
   };
 }
-const tick = async () => {
-  for (let i = 0; i < 15; i++) await Promise.resolve();
-};
+const tick = () => new Promise<void>(resolve => setImmediate(resolve));
 const snapshot = (title: string) => ({
   documents: [{ title }],
   chapters: [],
   references: [],
   aliases: [],
   variables: [],
-  images: [],
+  imageIds: new Set<string>(),
 });
 
 test("derived numbering watches source writes without hashing image blobs and unsubscribes on abort", async () => {
-  const f = fixture(), controller = new AbortController();
+  const f = fixture([{ blob: { arrayBuffer() { throw Error("Must not hash blobs"); } } }]);
+  const controller = new AbortController();
   let changed = 0;
   const watch = f.sources.observeDocumentSources(["main"], () => changed++, controller.signal, { compareContent: false });
-  const source = { ...snapshot("Before"), images: [{ blob: { arrayBuffer() { throw Error("Must not hash blobs"); } } }] };
+  const source = snapshot("Before");
   f.emit(source);
   await watch.ready;
   expect(changed).toBe(0);
   f.emit(source);
+  await tick();
   expect(changed).toBe(1);
+  f.emitImages([{ blob: { arrayBuffer() { throw Error("Must not hash blobs"); } } }]);
+  await tick();
+  expect(changed).toBe(2);
   controller.abort();
   f.emit(source);
-  expect(changed).toBe(1);
-  expect(f.stopped()).toBe(1);
+  f.emitImages([]);
+  await tick();
+  expect(changed).toBe(2);
+  expect(f.stopped()).toBe(2);
   expect(f.removed()).toBe(2);
 });
 
@@ -201,7 +226,7 @@ test("source changes during capture are reported, and cancellation discards a la
   controller.abort();
   f.complete({ main: { id: "main" } });
   await expect(work).rejects.toThrow();
-  expect(f.stopped()).toBe(1);
+  expect(f.stopped()).toBe(2);
   expect(f.removed()).toBe(2);
   f.emit(snapshot("Later"));
   await tick();

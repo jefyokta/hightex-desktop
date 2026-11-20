@@ -1,3 +1,4 @@
+import { useConfig } from "@/hooks/use-config";
 import { PageHeader } from "@/components/dashboard/page-header";
 import licenseText from "../../LICENSE?raw";
 import copyrightNotice from "../../COPYRIGHT?raw";
@@ -53,44 +54,17 @@ import { useCitationCleanup } from "@/hooks/use-citation-cleanup";
 
 export const Settings = () => {
   const { cleaning, deleteUnusedCitations } = useCitationCleanup();
-  const [config, setConfig] = useState<ConfigShape | null>(null);
-
-  const [theme, setTheme] = useState<ThemeMode>("system");
-  const [language, setLanguage] = useState<SupportedLanguage>("en");
-
-  useEffect(() => {
-    const init = window.config.get();
-
-    if (init) {
-      setConfig(init);
-      setTheme(init.theme);
-      setLanguage(init.language ?? "en");
-    }
-
-    return window.config.onChange((cnfg) => {
-      setConfig(cnfg);
-      setTheme(cnfg.theme);
-      setLanguage(cnfg.language ?? "en");
-    });
-  }, []);
-
-  const patchConfig = async (patch: Partial<ConfigShape>) => {
-    const updated = await window.config.set(patch);
-
-    setConfig(updated);
-  };
+  const { config, saveConfig: patchConfig, resetConfig } = useConfig();
+  const theme = config?.theme ?? "system";
+  const language = config?.language ?? "en";
 
   const changeTheme = async (mode: ThemeMode) => {
-    setTheme(mode);
-
     await patchConfig({
       theme: mode,
     });
   };
 
   const changeLanguage = async (mode: SupportedLanguage) => {
-    setLanguage(mode);
-
     await patchConfig({
       language: mode,
     });
@@ -528,7 +502,7 @@ export const Settings = () => {
               const id = toast.loading(t("common.loading"));
 
               try {
-                await window.config.reset();
+                await resetConfig();
                 toast.success(t("common.done_action"), { id });
               } catch (error) {
                 toast.error(

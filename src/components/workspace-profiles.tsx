@@ -1,3 +1,4 @@
+import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { useState } from "react";
 import {
@@ -34,6 +35,7 @@ import {
 } from "./ui/dialog";
 
 export function WorkspaceProfiles() {
+  const { saveConfig } = useConfig();
   const { state, setState, error, setError } = useWorkspaces();
   const language = useAppLanguage();
   const online = useOnline();
@@ -361,7 +363,7 @@ export function WorkspaceProfiles() {
                   value={language}
                   disabled={busy}
                   onChange={(event) =>
-                    void window.config.set({
+                    void saveConfig({
                       language: event.target.value as SupportedLanguage,
                     })
                   }

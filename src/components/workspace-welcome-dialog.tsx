@@ -1,3 +1,4 @@
+import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +19,7 @@ import {
 import { LANGUAGE_OPTIONS, t, type SupportedLanguage } from "@/utils/lang";
 
 export function WorkspaceWelcomeDialog() {
+  const { saveConfig } = useConfig();
   const language = useAppLanguage();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -78,7 +80,7 @@ export function WorkspaceWelcomeDialog() {
     operation.current = true;
     setSaving(true);
     try {
-      await window.config.set({ language: value });
+      await saveConfig({ language: value });
     } catch {
       toast.error(t("onboarding.welcome.language_failed"));
     } finally {

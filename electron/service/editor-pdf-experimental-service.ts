@@ -10,7 +10,9 @@ import {
   validateEditorPDFSnapshot,
 } from "../../shared/editor-pdf-contract";
 
-/** Validate snapshots, print native PDF bytes and atomically save the chosen file. */
+/** 
+ * Validate snapshots, print native PDF bytes and atomically save the chosen file. 
+ */
 export class EditorPDFExperimentalService {
   constructor(private readonly maxBatchPages = 4) {}
   async export(input: EditorPDFSnapshot, signal: AbortSignal) {
@@ -94,7 +96,7 @@ export class EditorPDFExperimentalService {
           throw Error(`Editor PDF page count changed: expected ${snapshot.pages}, native PDF contains ${pdf.getPageCount()}`);
         pdf.setTitle(snapshot.title.replace(/<[^>]*>/g, ""));
         pdf.setAuthor(snapshot.author);
-        pdf.setCreator("HighTex editor pagination (experimental)");
+        pdf.setCreator("HighTex Engine 2-beta");
         pdf.setProducer("HighTex");
         pdf.setSubject(
           JSON.stringify({

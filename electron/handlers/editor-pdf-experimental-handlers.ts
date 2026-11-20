@@ -6,19 +6,16 @@ import { Handled } from "../exception/interface/handled";
 export class EditorPDFExperimentalHandlers {
   static register() {
     const jobs = new Map<string, AbortController>();
-    for (const action of ["export", "debug"] as const) IPCMain.handle(
-      `experimental:editor-pdf:${action}`,
-      async (event, input: EditorPDFSnapshot, requestId: string) => {
+    for (const action of ["export", "debug"] as const) 
+   {  
+    IPCMain.handle(`experimental:editor-pdf:${action}`,
+async (event, input: EditorPDFSnapshot, requestId: string) => {
         if (
           event.senderFrame?.processId !== event.sender.mainFrame.processId ||
           event.senderFrame?.routingId !== event.sender.mainFrame.routingId
         )
           throw Error("forbidden");
-        if (
-          typeof requestId !== "string" ||
-          !/^[a-zA-Z0-9-]{1,128}$/.test(requestId)
-        )
-          throw Error("Invalid editor PDF request");
+        if ( typeof requestId !== "string" || !/^[a-zA-Z0-9-]{1,128}$/.test(requestId) ) throw Error("Invalid editor PDF request");
         const key = `${event.sender.id}:${requestId}`;
         if (jobs.has(key)) throw Error("Editor PDF request already running");
         const task = new AbortController();
@@ -40,6 +37,7 @@ export class EditorPDFExperimentalHandlers {
         }
       },
     );
+  }
     IPCMain.handle(
       "experimental:editor-pdf:cancel",
       (event, requestId: string) => {

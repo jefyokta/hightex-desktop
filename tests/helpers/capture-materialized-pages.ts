@@ -1,4 +1,4 @@
-import type { DocumentResources } from "../../src/document-engine/resources/document-resources";
+import type { DocumentResourceContext } from "../../src/document-engine/resources/contracts";
 import { captureDocumentContexts } from "../../src/document-export/snapshot/capture-contexts";
 
 type MaterializedMetadata = Omit<EditorPDFContent, "html" | "presentation" | "fingerprint" | "pages"> &
@@ -8,7 +8,7 @@ type MaterializedMetadata = Omit<EditorPDFContent, "html" | "presentation" | "fi
 export async function captureMaterializedPages(
   root: HTMLElement,
   metadata: MaterializedMetadata,
-  resources: DocumentResources,
+  resources: DocumentResourceContext,
   appearance: string,
   signal: AbortSignal,
 ): Promise<EditorPDFSnapshot> {

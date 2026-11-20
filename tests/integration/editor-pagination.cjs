@@ -23,7 +23,9 @@ const documentTests = process.env.HIGHTEX_PAGINATION_DOCUMENTS
         : "./editor-pagination-documents.cjs",
     ).prepare({
       artifacts,
-      reproduce: process.env.HIGHTEX_CORE_MVP
+      reproduce: process.env.HIGHTEX_EXPORT_PROFILE
+        ? require("./editor-export-profile.cjs").run
+        : process.env.HIGHTEX_CORE_MVP
         ? require("./editor-core-mvp.cjs").run
         : process.env.HIGHTEX_PAGINATION_BASELINE
         ? require("./editor-pagination-baseline.cjs").run
@@ -80,7 +82,7 @@ ${process.env.HIGHTEX_COMPOSITE_APP ? "import '/src/document-engine/adapters/cur
 ${process.env.HIGHTEX_EDITOR_PDF_DARK ? "document.documentElement.classList.add('dark');" : ""}
 const config={language:'en',theme:'light',editor:{pagination:false},previewer:{scope:'current',autoUpdate:false,layoutIndicator:true}};
 const configListeners=new Set();
-window.config={get:()=>structuredClone(config),onChange:callback=>{configListeners.add(callback);return ()=>configListeners.delete(callback)},set:async patch=>{const editor={...config.editor,...patch.editor};Object.assign(config,patch,{editor});for(const callback of configListeners)callback(structuredClone(config));return structuredClone(config)}};
+window.config={ready:async()=>structuredClone(config),get:()=>structuredClone(config),onChange:callback=>{configListeners.add(callback);return ()=>configListeners.delete(callback)},set:async patch=>{const editor={...config.editor,...patch.editor};Object.assign(config,patch,{editor});for(const callback of configListeners)callback(structuredClone(config));return structuredClone(config)}};
 window.feedbackTest={reports:[],copies:[],versionCalls:0,mode:'success'};
 Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{window.feedbackTest.copies.push(text)}}});
 window.hightex={version:async()=>{window.feedbackTest.versionCalls++;if(window.feedbackTest.versionFails)throw Error('Offline version fixture');return '1.5.0'},reportError:async report=>{window.feedbackTest.reports.push(report);if(window.feedbackTest.mode==='failure')throw Error('Offline report fixture');if(window.feedbackTest.mode==='deferred')await new Promise(resolve=>window.feedbackTest.resolve=resolve)},categories:async()=>[{id:1,name:'Fixture',variant:'thesis',chapters:[{chapter:'1',title:'Introduction'}]}],cloud:{academic:{locked:async()=>false}}};
@@ -394,6 +396,19 @@ app
     await until("window.ready&&window.editor");
     if (process.env.HIGHTEX_PAGINATION_FLOW) {
       await require('./editor-pagination-flow.cjs').run({execute,until,artifacts});return;
+    }
+    if (process.env.HIGHTEX_NATIVE_BATCHES) {
+      await require('./editor-native-batches.cjs').run({execute,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_CONFIG_OWNER) {
+      const report = await execute(`const {reviewConfigOwner}=await import('/tests/helpers/language-root-review.tsx');return reviewConfigOwner()`);
+      assert.equal(report.preserved,true);assert.equal(report.stable,true);assert.equal(report.translated,true);assert.equal(report.reset,true);assert.equal(report.listeners,1);assert.equal(report.translationReads,0);
+      assert.deepEqual(report.patches,[{theme:'dark'},{editor:{pagination:true}},{language:'id'}]);
+      writeFileSync(path.join(artifacts,'config-owner.json'),JSON.stringify(report,null,2));
+      console.log('PASS config owner:',artifacts,JSON.stringify(report));return;
+    }
+    if (process.env.HIGHTEX_RESOURCE_PREPARATION) {
+      await require('./editor-resource-preparation.cjs').run({execute,artifacts});return;
     }
     if (process.env.HIGHTEX_NAVIGATION_UI) {
       await require('./editor-navigation-ui.cjs').run({execute,until,win,artifacts});return;

@@ -1,3 +1,4 @@
+import { useConfig } from "@/hooks/use-config";
 import { Manager } from "@/editor/manager";
 import { useEffect, useRef, useState } from "react";
 import { TabHeader } from "./components/tab-header";
@@ -25,16 +26,10 @@ import { ActionCanceled } from "@/exception/action-canceled";
 export const Preview = () => {
   const [loading, setLoading] = useState(true);
 
-  const [autoUpdate, setAutoUpdate] = useState(
-    window.config.get()?.previewer.autoUpdate,
-  );
-  const [layoutIndicator, setLayoutIndicator] = useState(
-    window.config.get()?.previewer.layoutIndicator,
-  );
-
-  const [scope, setScope] = useState<ConfigShape["previewer"]["scope"]>(
-    window.config.get()?.previewer.scope || "current",
-  );
+  const { config, saveConfig } = useConfig();
+  const autoUpdate = config?.previewer.autoUpdate ?? false;
+  const layoutIndicator = config?.previewer.layoutIndicator ?? true;
+  const scope = config?.previewer.scope ?? "current";
 
   const [zoom, setZoom] = useState<number>(40);
   const [frameKey, setFrameKey] = useState(uniqId());
@@ -69,24 +64,6 @@ export const Preview = () => {
   }, [zoom, loading]);
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-
-    const init = async () => {
-      unsubscribe = window.config.onChange((next) => {
-        setAutoUpdate(next.previewer.autoUpdate);
-        setLayoutIndicator(next.previewer.layoutIndicator);
-        setScope(next.previewer.scope);
-      });
-    };
-
-    init();
-
-    return () => {
-      unsubscribe?.();
-    };
-  }, []);
-
-  useEffect(() => {
     if (!autoUpdate) return;
 
     return Manager.app.on("chapter:commit", () => {
@@ -113,7 +90,7 @@ export const Preview = () => {
     newAuto: boolean,
     newIndicator: boolean,
   ) => {
-    await window.config.set({
+    await saveConfig({
       previewer: {
         autoUpdate: newAuto,
         layoutIndicator: newIndicator,
@@ -141,7 +118,6 @@ export const Preview = () => {
                   throw new ActionCanceled(
                     `Cannot Previewing ${Document.current.title} with single chapter scope, use full scope instead`,
                   );
-                setScope(value);
 
                 await updateGlobalConfig(
                   value,
@@ -200,7 +176,6 @@ export const Preview = () => {
               <Switch
                 checked={autoUpdate}
                 onCheckedChange={async (val) => {
-                  setAutoUpdate(val);
                   await updateGlobalConfig(scope, val, !!layoutIndicator);
                 }}
               />
@@ -214,7 +189,6 @@ export const Preview = () => {
               <Switch
                 checked={layoutIndicator}
                 onCheckedChange={async (val) => {
-                  setLayoutIndicator(val);
                   await updateGlobalConfig(scope, !!autoUpdate, val);
                 }}
               />

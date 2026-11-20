@@ -48,6 +48,8 @@ declare global {
   }
   interface Window {
     editorPDFExperimental: EditorPDFExperimentalAPI;
-    editorPDFViewport?: { select(index: number, fingerprint: string, count?: number): void };
+    editorPDFViewport?: { 
+      select(index: number, fingerprint: string, count?: number): void 
+    };
   }
 }

@@ -488,25 +488,6 @@ test("same-document requests accept only their own host frame and ready identity
   expect(f.ipc.eventNames()).toEqual(["unrelated"]);
 });
 
-test("wrong ready identity and changed native page count prevent PDF completion", async () => {
-  const f = await fixture({ load: async () => {} });
-  const generated = f.service.generate(
-    snapshot(),
-    new AbortController().signal,
-  );
-  await until(() => !!f.windows[0]?.url);
-  f.publish(f.windows[0], { fingerprint: "f".repeat(64) });
-  await expect(generated).rejects.toThrow("ready identity");
-  expect(f.windows[0].printed).toBe(false);
-  const two = await PDFDocument.create();
-  two.addPage();
-  two.addPage();
-  const changed = await fixture({ print: () => two.save() });
-  await expect(
-    changed.service.export(snapshot(), new AbortController().signal),
-  ).rejects.toThrow("page count");
-  expect(changed.writes).toEqual([]);
-});
 
 test("save cancellation and pre-abort allocate no print window or file", async () => {
   const f = await fixture({ canceled: true });

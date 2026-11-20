@@ -68,17 +68,20 @@ export type SectionLayoutDecision = { readonly source: SectionSourceLocator } & 
 export interface SectionLayoutEffects {
   readonly anchors?: readonly { readonly from: number; readonly to: number; readonly id: string }[];
   readonly breaks: readonly { readonly from: number; readonly to?: number; readonly kind: "line" | "block";
-    readonly height: number; readonly marginTop?: number }[];
+  readonly height: number; readonly marginTop?: number }[];
   readonly rows?: readonly { readonly from: number; readonly to: number; readonly height: number }[];
   readonly scales?: readonly { readonly from: number; readonly to: number; readonly scale: number }[];
   readonly furniture?: readonly { readonly top: number; readonly left: number; readonly width: number; readonly html: string }[];
   readonly generated?: readonly { readonly slot: string; readonly height: number; readonly marginTop: number;
     /** Inline flow offset within this generated slot; absent for a block movement. */
-    readonly offset?: number;
-    readonly movement: PaginationBreakGeometry; readonly reasons: readonly PaginationBreakReason[] }[];
+  readonly offset?: number;
+  readonly movement: PaginationBreakGeometry; readonly reasons: readonly PaginationBreakReason[] }[];
 }
 
-export interface SectionCompositionDefinition { readonly html: string; readonly bodySelector: string; readonly headingAnchor?: string }
+export interface SectionCompositionDefinition {
+   readonly html: string;
+    readonly bodySelector: string;
+     readonly headingAnchor?: string }
 
 export function sameSectionComposition(left: SectionCompositionDefinition | null | undefined,
   right: SectionCompositionDefinition | null | undefined) {

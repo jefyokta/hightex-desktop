@@ -639,7 +639,7 @@ img.editor-pagination-image {
   counter-increment: none !important;
 }
 .editor-pagination-repeat-caption::after {
-  content: " (lanjutan)";
+  content: " (Lanjutan...)";
 }
 
 .editor-pagination-number {

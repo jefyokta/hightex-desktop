@@ -122,6 +122,9 @@ exports.prepare = ({ root, artifacts }) => {
       };
     }
   }
+  const legacyProfile = process.env.HIGHTEX_COMPARE_LEGACY
+    ? require('./legacy-export-profile.cjs').prepare({root,artifacts,load,dependencies})
+    : undefined;
   const handled = load("electron/exception/interface/handled.ts", {});
   const reporting = load("electron/exception/should-report.ts", {
     "./interface/handled": handled,
@@ -212,10 +215,18 @@ exports.prepare = ({ root, artifacts }) => {
     },
     outputs,
     metrics,
+    legacyProfile: (url, input) => legacyProfile.generate(url,input),
+    async generate(snapshot, batch) {
+      const before = timings.nativePrintMs.length;
+      const started = performance.now();
+      const bytes = await new EditorPDFExperimentalService(batch).generate(snapshot, new AbortController().signal);
+      return { bytes, ms: performance.now() - started, calls: timings.nativePrintMs.length - before };
+    },
     inspectPrint(callback) {
       inspectPrint = callback;
     },
     async serve(req, res, vite) {
+      if (legacyProfile && await legacyProfile.serve(req,res,vite)) return true;
       if (
         new URL(req.url, "http://fixture").pathname !==
         "/experimental/editor-pdf/print"

@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { LocaleContext } from "@/context/locale-context";
+import { useConfig } from "./use-config";
 
-/** Read the root-owned language; consumers do not subscribe to config themselves. */
-export const useAppLanguage = () => useContext(LocaleContext).locale;
+/** Subscribe through the root config owner, without another IPC listener. */
+export const useAppLanguage = () => useConfig().config?.language ?? "en";

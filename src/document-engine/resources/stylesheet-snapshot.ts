@@ -9,6 +9,12 @@ export class StylesheetSnapshot implements DocumentPresentation {
   private readonly revisions = new Map<CSSStyleSheet, string>();
   private captured = new Map<CSSStyleSheet, string>();
   private serializing?: Promise<string>;
+  private serialized?: string;
+  private fingerprint?: {
+    appearance: string;
+    captured: Map<CSSStyleSheet, string>;
+    value: Promise<string>;
+  };
 
   constructor(
     private readonly assets: DocumentAssetResolver,
@@ -100,6 +106,8 @@ export class StylesheetSnapshot implements DocumentPresentation {
       this.sheets = undefined;
       this.revisions.clear();
       this.captured.clear();
+      this.fingerprint = undefined;
+      this.serialized = undefined;
       throw error;
     } finally {
       this.serializing = undefined;
@@ -109,9 +117,10 @@ export class StylesheetSnapshot implements DocumentPresentation {
   private async captureStyles(): Promise<string> {
     this.signal.throwIfAborted();
     const sheets = Array.from(document.styleSheets);
-    if (this.stylesCurrent(sheets))
-      return sheets.map(sheet => this.captured.get(sheet)!).join("\n");
+    if (this.stylesCurrent(sheets)) return this.serialized!;
     this.sheets = sheets;
+    this.serialized = undefined;
+    this.fingerprint = undefined;
     this.revisions.clear();
     const result = await Promise.all(
       this.sheets.map((sheet) => this.sheet(sheet)),
@@ -120,11 +129,16 @@ export class StylesheetSnapshot implements DocumentPresentation {
     this.captured = new Map(
       this.sheets.map((sheet, index) => [sheet, result[index]]),
     );
-    return result.join("\n");
+    this.serialized = result.join("\n");
+    return this.serialized;
   }
 
   async layoutFingerprint(): Promise<string> {
     await this.styles();
+    const appearance = document.documentElement.className;
+    if (this.fingerprint?.appearance === appearance &&
+        this.fingerprint.captured === this.captured)
+      return this.fingerprint.value;
     // Tiptap injects/removes equivalent base rules as views mount/unmount.
     // Pagination's persistent content CSS already owns these metrics.
     const css = this.sheets!.filter(
@@ -134,6 +148,8 @@ export class StylesheetSnapshot implements DocumentPresentation {
           sheet.ownerNode.hasAttribute("data-tiptap-style")
         ),
     ).map((sheet) => this.captured.get(sheet));
-    return sha256Text(JSON.stringify([document.documentElement.className, css]));
+    const value = sha256Text(JSON.stringify([appearance, css]));
+    this.fingerprint = { appearance, captured: this.captured, value };
+    return value;
   }
 }

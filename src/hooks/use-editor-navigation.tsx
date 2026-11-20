@@ -35,8 +35,9 @@ export function useChapterNavigation() {
 
   const goToHeading = useCallback(
     (target: Chapter, heading: HeadingGraph) => {
-      if (target.getId() === chapter?.getId()) Manager.scrollTo(heading.id);
-      else {
+      if (target.getId() === chapter?.getId()) {
+        Manager.scrollTo(heading.id);
+      } else {
         setParams([headingNavigationTarget(heading)]);
         goTo(target);
       }
