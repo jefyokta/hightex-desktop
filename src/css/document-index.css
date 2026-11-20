@@ -1,0 +1,20 @@
+/* Experimental indexes; legacy TOC presentation stays with toc.css. */
+.document-template-content .toc-number {
+  min-width: max-content;
+  padding-inline-end: 0.5em;
+}
+.document-template-content :is(.toc-number, .toc-text, .toc-page) {
+  font-weight: normal;
+}
+.document-template-content .toc-dots {
+  display: inline-block;
+  height: 1em;
+  vertical-align: baseline;
+  background: radial-gradient(circle, currentColor 0.65px, transparent 0.85px) right calc(100% - 2px) / 6px 3px repeat-x;
+}
+.document-template-content .toc-row:not(.sub):not(.subsub) .toc-dots {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1.2px);
+}
+.document-template-content .toc-row:not(.sub):not(.subsub):not([data-section-group="appendix"]) .toc-text {
+  text-transform: uppercase;
+}

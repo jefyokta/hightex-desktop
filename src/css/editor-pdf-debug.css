@@ -1,0 +1,79 @@
+/* Scoped inspection chrome. Captured content keeps its own frozen presentation. */
+.editor-pdf-debug {
+  --debug-border: #dfe4ec;
+  --debug-muted: #64748b;
+  color: #172033;
+  font: 13px/1.5 system-ui, sans-serif;
+}
+.editor-pdf-debug *, [data-editor-pdf-debug-surface] { box-sizing: border-box; }
+.editor-pdf-debug :is(h1,h2,p,ul,dl,dd) { margin: 0; }
+.editor-pdf-debug :is(button,input) { font: inherit; }
+.editor-pdf-debug button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 34px; padding: 7px 11px; border: 1px solid var(--debug-border);
+  border-radius: 8px; background: white; color: #334155; cursor: pointer;
+}
+.editor-pdf-debug button:hover { background: #f3f5f9; }
+.editor-pdf-debug button:disabled { opacity: .45; cursor: default; }
+.editor-pdf-debug :is(button,input):focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+.editor-pdf-debug button svg { flex-shrink: 0; }
+.editor-pdf-debug [data-debug-export] { background: #4f46e5; border-color: #4f46e5; color: white; }
+.editor-pdf-debug [data-debug-export]:hover { background: #4338ca; }
+.editor-pdf-debug .debug-toolbar {
+  position: fixed; inset: 0 0 auto; z-index: 1001; height: 72px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 20px; border-bottom: 1px solid var(--debug-border); background: white;
+}
+.editor-pdf-debug .debug-title, .editor-pdf-debug .debug-toolbar-actions { display: flex; align-items: center; gap: 10px; }
+.editor-pdf-debug .debug-title h1 { font: 600 15px/1.4 system-ui, sans-serif; }
+.editor-pdf-debug .debug-title p { color: var(--debug-muted); font-size: 11px; }
+.editor-pdf-debug .debug-sidebar {
+  position: fixed; inset: 72px 0 0 auto; z-index: 1000; width: 280px;
+  display: flex; flex-direction: column; gap: 18px; overflow: auto;
+  padding: 20px 16px; border-left: 1px solid var(--debug-border); background: white;
+}
+.editor-pdf-debug .debug-sidebar > :not(.debug-sections) { flex-shrink: 0; }
+.editor-pdf-debug .debug-page-navigation { display: grid; gap: 8px; }
+.editor-pdf-debug .debug-page-navigation label, .editor-pdf-debug h2 { font-size: 12px; font-weight: 600; }
+.editor-pdf-debug .debug-page-navigation > div { display: flex; align-items: center; gap: 8px; }
+.editor-pdf-debug .debug-page-navigation input {
+  width: 64px; min-width: 0; height: 34px; padding: 5px 8px; text-align: center;
+  border: 1px solid var(--debug-border); border-radius: 8px; background: white; color: inherit;
+}
+.editor-pdf-debug .debug-page-navigation button { padding: 7px; }
+.editor-pdf-debug .debug-page-navigation span { white-space: nowrap; color: var(--debug-muted); font-size: 12px; }
+.editor-pdf-debug .debug-page-info { display: grid; gap: 10px; }
+.editor-pdf-debug .debug-page-info dt { color: var(--debug-muted); font-size: 11px; }
+.editor-pdf-debug .debug-page-info dd { overflow-wrap: anywhere; }
+.editor-pdf-debug .debug-sections { flex: 1; min-width: 0; min-height: 100px; overflow: auto; }
+.editor-pdf-debug .debug-sections ul { display: grid; gap: 3px; min-width: 0; padding: 8px 0 0; list-style: none; }
+.editor-pdf-debug .debug-sections li { min-width: 0; }
+.editor-pdf-debug .debug-sections button { min-width: 0; max-width: 100%; width: 100%; text-align: left; justify-content: space-between; border-color: transparent; font-size: 12px; }
+.editor-pdf-debug .debug-sections button span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-pdf-debug .debug-sections button span:last-child { flex-shrink: 0; color: var(--debug-muted); }
+.editor-pdf-debug .debug-sections [aria-current=page] { background: #eef2ff; color: #4338ca; }
+.editor-pdf-debug .debug-identity { border-top: 1px solid var(--debug-border); padding-top: 10px; }
+.editor-pdf-debug .debug-identity > button { width: 100%; justify-content: space-between; border: 0; padding: 0; color: var(--debug-muted); font-size: 12px; }
+.editor-pdf-debug code { display: block; padding-top: 8px; overflow-wrap: anywhere; user-select: text; font: 11px/1.6 ui-monospace, monospace; }
+.editor-pdf-debug .debug-help { color: var(--debug-muted); font-size: 11px; }
+.editor-pdf-debug .debug-notice, .editor-pdf-debug .debug-error { display: grid; gap: 8px; padding: 10px; border-radius: 8px; overflow-wrap: anywhere; }
+.editor-pdf-debug .debug-notice { background: #f0fdf4; color: #166534; }
+.editor-pdf-debug .debug-error { background: #fef2f2; color: #b91c1c; }
+.editor-pdf-debug .debug-spinner { animation: debug-spin 1s linear infinite; }
+[data-editor-pdf-debug-surface] { position: fixed; inset: 72px 280px 0 0; overflow: auto; padding: 24px; background: #edf0f5; }
+[data-editor-pdf-debug-surface] [data-print-viewport] { box-shadow: 0 2px 16px #1720331a; }
+@keyframes debug-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .editor-pdf-debug .debug-spinner { animation: none; } }
+@media (max-width: 800px) {
+  .editor-pdf-debug .debug-toolbar { padding: 10px; gap: 8px; }
+  .editor-pdf-debug .debug-title > svg, .editor-pdf-debug .debug-title p { display: none; }
+  .editor-pdf-debug .debug-toolbar-actions { gap: 6px; }
+  .editor-pdf-debug .debug-toolbar-actions button { padding: 7px 8px; font-size: 12px; }
+  .editor-pdf-debug .debug-sidebar { inset: auto 0 0; width: auto; height: 230px; border-left: 0; border-top: 1px solid var(--debug-border); padding: 12px 16px; }
+  .editor-pdf-debug .debug-sections { flex: none; min-height: auto; max-height: 220px; }
+  [data-editor-pdf-debug-surface] { inset: 72px 0 230px; padding: 16px; }
+}
+@media print {
+  [data-editor-pdf-debug-controls] { display: none !important; }
+  [data-editor-pdf-debug-surface] { position: static; padding: 0; overflow: visible; background: white; }
+}

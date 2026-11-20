@@ -1,0 +1,107 @@
+.document-template-page {
+  position: relative;
+  box-sizing: border-box;
+  color: black;
+  background: white;
+  font:
+    12pt/1.5 "Times New Roman",
+    Times,
+    serif;
+}
+.document-template-viewport {
+  overflow: hidden;
+  position: relative;
+}
+.document-template-content {
+  position: relative;
+  column-fill: auto;
+  font:
+    12pt/1.5 "Times New Roman",
+    Times,
+    serif;
+  color: black;
+}
+.document-template-content > :first-child {
+  margin-top: 0;
+}
+/* Keep signature sheets together by tightening their blank spacing, not text. */
+.document-template-content .validity-sheet {
+  --validity-table-gap: 12px;
+  --validity-signature-space: 45pt;
+  --validity-member-gap: 10px;
+}
+.document-template-content .consent-sheet {
+  --consent-section-gap: 1cm;
+}
+.document-template-content :is(.validity-sheet, .consent-sheet) h1.chapter {
+  margin-bottom: 10pt;
+}
+.document-template-content .validity-committee-gap {
+  height: 28px;
+}
+.document-template-content .validity-committee-gap > br,
+.document-template-content .consent-signature-gap {
+  display: none;
+}
+.document-template-content [data-abbreviation-row] {
+  --abbreviation-columns: var(--abbreviation-fit-columns);
+}
+.document-template-content [data-abbreviation-row] > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@scope (.document-template-content) to ([data-section-composition-body]) {
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
+  h1.chapter,
+  h1.pra-title {
+    font-size: 14pt;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 16pt;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: bold;
+  }
+  .paragraph {
+    text-indent: 1.27cm;
+    text-align: justify;
+    margin-bottom: 0.5em;
+  }
+  .foreword {
+    line-height: 1.5;
+  }
+  .abstract-en {
+    font-style: italic;
+  }
+  table {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: 100%;
+  }
+  tr {
+    break-inside: avoid;
+  }
+  tr:has(table) {
+    break-inside: auto;
+  }
+  [style*="display:flex"],
+  [style*="display: flex"] {
+    break-inside: avoid;
+  }
+  td,
+  th {
+    padding: 0;
+    vertical-align: top;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}

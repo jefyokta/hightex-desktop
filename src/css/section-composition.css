@@ -1,0 +1,4 @@
+/* Template headings do not inherit authored chapter counters. Body styles remain editor-owned. */
+.page h1[data-section-composition-block]::before {
+  content: none;
+}
