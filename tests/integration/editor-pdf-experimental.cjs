@@ -216,6 +216,29 @@ exports.prepare = ({ root, artifacts }) => {
     outputs,
     metrics,
     legacyProfile: (url, input) => legacyProfile.generate(url,input),
+    async generateSinglePass(snapshot) {
+      const instance = new host.EditorPDFHost(snapshot);
+      const signal = new AbortController().signal;
+      const started = performance.now();
+      try {
+        await instance.open(signal);
+        const plan = await instance.window.webContents.executeJavaScript(`(async()=>{
+          const {singlePassPrint}=await import('/tests/helpers/single-pass-print.ts');
+          return singlePassPrint(document.querySelector('.editor-pdf-projection'),await window.editorPDFExperimental.init(${JSON.stringify(new URL(instance.window.webContents.getURL()).searchParams.get('request'))}));
+        })()`);
+        const native = await instance.window.webContents.printToPDF({printBackground:true,preferCSSPageSize:true,displayHeaderFooter:false,margins:{top:0,bottom:0,left:0,right:0}});
+        const input = await PDFDocument.load(native), output = await PDFDocument.create();
+        fs.writeFileSync(path.join(artifacts,'single-native.pdf'),native);
+        if(input.getPageCount()!==snapshot.pages)throw Error('Single-pass native page count: expected '+snapshot.pages+', got '+input.getPageCount());
+        for (const [index,view] of snapshot.projection.views.entries()) {
+          const geometry = snapshot.projection.contexts[view.context];
+          const page = input.getPage(index);
+          const [embedded] = await output.embedPages([page],[{left:0,right:geometry.width*.75,top:page.getHeight(),bottom:page.getHeight()-geometry.height*.75}]);
+          output.addPage([geometry.width*.75,geometry.height*.75]).drawPage(embedded);
+        }
+        return {bytes:await output.save(),nativePages:input.getPageCount(),calls:1,ms:performance.now()-started,plan};
+      } finally { instance.destroy(); }
+    },
     async generate(snapshot, batch) {
       const before = timings.nativePrintMs.length;
       const started = performance.now();

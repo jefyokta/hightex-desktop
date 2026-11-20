@@ -50,12 +50,25 @@ exports.run = async ({execute,win,artifacts,files,importArchive,editorPDFTest}) 
   if(process.env.HIGHTEX_EXPORT_PROFILE_CAPTURE_ONLY)return;
   editorPDFTest.connect(win.webContents.getURL());
   const snapshot=await execute('return archiveSnapshot');
-  const result=await editorPDFTest.generate(snapshot,4);
+  const result=process.env.HIGHTEX_SINGLE_PASS_ARCHIVE
+    ? await editorPDFTest.generateSinglePass(snapshot)
+    : await editorPDFTest.generate(snapshot,4);
   const file=path.join(artifacts,'profile.pdf');fs.writeFileSync(file,result.bytes);
   const pdf=await PDFDocument.load(result.bytes);
-  report.native={ms:result.ms,calls:result.calls,pages:pdf.getPageCount(),bytes:result.bytes.length};
+  report.native={ms:result.ms,calls:result.calls,pages:pdf.getPageCount(),nativePages:result.nativePages,bytes:result.bytes.length};
   assert.equal(pdf.getPageCount(),snapshot.pages);
   fs.writeFileSync(path.join(artifacts,'profile-text.txt'),execFileSync('pdftotext',['-layout',file,'-'],{maxBuffer:32*1024*1024}));
+  if(process.env.HIGHTEX_SINGLE_PASS_ARCHIVE){
+    report.singlePass={status:'unverified',links:'prototype does not rebuild annotations'};
+    if(process.env.HIGHTEX_SINGLE_PASS_BASELINE){
+      const expected=execFileSync('pdftotext',['-layout',process.env.HIGHTEX_SINGLE_PASS_BASELINE,'-'],{encoding:'utf8',maxBuffer:32*1024*1024}).split('\f');
+      const actual=fs.readFileSync(path.join(artifacts,'profile-text.txt'),'utf8').split('\f');
+      const differentPages=expected.flatMap((text,index)=>text.replace(/\s/g,'')!==actual[index]?.replace(/\s/g,'')?[index+1]:[]);
+      report.singlePass={...report.singlePass,status:differentPages.length?'rejected':'text-only-pass',differentPages};
+      save();
+      assert.equal(differentPages.length,0,'Single-pass changes source text assignment; prototype must not replace product printing');
+    }
+  }
   if(process.env.HIGHTEX_COMPARE_LEGACY){
     const input=await execute('return {id:archiveContext.id,profile:await window.profile.get(),picture:await window.profile.picture(),categories:await window.hightex.categories(),config:window.config.get()}');
     console.log('Archive profile: legacy start');
