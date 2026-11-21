@@ -13,8 +13,9 @@ bun test
 bun run lint
 ```
 
-`bun test` runs the unit suite under `tests/`. For quicker iteration, pass
-specific test files:
+`bun test` runs the unit suite under `tests/`, as configured in `bunfig.toml`.
+It does not require an HTTP server or Electron windows. Private experiments under
+`planning.local/` are outside this suite. For quicker iteration, pass specific files:
 
 ```sh
 bun test tests/ui-guides.test.ts tests/locales.test.ts
@@ -29,7 +30,7 @@ the entire repository as part of an unrelated change.
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Renderer localization                 | `tests/locales.test.ts`                                                                                |
 | Editor persistence and close behavior | `tests/editor-persistence.test.ts`, `tests/editor-save.test.ts`, `tests/editor-close-guard.test.ts`    |
-| Import/export and document drafts     | `tests/document-drafts.test.ts`, `tests/import-conflict.test.ts`, `tests/content-fingerprint.test.ts`  |
+| Import/export and document drafts     | `tests/document-drafts.test.ts`, `tests/editor-export-flush.test.ts`, `tests/content-fingerprint.test.ts` |
 | PDF generation                        | `tests/pdf-generation.test.ts`, `tests/print-store.test.ts`                                            |
 | Workspace behavior                    | `tests/workspaces.test.ts`, `tests/lecturer-workspace-access.test.ts`                                  |
 | Guided tours                          | `tests/ui-guides.test.ts`, `tests/first-installed.test.ts`                                             |
@@ -39,7 +40,21 @@ This table is a starting point, not a guarantee of complete coverage. Search
 for tests around the changed service, contract, and failure cases before
 choosing a final verification set.
 
-## Electron integration tests
+## Integration tests
+
+Tests that open a server or access host services belong under `tests/integration/`
+and run explicitly. Bun integration files use `.integration.ts`, which default
+unit-test discovery does not select. The updater HTTP/download simulation uses
+only a temporary local server and fixture files:
+
+```sh
+bun run test:integration:updater
+```
+
+The command requires permission to listen on localhost. Its result is reported
+separately from the unit suite; it never contacts the production update server.
+
+### Electron fixtures
 
 Scripts in `tests/integration/` can create windows, temporary application data,
 local servers, or real SQLite databases. Read a script's header and setup before

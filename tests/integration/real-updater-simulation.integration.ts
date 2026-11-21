@@ -9,7 +9,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import type { BrowserWindow } from "electron";
 import type { UpdateInfo } from "electron-updater";
-import type { UpdaterStatus } from "../electron/updater/types";
+import type { UpdaterStatus } from "../../electron/updater/types";
 
 interface FixtureOptions {
   platform?: NodeJS.Platform;
@@ -217,11 +217,11 @@ function setupFixture(options: FixtureOptions = {}) {
     );
     return exports;
   }
-  modules["./platform"] = load<typeof import("../electron/updater/platform")>(
-    "../electron/updater/platform.ts",
+  modules["./platform"] = load<typeof import("../../electron/updater/platform")>(
+    "../../electron/updater/platform.ts",
   );
-  const { UpdaterFacade } = load<typeof import("../electron/updater/facade")>(
-    "../electron/updater/facade.ts",
+  const { UpdaterFacade } = load<typeof import("../../electron/updater/facade")>(
+    "../../electron/updater/facade.ts",
   );
   const sender = {
     send: (_channel: string, status: UpdaterStatus) => statuses.push(status),

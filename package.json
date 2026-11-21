@@ -18,7 +18,8 @@
         "publish:linux": "bun run  && tsc && vite build && electron-builder --linux --publish always",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
-        "test": "bun run  && bun test ./tests",
+        "test": "bun test ./tests",
+        "test:integration:updater": "bun test ./tests/integration/real-updater-simulation.integration.ts",
         "prettier": "bunx prettier . --write"
     },
     "dependencies": {

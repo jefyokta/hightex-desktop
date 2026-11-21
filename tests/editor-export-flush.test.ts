@@ -3,6 +3,7 @@ import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import en from "../src/locales/en.json";
 
 function loadSource<T>(
   file: string,
@@ -12,6 +13,7 @@ function loadSource<T>(
   const sandbox = {
     exports: {} as T,
     require: (name: string) => modules[name],
+    Error,
     setTimeout,
     clearTimeout,
     ...extra,
@@ -106,6 +108,18 @@ function rendererFixture(ready: boolean) {
     resolveSave = resolve;
   });
   const chapter = { getDocumentId: () => "doc" };
+  const events = { getEditorChapter: () => (ready ? chapter : undefined) };
+  const manager = { Manager: { emit: () => saved } };
+  const storage = { Storage: { instance: { waitForDocument: async () => {} } } };
+  const archive = loadSource<typeof import("../src/editor/document/archive")>(
+    "../src/editor/document/archive.ts",
+    {
+      "../event": events,
+      "../manager": manager,
+      "../storage": storage,
+      "@/utils/lang": { t: () => en.editor.save.not_ready },
+    },
+  );
   const { EditorFlushSlave } = loadSource<
     typeof import("../src/slaves/editor-flush")
   >(
@@ -122,13 +136,10 @@ function rendererFixture(ready: boolean) {
         }),
       },
       "@/hooks/use-chapter": { useChapterStore: () => ({ chapter }) },
-      "@/editor/event": {
-        getEditorChapter: () => (ready ? chapter : undefined),
-      },
-      "@/editor/manager": { Manager: { emit: () => saved } },
-      "@/editor/storage": {
-        Storage: { instance: { waitForDocument: async () => {} } },
-      },
+      "@/editor/event": events,
+      "@/editor/manager": manager,
+      "@/editor/storage": storage,
+      "@/editor/document/archive": archive,
     },
     {
       window: {
@@ -162,5 +173,5 @@ test("a loading editor refuses export flush rather than saving its placeholder",
   const f = rendererFixture(false);
   f.receive("request", "doc");
   await Promise.resolve();
-  expect(f.replies[0]?.error).toBe("Editor is not ready to save");
+  expect(f.replies[0]?.error).toBe(en.editor.save.not_ready);
 });
