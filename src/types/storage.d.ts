@@ -110,6 +110,14 @@ declare global {
     cloudAcademic?: CloudAcademicSource;
     updatedAt?: Date;
     file?: string;
+    /** Local recovery provenance; not part of the portable archive. */
+    recovery?: {
+      sourceDocumentId: string;
+      sourceTitle: string;
+      sourceFile?: string;
+      createdAt: number;
+      revision: string;
+    };
     min?: boolean;
   }
 

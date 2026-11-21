@@ -49,7 +49,7 @@ import { uniqId } from "@/utils/uniq-id";
 import { ZoomUI } from "@/components/editor/zoom-ui";
 import { LoadingDocument } from "@/components/editor/loading-document";
 import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
-import { DocumentNotFound } from "@/exception/document-not-found";
+import { documentFiles } from "@/editor/document/file-source";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { EditorPagination } from "@/editor/pagination";
 import { PaginationStatus } from "@/components/editor/pagination-status";
@@ -60,6 +60,8 @@ export const Editor: React.FC = () => {
 
   const { id, version, chapter } = useParams<EditorParams>();
   const [loadedChapter, setLoadedChapter] = useState<Chapter | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const chapterId = `${id}.${chapter ?? "1"}${version ? `.${version}` : ""}`;
   const currentChapter =
     loadedChapter?.getId() === chapterId ? loadedChapter : null;
@@ -109,6 +111,9 @@ export const Editor: React.FC = () => {
 
     const init = async () => {
       setLoadedChapter(null);
+      setLoadError("");
+      if (id && !version) await documentFiles.load(id);
+      if (!alive) return;
       if (id && !version) await refreshCloudAcademic(id);
       if (!alive) return;
       await Storage.instance.waitForDocument(id!);
@@ -131,15 +136,16 @@ export const Editor: React.FC = () => {
     };
 
     init().catch((e) => {
-      if (e instanceof DocumentNotFound) {
-        window;
-      }
+      if (!alive) return;
+      setLoadError(e instanceof ShouldNotified
+        ? e.description
+        : e instanceof Error ? e.message : String(e));
     });
 
     return () => {
       alive = false;
     };
-  }, [id, version, chapter]);
+  }, [id, version, chapter, loadAttempt]);
 
   const [showFind, setShowFind] = useState(false);
   const [showReplace, setShowReplace] = useState(false);
@@ -221,6 +227,18 @@ export const Editor: React.FC = () => {
                   chapter={currentChapter}
                 />
               )
+            ) : loadError ? (
+              <Alert variant="destructive" className="max-w-xl">
+                <AlertTitle>{t("open_file.open_failed")}</AlertTitle>
+                <AlertDescription>{loadError}</AlertDescription>
+                <Button
+                  variant="outline"
+                  className="mt-3"
+                  onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+                >
+                  {t("dashboard.retry")}
+                </Button>
+              </Alert>
             ) : (
               <LoadingDocument />
             )}

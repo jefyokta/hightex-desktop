@@ -115,6 +115,8 @@ export class HighTexDB extends Dexie {
       const next = migrateDocumentCommittee(
         preserveCloudAcademic(current, {
           ...document,
+          // File location belongs to the save/reconnect owner, not an older settings draft.
+          file: current ? current.file : document.file,
           // Author identity is always resolved from the active workspace.
           profile,
           authorProfileMode: "workspace",

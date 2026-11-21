@@ -1,8 +1,7 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { BrowserWindow, dialog, ipcMain } from "electron";
 import { randomUUID } from "node:crypto";
 import { Application } from "./../main/application";
 import fs from "fs";
-import path from "path";
 import { archiveFingerprint } from "../utilities/archive-fingerprint";
 import { EditorCloseGuard } from "../utilities/editor-close-guard";
 import { ConfigService } from "../service/config-service";
@@ -10,6 +9,8 @@ import { LoggerService } from "../service/logger-service";
 import en from "../../src/locales/en.json";
 import id from "../../src/locales/id.json";
 import { isEditorDocumentPath } from "../../src/workspaces/editor-navigation";
+import { parseHighTexV2 } from "@hightex/importer";
+import { DocumentFileService } from "../service/document-file-service";
 export class EditorWindow {
   private static windows = new Map<string, EditorWindowState>();
   private static closeGuards = new Map<string, EditorCloseGuard>();
@@ -91,21 +92,22 @@ export class EditorWindow {
       dirty: async () => {
         if (!state.initialized) return true;
         const snapshot = await this.snapshot(documentId);
+        const current = archiveFingerprint(snapshot.buffer);
         if (state.document.filePath) {
           try {
-            return (
-              archiveFingerprint(
-                await fs.promises.readFile(state.document.filePath),
-              ) !== archiveFingerprint(snapshot.buffer)
-            );
+            const disk = archiveFingerprint(await fs.promises.readFile(state.document.filePath));
+            // Imports normalize asset IDs and editor attributes without authored edits.
+            return disk === state.fileBaseline
+              ? current !== state.archiveBaseline
+              : disk !== current;
           } catch {
             return true;
           }
         }
-        return state.archiveBaseline !== archiveFingerprint(snapshot.buffer);
+        return state.archiveBaseline !== current;
       },
       confirm: async () => {
-        const messages = this.closeMessages();
+        const messages = this.messages().editor.close;
         if (!state.initialized) {
           const { response } = await dialog.showMessageBox(window, {
             type: "question",
@@ -138,7 +140,7 @@ export class EditorWindow {
       close: () => window.close(),
       error: async (error) => {
         LoggerService.write(error, "editor:close");
-        const messages = this.closeMessages();
+        const messages = this.messages().editor.close;
         if (!window.isDestroyed())
           await dialog.showMessageBox(window, {
             type: "error",
@@ -239,13 +241,14 @@ export class EditorWindow {
     return snapshot;
   }
 
-  private static closeMessages() {
-    return (ConfigService.getKey("language") === "id" ? id : en).editor.close;
+  private static messages() {
+    return ConfigService.getKey("language") === "id" ? id : en;
   }
 
-  static async ready(state: EditorWindowState, bytes: Uint8Array) {
+  static async ready(state: EditorWindowState, bytes: Uint8Array, source?: Uint8Array) {
     if (state.initialized) return;
     state.archiveBaseline = archiveFingerprint(bytes);
+    state.fileBaseline = source ? archiveFingerprint(source) : undefined;
     state.initialized = true;
   }
 
@@ -299,34 +302,50 @@ export class EditorWindow {
     state: EditorWindowState,
     buffer: Uint8Array,
     fileName: string,
+    mode: DocumentSaveMode = "save",
   ) {
-    let filePath = state.document.filePath;
-    if (!filePath) {
-      const result = await dialog.showSaveDialog(state.window, {
-        defaultPath: path.join(
-          app.getPath("downloads"),
-          path.basename(fileName),
-        ),
-        filters: [{ name: "HighTex", extensions: ["hightex"] }],
-      });
-      if (result.canceled || !result.filePath) return;
-      filePath = result.filePath;
+    const result = await DocumentFileService.save({
+      window: state.window, filePath: state.document.filePath, baseline: state.fileBaseline,
+    }, buffer, fileName, mode);
+    if (result.status === "saved") {
+      const fingerprint = archiveFingerprint(buffer);
+      state.archiveBaseline = fingerprint;
+      state.fileBaseline = fingerprint;
+      state.initialized = true;
+      state.document.filePath = result.filePath;
     }
+    return result;
+  }
 
-    const fingerprint = archiveFingerprint(buffer);
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-    const temporary = path.join(
-      path.dirname(filePath),
-      `.${path.basename(filePath)}.${randomUUID()}.tmp`,
-    );
-    try {
-      await fs.promises.writeFile(temporary, buffer, { flag: "wx" });
-      await fs.promises.rename(temporary, filePath);
-    } finally {
-      await fs.promises.rm(temporary, { force: true }).catch(() => {});
-    }
-    state.archiveBaseline = fingerprint;
-    state.initialized = true;
+  static async reloadSource(state: EditorWindowState): Promise<void> {
+    const filePath = state.document.filePath;
+    if (!filePath) return;
+    const model = parseHighTexV2(await fs.promises.readFile(filePath));
+    if (model.document.id !== state.document.id)
+      throw Error(this.messages().open_file.source_identity_changed);
+    // Close-save must finish its flush and unlock before replacing the renderer.
+    void this.closeGuards.get(state.document.id)!.whenIdle().then(() => {
+      if (state.window.isDestroyed()) return;
+      state.initialized = false;
+      state.archiveBaseline = undefined;
+      state.fileBaseline = undefined;
+      state.window.webContents.reload();
+    });
+  }
+
+  /** Reconnect a moved archive without replacing live editor content. */
+  static async locateSource(state: EditorWindowState): Promise<string | undefined> {
+    const result = await dialog.showOpenDialog(state.window, {
+      title: this.messages().open_file.locate_source,
+      defaultPath: state.document.filePath,
+      properties: ["openFile"],
+      filters: [{ name: "HighTex", extensions: ["hightex"] }],
+    });
+    if (result.canceled || !result.filePaths[0]) return;
+    const filePath = result.filePaths[0];
+    const model = parseHighTexV2(await fs.promises.readFile(filePath));
+    if (model.document.id !== state.document.id)
+      throw Error(this.messages().open_file.source_identity_changed);
     state.document.filePath = filePath;
     return filePath;
   }

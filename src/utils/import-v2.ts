@@ -15,6 +15,7 @@ import {
   resolveAuthorProfile,
 } from "./document-profile";
 import { t } from "./lang";
+import { preserveCloudAcademic } from "./cloud-academic";
 
 export type ImportMode = "overwrite" | "copy";
 
@@ -49,6 +50,11 @@ export class HighTexImporter {
     return this.model.document.id;
   }
 
+  /** Opening an existing document must not replace a running editor's draft. */
+  async open(): Promise<void> {
+    await window.editor.open(this.actualDocumentId, this.filePath);
+  }
+
   async import(mode: ImportMode = "overwrite"): Promise<HighTexDocument> {
     try {
       const db = HighTexDB.getInstance();
@@ -75,6 +81,11 @@ export class HighTexImporter {
         delete prepared.state.document.file;
       } else {
         prepared.state.document.file = this.filePath;
+        prepared.state.document.recovery = before.document?.recovery;
+        prepared.state.document = preserveCloudAcademic(
+          before.document,
+          prepared.state.document,
+        );
       }
       await installDraft(db, prepared, before);
       // Editor setup follows the database commit and runs outside its transaction.

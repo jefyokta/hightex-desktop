@@ -31,6 +31,7 @@ import {
 } from "@/utils/document-profile";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { documentDrafts } from "@/editor/document-drafts";
+import { Manager } from "@/editor/manager";
 import { openProfileInMainWindow } from "@/utils/open-profile-in-main-window";
 
 export const Setting = () => {
@@ -160,8 +161,12 @@ export const Setting = () => {
       },
     };
     documentDrafts.set(doc.id, draft);
+    Manager.app.dispatch("document:draft-changed", { documentId: doc.id, pending: true });
     return () => {
-      if (documentDrafts.get(doc.id) === draft) documentDrafts.delete(doc.id);
+      if (documentDrafts.get(doc.id) === draft) {
+        documentDrafts.delete(doc.id);
+        Manager.app.dispatch("document:draft-changed", { documentId: doc.id, pending: false });
+      }
     };
   }, [doc, id, isDirty, db, persistDraft]);
 

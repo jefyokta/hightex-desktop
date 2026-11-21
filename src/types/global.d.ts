@@ -333,8 +333,24 @@ declare global {
     fileName: string;
     filePath?: string;
   }
+  type DocumentSaveMode = "save" | "save-as";
+  type DocumentSaveErrorCode = "permission" | "disk-full" | "unavailable" | "changed" | "io" | "local-cache" | "local-storage";
+  interface DocumentSaveFailure {
+    code: DocumentSaveErrorCode;
+    detail: string;
+    filePath?: string;
+  }
+  type DocumentSaveResult =
+    | { status: "saved"; filePath: string; savedAt: number }
+    | { status: "cancelled"; reason?: "external-change" | "source-missing" }
+    | { status: "reload" }
+    | { status: "failed"; error: DocumentSaveFailure };
+
   interface EditorAPI {
-    ready(buffer: Uint8Array): Promise<void>;
+    locateSource(): Promise<string | undefined>;
+    reloadSource(): Promise<void>;
+    sourceFile(documentId: string, storedPath?: string): Promise<string | undefined>;
+    ready(buffer: Uint8Array, source?: Uint8Array): Promise<void>;
     onCloseState(callback: (locked: boolean) => void): () => void;
     onFlush(
       callback: (
@@ -352,6 +368,6 @@ declare global {
     openProfile(): Promise<void>;
     has(documentId: string): Promise<boolean>;
     flush(documentId: string): Promise<void>;
-    save(buffer: Uint8Array, fileName: string): Promise<string | undefined>;
+    save(buffer: Uint8Array, fileName: string, mode?: DocumentSaveMode): Promise<DocumentSaveResult>;
   }
 }

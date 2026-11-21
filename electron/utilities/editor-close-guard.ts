@@ -14,6 +14,10 @@ export class EditorCloseGuard {
   private pending?: Promise<boolean>;
   constructor(private actions: EditorCloseActions) {}
 
+  async whenIdle(): Promise<void> {
+    await this.pending;
+  }
+
   request(event: { preventDefault(): void }): Promise<boolean> {
     if (this.allowed) return Promise.resolve(true);
     event.preventDefault();

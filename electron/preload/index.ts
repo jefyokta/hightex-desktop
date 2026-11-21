@@ -500,7 +500,9 @@ contextBridge.exposeInMainWorld("file", {
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld("editor", {
-  ready: (buffer: Uint8Array) => ipcRenderer.invoke("editor:ready", buffer),
+  locateSource: () => ipcRenderer.invoke("editor:locate-source"),
+  reloadSource: () => ipcRenderer.invoke("editor:reload-source"),
+  ready: (buffer: Uint8Array, source?: Uint8Array) => ipcRenderer.invoke("editor:ready", buffer, source),
   onCloseState(callback: (locked: boolean) => void) {
     const listener = (_event: Electron.IpcRendererEvent, locked: boolean) =>
       callback(locked);
@@ -533,6 +535,9 @@ contextBridge.exposeInMainWorld("editor", {
   open(documentId: string, file?: string) {
     return ipcRenderer.invoke("editor:open", documentId, file);
   },
+  sourceFile(documentId, storedPath) {
+    return ipcRenderer.invoke("editor:source-file", documentId, storedPath);
+  },
   openProfile() {
     return ipcRenderer.invoke("editor:open-profile");
   },
@@ -542,7 +547,7 @@ contextBridge.exposeInMainWorld("editor", {
   flush(documentId) {
     return ipcRenderer.invoke("editor:flush", documentId);
   },
-  save(buffer, fileName) {
-    return ipcRenderer.invoke("editor:save", buffer, fileName);
+  save(buffer, fileName, mode) {
+    return ipcRenderer.invoke("editor:save", buffer, fileName, mode);
   },
 } satisfies Window["editor"]);

@@ -226,15 +226,10 @@ test("second-instance deep links wait for core services, even after Electron is 
   expect(handled).toHaveLength(2);
 });
 
-test.each(["overwrite", "copy", null] as const)(
-  "renderer awaits import choice (%s) before importing and opening",
-  async (mode) => {
+test(
+  "renderer opens an existing file directly without an import choice",
+  async () => {
     let receive!: (path: string) => Promise<void>;
-    let decide!: (mode: "overwrite" | "copy" | null) => void;
-    const confirmation = new Promise<"overwrite" | "copy" | null>((resolve) => {
-      decide = resolve;
-    });
-    const imported: string[] = [];
     const opened: string[] = [];
     const { OpenFileSlave } = loadSource<
       typeof import("../src/slaves/open-file")
@@ -244,18 +239,11 @@ test.each(["overwrite", "copy", null] as const)(
         react: { useEffect: (setup: () => void) => setup() },
         "@/utils/import-v2": {
           HighTexImporter: {
-            create: async () => ({
-              exists: true,
-              import: async (selectedMode: string) => {
-                imported.push(selectedMode);
-                return selectedMode === "copy"
-                  ? { id: "copy", file: undefined }
-                  : { id: "doc", file: "/doc.hightex" };
-              },
+            create: async (_file: File, path: string) => ({
+              open: async () => { opened.push(path); },
             }),
           },
         },
-        "@/utils/import-conflict": { resolveImportMode: () => confirmation },
         "@/utils/lang": { t: (key: string) => key },
         sonner: {
           toast: { loading: () => "toast", error: () => {}, dismiss: () => {} },
@@ -277,24 +265,38 @@ test.each(["overwrite", "copy", null] as const)(
             },
             readFile: async () => archive,
           },
-          editor: {
-            open: async (id: string) => {
-              opened.push(id);
-            },
-          },
         },
       },
     );
     OpenFileSlave();
-    const pending = receive("/doc.hightex");
-    await Promise.resolve();
-    expect(imported).toEqual([]);
-    decide(mode);
-    await pending;
-    expect(imported).toEqual(mode ? [mode] : []);
-    expect(opened).toEqual(mode ? [mode === "copy" ? "copy" : "doc"] : []);
+    await receive("/doc.hightex");
+    expect(opened).toEqual(["/doc.hightex"]);
   },
 );
+
+test("source file resolution stays bound to the editor and prefers its explicit path", () => {
+  const frame = { routingId: 1, processId: 1 };
+  const event = { sender: { mainFrame: frame }, senderFrame: frame };
+  const state = { document: { id: "doc", filePath: undefined as string | undefined } };
+  let sourceFile!: (input: typeof event, id: string, path?: string) => string | undefined;
+  const { EditorHandler } = loadSource<typeof import("../electron/handlers/editor-handler")>(
+    "../electron/handlers/editor-handler.ts",
+    {
+      "@main/windows/editor-window": { EditorWindow: { getFromWindow: () => state } },
+      "@main/utilities/ipc-main": { IPCMain: { handle: (name: string, handler: typeof sourceFile) => {
+        if (name === "editor:source-file") sourceFile = handler;
+      } } },
+      electron: { BrowserWindow: { fromWebContents: () => ({}) } },
+      "../workspaces/runtime": { WorkspaceRuntime: {} },
+    },
+  );
+  EditorHandler.register({} as Parameters<typeof EditorHandler.register>[0]);
+  expect(sourceFile(event, "doc", "/stored.hightex")).toBe("/stored.hightex");
+  state.document.filePath = "/opened.hightex";
+  expect(sourceFile(event, "doc", "/stored.hightex")).toBe("/opened.hightex");
+  expect(() => sourceFile(event, "other", "/other.hightex")).toThrow("forbidden");
+  expect(() => sourceFile({ ...event, senderFrame: { ...frame, routingId: 2 } }, "doc")).toThrow("forbidden");
+});
 
 test("a startup document deep link is never also treated as a local .hightex path", () => {
   const link = "hightex://document?url=https%3A%2F%2Fexample.com%2Fdoc.hightex";

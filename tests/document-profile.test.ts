@@ -14,6 +14,7 @@ import { zipSync, unzipSync, strFromU8 } from "fflate";
 import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Exporter } from "../src/utils/htx/exporter";
 import { HighTexImporter } from "../src/utils/import-v2";
+import { DocumentFileSource } from "../src/editor/document/file-source";
 import {
   emptyAuthorProfile,
   resolveDocumentProfile,
@@ -82,6 +83,197 @@ beforeAll(async () => {
 beforeEach(async () => {
   setWorkspace(emptyAuthorProfile());
   await Promise.all(db.tables.map((table) => table.clear()));
+});
+
+describe("file-backed opening", () => {
+  let source: Uint8Array;
+  let reads: number;
+  let unavailable: boolean;
+  let opened: Array<[string, string | undefined]>;
+
+  beforeEach(() => {
+    reads = 0;
+    unavailable = false;
+    opened = [];
+    Object.assign(window, {
+      editor: {
+        sourceFile: async (_id: string, path?: string) => path,
+        open: async (id: string, path?: string) => { opened.push([id, path]); },
+      },
+    });
+    window.hightex.readFile = async () => {
+      reads++;
+      if (unavailable) throw Error("File moved");
+      return Buffer.from(source);
+    };
+  });
+
+  async function storedFile(id = "file-document") {
+    await db.documents.put({ ...makeDocument(id), file: "/source.hightex" });
+    await db.chapters.put({
+      id: `${id}.1`,
+      content: [{ type: "paragraph", content: [{ type: "text", text: "From disk" }] }],
+    });
+    source = (await new Exporter(id).buildExport()).buffer;
+    return id;
+  }
+
+  test("opening only routes to the editor, leaving an active draft intact", async () => {
+    const id = await storedFile();
+    const file = new File([new Uint8Array(source)], "source.hightex");
+    await db.documents.update(id, { title: "Editing now" });
+    const before = await captureDraft(db, id);
+    await (await HighTexImporter.create(file, "/source.hightex")).open();
+    expect(await captureDraft(db, id)).toEqual(before);
+    await db.documents.delete(id);
+    await (await HighTexImporter.create(file, "/source.hightex")).open();
+    expect(await db.documents.get(id)).toBeUndefined();
+    expect(opened).toEqual([[id, "/source.hightex"], [id, "/source.hightex"]]);
+  });
+
+  test("disk wins while a different autosave is recoverable with its assets", async () => {
+    const id = await storedFile();
+    const files = new DocumentFileSource();
+    await files.saved(id, source);
+    await db.documents.update(id, { title: "Unsaved title" });
+    await db.chapters.put({
+      id: `${id}.1`,
+      content: [
+        { type: "paragraph", content: [
+          { type: "text", text: "Unsaved paragraph" },
+          { type: "cite", attrs: { cite: "draft-cite" } },
+        ] },
+        { type: "image", attrs: { src: "draft-image" } },
+      ],
+    });
+    await db.images.put({
+      id: "draft-image", documentId: id, createdAt: 0,
+      blob: new Blob(["original pixels"], { type: "image/webp" }),
+    });
+    await db.cite.put({ key: "draft-cite", documentId: id, bib: "@book{draft,title={Draft}}" });
+    await db.setAlias("API", "Draft abbreviation", id);
+    await db.setVar("location", "Draft location", id);
+
+    await files.load(id);
+    expect((await db.documents.get(id))?.title).toBe(`Document ${id}`);
+    expect((await db.chapters.get(`${id}.1`))?.content[0].content?.[0].text).toBe("From disk");
+    const recovery = (await db.documents.toArray()).find((document) => document.id !== id)!;
+    expect(recovery.title).toBe("Unsaved title — Autosave recovery");
+    expect(recovery.file).toBeUndefined();
+    const recovered = parseHighTexV2((await new Exporter(recovery.id).buildExport()).buffer);
+    expect(recovered.chapters.find((chapter) => chapter.id === "1")?.content[0].content?.[0].text).toBe("Unsaved paragraph");
+    expect(Object.values(recovered.references)).toContain("@book{draft,title={Draft}}");
+    expect(new TextDecoder().decode(Object.values(recovered.images)[0].bytes)).toBe("original pixels");
+    expect(await db.getAliases(recovery.id)).toContainEqual({ key: "API", value: "Draft abbreviation" });
+    expect(recovered.variables).toContainEqual({ name: "location", value: "Draft location" });
+  });
+
+  test("navigation reuses the load and a clean reopening does not create recovery copies", async () => {
+    const id = await storedFile();
+    const files = new DocumentFileSource();
+    await Promise.all([files.load(id), files.load(id)]);
+    expect(reads).toBe(1);
+    await db.chapters.update(`${id}.1`, { content: [{ type: "paragraph", attrs: { normalized: true } }] });
+    await files.initialized(id, (await new Exporter(id).buildExport()).buffer);
+    await files.load(id);
+    expect((await db.chapters.get(`${id}.1`))?.content[0].attrs?.normalized).toBe(true);
+    expect(reads).toBe(1);
+    await new DocumentFileSource().load(id);
+    expect(reads).toBe(2);
+    expect(await db.documents.count()).toBe(1);
+    expect((await db.chapters.get(`${id}.1`))?.content[0].content?.[0].text).toBe("From disk");
+  });
+
+  test("a missing file keeps the draft and cannot mark unsaved content as clean", async () => {
+    const id = await storedFile();
+    const files = new DocumentFileSource();
+    await files.saved(id, source);
+    await db.documents.update(id, { title: "Keep these edits" });
+    unavailable = true;
+    await files.load(id);
+    await files.initialized(id, (await new Exporter(id).buildExport()).buffer);
+    expect((await db.documents.get(id))?.title).toBe("Keep these edits");
+    unavailable = false;
+    await new DocumentFileSource().load(id);
+    expect((await db.documents.toArray()).map((document) => document.title)).toContain(
+      "Keep these edits — Autosave recovery",
+    );
+  });
+
+  test("an invalid source leaves storage intact and can be retried", async () => {
+    const id = await storedFile();
+    const valid = source;
+    const before = await captureDraft(db, id);
+    source = new Uint8Array([1, 2, 3]);
+    const files = new DocumentFileSource();
+    await expect(files.load(id)).rejects.toBeDefined();
+    expect(await captureDraft(db, id)).toEqual(before);
+    source = valid;
+    await files.load(id);
+    expect(reads).toBe(2);
+    expect(await db.documents.count()).toBe(1);
+  });
+
+  test("reconnecting a moved file preserves edits and the recovery baseline", async () => {
+    const id = await storedFile();
+    const files = new DocumentFileSource();
+    await files.saved(id, source);
+    await db.documents.update(id, { title: "Edits before reconnecting" });
+    window.editor.locateSource = async () => "/moved/source.hightex";
+    await files.locate(id);
+    expect((await db.documents.get(id))?.file).toBe("/moved/source.hightex");
+    expect((await db.documents.get(id))?.title).toBe("Edits before reconnecting");
+    await new DocumentFileSource().load(id);
+    expect((await db.documents.toArray()).map((document) => document.title)).toContain(
+      "Edits before reconnecting — Autosave recovery",
+    );
+  });
+
+  test("file status includes metadata, references, workspace identity and uncommitted chapter content", async () => {
+    const id = await storedFile();
+    const files = new DocumentFileSource();
+    await files.saved(id, source, 123456);
+    expect(await files.status(id)).toMatchObject({ modified: false, savedAt: 123456 });
+    expect(await files.status(id, undefined, {
+      id: `${id}.1`, content: [{ type: "paragraph", content: [{ type: "text", text: "Still typing" }] }],
+    })).toMatchObject({ modified: true });
+    await db.documents.update(id, { title: "Updated metadata" });
+    expect((await files.status(id)).modified).toBe(true);
+    await db.documents.update(id, { title: `Document ${id}` });
+    expect((await files.status(id)).modified).toBe(false);
+    await db.cite.put({ key: "status-cite", documentId: id, bib: "@book{status,title={Updated}}" });
+    expect((await files.status(id)).modified).toBe(true);
+    await files.saved(id, (await new Exporter(id).buildExport()).buffer);
+    expect((await files.status(id)).modified).toBe(false);
+    setWorkspace({ ...emptyAuthorProfile(), name: "Changed workspace author" });
+    expect((await files.status(id)).modified).toBe(true);
+  });
+
+  test("settings from before Save As cannot restore an old file path", async () => {
+    const id = await storedFile();
+    const settingsDraft = (await db.documents.get(id))!;
+    await db.documents.update(id, { file: "/new/location.hightex" });
+    await db.updateDocument({ ...settingsDraft, title: "Updated settings" });
+    expect((await db.documents.get(id))?.file).toBe("/new/location.hightex");
+    expect((await db.documents.get(id))?.title).toBe("Updated settings");
+  });
+
+  test("a new file is loaded from the window path and existing cloud ownership survives reopening", async () => {
+    const id = await storedFile();
+    await db.documents.delete(id);
+    window.editor.sourceFile = async () => "/source.hightex";
+    await new DocumentFileSource().load(id);
+    expect((await db.documents.get(id))?.file).toBe("/source.hightex");
+    const cloudAcademic: CloudAcademicSource = {
+      accountId: "account", serverUrl: "https://hightex.test", serverDocumentId: "server-doc",
+      author: { name: "Server author", nim: "123", advisorName: "Advisor", advisorNip: "456", committee: {} },
+      committee: { kaprodi: { name: "Kaprodi", nip: "789" }, dekan: { name: "Dekan", nip: "012" } },
+    };
+    await db.documents.update(id, { cloudAcademic });
+    await new DocumentFileSource().load(id);
+    expect((await db.documents.get(id))?.cloudAcademic).toEqual(cloudAcademic);
+    expect((await db.documents.get(id))?.profile?.name).toBe("Server author");
+  });
 });
 
 test("abbreviation labels remove one matching namespace without changing stored keys or authored dots", async () => {

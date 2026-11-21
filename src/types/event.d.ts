@@ -48,6 +48,7 @@ declare global {
 
   interface ChapterReload {}
   interface AppEvents {
+    "document:draft-changed": { documentId: string; pending: boolean };
     "chapter:update": ChapterUpdateEvent;
     "chapter:created": ChapterCreatedEvent;
     "document:warmed": DocumentWarmedEvent;

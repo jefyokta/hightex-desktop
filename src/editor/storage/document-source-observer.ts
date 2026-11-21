@@ -20,6 +20,7 @@ export function observeDocumentSources(
   signal: AbortSignal,
   options: {
     compareContent?: boolean;
+    ignoreFileMetadata?: boolean;
     chapterBuffer?: { id: string; content(): unknown };
   } = {},
 ) {
@@ -99,7 +100,13 @@ export function observeDocumentSources(
             return;
           }
           const buffer = options.chapterBuffer;
-          const documents = buffer
+          const documents = options.ignoreFileMetadata
+            ? snapshot.documents.map(document => {
+                if (!document) return document;
+                const { updatedAt: _, file: __, ...content } = document;
+                return content;
+              })
+            : buffer
             ? snapshot.documents.map((document) => {
                 if (!document) return document;
                 const { updatedAt: _, ...content } = document;

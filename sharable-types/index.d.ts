@@ -4,6 +4,7 @@ declare global {
   interface EditorWindowState {
     window: BrowserWindow;
     archiveBaseline?: string;
+    fileBaseline?: string;
     initialized?: boolean;
     document: {
       id: string;

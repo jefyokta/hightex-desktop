@@ -7,7 +7,7 @@ const os = require("node:os");
 const vm = require("node:vm");
 const assert = require("node:assert/strict");
 const ts = require("typescript");
-const { unzipSync, strFromU8 } = require("fflate");
+const { unzipSync, strFromU8, zipSync, strToU8 } = require("fflate");
 const { createServer } = require("node:http");
 const root = path.resolve(__dirname, "../..");
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "hightex-editor-close-"));
@@ -24,17 +24,29 @@ let prompts = 0,
   saveDialogs = 0;
 let choice = 2,
   cancelSave = false,
+  cancelLocate = false,
+  locatePath,
+  openDialogs = 0,
+  locateFinished = 0,
+  conflictChoice = 2,
+  conflicts = 0,
   savePath = path.join(profile, "document.hightex");
 const preload = path.join(profile, "preload.cjs");
 fs.writeFileSync(
   preload,
   `const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('editor',{
-ready:buffer=>ipcRenderer.invoke('editor:ready',buffer),
-save:(buffer,name)=>ipcRenderer.invoke('editor:save',buffer,name),
+sourceFile:(id,path)=>ipcRenderer.invoke('editor:source-file',id,path),
+locateSource:()=>ipcRenderer.invoke('editor:locate-source'),
+reloadSource:()=>ipcRenderer.invoke('editor:reload-source'),
+open:id=>ipcRenderer.invoke('editor:open',id),
+has:id=>ipcRenderer.invoke('editor:has',id),
+flush:id=>ipcRenderer.invoke('editor:flush',id),
+ready:(buffer,source)=>ipcRenderer.invoke('editor:ready',buffer,source),
+save:(buffer,name,mode)=>ipcRenderer.invoke('editor:save',buffer,name,mode),
 onCloseState:callback=>{const fn=(_event,locked)=>callback(locked);ipcRenderer.on('editor:close-state',fn);return()=>ipcRenderer.removeListener('editor:close-state',fn)},
 onFlush:callback=>{const fn=(_event,...args)=>callback(...args);ipcRenderer.on('editor:flush',fn);return()=>ipcRenderer.removeListener('editor:flush',fn)},
 completeFlush:(request,error,snapshot)=>ipcRenderer.send('editor:flush:result:'+request,error,snapshot)
-});`,
+});contextBridge.exposeInMainWorld('ipcRenderer',{invoke:(...args)=>ipcRenderer.invoke(...args)});contextBridge.exposeInMainWorld('fixtureFiles',{read:path=>ipcRenderer.invoke('fixture:read-file',path)});`,
 );
 const html = `<!doctype html><html><body style="margin:0"><main id="root"></main><script type="module">
 import React from 'react';import{createRoot}from'react-dom/client';
@@ -51,17 +63,22 @@ import{Setting}from'/src/components/editor/expandable-items/setting.tsx';
 import{HighTexDB}from'/src/editor/storage/hightex-db.ts';
 import{Document}from'/src/editor/document/index.ts';
 import{getEditorChapter}from'/src/editor/event/index.ts';
+import{documentSaving}from'/src/editor/document/saving.ts';
+import{ConfirmProvider}from'/src/context/confrim-context.tsx';
+import{Toaster}from'sonner';
 import'/src/App.css';
 const config={language:'id',theme:'light',editor:{scrollBar:true,spellCheck:false},export:{saveDialog:true}};
-window.config={get:()=>config,onChange:()=>()=>{}};
+window.config={get:()=>config,ready:async()=>{},onChange:()=>()=>{}};
 window.session={onChange:()=>()=>{}};
+window.file={showInFolder:async()=>{}};
 window.profile={get:async()=>({name:'Writer',nim:'123',advisorName:'Advisor',advisorNip:'00001',cv:'',isCloud:false}),picture:async()=>false,onChange:()=>()=>{}};
-window.hightex={categories:async()=>[{id:1,name:'Thesis',variant:'thesis',chapters:[{chapter:'1',title:'Introduction'}]}],cloud:{academic:{locked:async()=>false}}};
+window.hightex={readFile:path=>window.fixtureFiles.read(path),categories:async()=>[{id:1,name:'Thesis',variant:'thesis',chapters:[{chapter:'1',title:'Introduction'}]}],cloud:{academic:{locked:async()=>false}}};
 window.db=HighTexDB.getInstance();await window.db.open();
+window.saveState=()=>documentSaving.read();
 const id=location.pathname.split('/').at(-1);
 if(!await window.db.documents.get(id))await window.db.documents.put({id,title:'Close fixture',altTitle:'',category:'1',config:{},keywords:{indonesian:[],english:[]},profile:{name:'Writer',nim:'123',advisorName:'Advisor',advisorNip:'00001'}});
 function Probe(){window.currentEditor=useCurrentEditor().editor;window.boundChapter=window.currentEditor?getEditorChapter(window.currentEditor):null;window.currentDocument=Document.instance;return null}
-function Shell(){return React.createElement(EditorChrome,null,React.createElement(EditorProvider,null,React.createElement(ParamsContextProvider,null,React.createElement(Probe),React.createElement(ExpandableSideBarContextProvider,null,React.createElement(Outlet),React.createElement(Setting)),React.createElement(EditorFlushSlave))))}
+function Shell(){return React.createElement(ConfirmProvider,null,React.createElement(Toaster),React.createElement(EditorChrome,null,React.createElement(EditorProvider,null,React.createElement(ParamsContextProvider,null,React.createElement(Probe),React.createElement(ExpandableSideBarContextProvider,null,React.createElement(Outlet),React.createElement(Setting)),React.createElement(EditorFlushSlave)))))}
 createRoot(document.getElementById('root')).render(React.createElement(ConfigContextProvider,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,{initialEntries:['/document/'+id+'/1']},React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(Shell)},React.createElement(Route,{path:'/document/:id/:chapter?/:version?',element:React.createElement(Editor)})))))));
 </script></body></html>`;
 function load(file, modules = {}) {
@@ -157,13 +174,17 @@ async function closeAndStay() {
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const archive = load("electron/utilities/archive-fingerprint.ts");
     const guard = load("electron/utilities/editor-close-guard.ts");
-    ({ EditorWindow } = load("electron/windows/editor-window.ts", {
-      electron: {
+    const importer = await import("@hightex/importer");
+    const nativeHost = {
         app,
         BrowserWindow,
         ipcMain,
         dialog: {
           showMessageBox: async (_window, options) => {
+            if (options.title === "File berubah di luar HighTex") {
+              conflicts++;
+              return { response: conflictChoice };
+            }
             if (options.type === "error") {
               errors++;
               return { response: 0 };
@@ -175,8 +196,21 @@ async function closeAndStay() {
             saveDialogs++;
             return { canceled: cancelSave, filePath: savePath };
           },
+          showOpenDialog: async () => {
+            openDialogs++;
+            return { canceled: cancelLocate, filePaths: locatePath ? [locatePath] : [] };
+          },
         },
-      },
+      };
+    const fileService = load("electron/service/document-file-service.ts", {
+      electron: nativeHost,
+      "./config-service": { ConfigService: { getKey: () => "id" } },
+      "../utilities/archive-fingerprint": archive,
+    });
+    ({ EditorWindow } = load("electron/windows/editor-window.ts", {
+      "@hightex/importer": importer,
+      electron: nativeHost,
+      "../service/document-file-service": fileService,
       "./../main/application": {
         Application: {
           isDev: false,
@@ -199,19 +233,27 @@ async function closeAndStay() {
         },
       },
     }));
-    ipcMain.handle("editor:ready", async (event, buffer) =>
-      EditorWindow.ready(
-        EditorWindow.getFromWindow(BrowserWindow.fromWebContents(event.sender)),
-        buffer,
-      ),
-    );
-    ipcMain.handle("editor:save", async (event, buffer, name) =>
-      EditorWindow.save(
-        EditorWindow.getFromWindow(BrowserWindow.fromWebContents(event.sender)),
-        buffer,
-        name,
-      ),
-    );
+    load("electron/handlers/editor-handler.ts", {
+      "@main/windows/editor-window": { EditorWindow },
+      "@main/utilities/ipc-main": { IPCMain: { handle: (name, handler) => ipcMain.handle(name, async (event, ...args) => {
+        // Materialize Electron's native frame in its host context before entering vm.
+        void event.sender.mainFrame;
+        try {
+          return await handler(event, ...args);
+        } finally {
+          if (name === "editor:locate-source") locateFinished++;
+        }
+      }) } },
+      "../workspaces/runtime": { WorkspaceRuntime: { switching: false } },
+    }).EditorHandler.register({});
+    ipcMain.handle("fixture:read-file", (_event, file) => fs.promises.readFile(file));
+    ipcMain.handle("hightex:export", async (_event, buffer, fileName, options) => {
+      assert.equal(options.showDialog, true);
+      const filePath = path.join(profile, path.basename(fileName));
+      fs.writeFileSync(filePath, buffer);
+      return { canceled: false, filePath };
+    });
+    if (!process.argv.includes("--save-workflow-only")) {
     // A loading/failed document can still be explicitly dismissed.
     choice = 0;
     win = await EditorWindow.open("loading");
@@ -226,7 +268,7 @@ async function closeAndStay() {
     assert.equal(prompts, 0);
     await open("dirty");
     await execute(
-      'window.currentEditor.commands.insertContentAt(window.currentEditor.state.doc.content.size, {type:"paragraph",content:[{type:"text",text:"Close flush marker"}]})',
+      'await window.db.cite.put({key:"fixture-cite",documentId:"dirty",bib:"@book{fixture,title={Fixture},author={Author},year={2026}}"});window.currentEditor.commands.insertContentAt(window.currentEditor.state.doc.content.size, {type:"paragraph",content:[{type:"text",text:"Close flush marker"},{type:"cite",attrs:{cite:"fixture-cite"}}]})',
     );
     assert.ok(
       await execute(
@@ -275,18 +317,23 @@ async function closeAndStay() {
     assert.equal(prompts, previousPrompts + 1);
     assert.deepEqual(fs.readFileSync(savePath), bytes);
     await open("dirty", savePath);
-    choice = 2;
-    await closeAndStay();
     assert.equal(
-      prompts,
-      previousPrompts + 2,
-      "local changes still differ from the archive after reopening",
+      await execute('return (await window.db.documents.get("dirty")).config.kaprodi?.name'),
+      undefined,
+      "reopening restores the source file after discard",
     );
+    assert.ok(await execute('return (await window.db.documents.toArray()).some(doc=>doc.id!=="dirty"&&doc.config.kaprodi?.name==="Updated Head"&&!doc.file)'), "the differing autosave is preserved as a recovery copy");
+    win.close();
+    await until(() => win.isDestroyed(), "file restored clean close");
+    assert.equal(prompts, previousPrompts + 1, "normalized citation IDs do not make the reopened document dirty");
+    await open("dirty", savePath);
+    const beforeMissing = saveDialogs;
     fs.unlinkSync(savePath);
     choice = 0;
     win.close();
     await until(() => win.isDestroyed(), "missing archive recreated");
     assert.ok(fs.existsSync(savePath));
+    assert.equal(saveDialogs, beforeMissing + 1, "a missing source asks for a save location");
     // Unsaved settings drafts are compared without implicitly saving the panel.
     await open("draft");
     await until(
@@ -332,13 +379,14 @@ async function closeAndStay() {
     win.close();
     await until(() => win.isDestroyed(), "draft clean reopen");
     assert.equal(prompts, count);
-    console.log(
-      "PASS: real editor flushes pending text, clean close, cancel confirmation/file chooser, failed write retry, save-on-close path persistence, clean reopen, document configuration changes, discard, missing archive recovery and unsaved settings drafts.",
-    );
+    }
+
+    console.log("PASS: file-first reopening, draft recovery, source-path baselines and close-save lifecycle.");
     console.log("Fixture profile: " + profile);
   } catch (error) {
     console.error(error);
     console.error({ prompts, errors, saveDialogs });
+    console.error("Fixture profile: " + profile);
     process.exitCode = 1;
   } finally {
     for (const window of BrowserWindow.getAllWindows()) window.destroy();

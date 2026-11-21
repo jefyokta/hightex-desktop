@@ -2,7 +2,7 @@ import { HighTexImporter } from "@/utils/import-v2";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
-import { resolveImportMode } from "@/utils/import-conflict";
+import { ShouldNotified } from "@/exception/interfaces/should-notified";
 
 export const OpenFileSlave = () => {
   useEffect(() => {
@@ -34,23 +34,17 @@ export const OpenFileSlave = () => {
 
         const importer = await HighTexImporter.create(file, path);
 
-        const mode = await resolveImportMode(importer);
-        if (!mode) return;
         const id = toast.loading(t("open_file.importing"));
-        await importer
-          .import(mode)
-          .then((doc) => {
-            return window.editor.open(doc.id, doc.file);
-          })
-          .catch(() => {
-            toast.error(t("open_file.import_failed"));
-          })
-          .finally(() => {
-            toast.dismiss(id);
-          });
+        try {
+          await importer.open();
+        } finally {
+          toast.dismiss(id);
+        }
       } catch (error) {
         toast.error(t("open_file.open_failed"), {
-          description: error instanceof Error ? error.message : String(error),
+          description: error instanceof ShouldNotified
+            ? error.description
+            : error instanceof Error ? error.message : String(error),
         });
       }
     });

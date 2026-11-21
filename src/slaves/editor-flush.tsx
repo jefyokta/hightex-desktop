@@ -4,9 +4,11 @@ import { useCurrentEditor } from "@/hooks/use-editor";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { getEditorChapter } from "@/editor/event";
 import { Manager } from "@/editor/manager";
-import { documentDrafts } from "@/editor/document-drafts";
+import { documentSaving } from "@/editor/document/saving";
+import { captureDocumentArchive, flushDocumentChanges } from "@/editor/document/archive";
 import { Exporter } from "@/utils/htx/exporter";
 import { Storage } from "@/editor/storage";
+import { documentFiles } from "@/editor/document/file-source";
 
 export const EditorFlushSlave = () => {
   const { editor } = useCurrentEditor();
@@ -25,17 +27,24 @@ export const EditorFlushSlave = () => {
     if (!chapter.frozen && (bound !== chapter || !editor?.isEditable)) return;
     initialized.current = id;
     void (async () => {
+      const initialContent = editor?.state.doc;
       // Capture Tiptap's normalized starting content before tracking user edits.
       if (editor?.isEditable && bound === chapter)
         await Manager.emit("update", { editor });
       await Storage.instance.waitForDocument(id);
       const { buffer } = await new Exporter(id).buildExport();
-      await window.editor.ready(buffer);
+      // Never mark user edits made during initialization as the clean file baseline.
+      const source = !editor || editor.state.doc === initialContent
+        ? await documentFiles.initialized(id, buffer)
+        : undefined;
+      await documentSaving.start(id, buffer);
+      await window.editor.ready(buffer, source);
     })().catch((error) => {
       initialized.current = undefined;
       console.error("Could not initialize archive tracking", error);
     });
   }, [id, chapter, editor]);
+  useEffect(() => () => documentSaving.stop(), [id]);
   useEffect(() => {
     const off = window.editor?.onCloseState?.((locked) => {
       document.body.inert = locked;
@@ -50,39 +59,20 @@ export const EditorFlushSlave = () => {
       void (async () => {
         try {
           if (id !== documentId) throw new Error("Editor document changed");
-          const boundChapter = editor ? getEditorChapter(editor) : undefined;
-          if (
-            boundChapter?.getDocumentId() === documentId &&
-            editor?.isEditable
-          ) {
-            await Manager.emit("update", { editor });
-          } else if (
-            !chapter?.frozen ||
-            chapter.getDocumentId() !== documentId
-          ) {
-            throw new Error("Editor is not ready to save");
+          if (!archive) {
+            await flushDocumentChanges(documentId, editor, chapter);
+            window.editor.completeFlush(request);
+            return;
           }
-          await Storage.instance.waitForDocument(documentId);
-          let snapshot: EditorArchiveSnapshot | undefined;
-          if (archive) {
-            const draft = documentDrafts.get(documentId);
-            const { buffer, document } = await new Exporter(
-              documentId,
-            ).buildExport(undefined, draft?.document);
-            snapshot = {
-              buffer,
-              fileName: `${document.title.replace(/[^a-zA-Z0-9-_. ]/g, "-")}.hightex`,
-            };
-            if (archive === "save") {
-              snapshot.filePath = await window.editor.save(
-                buffer,
-                snapshot.fileName,
-              );
-              if (snapshot.filePath) {
-                await draft?.commit();
-                await chapter?.document.setFilePath(snapshot.filePath);
-              }
-            }
+          const captured = await captureDocumentArchive(documentId, editor, chapter);
+          const snapshot: EditorArchiveSnapshot = {
+            buffer: captured.buffer,
+            fileName: captured.fileName,
+          };
+          if (archive === "save") {
+            const result = await documentSaving.save(captured);
+            if (result.status === "saved") snapshot.filePath = result.filePath;
+            if (result.status === "failed") throw Error(result.error.detail);
           }
           window.editor.completeFlush(request, undefined, snapshot);
         } catch (error) {

@@ -929,6 +929,31 @@
       "name_exists_description": "Choose a different branch name."
     },
     "save": {
+      "as": "Save as…",
+      "choose_location": "The source file was not found. Choose a save location.",
+      "not_ready": "The editor is not ready to save. Wait for the document to finish loading.",
+      "cache_failed": "File saved, but the local autosave could not be updated",
+      "conflict": {
+        "title": "File changed outside HighTex",
+        "description": "The source file differs from the version opened or last saved. Save a copy to keep both versions, or use the file version. If you use the file version, differing local changes will be preserved in Recovery.",
+        "copy": "Save a copy…",
+      "reload": "Use file version",
+      "cancel": "Keep editing",
+      "copy_suffix": "copy",
+      "different_path": "Choose a different name or location to keep the source file version safe."
+    },
+    "errors": {
+      "permission": "You do not have write permission. Choose another location with Save As.",
+      "disk-full": "The drive is full. Free some space or choose another drive.",
+      "unavailable": "The save location is unavailable. Reconnect the drive or choose another location.",
+      "changed": "The file changed again before saving finished. It was not overwritten; save to another location.",
+      "io": "The file operation did not finish. Check the location and try again.",
+      "local-cache": "The file was written, but the local copy could not be updated. Keep this window open and try saving again.",
+      "local-storage": "The local autosave could not be read or saved. Keep this window open so your changes remain available."
+    },
+      "reload": "Reload from file…",
+      "reload_title": "Use the source file contents?",
+      "reload_description": "The editor will reload the file. Any differing local changes will remain available in Recovery.",
       "idle": "Save (Ctrl+S / ⌘S)",
       "saving": "Saving…",
       "saved": "Saved",
@@ -1419,12 +1444,16 @@
     "open_comments": "Open comments"
   },
   "open_file": {
-    "conflict_title": "Document already exists",
-    "conflict_description": "A document with the same ID as \"{title}\" already exists. Overwrite it or create a separate copy?",
-    "overwrite": "Overwrite",
-    "create_copy": "Create a copy",
+    "locate_source": "Locate source file…",
+    "source_reconnected": "Source file location updated",
+    "source_reconnected_description": "Editor content is preserved. The next Save uses the new location.",
+    "locate_failed": "Could not reconnect the source file",
+    "source_unavailable": "The source file could not be read. Opening the local autosave.",
+    "source_identity_changed": "The source file now belongs to another document. Open that file directly.",
+    "recovery_title": "{title} — Autosave recovery",
+    "recovery_saved": "The previous autosave was preserved as a recovery copy. The document was opened from its file.",
+    "open_recovery": "Open recovery",
     "copy_title": "{title} (Copy)",
-    "confirm_overwrite": "Document already imported, wanna overwrite it?",
     "importing": "Importing document...",
     "import_success": "Import Success!",
     "added": "Added {title}",

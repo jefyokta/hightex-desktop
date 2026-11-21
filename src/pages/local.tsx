@@ -17,8 +17,8 @@ import type { DocumentMetadata } from "@/components/local/document-dialog";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { t } from "@/utils/lang";
-import { resolveImportMode } from "@/utils/import-conflict";
 import { normalizeAuthorProfile } from "@/utils/document-profile";
+import { liveQuery } from "dexie";
 
 export const Dashboard = () => {
   useAppLanguage();
@@ -53,22 +53,18 @@ export const Dashboard = () => {
     const offCategories = window.hightex.onCategoriesChanged?.(
       () => void load(),
     );
-    const offUpdated = Manager.app.on("document:updated", ({ document }) =>
-      setDocuments((previous) => [
-        document,
-        ...previous.filter((doc) => doc.id !== document.id),
-      ]),
-    );
-    const offDeleted = Manager.app.on("documents:deleted", ({ documentIds }) =>
-      setDocuments((previous) =>
-        previous.filter((doc) => !documentIds.includes(doc.id)),
-      ),
-    );
+    // Imports and recovery copies are committed by another editor window.
+    const documents = liveQuery(() => db.documents.toArray()).subscribe({
+      next: (documents) => {
+        setDocuments(documents);
+        setError(false);
+      },
+      error: () => setError(true),
+    });
     return () => {
       alive.current = false;
       offCategories?.();
-      offUpdated();
-      offDeleted();
+      documents.unsubscribe();
     };
   }, [load]);
 
@@ -126,11 +122,7 @@ export const Dashboard = () => {
         file,
         await window.file.getPath(file),
       );
-      const mode = await resolveImportMode(importer);
-      if (!mode) return;
-      const doc = await importer.import(mode);
-      Manager.app.dispatch("document:updated", { document: doc });
-      toast.success(t("dashboard.imported", { title: doc.title }));
+      await importer.open();
     } finally {
       toast.dismiss(toastId);
       event.target.value = "";
