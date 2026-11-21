@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-exports.runIndexPresentation = async ({execute,artifacts,win}) => {
+exports.runIndexPresentation = async ({execute,artifacts,win,editorPDFTest}) => {
   const report=await execute(`
     setPages(false);await waitSaved();
     const {DocumentIndex}=await import('/src/document-engine/indexes/document-index.tsx');
@@ -19,21 +19,28 @@ exports.runIndexPresentation = async ({execute,artifacts,win}) => {
     const index=new DocumentIndex();
     index.collect([abstractEntry,{id:'rich-heading',...title,group:'content',number:'1',level:1,kind:'heading'},
       {id:'long-title',text:'Long title',titleHTML:'Judul panjang '+ 'isi penelitian yang tetap terbaca '.repeat(12),group:'content',number:'1.1',level:2,kind:'heading'},
+      {id:'third-level',text:'Subsubbab',titleHTML:'Subsubbab <em>italic</em>',group:'content',number:'1.1.1',level:3,kind:'heading'},
       {id:'appendix',text:'Lampiran mixed Case',titleHTML:'Lampiran <em>mixed Case</em>',group:'appendix',number:'Lampiran A',level:1,kind:'heading'}]);
     const results=[],task=new AbortController();
     window.indexPresentationSurfaces=[];
     for(const margin of [30,55]) {
       const section={id:'toc',kind:'template',numbering:'roman',title:'DAFTAR ISI',index:'toc',html:''};
-      section.html=index.html(section,new Map([['abstract-heading','ix'],['rich-heading','1'],['long-title','8'],['appendix','A - 1']]));
+      section.html=index.html(section,new Map([['abstract-heading','ix'],['rich-heading','1'],['long-title','8'],['third-level','9'],['appendix','A - 1']]));
       const renderer=new TemplateSectionRenderer(paginationGeometry({margins:{left:margin,right:margin}}),{data:async url=>url});
       const rendered=await renderer.render(section,{runId:'index-presentation',signal:task.signal});
       const paper=rendered.pages[0].element;
+      ${editorPDFTest ? `if(margin===30){
+        const {captureDocumentContexts}=await import('/src/document-export/snapshot/capture-contexts.ts');
+        const {DocumentResources}=await import('/src/document-engine/resources/document-resources.ts');
+        window.indexPresentationSnapshot=await captureDocumentContexts(rendered.pages,{documentId:'fixture',title:'Index presentation',author:'Fixture',sourceHash:'a'.repeat(64),planHash:'b'.repeat(64),sections:[{id:'toc',firstPage:1,pages:rendered.pages.length,labels:rendered.pages.map((_,index)=>String(index+1))}]},new DocumentResources(task.signal),'',task.signal);
+      }` : ''}
       if(margin===30){paper.style.cssText+=';position:absolute;left:0;top:0';document.body.append(paper);indexPresentationSurfaces.push(rendered)}
       const content=rendered.pages[0].content;
       results.push({margin,pages:rendered.pages.length,rows:Array.from(content.querySelectorAll('.toc-row'),row=>{
         const text=row.querySelector('.toc-text'),dots=row.querySelector('.toc-dots'),inner=row.querySelector('.toc-inner'),page=row.querySelector('.toc-page');
         const dot=dots.getBoundingClientRect(),box=inner.getBoundingClientRect(),number=page.getBoundingClientRect();
-        return {id:row.dataset.headingId,html:text.innerHTML,weight:getComputedStyle(text).fontWeight,background:getComputedStyle(dots).backgroundImage,
+        const range=document.createRange();range.selectNodeContents(dots);const ink=range.getBoundingClientRect();
+        return {id:row.dataset.headingId,html:text.innerHTML,weight:getComputedStyle(text).fontWeight,numberWeight:getComputedStyle(page).fontWeight,background:getComputedStyle(dots).backgroundImage,dots:dots.textContent.length,inkInside:ink.right<=dot.right+0.5&&ink.left>=dot.left-0.5,
           aligned:Math.abs(dot.right-box.right)<1,noOverlap:dot.right<=number.left+0.5,sameLine:dot.top<number.bottom&&dot.bottom>number.top};
       })});
       if(margin!==30)rendered.destroy();
@@ -42,15 +49,27 @@ exports.runIndexPresentation = async ({execute,artifacts,win}) => {
   `);
   fs.writeFileSync(path.join(artifacts,'index-presentation.json'),JSON.stringify(report,null,2));
   await execute('window.scrollTo(0,0)');
-  fs.writeFileSync(path.join(artifacts,'index-presentation.png'),(await win.webContents.capturePage()).toPNG());
+  const rect=await execute('const r=indexPresentationSurfaces[0].pages[0].element.getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)}');
+  fs.writeFileSync(path.join(artifacts,'index-presentation.png'),(await win.webContents.capturePage(rect)).toPNG());
   assert.equal(report.sourceUnchanged,true);
   assert.ok(!/<(?:strong|b|u|s|code|a|span)\b/.test(report.title.titleHTML));
   assert.ok(report.title.titleHTML.includes('<em>italic</em>'));
   assert.ok(report.title.titleHTML.includes('<em>tautan</em>'));
   assert.equal(report.abstract,'<em>Abstract</em>');
   for(const result of report.results)for(const row of result.rows){
-    assert.equal(row.weight,'400');assert.equal(row.aligned,true,JSON.stringify(row));assert.equal(row.noOverlap,true,JSON.stringify(row));assert.equal(row.sameLine,true,JSON.stringify(row));
-    assert.ok(row.background.includes(row.id==='long-title'?'0.65px':'1px'));
+    const weight=['long-title','third-level'].includes(row.id)?'400':'700';
+    assert.equal(row.weight,weight);assert.equal(row.numberWeight,weight);assert.equal(row.aligned,true,JSON.stringify(row));assert.equal(row.noOverlap,true,JSON.stringify(row));assert.equal(row.sameLine,true,JSON.stringify(row));
+    assert.equal(row.background,'none');assert.ok(row.dots>=3);assert.equal(row.inkInside,true,JSON.stringify(row));
+  }
+  if(editorPDFTest){
+    editorPDFTest.connect(win.webContents.getURL());
+    const snapshot=await execute('return indexPresentationSnapshot');
+    const result=await editorPDFTest.generate(snapshot,4);
+    const file=path.join(artifacts,'index-presentation.pdf');fs.writeFileSync(file,result.bytes);
+    const {execFileSync}=require('node:child_process');
+    const text=execFileSync('pdftotext',['-layout',file,'-'],{encoding:'utf8'});
+    assert.ok(text.includes('ABSTRACT'));assert.ok(/\.{3}/.test(text.replace(/\s/g,'')));
+    execFileSync('pdftoppm',['-f','1','-l','1','-singlefile','-r','96','-png',file,path.join(artifacts,'index-pdf')],{timeout:15000});
   }
   await execute('for(const surface of indexPresentationSurfaces)surface.destroy()');
   console.log('PASS index presentation:',artifacts);
@@ -158,7 +177,8 @@ exports.runStaticSheets = async ({execute,artifacts,editorPDFTest,win}) => {
   `);
   fs.writeFileSync(path.join(artifacts,'static-sheets.json'),JSON.stringify(result,null,2));
   if(process.env.HIGHTEX_VALIDITY_GAP_ONLY){
-    for(const sheet of result.sheets){assert.equal(sheet.pages,1,sheet.id);assert.deepEqual(sheet.outside,[],sheet.id);assert.equal(sheet.gap,28);}
+    for(const sheet of result.sheets){assert.equal(sheet.pages,1,sheet.id);assert.deepEqual(sheet.outside,[],sheet.id);assert.equal(sheet.gap,40);assert.ok(sheet.remaining>=0,sheet.id+' exceeds page height');}
+    await execute("validityGapPaper.style.zIndex='1000';await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame)");
     fs.writeFileSync(path.join(artifacts,'validity-gap.png'),(await win.webContents.capturePage()).toPNG());
     await execute('validityGapPaper.remove()');
     console.log('PASS validity gap:',artifacts,JSON.stringify(result.sheets.map(({id,pages,gap,remaining})=>({id,pages,gap,remaining}))));return;

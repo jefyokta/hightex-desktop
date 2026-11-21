@@ -224,8 +224,10 @@ Case presentation does not rewrite source or numbering data.
 TOC, table and figure indexes fill dot leaders through `fillIndexLeaders` after
 fonts settle and before measuring template columns. The legacy `TocBuilder`
 keeps its own existing behavior. Experimental index rules live in
-`src/css/document-index.css`; dots use a fixed right-aligned background rhythm
-and H1 dots are thicker. Row text/numbers remain regular weight.
+`src/css/document-index.css`; leaders use measured period glyphs in the document
+font and align to the right of the available line. H1 titles, heading numbers and
+page labels are bold; lower levels and caption entries remain regular. Inline
+italic is preserved. Leaders do not use gradient backgrounds or bitmap patterns.
 Every entry level, including H1 and unnumbered entries, receives a leader. A
 minimum leader is reserved before measuring the remaining line width so long
 titles wrap together with their bottom-aligned page number. Index convergence

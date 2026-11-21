@@ -438,7 +438,7 @@ app
       await require('./editor-performance-screening.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
     }
     if (process.env.HIGHTEX_INDEX_PRESENTATION) {
-      await require('./editor-template-flow.cjs').runIndexPresentation({execute,artifacts,win});return;
+      await require('./editor-template-flow.cjs').runIndexPresentation({execute,artifacts,win,editorPDFTest});return;
     }
     if (process.env.HIGHTEX_ROOT_LANGUAGE) {
       await require('./editor-template-flow.cjs').runLanguage({execute,artifacts});return;
