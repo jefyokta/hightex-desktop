@@ -1,6 +1,13 @@
 import { ipcRenderer, contextBridge, webUtils } from "electron";
 
 contextBridge.exposeInMainWorld("editorPDFExperimental", {
+  onProgress(requestId, callback) {
+    const listener = (_event: Electron.IpcRendererEvent, id: string, progress: EditorPDFProgress) => {
+      if (id === requestId) callback(progress);
+    };
+    ipcRenderer.on("experimental:editor-pdf:progress", listener);
+    return () => ipcRenderer.removeListener("experimental:editor-pdf:progress", listener);
+  },
   debug: (snapshot, requestId) =>
     ipcRenderer.invoke("experimental:editor-pdf:debug", snapshot, requestId),
   export: (snapshot, requestId) =>

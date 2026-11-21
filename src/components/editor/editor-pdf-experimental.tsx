@@ -20,19 +20,31 @@ export function EditorPDFExperimental({
   options?: ReactNode;
 }) {
   const {
-    phase, busy, error, section, warnings, diagnostics,
+    phase, busy, error, section, sections, warnings, diagnostics, progress, elapsedMs, outcome,
     exportButton, prepare, dismiss,
   } = useDocumentPDF(editor);
   const [optionsOpen, setOptionsOpen] = useState(false);
   useEffect(() => setOptionsOpen(false), [editor]);
   const progressText = {
     idle: "",
-    capture: section
+    capture: sections && section
+      ? t("editor.pagination.pdf_preparing_sections", {...sections,section})
+      : section
       ? t("editor.pagination.pdf_preparing_section", { section })
       : t("common.preparing_pdf"),
     export: t("editor.pagination.pdf_saving"),
     debug: t("editor.pagination.pdf_debug_open"),
+    cancel: t("editor.pagination.pdf_cancelling"),
   }[phase];
+  const nativeProgressText = progress ? {
+    destination: t("editor.pagination.pdf_destination"),
+    loading: t("editor.pagination.pdf_loading"),
+    printing: t("editor.pagination.pdf_printing", {completed:progress.completedPages,total:progress.pages}),
+    assembling: t("editor.pagination.pdf_assembling"),
+    writing: t("editor.pagination.pdf_writing"),
+  }[progress.stage] : undefined;
+  const seconds = Math.floor(elapsedMs / 1000);
+  const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2,"0")}`;
 
   return (
     <section className="w-full min-w-0 space-y-2" aria-busy={busy}>
@@ -105,15 +117,20 @@ export function EditorPDFExperimental({
           <span
             role="status"
             data-editor-pdf-progress
+            data-editor-pdf-phase={phase}
             className="min-w-0 flex-1 break-words"
           >
-            {progressText}
+            {phase === "export" ? nativeProgressText ?? progressText : progressText}
+          </span>
+          <span role="timer" aria-live="off" data-editor-pdf-elapsed className="shrink-0 tabular-nums text-muted-foreground">
+            {t("editor.pagination.pdf_elapsed", {duration})}
           </span>
           <Button
             type="button"
             size="sm"
             variant="ghost"
             data-editor-pdf-cancel
+            disabled={phase === "cancel"}
             onClick={dismiss}
           >
             <X className="size-3" />
@@ -122,6 +139,11 @@ export function EditorPDFExperimental({
               : t("common.cancel")}
           </Button>
         </div>
+      )}
+      {!busy && outcome && !error && (
+        <p role="status" data-editor-pdf-completed={outcome} className="text-xs text-muted-foreground">
+          {t(outcome === "saved" ? "editor.pagination.pdf_completed" : "editor.pagination.pdf_cancelled", {duration})}
+        </p>
       )}
       {error && (
         <p

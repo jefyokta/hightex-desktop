@@ -36,6 +36,7 @@ declare global {
     links: { target: string; page: number; x: number; y: number; width: number; height: number }[];
   }
   interface EditorPDFExperimentalAPI {
+    onProgress(requestId: string, callback: (progress: EditorPDFProgress) => void): () => void;
     debug(snapshot: EditorPDFSnapshot, requestId: string): Promise<void>;
     export(
       snapshot: EditorPDFSnapshot,
@@ -45,6 +46,11 @@ declare global {
     init(request: string): Promise<EditorPDFSnapshot>;
     ready(request: string, fingerprint: string, pages: number): void;
     error(request: string, message: string): void;
+  }
+  interface EditorPDFProgress {
+    stage: "destination" | "loading" | "printing" | "assembling" | "writing";
+    pages: number;
+    completedPages: number;
   }
   interface Window {
     editorPDFExperimental: EditorPDFExperimentalAPI;

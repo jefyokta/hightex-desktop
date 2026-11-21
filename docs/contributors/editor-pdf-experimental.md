@@ -237,6 +237,27 @@ selection/printing (with section, context and local page), or final PDF/link
 assembly. Large documents may reach that configured deadline while still making
 progress; no partial file replaces the selected destination.
 
+Export feedback works on the first run without timing history. The experimental
+capture UI counts sections from the engine's `start` and `section.after` events.
+A section contributes once even when index convergence renders it again; the
+current section title stays visible alongside the processed/total count. This
+count describes processed sections, not a percentage of the whole export.
+The experimental
+service emits request-scoped `EditorPDFProgress` events for choosing a destination,
+loading the print host, printing, assembling and writing. `completedPages` advances
+only after native bytes have been received and the strip has been assembled; it
+does not represent a time percentage. A native call has no invented intermediate
+percentage. The preload subscription filters by request ID and returns its cleanup.
+
+`useDocumentPDF` owns the monotonic elapsed timer from capture through completion,
+including time spent choosing a destination. The last save/cancel duration remains
+visible. There is no predicted completion time or history-based estimate.
+Cancel keeps the action busy until the request settles, aborts capture and the
+main-process job, and closes its hidden print window. Navigation/unmount releases
+the progress listener; cancelled or obsolete jobs cannot update the next request.
+The existing atomic-file boundary remains responsible for preventing a partial PDF
+from replacing the destination.
+
 Run `tests/integration/editor-pagination-ui.cjs` with isolated Electron to check
 hover/selection/menu geometry and the debug-snapshot-to-native-PDF path. These
 checks cover their recorded fixture; broader visual list defects require their

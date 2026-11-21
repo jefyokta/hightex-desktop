@@ -231,6 +231,29 @@ function deferred<T>() {
   const promise = new Promise<T>((yes) => (resolve = yes));
   return { promise, resolve };
 }
+
+test("export progress reports completed pages and cancellation closes a pending print without writing", async () => {
+  const progress: EditorPDFProgress[] = [];
+  const completed = await fixture({progress: value => progress.push(value)});
+  await completed.service.export(projectionSnapshot(),new AbortController().signal);
+  expect(progress.map(value=>value.stage)).toEqual([
+    "destination","loading","printing","printing","printing","printing","assembling","writing",
+  ]);
+  expect(progress.filter(value=>value.stage==="printing").map(value=>value.completedPages)).toEqual([0,1,2,3]);
+  expect(progress.every(value=>value.pages===3)).toBe(true);
+  const pending = deferred<Uint8Array>(), aborted: EditorPDFProgress[] = [];
+  const task = new AbortController();
+  const cancelled = await fixture({print:()=>pending.promise,progress:value=>aborted.push(value)});
+  const exporting = cancelled.service.export(snapshot(),task.signal).catch(error=>error);
+  await until(()=>cancelled.windows[0]?.printed===true);
+  expect(aborted[aborted.length - 1]?.completedPages).toBe(0);
+  task.abort();
+  await exporting;
+  expect(cancelled.windows[0].destroyed).toBe(true);
+  expect(cancelled.writes).toEqual([]);
+  expect(aborted.map(value=>value.stage)).toEqual(["destination","loading","printing"]);
+  pending.resolve(new Uint8Array());
+});
 async function until(check: () => boolean) {
   for (let i = 0; i < 100; i++) {
     if (check()) return;
@@ -259,6 +282,7 @@ async function fixture(
     print?: () => Promise<Uint8Array>;
     select?: (command: string) => Promise<string | void>;
     write?: (signal: AbortSignal) => Promise<void>;
+    progress?: (value: EditorPDFProgress) => void;
   } = {},
 ) {
   const handlers = new Map<string, (event: unknown) => EditorPDFSnapshot>();
@@ -411,7 +435,7 @@ async function fixture(
     { ...dependencies, "../windows/editor-pdf-host": host, "../pdf/page-assembly": { PDFPageAssembly } },
   );
   return {
-    service: new EditorPDFExperimentalService(options.batchPages ?? 1),
+    service: new EditorPDFExperimentalService(options.batchPages ?? 1, options.progress),
     windows,
     writes,
     temporary,

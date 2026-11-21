@@ -14,10 +14,14 @@ import {
  * Validate snapshots, print native PDF bytes and atomically save the chosen file. 
  */
 export class EditorPDFExperimentalService {
-  constructor(private readonly maxBatchPages = 4) {}
+  constructor(
+    private readonly maxBatchPages = 4,
+    private readonly progress: (value: EditorPDFProgress) => void = () => {},
+  ) {}
   async export(input: EditorPDFSnapshot, signal: AbortSignal) {
     signal.throwIfAborted();
     const snapshot = this.validatedSnapshot(input);
+    this.progress({stage:"destination",pages:snapshot.pages,completedPages:0});
     const chosen = await dialog.showSaveDialog({
       title: "Export PDF (experimental)",
       defaultPath: join(
@@ -35,6 +39,7 @@ export class EditorPDFExperimentalService {
       `.hightex-editor-${randomUUID()}.tmp`,
     );
     try {
+      this.progress({stage:"writing",pages:snapshot.pages,completedPages:snapshot.pages});
       await writeFile(temporary, bytes, { signal, flag: "wx" });
       signal.throwIfAborted();
       await rename(temporary, chosen.filePath);
@@ -82,6 +87,7 @@ export class EditorPDFExperimentalService {
   ): Promise<Uint8Array> {
     const host = new EditorPDFHost(snapshot);
     try {
+      this.progress({stage:"loading",pages:snapshot.pages,completedPages:0});
       await host.open(signal);
       return await host.run(async () => {
         const print = () => host.window.webContents.printToPDF({
@@ -109,7 +115,9 @@ export class EditorPDFExperimentalService {
             pages: snapshot.pages,
           }),
         );
-        return pdf.save();
+        const bytes = await pdf.save();
+        signal.throwIfAborted();
+        return bytes;
       });
     } finally {
       host.destroy();
@@ -124,6 +132,7 @@ export class EditorPDFExperimentalService {
     signal: AbortSignal,
   ) {
     const assembly = await PDFPageAssembly.create(signal);
+    this.progress({stage:"printing",pages:snapshot.pages,completedPages:0});
     try {
       for (const { index, count, view, geometry } of projectedBatches(snapshot, this.maxBatchPages)) {
         signal.throwIfAborted();
@@ -142,11 +151,14 @@ export class EditorPDFExperimentalService {
           if (failure) throw Error(failure);
           signal.throwIfAborted();
           await assembly.append(await host.run(print, `printing ${location}`), { count, ...geometry });
+          signal.throwIfAborted();
+          this.progress({stage:"printing",pages:snapshot.pages,completedPages:index+count});
         } catch (cause) {
           signal.throwIfAborted();
           throw new Error(`Editor PDF ${range}: ${cause instanceof Error ? cause.message : String(cause)} (section ${section?.id}, context ${view.context}, local page ${view.page})`, { cause });
         }
       }
+      this.progress({stage:"assembling",pages:snapshot.pages,completedPages:snapshot.pages});
       return await host.run(
         () => assembly.finish(snapshot.projection.targets, snapshot.projection.links),
         `assembling ${snapshot.pages} native pages and links`,
