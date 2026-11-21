@@ -24,7 +24,7 @@ export class Exporter {
     this.scheme = new Schema();
   }
 
-  async export(): Promise<{ canceled: boolean; filePath?: string }> {
+  async export(options: { showDialog?: boolean } = {}): Promise<{ canceled: boolean; filePath?: string }> {
     const { buffer } = await this.buildExport();
 
     const document = await this.db.documents.get(this.documentId);
@@ -38,7 +38,7 @@ export class Exporter {
     const fileName = `${document.title.replace(/[^a-zA-Z0-9-_. ]/g, "-")}.${this.options.ext}`;
 
     return await window.ipcRenderer.invoke("hightex:export", buffer, fileName, {
-      showDialog: configExport?.saveDialog ?? false,
+      showDialog: options.showDialog ?? configExport?.saveDialog ?? false,
       defaultFolder: configExport?.saveFolder,
     });
   }

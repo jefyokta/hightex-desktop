@@ -21,9 +21,6 @@ import {
   Search,
   Loader2,
   Settings,
-  Save,
-  Check,
-  AlertCircle,
   GitBranch,
   // MessageCircle,
 } from "lucide-react";
@@ -39,13 +36,13 @@ import { t } from "@/utils/lang";
 import { getEditorChapter } from "@/editor/event";
 import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { ToolbarButton as Button } from "./toolbar-button";
 import { useEditorState } from "@tiptap/react";
 import { createTable } from "@tiptap/extension-table";
 import { createMathBlock } from "@/editor/utils/create-math-block";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { SettingModal } from "./settings-modal";
-import { useSaveDocument } from "@/hooks/use-save-document";
+import { DocumentSaveActions } from "./document-save-actions";
 import { ChapterNavigation } from "./chapter-navigation";
 import { BranchManagerDialog } from "./branch-manager-dialog";
 // import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -68,7 +65,6 @@ export const NavBar: React.FC = () => {
   const activeBranchName = activeDocument?.parentId
     ? activeDocument.branchName || activeDocument.title
     : undefined;
-  const { save, status: saveStatus } = useSaveDocument(editor, chapter);
   const { setOpen, setContent } = useExpandableSidebar();
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [pdfProgress, setPdfProgress] = React.useState<number>(0);
@@ -120,6 +116,7 @@ export const NavBar: React.FC = () => {
     return (
       <div className="sticky top-0 z-50 mx-auto flex w-fit items-center rounded-xl bg-white/80 p-1 backdrop-blur dark:bg-neutral-900/70">
         <ChapterNavigation />
+        {chapter && <DocumentSaveActions editor={editor} chapter={chapter} />}
         <Button
           title={t("guide.replay")}
           icon={CircleHelp}
@@ -474,23 +471,7 @@ export const NavBar: React.FC = () => {
                     window.dispatchEvent(new Event("hightex:editor-guide"))
                   }
                 />
-                <Button
-                  tour="editor-save"
-                  title={t(`editor.save.${saveStatus}`)}
-                  icon={
-                    saveStatus === "saving"
-                      ? Loader2
-                      : saveStatus === "saved"
-                        ? Check
-                        : saveStatus === "error"
-                          ? AlertCircle
-                          : Save
-                  }
-                  disabled={saveStatus === "saving"}
-                  busy={saveStatus === "saving"}
-                  shortcut="Control+S Meta+S"
-                  onClick={() => void save()}
-                />
+                {chapter && <DocumentSaveActions editor={editor} chapter={chapter} />}
 
                 <Button
                   tour="editor-settings-trigger"
@@ -534,68 +515,5 @@ const ButtonGroup: React.FC<PropsWithChildren & { className?: string }> = ({
     >
       {children}
     </div>
-  );
-};
-
-type ButtonProps = {
-  onClick?: () => void;
-  icon: React.FC<{ className?: string }>;
-  title?: string;
-  tour?: string;
-  disabled?: boolean;
-  handleHover?: boolean;
-  active?: boolean;
-  spinnable?: boolean;
-  busy?: boolean;
-  shortcut?: string;
-};
-
-const Button: React.FC<ButtonProps & PropsWithChildren> = ({
-  onClick,
-  icon: Icon,
-  title,
-  tour,
-  disabled,
-  children,
-  handleHover = true,
-  active = false,
-  spinnable = true,
-  busy,
-  shortcut,
-}) => {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          onClick={onClick}
-          data-tour={tour}
-          title={title}
-          aria-label={title}
-          aria-busy={busy}
-          aria-keyshortcuts={shortcut}
-          disabled={disabled}
-          className={`
-        flex items-center justify-center
-        w-8 h-8 p-1 rounded-md
-        transition
-        disabled:opacity-40 disabled:cursor-not-allowed
-        
-        text-neutral-700 dark:text-neutral-200
-        ${
-          active
-            ? "bg-neutral-900/10 dark:bg-white/15 text-neutral-900 dark:text-white"
-            : ""
-        }
-        ${handleHover ? "hover:bg-neutral-200 dark:hover:bg-neutral-700" : ""}
-      `}
-        >
-          <Icon
-            className={`w-3 h-3 ${disabled && spinnable ? "animate-spin" : ""}`}
-          />
-          {children}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{title}</TooltipContent>
-    </Tooltip>
   );
 };

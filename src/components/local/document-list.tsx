@@ -12,6 +12,7 @@ import {
   Trash2,
   X,
   CheckSquare2,
+  History,
 } from "lucide-react";
 import {
   useId,
@@ -30,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { t } from "@/utils/lang";
 import { filterDocuments, type DocumentSort } from "@/utils/document-list";
+import { RecoveryDialog } from "./recovery-dialog";
 
 interface Props {
   documents: HighTexDocument[];
@@ -60,15 +62,18 @@ export const DocumentList = ({
   const [selectMode, setSelectMode] = useState(false);
   const [dialog, setDialog] = useState<"new" | HighTexDocument | null>(null);
   const [busy, setBusy] = useState(false);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
   const pending = useRef(false);
   const importRef = useRef<HTMLInputElement>(null);
   const { selected, setSelected, clear, toggleSelect } =
     useMultiSelect<string>("documents");
+  const listedDocuments = useMemo(() => documents.filter(document => !document.recovery), [documents]);
+  const recoveries = documents.length - listedDocuments.length;
   const visible = useMemo(
-    () => filterDocuments(documents, query, category, sort),
-    [documents, query, category, sort],
+    () => filterDocuments(listedDocuments, query, category, sort),
+    [listedDocuments, query, category, sort],
   );
-  const mainDocuments = documents.filter((doc) => !doc.parentId);
+  const mainDocuments = listedDocuments.filter((doc) => !doc.parentId);
   const validSelection = selected.filter((id) =>
     mainDocuments.some((doc) => doc.id === id),
   );
@@ -203,6 +208,10 @@ export const DocumentList = ({
         description={t("dashboard.documents_subtitle")}
         actions={
           <>
+            {recoveries > 0 && <Button variant="outline" onClick={() => setRecoveryOpen(true)}>
+              <History />{t("recovery.title")}
+              <span className="rounded-md bg-muted px-1.5 text-[11px] tabular-nums">{recoveries}</span>
+            </Button>}
             <Button
               variant="outline"
               data-tour="document-import"
@@ -224,6 +233,7 @@ export const DocumentList = ({
           </>
         }
       />
+      <RecoveryDialog open={recoveryOpen} onOpenChange={setRecoveryOpen} />
       <input
         ref={importRef}
         type="file"
@@ -320,7 +330,7 @@ export const DocumentList = ({
           {selectionActions}
         </div>
       )}
-      {documents.length === 0 ? (
+      {listedDocuments.length === 0 ? (
         <div
           data-tour="document-empty"
           className="flex min-h-[45vh] flex-col items-center justify-center  px-6 py-16 text-center"

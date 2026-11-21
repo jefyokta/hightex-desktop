@@ -62,6 +62,5 @@ export function useSaveDocument(editor: Editor | null, chapter: Chapter | null) 
     return () => window.removeEventListener("keydown", keydown);
   }, [chapter, save]);
 
-  const status = state.saving || preparing ? "saving" : state.error ? "error" : state.modified ? "idle" : "saved";
-  return { save, reload, status, state: { ...state, saving: state.saving || preparing } };
+  return { save, reload, state: { ...state, saving: state.saving || preparing } };
 }
