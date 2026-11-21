@@ -28,7 +28,7 @@
 .document-template-content .validity-sheet {
   --validity-table-gap: 12px;
   --validity-signature-space: 45pt;
-  --validity-member-gap: 10px;
+  --validity-member-gap: 7px;
 }
 .document-template-content .consent-sheet {
   --consent-section-gap: 1cm;
@@ -37,7 +37,7 @@
   margin-bottom: 10pt;
 }
 .document-template-content .validity-committee-gap {
-  height: 28px;
+  height: 40px;
 }
 .document-template-content .validity-committee-gap > br,
 .document-template-content .consent-signature-gap {
