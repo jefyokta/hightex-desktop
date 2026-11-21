@@ -1,5 +1,7 @@
 import { PDFDocument, PDFName, PDFDict, PDFArray } from "pdf-lib";
 
+interface NativePDFBatch { count: number; height: number; stride: number }
+
 export interface PDFSourceTarget {
   readonly id: string;
   readonly page: number;
@@ -35,59 +37,71 @@ export class PDFPageAssembly {
     return this.document;
   }
 
-  async append(bytes: Uint8Array, batch?: { count: number; height: number; stride: number }) {
-    const document = this.current();
+  async append(bytes: Uint8Array, batch?: NativePDFBatch) {
+    return this.appendDocument(bytes, [batch]);
+  }
+
+  /** One print job may contain several native strips, in canonical batch order. */
+  async appendDocument(bytes: Uint8Array, batches: readonly (NativePDFBatch | undefined)[]) {
+    this.current();
     if (this.busy) throw Error("PDF page assembly is already processing a page");
     this.busy = true;
     try {
       const input = await PDFDocument.load(bytes);
       this.current();
-      if (input.getPageCount() !== 1) throw Error("A viewport must print exactly one native page");
-      const page = input.getPage(0), annotations = page.node.Annots();
-      if (batch && batch.count > 1) {
-        const width = page.getWidth(), height = batch.height * .75;
-        const boxes = Array.from({ length: batch.count }, (_, offset) => {
-          const top = page.getHeight() - offset * batch.stride * .75;
-          return { left: 0, right: width, top, bottom: top - height };
-        });
-        // One copier shares the strip's font/image resources across its physical pages.
-        const embedded = page.node.Contents()
-          ? await document.embedPages(Array(batch.count).fill(page), boxes) : undefined;
-        for (const [offset, crop] of boxes.entries()) {
-          this.current();
-          const output = document.addPage([width, height]);
-          if (embedded) output.drawPage(embedded[offset]);
-          for (const ref of annotations?.asArray() ?? []) {
-            const annotation = input.context.lookup(ref, PDFDict),
-              action = annotation.lookupMaybe(PDFName.of("A"), PDFDict);
-            if (action?.get(PDFName.of("S"))?.toString() !== "/URI") continue;
-            const uri = action.lookup(PDFName.of("URI")),
-              rect = annotation.lookup(PDFName.of("Rect"), PDFArray).asRectangle();
-            if (!uri) continue;
-            const left = Math.max(0, rect.x), right = Math.min(width, rect.x + rect.width),
-              lower = Math.max(crop.bottom, rect.y), upper = Math.min(crop.top, rect.y + rect.height);
-            if (right <= left || upper <= lower) continue;
-            output.node.addAnnot(document.context.register(document.context.obj({
-              Type: "Annot", Subtype: "Link", P: output.ref,
-              Rect: [left, lower - crop.bottom, right, upper - crop.bottom], Border: [0, 0, 0],
-              A: { S: "URI", URI: uri.clone() },
-            })));
-          }
-        }
-        return;
-      }
-      if (annotations) {
-        // Native internal destinations belong to the temporary one-page document.
-        const external = annotations.asArray().filter(ref => {
-          const annotation = input.context.lookup(ref, PDFDict);
-          const action = annotation.lookupMaybe(PDFName.of("A"), PDFDict);
-          return action?.get(PDFName.of("S"))?.toString() === "/URI";
-        });
-        page.node.set(PDFName.of("Annots"), input.context.obj(external));
-      }
-      const [copied] = await document.copyPages(input, [0]);
-      this.current();document.addPage(copied);
+      if (input.getPageCount() !== batches.length)
+        throw Error(batches.length === 1 ? "A viewport must print exactly one native page"
+          : `Native strip count changed: expected ${batches.length}, received ${input.getPageCount()}`);
+      for (const [index, batch] of batches.entries()) await this.appendPage(input, index, batch);
     } finally { this.busy = false; }
+  }
+
+  private async appendPage(input: PDFDocument, index: number, batch?: NativePDFBatch) {
+    const document = this.current();
+    const page = input.getPage(index), annotations = page.node.Annots();
+    if (batch && batch.count > 1) {
+      const width = page.getWidth(), height = batch.height * .75;
+      const boxes = Array.from({ length: batch.count }, (_, offset) => {
+        const top = page.getHeight() - offset * batch.stride * .75;
+        return { left: 0, right: width, top, bottom: top - height };
+      });
+      // One copier shares the strip's font/image resources across its physical pages.
+      const embedded = page.node.Contents()
+        ? await document.embedPages(Array(batch.count).fill(page), boxes) : undefined;
+      for (const [offset, crop] of boxes.entries()) {
+        this.current();
+        const output = document.addPage([width, height]);
+        if (embedded) output.drawPage(embedded[offset]);
+        for (const ref of annotations?.asArray() ?? []) {
+          const annotation = input.context.lookup(ref, PDFDict),
+            action = annotation.lookupMaybe(PDFName.of("A"), PDFDict);
+          if (action?.get(PDFName.of("S"))?.toString() !== "/URI") continue;
+          const uri = action.lookup(PDFName.of("URI")),
+            rect = annotation.lookup(PDFName.of("Rect"), PDFArray).asRectangle();
+          if (!uri) continue;
+          const left = Math.max(0, rect.x), right = Math.min(width, rect.x + rect.width),
+            lower = Math.max(crop.bottom, rect.y), upper = Math.min(crop.top, rect.y + rect.height);
+          if (right <= left || upper <= lower) continue;
+          output.node.addAnnot(document.context.register(document.context.obj({
+            Type: "Annot", Subtype: "Link", P: output.ref,
+            Rect: [left, lower - crop.bottom, right, upper - crop.bottom], Border: [0, 0, 0],
+            A: { S: "URI", URI: uri.clone() },
+          })));
+        }
+      }
+      return;
+    }
+    if (annotations) {
+      // Native internal destinations belong to the temporary one-page document.
+      const external = annotations.asArray().filter(ref => {
+        const annotation = input.context.lookup(ref, PDFDict);
+        const action = annotation.lookupMaybe(PDFName.of("A"), PDFDict);
+        return action?.get(PDFName.of("S"))?.toString() === "/URI";
+      });
+      page.node.set(PDFName.of("Annots"), input.context.obj(external));
+    }
+    const [copied] = await document.copyPages(input, [index]);
+    this.current();document.addPage(copied);
   }
 
   /** Transfer the assembled document; its caller sets metadata and serializes once. */

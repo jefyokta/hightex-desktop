@@ -125,18 +125,7 @@ export class EditorPDFExperimentalService {
   ) {
     const assembly = await PDFPageAssembly.create(signal);
     try {
-      for (let index = 0; index < snapshot.projection.views.length;) {
-        const view = snapshot.projection.views[index],
-          geometry = snapshot.projection.contexts[view.context];
-        // Bound native paper size and keep every batch inside one canonical context.
-        const limit = Math.max(1, Math.min(this.maxBatchPages,
-          Math.floor((12000 - geometry.height) / geometry.stride) + 1));
-        let count = 1;
-        while (count < limit && index + count < snapshot.pages) {
-          const next = snapshot.projection.views[index + count];
-          if (next.context !== view.context || next.page !== view.page + count) break;
-          count++;
-        }
+      for (const { index, count, view, geometry } of projectedBatches(snapshot, this.maxBatchPages)) {
         signal.throwIfAborted();
         const section = snapshot.sections.find(section =>
           index + 1 >= section.firstPage && index + 1 < section.firstPage + section.pages,
@@ -157,7 +146,6 @@ export class EditorPDFExperimentalService {
           signal.throwIfAborted();
           throw new Error(`Editor PDF ${range}: ${cause instanceof Error ? cause.message : String(cause)} (section ${section?.id}, context ${view.context}, local page ${view.page})`, { cause });
         }
-        index += count;
       }
       return await host.run(
         () => assembly.finish(snapshot.projection.targets, snapshot.projection.links),
@@ -168,4 +156,22 @@ export class EditorPDFExperimentalService {
     }
   }
 
+}
+
+/** Keep native strips within one canonical context and the existing paper budget. */
+export function* projectedBatches(snapshot: EditorPDFSnapshot, maxBatchPages = 4) {
+  for (let index = 0; index < snapshot.pages;) {
+    const view = snapshot.projection.views[index],
+      geometry = snapshot.projection.contexts[view.context];
+    const limit = Math.max(1, Math.min(maxBatchPages,
+      Math.floor((12000 - geometry.height) / geometry.stride) + 1));
+    let count = 1;
+    while (count < limit && index + count < snapshot.pages) {
+      const next = snapshot.projection.views[index + count];
+      if (next.context !== view.context || next.page !== view.page + count) break;
+      count++;
+    }
+    yield { index, count, view, geometry };
+    index += count;
+  }
 }

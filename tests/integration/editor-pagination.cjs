@@ -400,6 +400,9 @@ app
     if (process.env.HIGHTEX_SINGLE_PASS) {
       await require('./editor-single-pass.cjs').run({execute,win,artifacts,editorPDFTest});return;
     }
+    if (process.env.HIGHTEX_NAMED_BATCH_REPLAY) {
+      await require('./editor-named-batches.cjs').replay({win,artifacts,editorPDFTest});return;
+    }
     if (process.env.HIGHTEX_NATIVE_BATCHES) {
       await require('./editor-native-batches.cjs').run({execute,win,artifacts,editorPDFTest});return;
     }

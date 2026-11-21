@@ -97,8 +97,11 @@ test("assembly refuses multiple-page viewports, empty output and racing calls", 
   await expect(assembly.append(await input.save())).rejects.toThrow("exactly one");
   await expect(assembly.finish([], [])).rejects.toThrow("empty");
   const racing = await PDFPageAssembly.create(), page = await nativePage(), pending = racing.append(page);
-  await expect(racing.append(page)).rejects.toThrow("already processing");
-  await expect(racing.finish([], [])).rejects.toThrow("pending");
+  const duplicate = racing.append(page).catch(error => error);
+  const prematureFinish = racing.finish([], []).catch(error => error);
+  const rejected = await Promise.all([duplicate, prematureFinish]);
+  expect(rejected[0]).toMatchObject({ message: expect.stringContaining("already processing") });
+  expect(rejected[1]).toMatchObject({ message: expect.stringContaining("pending") });
   await pending;await racing.finish([], []);
 });
 

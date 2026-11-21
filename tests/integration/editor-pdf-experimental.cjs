@@ -55,7 +55,7 @@ exports.prepare = ({ root, artifacts }) => {
     try { return await work(); }
     finally { values.push(performance.now() - start); }
   };
-  let proof, inspectPrint;
+  let proof, inspectPrint, nativeOverride;
   const recordedSnapshots=new Set();
   const load = (file, modules) => {
     const module = { exports: {} };
@@ -105,7 +105,7 @@ exports.prepare = ({ root, artifacts }) => {
     ...dependencies, "../service/config-service": dependencies["./config-service"],
   });
   const assembly = load("electron/pdf/page-assembly.ts", {});
-  const { EditorPDFExperimentalService } = load("electron/service/editor-pdf-experimental-service.ts", {
+  const { EditorPDFExperimentalService, projectedBatches } = load("electron/service/editor-pdf-experimental-service.ts", {
     ...dependencies, "../windows/editor-pdf-host": host,
     "../pdf/page-assembly": assembly,
   });
@@ -151,14 +151,16 @@ exports.prepare = ({ root, artifacts }) => {
   );
   EditorPDFExperimentalHandlers.register();
   electron.ipcMain.handle("config:get", () => ({ language: "en" }));
+  electron.ipcMain.handle("editor:source-file", () => undefined);
   const created = (_event, win) => {
     if(process.env.HIGHTEX_INPUT_CDP||process.env.HIGHTEX_COMPOSITE_APP)win.setFocusable(false);
     win.webContents.on('console-message', event => {
       if (event.level === 'error') console.error('PDF host:', event.message);
     });
     const print = win.webContents.printToPDF.bind(win.webContents);
+    const invoke = options => nativeOverride ? nativeOverride(win,options) : print(options);
     const native = options => process.env.HIGHTEX_PDF_TIMING
-      ? timed(timings.nativePrintMs, () => print(options)) : print(options);
+      ? timed(timings.nativePrintMs, () => invoke(options)) : invoke(options);
     win.webContents.printToPDF = async (options) => {
       const url = new URL(win.webContents.getURL());
       if (url.pathname === "/experimental/editor-pdf/print") {
@@ -215,7 +217,55 @@ exports.prepare = ({ root, artifacts }) => {
     },
     outputs,
     metrics,
+    overrideNativePrint(callback) { nativeOverride = callback; },
     legacyProfile: (url, input) => legacyProfile.generate(url,input),
+    async generateNamedBatches(snapshot) {
+      const instance = new host.EditorPDFHost(snapshot), signal = new AbortController().signal;
+      const batches = Array.from(projectedBatches(snapshot));
+      const started = performance.now(), report = {calls:1,batches:batches.length};
+      const save = () => fs.writeFileSync(path.join(artifacts,'named-batch-profile.json'),JSON.stringify(report,null,2));
+      try {
+        await instance.open(signal);
+        report.hostMs = performance.now()-started;
+        const projectionStarted = performance.now();
+        report.presentation = await instance.run(()=>instance.window.webContents.executeJavaScript(`(async()=>{
+          const {namedBatchPrint}=await import('/tests/helpers/named-batch-print.ts');
+          return namedBatchPrint(document.querySelector('.editor-pdf-projection'),${JSON.stringify(snapshot.fingerprint)},${JSON.stringify(batches)});
+        })()`),'preparing named native pages');
+        report.projectionMs = performance.now()-projectionStarted;
+        if(process.env.HIGHTEX_PDF_OMIT_LEADER_GRADIENT){
+          await instance.window.webContents.executeJavaScript(`(()=>{const style=document.createElement('style');style.textContent='.document-template-content .toc-dots{background-image:none!important}';document.head.append(style)})()`);
+          report.invalidDiagnosticOutput = 'Leader gradients omitted solely for cost attribution; not acceptable document output';
+        }
+        save();
+        const printStarted = performance.now();
+        const print = ()=>instance.window.webContents.printToPDF({printBackground:true,preferCSSPageSize:true,displayHeaderFooter:false,margins:{top:0,bottom:0,left:0,right:0}});
+        const native = await instance.run(()=>process.env.HIGHTEX_PDF_NATIVE_TRACE
+          ? require('./native-print-trace.cjs').traceNativePrint(instance.window,artifacts,print)
+          : process.env.HIGHTEX_PDF_PROCESS_PROFILE
+          ? require('./native-print-trace.cjs').profileNativeProcesses(artifacts,print)
+          : print(),'printing named native pages');
+        report.printMs = performance.now()-printStarted;
+        fs.writeFileSync(path.join(artifacts,'named-batch-native.pdf'),native);
+        const input = await PDFDocument.load(native);
+        report.nativePages = input.getPageCount();
+        report.nativeSizes = input.getPages().map(page=>page.getSize());
+        save();
+        const assemblyStarted = performance.now(), pages = await assembly.PDFPageAssembly.create(signal);
+        let bytes;
+        try {
+          await pages.appendDocument(native,batches.map(batch=>({count:batch.count,...batch.geometry})));
+          const pdf = await pages.finish(snapshot.projection.targets,snapshot.projection.links);
+          bytes = await pdf.save();
+        } finally {pages.dispose();}
+        report.assemblyMs = performance.now()-assemblyStarted;
+        report.ms = performance.now()-started;
+        report.outputBytes = bytes.length;
+        save();
+        return {bytes,...report};
+      } catch(error) {report.failure=error.stack??String(error);save();throw error;}
+      finally {instance.destroy();}
+    },
     async generateSinglePass(snapshot) {
       const instance = new host.EditorPDFHost(snapshot);
       const signal = new AbortController().signal;

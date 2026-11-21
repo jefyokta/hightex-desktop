@@ -14,6 +14,7 @@ function annotations(document) {
     return {rect,uri:action.lookup(PDFName.of('URI'),PDFString).decodeText()};
   }));
 }
+exports.annotations = annotations;
 
 exports.run = async ({execute,win,artifacts,editorPDFTest}) => {
   editorPDFTest.connect(win.webContents.getURL());
@@ -56,8 +57,8 @@ exports.run = async ({execute,win,artifacts,editorPDFTest}) => {
   `);
   const report={pages:18,contexts:2,runs:[]};
   const documents=[];
-  for(const batch of [4,8,8,4]){
-    const result=await editorPDFTest.generate(snapshot,batch);
+  for(const batch of process.env.HIGHTEX_NAMED_BATCHES?[4,'named']:[4,8,8,4]){
+    const result=batch==='named'?await editorPDFTest.generateNamedBatches(snapshot):await editorPDFTest.generate(snapshot,batch);
     const file=path.join(artifacts,'native-batch-'+documents.length+'-'+batch+'.pdf');fs.writeFileSync(file,result.bytes);
     const pdf=await PDFDocument.load(result.bytes);documents.push(pdf);
     assert.equal(pdf.getPageCount(),18);
@@ -65,7 +66,7 @@ exports.run = async ({execute,win,artifacts,editorPDFTest}) => {
     text.split('\f').slice(0,18).forEach((page,index)=>assert.ok(page.includes('BATCH-PAGE-'+(index+1))));
     const directory=path.join(artifacts,'raster-'+(documents.length-1));fs.mkdirSync(directory);
     execFileSync('pdftoppm',['-png','-scale-to','900',file,path.join(directory,'page')]);
-    report.runs.push({batch,ms:result.ms,calls:result.calls,bytes:result.bytes.length,text});
+    report.runs.push({batch,ms:result.ms,calls:result.calls,bytes:result.bytes.length,text,nativePages:result.nativePages});
   }
   fs.writeFileSync(path.join(artifacts,'native-batches-runs.json'),JSON.stringify({...report,runs:report.runs.map(({text,...run})=>run)},null,2));
   for(let index=1;index<documents.length;index++){
@@ -79,7 +80,7 @@ from pathlib import Path
 from PIL import Image, ImageChops
 root=Path(${JSON.stringify(artifacts)})
 result=[]
-for run in range(1,4):
+for run in range(1,${documents.length}):
  for left in sorted((root/'raster-0').glob('*.png')):
   right=root/('raster-'+str(run))/left.name
   a=Image.open(left).convert('RGB');b=Image.open(right).convert('RGB')
@@ -89,6 +90,6 @@ print(json.dumps(result))
   report.visual=visual;report.geometry=true;report.links=true;report.text=true;
   report.runs.forEach(run=>delete run.text);
   fs.writeFileSync(path.join(artifacts,'native-batches.json'),JSON.stringify(report,null,2));
-  assert.ok(visual.length===54&&visual.every(page=>page.same),'Raster difference: '+JSON.stringify(visual.filter(page=>!page.same)));
+  assert.ok(visual.length===(documents.length-1)*18&&visual.every(page=>page.same),'Raster difference: '+JSON.stringify(visual.filter(page=>!page.same)));
   console.log('PASS native batch comparison:',artifacts,JSON.stringify(report));
 };
