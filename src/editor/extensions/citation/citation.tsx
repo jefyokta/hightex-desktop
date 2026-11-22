@@ -1,6 +1,8 @@
+import { useConfig } from "@/hooks/use-config";
+import { ReferencePicker } from "@/components/citation/reference-picker";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -10,7 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { HighTexDB } from "@/editor/storage/hightex-db";
+import { ReferenceRepository } from "@/editor/storage/reference-repository";
 import { citationFallback, resolveCitation } from "./resolve";
 import { CiteUtils } from "bibtex.js";
 import { t } from "@/utils/lang";
@@ -19,15 +21,11 @@ import { CitationPresentation, type CitationStatus } from "./presentation";
 type CitationItemProps = {
   cite: CiteRecord;
   onRemove?: () => void;
-  onAdd?: () => void;
-  selected?: boolean;
 };
 
 const CitationItem = ({
   cite,
   onRemove,
-  onAdd,
-  selected = false,
 }: CitationItemProps) => {
   const utils = new CiteUtils(cite.bib).setId(cite.key);
 
@@ -59,29 +57,6 @@ const CitationItem = ({
         </button>
       )}
 
-      {onAdd && (
-        <button
-          type="button"
-          onClick={onAdd}
-          disabled={selected}
-          className="
-            shrink-0 rounded-md p-1
-            text-neutral-400
-            hover:bg-neutral-100 hover:text-neutral-700
-            disabled:cursor-default disabled:opacity-40
-            dark:hover:bg-neutral-800 dark:hover:text-neutral-200
-          "
-          aria-label={t("editor.inline.citation_add")}
-        >
-          {selected ? (
-            <span className="px-1 text-xs">
-              {t("editor.inline.citation_added")}
-            </span>
-          ) : (
-            <Plus size={16} />
-          )}
-        </button>
-      )}
     </div>
   );
 };
@@ -91,6 +66,8 @@ export const Citation: React.FC<NodeViewProps> = ({
   updateAttributes,
 }) => {
   useAppLanguage();
+  const { config } = useConfig();
+  const repository = useMemo(() => new ReferenceRepository(), []);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"view" | "add">("view");
 
@@ -99,7 +76,6 @@ export const Citation: React.FC<NodeViewProps> = ({
     records: CiteRecord[];
     error?: boolean;
   }>();
-  const [bibliography, setBibliography] = useState<CiteRecord[]>([]);
 
   const [search, setSearch] = useState("");
 
@@ -117,10 +93,7 @@ export const Citation: React.FC<NodeViewProps> = ({
         return;
       }
       try {
-        const db = HighTexDB.getInstance();
-        const result = (
-          await Promise.all(citeIds.map((id: string) => db.cite.get(id)))
-        ).filter((cite): cite is CiteRecord => cite !== undefined);
+        const result = await repository.get(citeIds);
         if (mounted) setLoaded({ ids: citeIds, records: result });
       } catch {
         if (mounted) setLoaded({ ids: citeIds, records: [], error: true });
@@ -131,29 +104,7 @@ export const Citation: React.FC<NodeViewProps> = ({
     return () => {
       mounted = false;
     };
-  }, [citeIds, node.attrs.manual]);
-
-  useEffect(() => {
-    if (!open || mode !== "add") {
-      return;
-    }
-
-    let mounted = true;
-
-    const loadBibliography = async () => {
-      const result = await HighTexDB.getInstance().cite.toArray();
-
-      if (mounted) {
-        setBibliography(result);
-      }
-    };
-
-    loadBibliography();
-
-    return () => {
-      mounted = false;
-    };
-  }, [open, mode]);
+  }, [citeIds, node.attrs.manual, repository]);
 
   const citation: { status: CitationStatus; text: string } = (() => {
     if (!node.attrs.manual && loaded?.ids !== citeIds)
@@ -187,22 +138,6 @@ export const Citation: React.FC<NodeViewProps> = ({
     });
   };
 
-  const filteredBibliography = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    if (!query) {
-      return bibliography;
-    }
-
-    return bibliography.filter((cite) => {
-      const utils = new CiteUtils(cite.bib).setId(cite.key);
-
-      return [utils.toCite(), utils.toCiteA(), utils.getTitle(), cite.key]
-        .join(" ")
-        .toLowerCase()
-        .includes(query);
-    });
-  }, [bibliography, search]);
 
   return (
     <NodeViewWrapper as="span">
@@ -229,7 +164,7 @@ export const Citation: React.FC<NodeViewProps> = ({
         <PopoverContent
           align="start"
           className="
-            w-100 overflow-hidden rounded-xl border
+            w-100 max-w-[calc(100vw-24px)] overflow-hidden rounded-xl border
             border-neutral-200 bg-white p-0 shadow-lg
             dark:border-neutral-700 dark:bg-neutral-900
           "
@@ -265,45 +200,7 @@ export const Citation: React.FC<NodeViewProps> = ({
               </div>
 
               <div className="p-3">
-                <div
-                  className="
-                    flex items-center gap-2 rounded-lg border
-                    border-neutral-200 px-3
-                    dark:border-neutral-700
-                  "
-                >
-                  <Search size={15} className="shrink-0 text-neutral-400" />
-
-                  <input
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder={t("editor.inline.citation_search")}
-                    className="
-                      h-9 w-full bg-transparent text-sm outline-none
-                      placeholder:text-neutral-400
-                    "
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              <div className="max-h-72 overflow-y-auto px-3 pb-3">
-                {filteredBibliography.length > 0 ? (
-                  <div className="divide-y rounded-lg border border-neutral-200 dark:divide-neutral-700 dark:border-neutral-700">
-                    {filteredBibliography.map((cite) => (
-                      <CitationItem
-                        key={cite.key}
-                        cite={cite}
-                        selected={citeIds.includes(cite.key)}
-                        onAdd={() => addCitation(cite.key)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-8 text-center text-sm text-neutral-500">
-                    {t("editor.inline.citation_none")}
-                  </div>
-                )}
+                {open && <ReferencePicker autoFocus query={search} onQueryChange={setSearch} zotero={config?.zotero} selectedKeys={citeIds} onChoose={addCitation} />}
               </div>
             </>
           ) : (

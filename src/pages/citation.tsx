@@ -1,5 +1,4 @@
 import { useAppLanguage } from "@/hooks/use-app-language";
-import { useCallback } from "react";
 import { Plus, Search } from "lucide-react";
 import { Zotero } from "@/assets/icons/zotero";
 import { Button } from "@/components/ui/button";
@@ -26,17 +25,8 @@ export const Citation = () => {
     deleteCitation,
     importBibtex,
   } = useCitationLibrary();
-  const bibtex = useBibtexImport();
-  const { resetText } = bibtex;
-  const handleImport = useCallback(
-    async (content: string) => {
-      const count = await importBibtex(content);
-      if (count > 0) resetText();
-      return count;
-    },
-    [importBibtex, resetText],
-  );
-  const zotero = useZoteroImport(handleImport);
+  const bibtex = useBibtexImport(importBibtex);
+  const zotero = useZoteroImport(importBibtex);
 
   return (
     <div className="flex min-h-[65vh] flex-col gap-7">
@@ -122,10 +112,7 @@ export const Citation = () => {
         </div>
       </section>
 
-      <BibtexImportDialog
-        form={bibtex}
-        onImport={() => handleImport(bibtex.bibText)}
-      />
+      <BibtexImportDialog form={bibtex} />
       <ZoteroImportDialog importer={zotero} />
     </div>
   );

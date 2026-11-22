@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
 import { parseBibtexInput, isCitationValid } from "../src/utils/citation";
+import { CiteUtils } from "bibtex.js";
+import { bibliographyWithAuthors, citationAuthors } from "../src/utils/citation-authors";
 
 test("parseBibtexInput normalizes keys and parses valid BibTeX entries", () => {
   const bib = `@article{My Key 1,
@@ -43,4 +45,35 @@ test("parseBibtexInput ignores Zotero-only fields and preserves valid BibTeX fie
   expect(result.entries[0].bib).toContain("url = {https://example.com}");
   expect(result.entries[0].bib).not.toContain("abstractNote");
   expect(result.entries[0].bib).not.toContain("file=");
+});
+
+test("author editing supports people and organization names without changing publication metadata", () => {
+  const citation = new CiteUtils({
+    id: "source", type: "book", title: "Original title", DOI: "10.1234/example",
+    issued: { "date-parts": [[2026]] },
+    author: [{ given: "Jane", family: "Doe" }, { literal: "Research Group" }],
+  }).setId("stored-owner");
+  expect(citationAuthors(citation)).toEqual([
+    { firstName: "Jane", lastName: "Doe" }, "Research Group",
+  ]);
+  const before = JSON.stringify(citation.getCite());
+  const bib = bibliographyWithAuthors(citation, [
+    { firstName: " Updated ", lastName: " Writer " }, " New Research Group ",
+  ]);
+  const updated = new CiteUtils(bib);
+  expect(updated.getCite()).toMatchObject({
+    title: "Original title", DOI: "10.1234/example", issued: { "date-parts": [[2026]] },
+  });
+  expect(citationAuthors(updated)).toEqual([
+    { firstName: "Updated", lastName: "Writer" }, "New Research Group",
+  ]);
+  expect(citation.getId()).toBe("stored-owner");
+  expect(JSON.stringify(citation.getCite())).toBe(before);
+});
+
+test("empty author edits are rejected before producing a replacement bibliography", () => {
+  const citation = new CiteUtils("@book{key,author={Writer},title={Book},year={2026}}");
+  for (const authors of [[], [" "], [{ firstName: "", lastName: " " }]]) {
+    expect(() => bibliographyWithAuthors(citation, authors)).toThrow();
+  }
 });

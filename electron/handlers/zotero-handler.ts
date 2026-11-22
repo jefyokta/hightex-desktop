@@ -1,89 +1,19 @@
 import { IPCMain } from "@main/utilities/ipc-main";
-import {
-  buildZoteroItemBibtexUrl,
-  buildZoteroItemListUrl,
-  buildZoteroTestUrl,
-  parseZoteroItems,
-} from "../utilities/zotero";
+import { ZoteroService } from "../service/zotero-service";
 
 export class ZoteroHandler {
   static register() {
-    IPCMain.handle(
-      "zotero:test",
-      async (_event, host: string, port: number) => {
-        const url = buildZoteroTestUrl(host, port);
-        try {
-          const response = await fetch(url, { method: "GET" });
-          if (!response.ok) {
-            return {
-              connected: false,
-              message: `Zotero returned ${response.status} ${response.statusText}`,
-              host,
-              port,
-            };
-          }
-
-          await response.json();
-
-          return {
-            connected: true,
-            message: "Connected to Zotero local API.",
-            host,
-            port,
-          };
-        } catch (error) {
-          return {
-            connected: false,
-            message:
-              "Zotero connection failed. Please ensure Zotero Desktop is running and local API access is enabled in Settings.",
-            host,
-            port,
-          };
-        }
-      },
+    IPCMain.handle("zotero:search", (_event, host: string, port: number, query: string) =>
+      new ZoteroService(host, port).searchItems(query),
     );
-
-    IPCMain.handle(
-      "zotero:list",
-      async (_event, host: string, port: number, limit = 100) => {
-        try {
-          const url = buildZoteroItemListUrl(host, port, limit);
-          const response = await fetch(url, { method: "GET" });
-          if (!response.ok) {
-            throw new Error(
-              `Zotero returned ${response.status} ${response.statusText}`,
-            );
-          }
-
-          const result = await response.json();
-          return parseZoteroItems(result);
-        } catch (error) {
-          throw error instanceof Error
-            ? error
-            : new Error("Unable to load Zotero items.");
-        }
-      },
+    IPCMain.handle("zotero:test", (_event, host: string, port: number) =>
+      new ZoteroService(host, port).testConnection(),
     );
-
-    IPCMain.handle(
-      "zotero:exportBibtex",
-      async (_event, host: string, port: number, itemKey: string) => {
-        try {
-          const url = buildZoteroItemBibtexUrl(host, port, itemKey);
-          const response = await fetch(url, { method: "GET" });
-          if (!response.ok) {
-            throw new Error(
-              `Zotero returned ${response.status} ${response.statusText}`,
-            );
-          }
-
-          return response.text();
-        } catch (error) {
-          throw error instanceof Error
-            ? error
-            : new Error("Unable to export Zotero item as BibTeX.");
-        }
-      },
+    IPCMain.handle("zotero:list", (_event, host: string, port: number, limit = 100) =>
+      new ZoteroService(host, port).listItems(limit),
+    );
+    IPCMain.handle("zotero:exportBibtex", (_event, host: string, port: number, itemKey: string) =>
+      new ZoteroService(host, port).exportBibtex(itemKey),
     );
   }
 }

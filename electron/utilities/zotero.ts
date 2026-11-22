@@ -1,12 +1,3 @@
-export type ZoteroApiItem = {
-  key: string;
-  title: string;
-  itemType?: string;
-  creators?: unknown[];
-  date?: string;
-  url?: string;
-};
-
 const buildZoteroUrl = (
   host: string,
   port: number,
@@ -36,6 +27,11 @@ export const buildZoteroItemListUrl = (
     limit,
   });
 };
+
+export const buildZoteroSearchUrl = (host: string, port: number, query: string, limit = 40) =>
+  buildZoteroUrl(host, port, "api/users/0/items/top", {
+    format: "json", limit, q: query.trim(), qmode: "everything",
+  });
 
 export const buildZoteroItemBibtexUrl = (
   host: string,
@@ -68,5 +64,6 @@ export const parseZoteroItems = (payload: any) => {
       creators: item.data.creators,
       date: item.data.date,
       url: item.data.url,
+      doi: item.data.DOI,
     }));
 };

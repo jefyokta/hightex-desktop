@@ -13,16 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight } from "lucide-react";
 import type { useBibtexImport } from "@/hooks/use-bibtex-import";
+import { useDialogViewport } from "@/hooks/use-dialog-viewport";
 
 type Props = {
   form: ReturnType<typeof useBibtexImport>;
-  onImport: () => Promise<number>;
 };
 
-export const BibtexImportDialog = ({ form, onImport }: Props) => {
+export const BibtexImportDialog = ({ form }: Props) => {
+  const viewport = useDialogViewport();
   const {
     open,
-    setOpen,
     bibText,
     setBibText,
     doiLink,
@@ -32,10 +32,11 @@ export const BibtexImportDialog = ({ form, onImport }: Props) => {
     fetchFromDoi,
   } = form;
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={form.onOpenChange}>
       <DialogContent
         showCloseButton
-        className="max-w-none! flex h-[85vh] w-[70vw] flex-col overflow-hidden"
+        style={viewport}
+        className="flex h-[85dvh] w-[calc(100%-2rem)] max-w-3xl! flex-col overflow-hidden p-0"
       >
         <DialogHeader className="flex-none border-b px-6 py-5">
           <DialogTitle>{t("citation.import_title")}</DialogTitle>
@@ -57,6 +58,7 @@ export const BibtexImportDialog = ({ form, onImport }: Props) => {
               accept=".bib,application/x-bibtex,text/x-bibtex"
               className="hidden"
               onChange={handleFileChange}
+              disabled={form.importing}
             />
           </label>
         </div>
@@ -65,11 +67,13 @@ export const BibtexImportDialog = ({ form, onImport }: Props) => {
           <div className="w-full flex gap-2">
             <Input
               placeholder={t("citation.doi_placeholder")}
+              value={doiLink}
+              disabled={form.importing}
               onChange={(e) => setDoiLink(e.target.value)}
             />
             <Button
               size="icon"
-              disabled={!doiLink.trim()}
+              disabled={form.importing || !doiLink.trim()}
               onClick={fetchFromDoi}
             >
               <ArrowRight />
@@ -77,6 +81,7 @@ export const BibtexImportDialog = ({ form, onImport }: Props) => {
           </div>
           <Textarea
             value={bibText}
+            disabled={form.importing}
             onChange={(event) => setBibText(event.target.value)}
             placeholder={t("citation.bibtex_placeholder")}
             className="min-h-0 flex-1 resize-none font-mono text-sm"
@@ -91,12 +96,14 @@ export const BibtexImportDialog = ({ form, onImport }: Props) => {
           </div>
         </div>
 
-        <DialogFooter className="flex-none border-t px-6 py-4">
-          <Button variant="outline" onClick={close}>
+        <DialogFooter className="m-0 flex-none border-t px-6 py-4">
+          <Button variant="outline" onClick={close} disabled={form.importing}>
             {t("common.cancel")}
           </Button>
 
-          <Button onClick={onImport}>{t("citation.import")}</Button>
+          <Button onClick={form.submit} disabled={form.importing || !bibText.trim()} aria-busy={form.importing}>
+            {t("citation.import")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

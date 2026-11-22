@@ -8,6 +8,14 @@ export function formatBibliography(entries: readonly string[]): string {
     template: "apa",
   });
 }
+
+export function formatCitationBibliography(citation: CiteUtils): string {
+  return new Cite(citation.getCite()).format("bibliography", {
+    format: "text",
+    template: "apa",
+    lang: "id-ID",
+  });
+}
 export const formatManual = (text: string, year: string, citeA?: boolean) => {
   return citeA ? `${text} (${year})` : `(${text}, ${year})`;
 };
@@ -169,15 +177,7 @@ export const formatInTextCitation = (cites: CiteRecord[], citeA = false) => {
     const utils = new CiteUtils(cite.bib).setId(cite.key);
     inTexts.push(citeA ? utils.toCiteA() : utils.toCite().slice(1, -1));
 
-    const citeProcessor = new Cite(utils.getCite());
-
-    biblios.push(
-      citeProcessor.format("bibliography", {
-        format: "text",
-        template: "apa",
-        lang: "id-ID",
-      }),
-    );
+    biblios.push(formatCitationBibliography(utils));
   }
 
   return {

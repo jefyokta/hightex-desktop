@@ -58,6 +58,65 @@ profile refresh updates both the editable copy and baseline, without making a
 clean panel dirty or discarding metadata edits. A completed save accepts its
 captured document as the baseline; edits made during that write remain pending.
 
+## Citation library
+
+`ReferenceRepository` in `src/editor/storage/reference-repository.ts` owns
+reference reads, imports, author updates, usage checks and safe deletion.
+Imports reserve keys in one transaction. Explicit imports retain separate keys;
+inline Zotero selection may reuse an existing key only when the parsed publication
+metadata is equivalent, excluding citation identifiers and parser provenance.
+Matching a DOI alone does not establish equivalence or rewrite existing records.
+
+`useReferenceCatalog` subscribes to those reads with Dexie `liveQuery` and builds
+the shared search index. The dashboard, sidebar and pickers update after reference
+writes without a second manual reload path. Failed parsing exposes a retryable
+load error and leaves stored records intact. Reading never deletes malformed
+references. `useCitationLibrary` owns library actions and their user feedback.
+
+Before usage checks or deletion, the repository flushes open document chapter
+buffers through the existing editor bridge. Usage includes grouped citations and
+nested content across all locally stored chapters. Deletion rechecks usage in its
+write transaction after confirmation. Failed flushes prevent deletion. This
+protects the flushed/persisted state; it is not a workspace-wide editing lock.
+
+`ReferencePicker` renders the shared search input and results in the caret popup,
+insertion dialog and citation popover. `useReferencePicker` owns merging the local
+and Zotero result sets, keyboard selection, import-before-insertion and pending
+selection invalidation. The component receives a consistent result shape with its
+source, key, title and description instead of interpreting storage/network records.
+Local search ranks tokens across
+title, author/editor, year, DOI and stored key, ignoring case and accents. Enabled
+Zotero search uses its local API independently of the first imported item list,
+with a debounce and stale-response suppression; unavailable Zotero does not block
+local results. Selecting a Zotero result stores/reuses its reference before
+insertion. Closing the picker or changing its query invalidates pending selection.
+`ReferenceSuggestion` owns the caret popup's local search input state, so typing
+there does not write search text into the document. Its content has a bounded
+width inside the managed Tiptap mount, whose outer width is `max-content`;
+Floating UI shifts the popup inside the viewport. Editor typing still updates the
+query; Arrow/Enter work from either the editor or search input, and Escape from
+the input closes the suggestion and returns focus to the editor.
+The insertion dialog preserves its opening selection and does not insert into a
+different document state. Pending network requests are not aborted by the picker.
+
+The library surfaces share `useBibtexImport`, `useZoteroImport`, and the import dialogs
+under `src/components/citation/`. Zotero uses the root config and selection
+providers. Pending imports prevent repeated submissions and keep their dialog
+open until the operation completes. Dialogs respect the editor titlebar bounds.
+The Zotero import dialog has its own search input and can find items beyond its
+initial list. Zotero item/connection payloads share `shared/zotero-contract.ts`
+across the renderer and preload API.
+`ZoteroHandler` only binds IPC channels; `ZoteroService` owns endpoint-specific HTTP
+requests and response handling. Connection probes return their existing status
+payload; item/search/BibTeX requests retain their HTTP or network failures. The
+service accepts a fetch adapter for isolated checks without a running Zotero server.
+
+`useCitationAuthors` owns the author-editing interaction. Its conversion helpers
+in `utils/citation-authors.ts` handle person and organization names, preserving
+publication fields; the library updates the original record key and ownership.
+The editor's citation cards retain their narrative/parenthetical copy commands,
+and use `formatCitationBibliography` from the existing citation formatter.
+
 ## Archive import and export
 
 `HighTexImporter` uses the importer package to validate/read an archive, then

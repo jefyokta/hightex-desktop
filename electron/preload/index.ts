@@ -405,6 +405,8 @@ contextBridge.exposeInMainWorld("updater", {
 } satisfies Window["updater"]);
 
 contextBridge.exposeInMainWorld("zotero", {
+  searchItems: (host: string, port: number, query: string) =>
+    ipcRenderer.invoke("zotero:search", host, port, query),
   testConnection: (host: string, port: number) =>
     ipcRenderer.invoke("zotero:test", host, port),
   listItems: (host: string, port: number, limit = 100) =>

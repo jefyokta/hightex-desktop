@@ -1369,6 +1369,9 @@
     "ready": "Let's start splitting"
   },
   "citation": {
+    "search_hint": "Search title, author, year, DOI or reference key",
+    "local_source": "Local",
+    "in_use": "This citation is used in a document and cannot be deleted.",
     "title": "Citation Library",
     "subtitle": "Manage bibliography references and import directly from Zotero.",
     "actions": "Bibliography Actions",
@@ -1395,6 +1398,7 @@
       "no_citations_parsed": "No citations parsed."
     },
     "zotero": {
+      "search_unavailable": "Zotero search is unavailable. Local references remain available.",
       "title": "Import from Zotero",
       "description": "Browse and import references directly from your local Zotero library.",
       "checking": "Checking",

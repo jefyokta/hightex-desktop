@@ -1369,6 +1369,9 @@
     "ready": "Yuk, mulai pecah dokumennya"
   },
   "citation": {
+    "search_hint": "Cari judul, penulis, tahun, DOI, atau key referensi",
+    "local_source": "Lokal",
+    "in_use": "Sitasi ini dipakai dalam dokumen dan tidak dapat dihapus.",
     "title": "Perpustakaan Sitasi",
     "subtitle": "Kelola referensi bibliografi dan impor langsung dari Zotero.",
     "actions": "Aksi Bibliografi",
@@ -1395,6 +1398,7 @@
       "no_citations_parsed": "Tidak ada sitasi yang berhasil diproses."
     },
     "zotero": {
+      "search_unavailable": "Pencarian Zotero tidak tersedia. Referensi lokal tetap bisa digunakan.",
       "title": "Impor dari Zotero",
       "description": "Telusuri dan impor referensi langsung dari perpustakaan Zotero lokal kamu.",
       "checking": "Memeriksa",

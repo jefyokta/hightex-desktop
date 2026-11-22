@@ -12,15 +12,18 @@ import { t } from "@/utils/lang";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { useZoteroImport } from "@/hooks/use-zotero-import";
+import { useDialogViewport } from "@/hooks/use-dialog-viewport";
+import { Input } from "@/components/ui/input";
 
 type Props = { importer: ReturnType<typeof useZoteroImport> };
 
 export const ZoteroImportDialog = ({ importer }: Props) => {
+  const viewport = useDialogViewport();
   const {
     open,
-    setOpen,
     items,
     loading,
+    importing,
     connected,
     selected,
     toggleSelect,
@@ -33,7 +36,8 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
     <Dialog open={open} onOpenChange={importer.onOpenChange}>
       <DialogContent
         showCloseButton
-        className="max-w-none! flex h-[85vh] w-[70vw] flex-col gap-0 overflow-hidden"
+        style={viewport}
+        className="flex h-[85dvh] w-[calc(100%-2rem)] max-w-3xl! flex-col gap-0 overflow-hidden p-0"
       >
         <DialogHeader className="shrink-0 border-b px-6 py-4">
           <div className="flex items-start justify-between gap-4">
@@ -67,13 +71,13 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
 
           <div className="flex gap-2">
             {selected.length > 0 && (
-              <Button onClick={() => clear()} variant="destructive" size="sm">
+              <Button onClick={() => clear()} variant="destructive" size="sm" disabled={importing}>
                 {t("citation.zotero.deselect_all")}
               </Button>
             )}
 
             {items.length > 0 && selected.length !== items.length && (
-              <Button onClick={selectAll} size="sm">
+              <Button onClick={selectAll} size="sm" disabled={importing}>
                 {t("citation.zotero.select_all")}
               </Button>
             )}
@@ -81,7 +85,7 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
             <Button
               variant="outline"
               size="sm"
-              disabled={loading}
+              disabled={loading || importing}
               onClick={refreshConnection}
             >
               {loading
@@ -91,8 +95,19 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
           </div>
         </div>
 
+        <div className="px-6 pt-4">
+          <Input type="search" value={importer.query} disabled={importing}
+            onChange={event => importer.setQuery(event.target.value)}
+            aria-label={t("citation.search_hint")} placeholder={t("citation.search_hint")} />
+          {(importer.searching || importer.searchUnavailable) && (
+            <p role="status" className="mt-2 text-xs text-muted-foreground">
+              {t(importer.searchUnavailable ? "citation.zotero.search_unavailable" : "citation.zotero.loading")}
+            </p>
+          )}
+        </div>
+
         <div className="flex-1 overflow-hidden px-6 py-4">
-          <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-background">
+          <div className="flex h-full flex-col overflow-x-auto rounded-xl border bg-background">
             <div className="grid shrink-0 grid-cols-[1fr_120px_100px_70px] gap-4 border-b px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <div>{t("citation.zotero.title_column")}</div>
               <div>{t("citation.zotero.type_column")}</div>
@@ -138,6 +153,8 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
                     <div className="flex justify-end">
                       <Checkbox
                         checked={selected.includes(item.key)}
+                        disabled={importing}
+                        aria-label={item.title || item.key}
                         onCheckedChange={() => toggleSelect(item.key)}
                       />
                     </div>
@@ -148,14 +165,15 @@ export const ZoteroImportDialog = ({ importer }: Props) => {
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 border-t px-6 py-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="m-0 shrink-0 border-t px-6 py-4">
+          <Button variant="outline" onClick={() => importer.onOpenChange(false)} disabled={importing}>
             {t("common.cancel")}
           </Button>
 
           <Button
             onClick={importSelected}
-            disabled={loading || items.length === 0}
+            disabled={loading || importing || selected.length === 0}
+            aria-busy={importing}
           >
             {t("citation.zotero.import_selected")}
           </Button>

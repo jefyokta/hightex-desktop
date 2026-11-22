@@ -96,27 +96,10 @@ declare global {
     onChange(cb: (config: ConfigShape) => void): () => void;
   }
 
-  interface ZoteroItem {
-    key: string;
-    title: string;
-    itemType?: string;
-    creators?: Array<{
-      creatorType: string;
-      firstName?: string;
-      lastName?: string;
-      name?: string;
-    }>;
-    date?: string;
-    url?: string;
-  }
-
-  interface ZoteroConnectionResult {
-    connected: boolean;
-    message: string;
-    host: string;
-    port: number;
-  }
+  type ZoteroItem = import("../../shared/zotero-contract").ZoteroItem;
+  type ZoteroConnectionResult = import("../../shared/zotero-contract").ZoteroConnectionResult;
   interface ZoteroAPI {
+    searchItems(host: string, port: number, query: string): Promise<ZoteroItem[]>;
     testConnection(host: string, port: number): Promise<ZoteroConnectionResult>;
     listItems(
       host: string,

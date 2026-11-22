@@ -21,6 +21,7 @@ import {ExpandableSideBarContextProvider} from '/src/hooks/use-expandable-sideba
 import {EditorProvider,useCurrentEditor} from '/src/hooks/use-editor.tsx';
 import {ParamsContextProvider,useParams} from '/src/hooks/use-params.tsx';
 import {ConfigContextProvider} from '/src/context/config-context.tsx';
+import {MultiSelectProvider} from '/src/context/multi-select-context.tsx';
 import {TooltipProvider} from '/src/components/ui/tooltip.tsx';
 import {EditorNavigatorSlave} from '/src/slaves/editor-navigator.tsx';
 import {HighTexDB} from '/src/editor/storage/hightex-db.ts';
@@ -38,7 +39,7 @@ const db=HighTexDB.getInstance();await db.open();window.db=db;
 for(const id of ['demo','other'])await db.documents.put({id,title:'Scroll fixture',altTitle:'',category:'1',config:{},keywords:{indonesian:[],english:[]},profile:{name:'Writer',nim:'123',advisorName:'Old Advisor',advisorNip:'00001',secondAdvisor:{name:'Keep Second',nip:'00002'},committee:{chair:{name:'Old Chair',nip:'00003'},examiner1:{name:'Keep Examiner',nip:'00004'}},cv:'<p>CV fixture</p>'}});
 for(const doc of ['demo','other'])for(const chapter of ['1','4'])for(const version of ['', '.v1'])await db.chapters.put({id:doc+'.'+chapter+version,content:Array.from({length:90},(_,index)=>({type:'paragraph',attrs:{id:'paragraph-'+index},content:[{type:'text',text:'Paragraph '+index+' '+('Text to exercise chapter scroll memory. '.repeat(8))}]}))});
 function Probe(){window.currentEditor=useCurrentEditor().editor;window.currentEditorChapter=window.currentEditor?getEditorChapter(window.currentEditor)?.getId():null;window.navigate=useNavigate();window.currentPath=useLocation().pathname;window.setTargets=useParams().setParams;return null}
-function Shell(){return React.createElement(EditorChrome,null,React.createElement(EditorProvider,null,React.createElement(ParamsContextProvider,null,React.createElement(Probe),React.createElement(ExpandableSideBarContextProvider,null,React.createElement('div',{className:'flex h-full w-full'},React.createElement(ExpandableSideBar),React.createElement(Outlet)),React.createElement(EditorGuide)),React.createElement(EditorNavigatorSlave))))}
+function Shell(){return React.createElement(MultiSelectProvider,null,React.createElement(EditorChrome,null,React.createElement(EditorProvider,null,React.createElement(ParamsContextProvider,null,React.createElement(Probe),React.createElement(ExpandableSideBarContextProvider,null,React.createElement('div',{className:'flex h-full w-full'},React.createElement(ExpandableSideBar),React.createElement(Outlet)),React.createElement(EditorGuide)),React.createElement(EditorNavigatorSlave)))))}
 createRoot(document.getElementById('root')).render(React.createElement(ConfigContextProvider,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,{initialEntries:['/document/demo/1']},React.createElement(Routes,null,React.createElement(Route,{element:React.createElement(Shell)},React.createElement(Route,{path:'/document/:id/:chapter?/:version?',element:React.createElement(Editor)})))))));
 </script></body></html>`;
 const execute = (code) =>
