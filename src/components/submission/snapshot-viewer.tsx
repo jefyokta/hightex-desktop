@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import type { JSONContent } from "@tiptap/core";
+import type { RevisionAnchor } from "../../../shared/guidance-contract";
 import {
   ArrowLeft,
   Download,
@@ -19,13 +21,19 @@ import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 import { Alert, AlertDescription } from "../ui/alert";
 import { PreviewFrame } from "./preview-frame";
+import { GuidanceRevisions } from "./guidance-revisions";
+import { RevisionSourceDialog } from "./revision-source-dialog";
+import { resolveRevisionAnchor } from "@/review/revision-anchor";
+import { toast } from "sonner";
 
 export const SubmissionSnapshotViewer = ({
   snapshot,
   onBack,
+  onAccessDenied,
 }: {
   snapshot: SnapshotReadModel;
   onBack(): void;
+  onAccessDenied?(code: SubmissionErrorCode): void;
 }) => {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [frameKey, setFrameKey] = useState(() => crypto.randomUUID());
@@ -36,6 +44,13 @@ export const SubmissionSnapshotViewer = ({
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const profile = resolveDocumentProfile(snapshot.document);
+  const [panel, setPanel] = useState<"revisions" | null>(null);
+  const [source, setSource] = useState<{ node: JSONContent; chapterId: string }>();
+  const showSource = (anchor: RevisionAnchor) => {
+    const node = resolveRevisionAnchor(snapshot, anchor);
+    if (!node) { toast.info(t("mentoring.source_stale")); return; }
+    setSource({ node, chapterId: anchor.chapterId });
+  };
 
   useEffect(() => {
     let active = true;
@@ -209,6 +224,8 @@ export const SubmissionSnapshotViewer = ({
         </Alert>
       )}
       <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
+        {snapshot.source.kind === "submission" && <Button size="sm" variant={panel === "revisions" ? "secondary" : "ghost"}
+          onClick={() => setPanel(panel === "revisions" ? null : "revisions")}>{t("mentoring.revisions")}</Button>}
         <div className="flex items-center gap-2 min-w-35 text-xs">
           <Eye className="w-4 h-4 opacity-60 shrink-0" />
           {t("submission_review.full_document")}
@@ -249,6 +266,7 @@ export const SubmissionSnapshotViewer = ({
           </div>
         </div>
       </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
       <PreviewFrame
         src={`/submission/print/${encodeURIComponent(snapshot.document.id)}?request=${frameKey}`}
         frameKey={frameKey}
@@ -262,6 +280,12 @@ export const SubmissionSnapshotViewer = ({
           setLoading(false);
         }}
       />
+      {panel && <aside aria-label={t("mentoring.revisions")}
+        className="max-h-[50vh] shrink-0 overflow-y-auto rounded-xl border bg-background p-4 lg:max-h-none lg:w-96">
+        <GuidanceRevisions snapshot={snapshot} onSource={showSource} onAccessDenied={onAccessDenied} />
+      </aside>}
+      </div>
+      <RevisionSourceDialog snapshot={snapshot} node={source?.node} chapterId={source?.chapterId} onClose={() => setSource(undefined)} />
     </main>
   );
 };

@@ -145,6 +145,7 @@ declare global {
     hightex: {
       lecturers: LecturerDirectoryAPI;
       submission: {
+        revisions: import("../../shared/guidance-contract").GuidanceAPI;
         pdf(input: SnapshotPDFInput): Promise<{ path: string } | null>;
         advisor: AdvisorAPI;
         context(): Promise<SubmissionResult<ReviewSession>>;

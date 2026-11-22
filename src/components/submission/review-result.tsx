@@ -5,15 +5,18 @@ import { t } from "@/utils/lang";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { GuidanceRevisions } from "./guidance-revisions";
 
 export const SubmissionReviewResult = ({
   documentId,
   submissionId,
   onAccessDenied,
+  showRevisions = false,
 }: {
   documentId: string;
   submissionId: string;
   onAccessDenied?(code: SubmissionErrorCode): void;
+  showRevisions?: boolean;
 }) => {
   const [state, setState] = useState<AdvisorReviewState>();
   const [draft, setDraft] = useState("");
@@ -295,6 +298,9 @@ export const SubmissionReviewResult = ({
             )}
           </div>
         )}
+      {state && (showRevisions || state.submission.snapshotPurgedAt) && <GuidanceRevisions onAccessDenied={onAccessDenied} target={{
+        sessionId: state.session.sessionId, documentId, submissionId,
+      }} />}
     </section>
   );
 };

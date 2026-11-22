@@ -27,6 +27,8 @@ import { SnapshotPDFService } from "@main/service/snapshot-pdf-service";
 import { ServerUrl } from "../url/server-url";
 import { FormArchiveService } from "../service/form-archive-service";
 import { EditorPDFExperimentalHandlers } from "./editor-pdf-experimental-handlers";
+import { guidanceService } from "../service/guidance-service";
+import type { CreateRevision, GuidanceTarget, UpdateRevision } from "../../shared/guidance-contract";
 import type { FormPrintInput } from "../../src/forms/model";
 import {
   lecturerDirectory,
@@ -36,6 +38,9 @@ import {
 export class HighTexHandler {
   static register() {
     EditorPDFExperimentalHandlers.register();
+    IPCMain.handle("hightex:guidance:list", (_, input: GuidanceTarget) => guidanceService.list(input));
+    IPCMain.handle("hightex:guidance:create", (_, input: CreateRevision) => guidanceService.create(input));
+    IPCMain.handle("hightex:guidance:update", (_, input: UpdateRevision) => guidanceService.update(input));
     IPCMain.handle("hightex:lecturers:cloud", () =>
       WorkspaceRuntime.profile?.type === "cloud"
         ? lecturerCloud.fetch()

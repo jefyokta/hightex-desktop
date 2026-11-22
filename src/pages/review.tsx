@@ -137,6 +137,7 @@ export const Review = () => {
         </Alert>
         {!accessDenied && documentId && submissionId && (
           <SubmissionReviewResult
+            showRevisions
             key={`${user.id}:${documentId}:${submissionId}`}
             documentId={documentId}
             submissionId={submissionId}
@@ -164,6 +165,7 @@ export const Review = () => {
       <SubmissionSnapshotViewer
         key={`${snapshot.source.session.sessionId}:${submissionId}:${snapshot.sha256}`}
         snapshot={snapshot}
+        onAccessDenied={denyAccess}
         onBack={() => navigate("/dashboard/submissions")}
       />
     </div>

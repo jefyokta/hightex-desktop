@@ -165,6 +165,11 @@ contextBridge.exposeInMainWorld("hightex", {
       ipcRenderer.invoke("hightex:onboarding:profile-acknowledge"),
   },
   submission: {
+    revisions: {
+      list: input => ipcRenderer.invoke("hightex:guidance:list", input),
+      create: input => ipcRenderer.invoke("hightex:guidance:create", input),
+      update: input => ipcRenderer.invoke("hightex:guidance:update", input),
+    },
     pdf: (input: SnapshotPDFInput) =>
       ipcRenderer.invoke("hightex:snapshot:pdf", input),
     advisor: {
