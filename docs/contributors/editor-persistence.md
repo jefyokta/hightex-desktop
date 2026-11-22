@@ -42,6 +42,22 @@ flush from the owning editor window; the renderer waits for pending document
 writes and returns the result. A failed flush, closed editor, or timeout must
 remain a failure, not silently produce a stale archive.
 
+## Document settings drafts
+
+`useDocumentSettings` owns loading, workspace-profile/category subscriptions,
+pending metadata, and saving for the editor's settings panel. The panel composes
+the controls under `src/components/editor/document-settings/`; those controls
+receive values and typed patches rather than database access or React setters.
+Author details remain a read-only view of the workspace profile. Cloud academic
+locks and source-file ownership remain enforced by their existing services.
+
+Unsaved settings register in `documentDrafts` so archive capture can include
+them without silently committing the panel. Cleanup removes only the draft
+registered by that hook instance. The saved baseline retains a typed document;
+profile refresh updates both the editable copy and baseline, without making a
+clean panel dirty or discarding metadata edits. A completed save accepts its
+captured document as the baseline; edits made during that write remain pending.
+
 ## Archive import and export
 
 `HighTexImporter` uses the importer package to validate/read an archive, then
