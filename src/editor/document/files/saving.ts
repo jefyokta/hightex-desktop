@@ -1,22 +1,11 @@
-import { Manager } from "../manager";
-import { documentDrafts } from "../document-drafts";
-import { observeDocumentSources } from "../storage/document-source-observer";
-import { documentFiles } from "./file-source";
+import { Manager } from "../../manager";
+import { documentDrafts } from "../../document-drafts";
+import { observeDocumentSources } from "../../storage/document-source-observer";
+import { documentFiles } from "./source";
 import type { CapturedDocumentArchive } from "./archive";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
-import type { JSONContent } from "@tiptap/core";
-
-export interface DocumentSaveState {
-  ready: boolean;
-  path?: string;
-  savedAt?: number;
-  missing: boolean;
-  modified: boolean;
-  saving: boolean;
-  error?: DocumentSaveFailure;
-  externalChanged?: boolean;
-}
+import type { DocumentSaveState, EditingChapter } from "./contracts";
 
 /** The renderer session owns save state across chapters and both save entry points. */
 export class DocumentSaving {
@@ -26,8 +15,7 @@ export class DocumentSaving {
   private controller?: AbortController;
   private stopEvents?: () => void;
   private generation = 0;
-  private chapterBuffer?: () => { id: string; content: JSONContent[] } | undefined;
-  private flushChanges?: () => Promise<void>;
+  private editingChapter?: EditingChapter;
 
   read = () => this.state;
   subscribe = (listener: () => void) => {
@@ -40,28 +28,32 @@ export class DocumentSaving {
     this.listeners.forEach(listener => listener());
   }
 
-  watchChapter(buffer: () => { id: string; content: JSONContent[] } | undefined, flush: () => Promise<void>) {
-    this.chapterBuffer = buffer;
-    this.flushChanges = flush;
+  watchChapter(chapter: EditingChapter) {
+    this.editingChapter = chapter;
     return () => {
-      if (this.chapterBuffer === buffer) {
-        this.chapterBuffer = undefined;
-        this.flushChanges = undefined;
-      }
+      if (this.editingChapter === chapter) this.editingChapter = undefined;
     };
   }
 
   async start(documentId: string, bytes: Uint8Array) {
     this.stop();
     this.documentId = documentId;
-    this.update({ ready: true, saving: false, error: undefined, externalChanged: false, ...await documentFiles.status(documentId, bytes) });
-    const controller = this.controller = new AbortController();
+    const status = await documentFiles.status(documentId, bytes);
+    this.update({ ready: true, saving: false, error: undefined, externalChanged: false, ...status });
+    this.controller = new AbortController();
+
+    const observation = this.observeChanges(documentId, this.controller.signal);
+    await observation.ready;
+    await this.reconcile();
+  }
+
+  private observeChanges(documentId: string, signal: AbortSignal) {
     const observer = observeDocumentSources([documentId], () => {
       const wasClean = !this.state.modified;
       this.changed();
       // Reconcile the first notification after a clean save; editing never re-exports ZIPs.
       if (wasClean && !this.state.saving) void this.reconcile();
-    }, controller.signal, { ignoreFileMetadata: true });
+    }, signal, { ignoreFileMetadata: true });
     const offDocument = Manager.app.on("document:updated", ({ document }) => {
       if (document.id === documentId) {
         this.update({ path: document.file });
@@ -76,8 +68,7 @@ export class DocumentSaving {
       });
     });
     this.stopEvents = () => { offDocument(); offDraft(); };
-    await observer.ready;
-    await this.reconcile();
+    return observer;
   }
 
   changed() {
@@ -90,7 +81,7 @@ export class DocumentSaving {
     const generation = this.generation;
     if (!id) return;
     try {
-      const status = await documentFiles.status(id, undefined, this.chapterBuffer?.());
+      const status = await documentFiles.status(id, undefined, this.editingChapter?.snapshot());
       if (this.documentId === id && generation === this.generation) this.update(status);
     } catch (error) {
       this.failed(error, "local-storage");
@@ -102,6 +93,7 @@ export class DocumentSaving {
       code, detail: error instanceof Error ? error.message : String(error), filePath: this.state.path,
     };
     this.showFailure(failure);
+    return failure;
   }
 
   private showFailure(error: DocumentSaveFailure) {
@@ -114,41 +106,51 @@ export class DocumentSaving {
   async save(archive: CapturedDocumentArchive, mode: DocumentSaveMode = "save"): Promise<DocumentSaveResult> {
     if (this.state.saving) return { status: "cancelled" };
     this.update({ saving: true, error: undefined });
-    let fileWritten = false;
+    let result: DocumentSaveResult | undefined;
     try {
-      const result = await window.editor.save(archive.buffer, archive.fileName, mode);
-      if (result.status === "cancelled" && result.reason === "external-change")
-        this.update({ externalChanged: true });
-      if (result.status === "cancelled" && result.reason === "source-missing")
-        this.update({ missing: true });
-      if (result.status === "failed") this.showFailure(result.error);
-      if (result.status === "reload") {
-        // The reopened session preserves any differing committed draft before installing the file.
-        await this.reload(archive);
-      }
-      if (result.status === "saved") {
-        fileWritten = true;
-        this.update({ path: result.filePath, missing: false, externalChanged: false, savedAt: result.savedAt });
-        if (archive.draft && documentDrafts.get(archive.document.id) === archive.draft)
-          await archive.draft.commit();
-        await documentFiles.bind(archive.document.id, result.filePath);
-        await documentFiles.saved(archive.document.id, archive.buffer, result.savedAt);
-        await this.reconcile();
-      }
+      result = await window.editor.save(archive.buffer, archive.fileName, mode);
+      await this.applyResult(archive, result);
       return result;
     } catch (error) {
-      this.failed(error, fileWritten ? "local-cache" : "io");
-      return { status: "failed", error: this.state.error! };
+      const failure = this.failed(error, result?.status === "saved" ? "local-cache" : "io");
+      return { status: "failed", error: failure };
     } finally {
       this.update({ saving: false });
     }
+  }
+
+  private async applyResult(archive: CapturedDocumentArchive, result: DocumentSaveResult) {
+    switch (result.status) {
+      case "saved":
+        await this.completeSave(archive, result);
+        return;
+      case "reload":
+        await this.reload(archive);
+        return;
+      case "failed":
+        this.showFailure(result.error);
+        return;
+      case "cancelled":
+        if (result.reason === "external-change") this.update({ externalChanged: true });
+        if (result.reason === "source-missing") this.update({ missing: true });
+    }
+  }
+
+  private async completeSave(archive: CapturedDocumentArchive, result: Extract<DocumentSaveResult, { status: "saved" }>) {
+    this.update({ path: result.filePath, missing: false, externalChanged: false, savedAt: result.savedAt });
+    if (archive.draft && documentDrafts.get(archive.document.id) === archive.draft) {
+      await archive.draft.commit();
+    }
+    await documentFiles.bind(archive.document.id, result.filePath);
+    await documentFiles.saved(archive.document.id, archive.buffer, result.savedAt);
+    await this.reconcile();
   }
 
   async reload(archive: CapturedDocumentArchive) {
     const wasInert = document.body.inert;
     document.body.inert = true;
     try {
-      await this.flushChanges?.();
+      await this.editingChapter?.flush();
       await documentDrafts.get(archive.document.id)?.commit();
       await window.editor.reloadSource();
     } catch (error) {

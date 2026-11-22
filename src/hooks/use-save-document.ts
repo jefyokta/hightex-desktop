@@ -1,22 +1,27 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Editor } from "@tiptap/core";
 import type { Chapter } from "@/editor/chapter";
-import { captureDocumentArchive, flushDocumentChanges } from "@/editor/document/archive";
-import { documentSaving } from "@/editor/document/saving";
+import { captureDocumentArchive, flushDocumentChanges } from "@/editor/document/files/archive";
+import { documentSaving } from "@/editor/document/files/saving";
 import { confirm } from "@/utils/confirm";
 import { t } from "@/utils/lang";
 import { getEditorChapter } from "@/editor/event";
+import { documentFiles } from "@/editor/document/files/source";
+import { toast } from "sonner";
 
 export function useSaveDocument(editor: Editor | null, chapter: Chapter | null) {
   const state = useSyncExternalStore(documentSaving.subscribe, documentSaving.read);
   const capturing = useRef(false);
   const [preparing, setPreparing] = useState(false);
-  useEffect(() => documentSaving.watchChapter(() => {
-    const bound = editor && !editor.isDestroyed ? getEditorChapter(editor) : undefined;
-    if (!editor?.isEditable || !bound || bound !== chapter) return;
-    return { id: bound.getId(), content: editor.getJSON().content ?? [] };
-  }, async () => {
-    if (chapter) await flushDocumentChanges(chapter.document.id, editor, chapter);
+  useEffect(() => documentSaving.watchChapter({
+    snapshot() {
+      const bound = editor && !editor.isDestroyed ? getEditorChapter(editor) : undefined;
+      if (!editor?.isEditable || !bound || bound !== chapter) return;
+      return { id: bound.getId(), content: editor.getJSON().content ?? [] };
+    },
+    async flush() {
+      if (chapter) await flushDocumentChanges(chapter.document.id, editor, chapter);
+    },
   }), [editor, chapter]);
   useEffect(() => {
     const changed = () => documentSaving.changed();
@@ -51,6 +56,21 @@ export function useSaveDocument(editor: Editor | null, chapter: Chapter | null) 
     } catch (error) { documentSaving.failed(error, "io"); }
   }, [editor, chapter]);
 
+  const refresh = () => documentSaving.reconcile();
+  const locate = () => {
+    if (chapter) return documentFiles.locate(chapter.document.id);
+  };
+  const reveal = async () => {
+    if (!state.path) return;
+    try {
+      await window.file.showInFolder(state.path);
+    } catch (error) {
+      toast.error(t("editor.save.reveal_failed"), {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
   useEffect(() => {
     if (!chapter?.document.ready) return;
     const keydown = (event: KeyboardEvent) => {
@@ -62,5 +82,5 @@ export function useSaveDocument(editor: Editor | null, chapter: Chapter | null) 
     return () => window.removeEventListener("keydown", keydown);
   }, [chapter, save]);
 
-  return { save, reload, state: { ...state, saving: state.saving || preparing } };
+  return { save, reload, refresh, locate, reveal, state: { ...state, saving: state.saving || preparing } };
 }

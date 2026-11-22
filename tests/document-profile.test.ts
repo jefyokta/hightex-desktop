@@ -14,7 +14,7 @@ import { zipSync, unzipSync, strFromU8 } from "fflate";
 import { HighTexDB } from "../src/editor/storage/hightex-db";
 import { Exporter } from "../src/utils/htx/exporter";
 import { HighTexImporter } from "../src/utils/import-v2";
-import { DocumentFileSource } from "../src/editor/document/file-source";
+import { DocumentFileSource } from "../src/editor/document/files/source";
 import {
   emptyAuthorProfile,
   resolveDocumentProfile,

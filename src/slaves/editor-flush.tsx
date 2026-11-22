@@ -4,11 +4,11 @@ import { useCurrentEditor } from "@/hooks/use-editor";
 import { useChapterStore } from "@/hooks/use-chapter";
 import { getEditorChapter } from "@/editor/event";
 import { Manager } from "@/editor/manager";
-import { documentSaving } from "@/editor/document/saving";
-import { captureDocumentArchive, flushDocumentChanges } from "@/editor/document/archive";
+import { documentSaving } from "@/editor/document/files/saving";
+import { captureDocumentArchive, flushDocumentChanges } from "@/editor/document/files/archive";
 import { Exporter } from "@/utils/htx/exporter";
 import { Storage } from "@/editor/storage";
-import { documentFiles } from "@/editor/document/file-source";
+import { documentFiles } from "@/editor/document/files/source";
 
 export const EditorFlushSlave = () => {
   const { editor } = useCurrentEditor();

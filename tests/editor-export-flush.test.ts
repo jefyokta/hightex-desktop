@@ -111,12 +111,12 @@ function rendererFixture(ready: boolean) {
   const events = { getEditorChapter: () => (ready ? chapter : undefined) };
   const manager = { Manager: { emit: () => saved } };
   const storage = { Storage: { instance: { waitForDocument: async () => {} } } };
-  const archive = loadSource<typeof import("../src/editor/document/archive")>(
-    "../src/editor/document/archive.ts",
+  const archive = loadSource<typeof import("../src/editor/document/files/archive")>(
+    "../src/editor/document/files/archive.ts",
     {
-      "../event": events,
-      "../manager": manager,
-      "../storage": storage,
+      "../../event": events,
+      "../../manager": manager,
+      "../../storage": storage,
       "@/utils/lang": { t: () => en.editor.save.not_ready },
     },
   );
@@ -139,7 +139,7 @@ function rendererFixture(ready: boolean) {
       "@/editor/event": events,
       "@/editor/manager": manager,
       "@/editor/storage": storage,
-      "@/editor/document/archive": archive,
+      "@/editor/document/files/archive": archive,
     },
     {
       window: {

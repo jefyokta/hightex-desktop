@@ -12,7 +12,6 @@ import {
   ListOrdered,
   Quote,
   Redo2,
-  // ScanText,
   Sigma,
   Strikethrough,
   Table,
@@ -22,14 +21,9 @@ import {
   Loader2,
   Settings,
   GitBranch,
-  // MessageCircle,
 } from "lucide-react";
 
-import React, {
-  PropsWithChildren,
-  //  useEffect,
-  useState,
-} from "react";
+import React, { type PropsWithChildren, useState } from "react";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { t } from "@/utils/lang";
@@ -45,11 +39,6 @@ import { SettingModal } from "./settings-modal";
 import { DocumentSaveActions } from "./document-save-actions";
 import { ChapterNavigation } from "./chapter-navigation";
 import { BranchManagerDialog } from "./branch-manager-dialog";
-// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-// import { cn } from "@/lib/utils";
-// import { CommentStorage } from "@/editor/storage/comment";
-// import { getSnapshotLabel } from "@/utils/snapshot";
-// import { formatDate } from "@/utils/date";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -89,28 +78,6 @@ export const NavBar: React.FC = () => {
       isMath: ctx.editor?.isActive("blockMath") ?? false,
     }),
   });
-
-  // const [snapshots, setSnapshots] = useState<SnapshotEntity[]>([]);
-  // const [snap, setSnap] = useState<string | null>(null)
-
-  // useEffect(() => {
-  //   if (!chapter) return
-  //   window.hightex.snapshot.document(chapter.document.id).then(setSnapshots)
-
-  // }, [chapter])
-
-  // useEffect(() => {
-  //   if (!snap) {
-  //     CommentStorage.instance.recreate()
-  //     editor?.commands.updateDecorations("comment")
-
-  //     return;
-  //   }
-  //   CommentStorage.create(snap).then(() => {
-  //     editor?.commands.updateDecorations("comment")
-
-  //   })
-  // }, [snap])
 
   if (!editor || chapter?.frozen) {
     return (

@@ -1,26 +1,15 @@
-import { HighTexDB } from "../storage/hightex-db";
+import { HighTexDB } from "../../storage/hightex-db";
 import { HighTexImporter } from "@/utils/import-v2";
 import { Exporter } from "@/utils/htx/exporter";
-import { documentFileRevision as revision } from "./file-revision";
+import { documentFileRevision } from "./revision";
 import { documentRecoveries } from "./recoveries";
-import { documentRenderFingerprint, documentRenderModel } from "./render-model";
-import { readImportModel } from "@/utils/htx/import-model";
-import type { JSONContent } from "@tiptap/core";
-import { readDocumentSnapshot } from "../storage/document-snapshot";
-import { documentDrafts } from "../document-drafts";
-import { Manager } from "../manager";
+import { fileBaselines } from "./baselines";
+import type { ChapterBuffer, DocumentFileStatus } from "./contracts";
+import { Manager } from "../../manager";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
-import { Document } from ".";
+import { Document } from "..";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
-
-interface FileBaseline {
-  filePath: string;
-  documentId: string;
-  draftRevision: string;
-  savedAt?: number;
-  presentationRevision?: string;
-}
 
 /** One renderer owns one editing session, including chapter navigation and StrictMode. */
 export class DocumentFileSource {
@@ -51,43 +40,20 @@ export class DocumentFileSource {
 
   /** Track the exact content saved, even if editing continued during the write. */
   async saved(documentId: string, bytes: Uint8Array, savedAt?: number) {
-    const db = HighTexDB.getInstance();
-    const document = await db.documents.get(documentId);
-    if (!document?.file) return;
-    const previous = await db.table<FileBaseline>("file").get(document.file);
-    await db.table<FileBaseline>("file").put({
-      filePath: document.file,
-      documentId,
-      draftRevision: await revision(bytes),
-      presentationRevision: await documentRenderFingerprint(readImportModel(bytes)),
-      savedAt: savedAt ?? previous?.savedAt,
-    });
+    await fileBaselines.record(documentId, bytes, savedAt);
     this.awaitingNormalization.delete(documentId);
     this.unavailable.delete(documentId);
   }
 
-  async status(documentId: string, bytes?: Uint8Array, buffer?: { id: string; content: JSONContent[] }) {
-    const db = HighTexDB.getInstance();
-    const document = await db.documents.get(documentId);
+  async status(documentId: string, bytes?: Uint8Array, buffer?: ChapterBuffer): Promise<DocumentFileStatus> {
+    const document = await HighTexDB.getInstance().documents.get(documentId);
     const path = document?.file;
-    const record = path ? await db.table<FileBaseline>("file").get(path) : undefined;
-    const baseline = record?.documentId === documentId ? record : undefined;
-    const status = { path, savedAt: baseline?.savedAt, missing: this.unavailable.has(documentId) };
-    if (!baseline) return { ...status, modified: true };
-    let model;
-    if (bytes) model = readImportModel(bytes);
-    else {
-      const snapshot = await readDocumentSnapshot(documentId, { draft: documentDrafts.get(documentId)?.document });
-      // Never show a clean file while the live chapter still has uncommitted edits.
-      if (buffer && JSON.stringify(snapshot.chapters.find(chapter => chapter.id === buffer.id)?.content) !== JSON.stringify(buffer.content))
-        return { ...status, modified: true };
-      model = await documentRenderModel(snapshot);
-    }
+    const baseline = path ? await fileBaselines.find(path, documentId) : undefined;
     return {
-      ...status,
-      modified: baseline.presentationRevision
-        ? await documentRenderFingerprint(model) !== baseline.presentationRevision
-        : await revision(model) !== baseline.draftRevision,
+      path,
+      savedAt: baseline?.savedAt,
+      missing: this.unavailable.has(documentId),
+      modified: !baseline || !await fileBaselines.matches(documentId, baseline, bytes, buffer),
     };
   }
 
@@ -103,13 +69,9 @@ export class DocumentFileSource {
       const stored = await db.documents.get(documentId);
       const path = await window.editor.locateSource();
       if (!path) return;
-      const baseline = stored?.file
-        ? await db.table<FileBaseline>("file").get(stored.file)
-        : undefined;
       await this.bind(documentId, path);
       // Reconnecting a file must not mark unsaved edits as saved.
-      if (baseline?.documentId === documentId)
-        await db.table<FileBaseline>("file").put({ ...baseline, filePath: path });
+      await fileBaselines.relocate(documentId, stored?.file, path);
       this.unavailable.delete(documentId);
       const document = await db.documents.get(documentId);
       if (document) Manager.app.dispatch("document:updated", { document });
@@ -155,10 +117,9 @@ export class DocumentFileSource {
 
     if (stored) {
       const archive = await new Exporter(documentId).buildExport();
-      const baseline = await db.table<FileBaseline>("file").get(path);
-      const expected = baseline?.documentId === documentId
-        ? baseline.draftRevision : await revision(bytes);
-      if (await revision(archive.buffer) !== expected)
+      const baseline = await fileBaselines.find(path, documentId);
+      const expected = baseline?.draftRevision ?? await documentFileRevision(bytes);
+      if (await documentFileRevision(archive.buffer) !== expected)
         await this.recover(stored, archive.buffer);
     }
 

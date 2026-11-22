@@ -1,5 +1,6 @@
 // Opt-in: env -u ELECTRON_RUN_AS_NODE electron tests/integration/editor-close-ui.cjs
 // Real editor, IndexedDB, close IPC and archive writes; isolated profile and stubbed native choices.
+// --no-screenshots runs the interactions without requiring compositor capture.
 const { app, BrowserWindow, ipcMain } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -63,7 +64,7 @@ import{Setting}from'/src/components/editor/expandable-items/setting.tsx';
 import{HighTexDB}from'/src/editor/storage/hightex-db.ts';
 import{Document}from'/src/editor/document/index.ts';
 import{getEditorChapter}from'/src/editor/event/index.ts';
-import{documentSaving}from'/src/editor/document/saving.ts';
+import{documentSaving}from'/src/editor/document/files/saving.ts';
 import{ConfirmProvider}from'/src/context/confrim-context.tsx';
 import{Toaster}from'sonner';
 import'/src/App.css';
@@ -145,6 +146,12 @@ async function closeAndStay() {
     "close canceled",
   );
   assert.equal(win.isDestroyed(), false);
+}
+async function captureScreenshot(name) {
+  if (process.argv.includes("--no-screenshots")) return;
+  await execute("await new Promise(resolve=>setTimeout(resolve,220))");
+  const image = await win.webContents.capturePage();
+  fs.writeFileSync(path.join(profile, name), image.toPNG());
 }
 (async () => {
   try {
@@ -475,8 +482,7 @@ async function closeAndStay() {
     await execute(`document.querySelector('[data-tour="editor-save-menu"]').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerType:'mouse'}))`);
     await until(() => execute("return !!document.querySelector('[data-document-file-status]')"), "save menu status panel");
     assert.ok(await execute(`return document.querySelector('[data-document-file-status]').textContent.includes(${JSON.stringify(savePath)})`));
-    await execute("await new Promise(resolve=>setTimeout(resolve,220))");
-    fs.writeFileSync(path.join(profile,'save-menu.png'), (await win.webContents.capturePage()).toPNG());
+    await captureScreenshot("save-menu.png");
     await execute("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");
     await until(() => execute("return !document.querySelector('[role=menu]')"), "save menu dismissed");
 
@@ -495,11 +501,9 @@ async function closeAndStay() {
     await execute("[...document.querySelectorAll('[role=menuitem]')].find(item=>item.textContent.trim()==='Pemulihan').click()");
     await until(() => execute("return !!document.querySelector('[data-document-recoveries] article')"), "recovery dialog lists preserved draft");
     assert.ok(await execute(`return document.querySelector('[data-document-recoveries]').textContent.includes(${JSON.stringify(savePath)})`));
-    await execute("await new Promise(resolve=>setTimeout(resolve,220))");
-    fs.writeFileSync(path.join(profile,'recovery-dialog.png'), (await win.webContents.capturePage()).toPNG());
+    await captureScreenshot("recovery-dialog.png");
     await execute("document.documentElement.classList.add('dark')");
-    await execute("await new Promise(resolve=>setTimeout(resolve,220))");
-    fs.writeFileSync(path.join(profile,'recovery-dialog-dark.png'), (await win.webContents.capturePage()).toPNG());
+    await captureScreenshot("recovery-dialog-dark.png");
     await execute("[...document.querySelectorAll('[data-document-recoveries] button')].find(item=>item.textContent==='Simpan salinan…').click()");
     await until(() => fs.readdirSync(profile).some(name=>name.includes('Pemulihan autosave')&&name.endsWith('.hightex')), "recovery exported");
     await until(() => execute("return !document.querySelector('[data-document-recoveries] article button').disabled"), "recovery export complete");

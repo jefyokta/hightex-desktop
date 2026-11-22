@@ -26,7 +26,7 @@ The file is never rewritten by opening it. A missing or unreadable source falls
 back to the existing autosave with a warning. An invalid archive or a source whose
 document ID changed leaves the draft intact and shows a retryable opening error.
 
-`DocumentFileSource` records the last normalized/saved content revision in the
+`FileBaselines` records the last normalized/saved content revision in the
 existing `file` table. Without a recorded revision, differing older autosaves are
 conservatively recovered. File fingerprints and normalized editor fingerprints
 remain separate in `EditorWindow`: asset ID remapping and editor normalization do
@@ -76,6 +76,28 @@ cannot switch the document back to its former location after Save As.
 
 The dashboard observes the document table with Dexie `liveQuery`, so imports and
 recovery copies committed in another editor window appear without an app restart.
+
+### Renderer owners
+
+File operations live in `src/editor/document/files/`:
+
+| Module | Responsibility |
+| --- | --- |
+| `source.ts` | Load the source once per session, preserve differing autosaves, and reconnect a moved file. |
+| `baselines.ts` | Persist and compare saved revisions, including pending settings and editor content. |
+| `revision.ts` | Compute the authored-content revision independently of archive metadata. |
+| `archive.ts` | Flush pending chapter writes and capture the same archive for toolbar Save and close-save. |
+| `saving.ts` | Own save state, source observation, native save outcomes, and reload across chapter navigation. |
+| `recoveries.ts` | Preserve and list recovery documents with their provenance. |
+| `contracts.ts` | Define file status, persisted baselines, recovery documents, and the editing-chapter interface. |
+
+`useSaveDocument` connects the current editor through `EditingChapter.snapshot`
+and `EditingChapter.flush`; `DocumentSaving` does not own a Tiptap instance.
+`DocumentSaveActions` and `DocumentFileStatus` present that state and route user
+commands through the hook. `useDocumentRecoveries` owns the recovery subscription
+and actions; `RecoveryDialog` and `RecoveryEntry` render the list and controls.
+Native dialogs, source-file checks, and atomic writes remain in the Electron file
+service and editor window.
 
 ## `.ht`
 

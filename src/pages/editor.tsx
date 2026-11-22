@@ -49,7 +49,7 @@ import { uniqId } from "@/utils/uniq-id";
 import { ZoomUI } from "@/components/editor/zoom-ui";
 import { LoadingDocument } from "@/components/editor/loading-document";
 import { DocumentProfileNotice } from "@/components/editor/document-profile-notice";
-import { documentFiles } from "@/editor/document/file-source";
+import { documentFiles } from "@/editor/document/files/source";
 import { refreshCloudAcademic } from "@/cloud/academic-data";
 import { EditorPagination } from "@/editor/pagination";
 import { PaginationStatus } from "@/components/editor/pagination-status";

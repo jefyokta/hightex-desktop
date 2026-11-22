@@ -1,10 +1,21 @@
-import { HighTexDB } from "../storage/hightex-db";
+import { HighTexDB } from "../../storage/hightex-db";
 import { HighTexImporter } from "@/utils/import-v2";
-import { documentFileRevision } from "./file-revision";
-import { Manager } from "../manager";
+import { documentFileRevision } from "./revision";
+import { Manager } from "../../manager";
 import { t } from "@/utils/lang";
+import type { RecoveryDocument } from "./contracts";
 
 export class DocumentRecoveries {
+  async list(sourceDocumentId?: string): Promise<RecoveryDocument[]> {
+    const documents = await HighTexDB.getInstance().documents.toArray();
+    return documents
+      .filter((document): document is RecoveryDocument => {
+        if (!document.recovery) return false;
+        return !sourceDocumentId || document.recovery.sourceDocumentId === sourceDocumentId;
+      })
+      .sort((left, right) => right.recovery.createdAt - left.recovery.createdAt);
+  }
+
   async preserve(source: HighTexDocument, bytes: Uint8Array): Promise<HighTexDocument> {
     const db = HighTexDB.getInstance();
     const revision = await documentFileRevision(bytes);

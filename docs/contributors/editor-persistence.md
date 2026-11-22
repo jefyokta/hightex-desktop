@@ -79,7 +79,7 @@ Start with the tests closest to the behavior being changed:
 
 ```sh
 bun test tests/editor-persistence.test.ts tests/editor-save.test.ts tests/editor-export-flush.test.ts
-bun test tests/document-drafts.test.ts tests/import-conflict.test.ts
+bun test tests/document-drafts.test.ts tests/document-profile.test.ts
 ```
 
 Test names and coverage evolve; inspect the current suite before relying on

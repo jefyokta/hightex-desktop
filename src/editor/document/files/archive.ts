@@ -1,9 +1,9 @@
 import type { Editor } from "@tiptap/core";
-import type { Chapter } from "../chapter";
-import { getEditorChapter } from "../event";
-import { Manager } from "../manager";
-import { Storage } from "../storage";
-import { documentDrafts } from "../document-drafts";
+import type { Chapter } from "../../chapter";
+import { getEditorChapter } from "../../event";
+import { Manager } from "../../manager";
+import { Storage } from "../../storage";
+import { documentDrafts } from "../../document-drafts";
 import { Exporter } from "@/utils/htx/exporter";
 import { t } from "@/utils/lang";
 
