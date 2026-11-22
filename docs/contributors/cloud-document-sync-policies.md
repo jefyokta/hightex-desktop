@@ -1,5 +1,34 @@
 # How it work?
 
+## Renderer ownership
+
+`src/pages/remote.tsx` checks workspace/account access and composes the cloud
+screen. `useRemoteDocuments` owns the selected local document, notices, and one
+in-flight UI operation; late responses still pass the session check before they
+can update the screen or proceed with a transfer.
+
+Cloud operations live under `src/cloud/`:
+
+- `documents.ts` reads the cloud slot, local documents, categories, and bindings
+  for one captured session.
+- `document-upload.ts` exports the academic artifact, submits it, and caches the
+  academic source only after a successful response.
+- `document-download.ts` downloads, stages, backs up, installs, and accepts a
+  draft through the existing `draft-transfer.ts` helpers. Its named targets are
+  `latest`, `copy`, `history`, and `restore`; history and copies do not advance the
+  synchronization base.
+
+The download interaction contract supplies confirmation and session checks; the
+transfer module has no React, dialog, or toast ownership. Installation precedes
+acceptance. Failed acceptance rolls back only if no newer local edit exists;
+rollback failure returns a separate outcome with both causes for diagnosis.
+
+`src/components/cloud/` contains the current-version card, upload form, and
+responsive history panel. These components receive typed data and callbacks;
+they do not write drafts or invoke cloud transfers directly.
+
+## Content fingerprint
+
 in client side we count the hash of hightex package's content
 
 it based on it's entry
