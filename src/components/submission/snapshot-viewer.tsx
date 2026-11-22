@@ -21,6 +21,7 @@ import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 import { Alert, AlertDescription } from "../ui/alert";
 import { PreviewFrame } from "./preview-frame";
+import { SubmissionComparisonDialog } from "./submission-comparison-dialog";
 import { GuidanceRevisions } from "./guidance-revisions";
 import { RevisionSourceDialog } from "./revision-source-dialog";
 import { resolveRevisionAnchor } from "@/review/revision-anchor";
@@ -45,6 +46,7 @@ export const SubmissionSnapshotViewer = ({
   const savingRef = useRef(false);
   const profile = resolveDocumentProfile(snapshot.document);
   const [panel, setPanel] = useState<"revisions" | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
   const [source, setSource] = useState<{ node: JSONContent; chapterId: string }>();
   const showSource = (anchor: RevisionAnchor) => {
     const node = resolveRevisionAnchor(snapshot, anchor);
@@ -189,6 +191,7 @@ export const SubmissionSnapshotViewer = ({
           <LockKeyhole className="size-3" />
           {t("submission_review.read_only")}
         </Badge>
+        {snapshot.source.kind === "submission" && <Button size="sm" variant="outline" onClick={() => setCompareOpen(true)}>{t("mentoring.compare")}</Button>}
         <Button
           size="sm"
           variant="outline"
@@ -285,6 +288,7 @@ export const SubmissionSnapshotViewer = ({
         <GuidanceRevisions snapshot={snapshot} onSource={showSource} onAccessDenied={onAccessDenied} />
       </aside>}
       </div>
+      <SubmissionComparisonDialog snapshot={snapshot} open={compareOpen} onOpenChange={setCompareOpen} />
       <RevisionSourceDialog snapshot={snapshot} node={source?.node} chapterId={source?.chapterId} onClose={() => setSource(undefined)} />
     </main>
   );

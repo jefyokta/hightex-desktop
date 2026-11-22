@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import { SubmissionHistoryList } from "./history-list";
+import { LocalSubmissionComparison } from "./local-submission-comparison";
+import { recipientSubmissionHistory } from "@/review/submission-comparison";
 
 export const StudentSubmission = ({
   onUpdated,
@@ -48,6 +50,7 @@ export const StudentSubmission = ({
   const [task, setTask] = useState<string | null>("load");
   const [error, setError] = useState<string>();
   const [loaded, setLoaded] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const assertCurrent = async (context: CloudSession) => {
     if (
@@ -162,6 +165,7 @@ export const StudentSubmission = ({
     bindings[selectedDoc.id]?.serverDocumentId === current.document_id,
   );
   const recipient = recipients.find((item) => item.id === recipientId);
+  const latestToRecipient = recipientSubmissionHistory({ documentId: current?.document_id ?? "", recipientId }, history).slice(-1)[0];
   const active = history.some(
     (item) => item.recipientId === recipientId && item.status !== "reviewed",
   );
@@ -460,6 +464,8 @@ export const StudentSubmission = ({
             <p className="text-xs text-muted-foreground">
               {t("submission_student.archive_policy")}
             </p>
+            <Button size="sm" variant="outline" disabled={busy || !linked || !latestToRecipient}
+              onClick={() => setCompareOpen(true)}>{t("mentoring.compare")}</Button>
             <p className="text-xs text-muted-foreground">
               {t("submission_student.version_limit")}
             </p>
@@ -524,6 +530,8 @@ export const StudentSubmission = ({
           />
         </div>
       )}
+      {selectedDoc && linked && latestToRecipient && <LocalSubmissionComparison key={`${selectedDoc.id}:${latestToRecipient.id}`}
+        open={compareOpen} onOpenChange={setCompareOpen} documentId={selectedDoc.id} previous={latestToRecipient} />}
     </section>
   );
 };
