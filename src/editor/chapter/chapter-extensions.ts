@@ -1,4 +1,6 @@
 import StarterKit from "@tiptap/starter-kit";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 
 import { Heading } from "../extensions/heading";
 import { ForceHeading } from "../extensions/force-heading";
@@ -87,6 +89,8 @@ export class ChapterExtensions {
         paragraph: false,
         codeBlock: false,
       }),
+      Subscript,
+      Superscript,
 
       Heading.configure({
         levels: [1, 2, 3, 4],
@@ -149,6 +153,8 @@ export class ChapterExtensions {
     const hasPlaceholder = this.placeHolder[this.chapter.getChapter()];
     return [
       StarterKit.configure({ blockquote: false }),
+      Subscript,
+      Superscript,
       Variable,
       SearchReplace,
       Note,

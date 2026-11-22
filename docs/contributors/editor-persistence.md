@@ -30,6 +30,11 @@ ready. Chapter content is stored as editor JSON. The editor event setup in
 `src/editor/event/index.ts` waits for the persisted chapter before making the
 editor editable; only initialized editor sessions are eligible to autosave.
 
+`ChapterExtensions` owns the live editor and immutable rendering schemas.
+Subscript and superscript are registered in both regular chapter and front-matter
+extensions; snapshot serialization must retain these marks rather than dropping
+them or defining a separate pagination-only schema.
+
 `Chapter.setContent` normalizes chapter content and stores it through
 `Storage.setChapter`. `Storage` serializes writes to the same chapter and
 provides `waitForChapter` and `waitForDocument` so callers can wait for pending
