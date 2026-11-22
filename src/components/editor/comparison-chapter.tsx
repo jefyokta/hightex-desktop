@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { JSONContent } from "@tiptap/core";
-import type { ImportedHighTexV2 } from "@hightex/importer";
+import type { DocumentRenderModel } from "@/types/document-snapshot";
 import { renderChapterContent } from "@/editor/chapter/render-content";
 import { Button } from "@/components/ui/button";
 import { t } from "@/utils/lang";
@@ -15,7 +15,7 @@ export function ComparisonChapter({
   side,
   changed,
 }: {
-  model: ImportedHighTexV2;
+  model: DocumentRenderModel;
   nodes: JSONContent[];
   chapterId: string;
   side: "main" | "branch";

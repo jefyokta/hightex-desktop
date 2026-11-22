@@ -10,6 +10,7 @@ import {
 import { readProfileEntries } from "@/utils/htx/profile";
 import { Symbols } from "@/utils/symbol";
 import { migrateDocumentCommittee } from "@/utils/document-committee";
+import type { DocumentRenderModel } from "@/types/document-snapshot";
 
 export type SnapshotSource =
   | { kind: "local"; filename: string }
@@ -34,6 +35,7 @@ export interface SnapshotReadModel {
   unsupportedNodes: readonly string[];
   variable(name: string): string;
   originalFile(): Uint8Array;
+  renderModel(): Promise<DocumentRenderModel>;
 }
 
 export class SnapshotReadError extends Error {
@@ -81,8 +83,11 @@ export const readSnapshot = async (
   if (input.length > MAX_ARCHIVE) throw new SnapshotReadError("too_large");
   source =
     source.kind === "submission"
-      ? { ...source, session: { ...source.session } }
-      : { ...source };
+      ? {
+          kind: "submission", session: { ...source.session },
+          documentId: source.documentId, submissionId: source.submissionId, sha256: source.sha256,
+        }
+      : { kind: "local", filename: source.filename };
   const bytes = new Uint8Array(input);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   const sha256 = Array.from(new Uint8Array(digest), (byte) =>
@@ -300,15 +305,21 @@ export const readSnapshot = async (
   });
   if (!document.id) throw new SnapshotReadError("invalid_content");
   const profileVariables = getProfileVariables(profile);
+  const aliases: DocumentRenderModel["aliases"] = [];
+  if (entries["files/assets/aliases.json"]) {
+    const rows = json("files/assets/aliases.json");
+    if (!Array.isArray(rows)) throw new SnapshotReadError("invalid_content");
+    for (const row of rows) {
+      const alias = object(row);
+      if (typeof alias.key !== "string" || typeof alias.value !== "string") throw new SnapshotReadError("invalid_content");
+      aliases.push({ key: alias.key, value: alias.value });
+    }
+  }
   const symbols = new Map<string, string>(
     Symbols.map(([name, value]) => [name, value]),
   );
-  const frozenSource =
-    source.kind === "submission"
-      ? { ...source, session: { ...source.session } }
-      : { ...source };
   return Object.freeze({
-    source: freeze(frozenSource),
+    source: freeze(source),
     sha256,
     document: freeze(document),
     chapters: freeze(chapters),
@@ -324,5 +335,23 @@ export const readSnapshot = async (
       return symbols.get(name) ?? variables[name] ?? "";
     },
     originalFile: () => new Uint8Array(bytes),
+    renderModel: async () => ({
+      document: structuredClone(document),
+      config: structuredClone({ ...document.config }),
+      chapters: chapters.map(chapter => ({
+        id: ({ id: "abstract", en: "abstract-en" } as Record<string, string>)[chapter.id] ?? chapter.id,
+        content: structuredClone([...chapter.content]),
+      })),
+      references: { ...references },
+      variables: Object.entries(variables).map(([name, value]) => ({ name, value })),
+      aliases: structuredClone(aliases),
+      profile: profile ? structuredClone(profile) : undefined,
+      images: Object.fromEntries(await Promise.all([...images].map(async ([key, blob]) => [key, {
+        bytes: new Uint8Array(await blob.arrayBuffer()), mime: blob.type,
+      }]))),
+      ...(profile?.picture ? { profilePicture: {
+        bytes: new Uint8Array(await profile.picture.arrayBuffer()), mime: profile.picture.type,
+      } } : {}),
+    }),
   });
 };

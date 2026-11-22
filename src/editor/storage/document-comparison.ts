@@ -1,4 +1,5 @@
-import type { DocumentNode, ImportedHighTexV2 } from "@hightex/importer";
+import type { JSONContent } from "@tiptap/core";
+import type { DocumentRenderModel } from "@/types/document-snapshot";
 import { Exporter } from "@/utils/htx/exporter";
 import { readImportModel } from "@/utils/htx/import-model";
 import { aliasKey } from "@/utils/alias-key";
@@ -15,8 +16,8 @@ export type DocumentCompareEntry = {
   beforeText?: string;
   afterText?: string;
   textUnchanged?: boolean;
-  beforeNodes?: DocumentNode[];
-  afterNodes?: DocumentNode[];
+  beforeNodes?: JSONContent[];
+  afterNodes?: JSONContent[];
 };
 
 export type DocumentCompareSection = {
@@ -29,7 +30,7 @@ export type DocumentComparison = {
   branch: HighTexDocument;
   sections: DocumentCompareSection[];
   summary: Record<CompareStatus, number>;
-  sources: { main: ImportedHighTexV2; branch: ImportedHighTexV2 };
+  sources: { main: DocumentRenderModel; branch: DocumentRenderModel };
 };
 
 const canonical = (value: unknown): unknown => {
@@ -112,7 +113,7 @@ const normalizeBib = (bib: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const aliasMap = (model: ImportedHighTexV2) => {
+const aliasMap = (model: DocumentRenderModel) => {
   return new Map(
     model.aliases.map(({ key, value }) => [
       aliasKey(key, model.document.id),
@@ -121,7 +122,7 @@ const aliasMap = (model: ImportedHighTexV2) => {
   );
 };
 
-const referenceMaps = (model: ImportedHighTexV2) => {
+const referenceMaps = (model: DocumentRenderModel) => {
   const keyToIdentity = new Map<string, string>();
   const records = new Map<string, unknown>();
   for (const [key, bib] of Object.entries(model.references)) {
@@ -133,10 +134,10 @@ const referenceMaps = (model: ImportedHighTexV2) => {
 };
 
 const normalizeNode = (
-  node: DocumentNode,
+  node: JSONContent,
   images: Map<string, string>,
   references: Map<string, string>,
-): DocumentNode => {
+): JSONContent => {
   const attrs = node.attrs ? { ...node.attrs } : undefined;
   if (attrs && node.type === "image" && typeof attrs.src === "string")
     attrs.src = images.get(attrs.src) ?? attrs.src;
@@ -158,7 +159,7 @@ const normalizeNode = (
   };
 };
 
-const imageIdentities = async (model: ImportedHighTexV2) => {
+const imageIdentities = async (model: DocumentRenderModel) => {
   const identities = new Map<string, string>();
   const records = new Map<string, unknown>();
   for (const [id, image] of Object.entries(model.images)) {
@@ -170,8 +171,8 @@ const imageIdentities = async (model: ImportedHighTexV2) => {
 };
 
 const chapterDiff = (
-  main: ImportedHighTexV2,
-  branch: ImportedHighTexV2,
+  main: DocumentRenderModel,
+  branch: DocumentRenderModel,
   mainImages: Map<string, string>,
   branchImages: Map<string, string>,
   mainReferences: Map<string, string>,
@@ -244,6 +245,19 @@ export async function compareDocumentBranch(
   ]);
   const mainModel = readImportModel(mainArchive.buffer);
   const branchModel = readImportModel(branchArchive.buffer);
+  return compareDocumentModels(mainModel, branchModel, { main, branch });
+}
+
+/** Compare immutable models without importing either document into the workspace. */
+export async function compareDocumentModels(
+  mainModel: DocumentRenderModel,
+  branchModel: DocumentRenderModel,
+  documents: Pick<DocumentComparison, "main" | "branch"> = {
+    main: mainModel.document as HighTexDocument,
+    branch: branchModel.document as HighTexDocument,
+  },
+): Promise<DocumentComparison> {
+  const { main, branch } = documents;
   const [mainImages, branchImages, mainReferences, branchReferences] =
     await Promise.all([
       imageIdentities(mainModel),
