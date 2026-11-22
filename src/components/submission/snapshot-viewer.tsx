@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import type { RevisionAnchor } from "../../../shared/guidance-contract";
 import {
@@ -25,6 +25,8 @@ import { SubmissionComparisonDialog } from "./submission-comparison-dialog";
 import { GuidanceRevisions } from "./guidance-revisions";
 import { RevisionSourceDialog } from "./revision-source-dialog";
 import { resolveRevisionAnchor } from "@/review/revision-anchor";
+import { ReferenceUsagePanel } from "@/components/editor/reference-usage-panel";
+import { documentReferenceUsage, type UsageLocation } from "@/editor/document/reference-usage";
 import { toast } from "sonner";
 
 export const SubmissionSnapshotViewer = ({
@@ -45,13 +47,20 @@ export const SubmissionSnapshotViewer = ({
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const profile = resolveDocumentProfile(snapshot.document);
-  const [panel, setPanel] = useState<"revisions" | null>(null);
+  const [panel, setPanel] = useState<"revisions" | "usage" | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [source, setSource] = useState<{ node: JSONContent; chapterId: string }>();
+  const usage = useMemo(() => documentReferenceUsage(snapshot.chapters, snapshot.references), [snapshot]);
   const showSource = (anchor: RevisionAnchor) => {
     const node = resolveRevisionAnchor(snapshot, anchor);
     if (!node) { toast.info(t("mentoring.source_stale")); return; }
     setSource({ node, chapterId: anchor.chapterId });
+  };
+  const showUsage = (location: UsageLocation) => {
+    let nodes = snapshot.chapters.find(chapter => chapter.id === location.chapterId)?.content;
+    let node: JSONContent | undefined;
+    for (const index of location.path) { node = nodes?.[index]; nodes = node?.content; }
+    if (node) setSource({ node, chapterId: location.chapterId });
   };
 
   useEffect(() => {
@@ -229,6 +238,8 @@ export const SubmissionSnapshotViewer = ({
       <div className="flex flex-wrap items-center gap-3 w-full pb-2 border-b border-border/40">
         {snapshot.source.kind === "submission" && <Button size="sm" variant={panel === "revisions" ? "secondary" : "ghost"}
           onClick={() => setPanel(panel === "revisions" ? null : "revisions")}>{t("mentoring.revisions")}</Button>}
+        <Button size="sm" variant={panel === "usage" ? "secondary" : "ghost"}
+          onClick={() => setPanel(panel === "usage" ? null : "usage")}>{t("mentoring.usage")}</Button>
         <div className="flex items-center gap-2 min-w-35 text-xs">
           <Eye className="w-4 h-4 opacity-60 shrink-0" />
           {t("submission_review.full_document")}
@@ -283,9 +294,10 @@ export const SubmissionSnapshotViewer = ({
           setLoading(false);
         }}
       />
-      {panel && <aside aria-label={t("mentoring.revisions")}
+      {panel && <aside aria-label={t(panel === "usage" ? "usage.title" : "mentoring.revisions")}
         className="max-h-[50vh] shrink-0 overflow-y-auto rounded-xl border bg-background p-4 lg:max-h-none lg:w-96">
-        <GuidanceRevisions snapshot={snapshot} onSource={showSource} onAccessDenied={onAccessDenied} />
+        {panel === "revisions" ? <GuidanceRevisions snapshot={snapshot} onSource={showSource} onAccessDenied={onAccessDenied} />
+          : <ReferenceUsagePanel entries={usage} onNavigate={showUsage} />}
       </aside>}
       </div>
       <SubmissionComparisonDialog snapshot={snapshot} open={compareOpen} onOpenChange={setCompareOpen} />

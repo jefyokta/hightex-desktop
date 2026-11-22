@@ -1,4 +1,17 @@
 {
+  "usage": {
+    "title": "Where used",
+    "description": "Explore citations and references in this document.",
+    "search": "Search references or objects…",
+    "empty": "No matching references.",
+    "unused": "Not referenced in this document.",
+    "failed": "Reference usage could not be loaded.",
+    "citation": "Citation",
+    "image": "Figure",
+    "table": "Table",
+    "equation": "Equation",
+    "heading": "Heading / appendix"
+  },
   "mentoring": {
     "compare_description": "Read changes in content, formatting, references and assets without modifying either version.",
     "title": "Supervision",

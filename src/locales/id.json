@@ -1,4 +1,17 @@
 {
+  "usage": {
+    "title": "Dipakai di mana",
+    "description": "Telusuri sitasi dan rujukan pada dokumen ini.",
+    "search": "Cari referensi atau objek…",
+    "empty": "Tidak ada referensi yang cocok.",
+    "unused": "Belum dirujuk dalam dokumen.",
+    "failed": "Pemakaian referensi belum dapat dibaca.",
+    "citation": "Sitasi",
+    "image": "Gambar",
+    "table": "Tabel",
+    "equation": "Persamaan",
+    "heading": "Judul / lampiran"
+  },
   "mentoring": {
     "compare_description": "Lihat perubahan isi, format, referensi, dan aset tanpa mengubah kedua versi.",
     "title": "Bimbingan",

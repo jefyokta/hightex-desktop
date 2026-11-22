@@ -65,6 +65,7 @@ export const ExpandableSideBar = () => {
 
               {(Object.keys(tabs) as SidebarTab[]).map((key) => {
                 const active = content === key;
+                const tab = tabs[key];
 
                 return (
                   <button
@@ -78,7 +79,7 @@ export const ExpandableSideBar = () => {
                         : "text-muted-foreground  dark:hover:text-neutral-100 hover:text-neutral-400"
                     }`}
                   >
-                    {tabs[key].name.toLowerCase()}
+                    {"label" in tab ? t(tab.label) : tab.name.toLowerCase()}
                   </button>
                 );
               })}
