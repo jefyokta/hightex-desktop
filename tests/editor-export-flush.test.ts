@@ -103,6 +103,10 @@ test("documents without an open editor need no flush handshake", async () => {
 function rendererFixture(ready: boolean) {
   let receive!: (request: string, documentId: string) => void;
   const replies: Array<{ request: string; error?: string }> = [];
+  let complete!: (reply: { request: string; error?: string }) => void;
+  const completed = new Promise<{ request: string; error?: string }>(resolve => {
+    complete = resolve;
+  });
   let resolveSave!: () => void;
   const saved = new Promise<void>((resolve) => {
     resolveSave = resolve;
@@ -149,14 +153,16 @@ function rendererFixture(ready: boolean) {
             return () => {};
           },
           completeFlush: (request: string, error?: string) => {
-            replies.push({ request, error });
+            const reply = { request, error };
+            replies.push(reply);
+            complete(reply);
           },
         },
       },
     },
   );
   EditorFlushSlave();
-  return { receive, replies, resolveSave };
+  return { receive, replies, resolveSave, completed };
 }
 
 test("renderer acknowledges export flush only after its editor save completes", async () => {
@@ -165,13 +171,11 @@ test("renderer acknowledges export flush only after its editor save completes", 
   await Promise.resolve();
   expect(f.replies).toEqual([]);
   f.resolveSave();
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  expect(f.replies).toEqual([{ request: "request", error: undefined }]);
+  expect(await f.completed).toEqual({ request: "request", error: undefined });
 });
 
 test("a loading editor refuses export flush rather than saving its placeholder", async () => {
   const f = rendererFixture(false);
   f.receive("request", "doc");
-  await Promise.resolve();
-  expect(f.replies[0]?.error).toBe(en.editor.save.not_ready);
+  expect(await f.completed).toEqual({ request: "request", error: en.editor.save.not_ready });
 });

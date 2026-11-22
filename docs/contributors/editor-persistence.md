@@ -63,6 +63,17 @@ profile refresh updates both the editable copy and baseline, without making a
 clean panel dirty or discarding metadata edits. A completed save accepts its
 captured document as the baseline; edits made during that write remain pending.
 
+Keywords are saved independently on the abstract paper. The generated sheet marks
+its existing keyword paragraph with `data-abstract-keywords`; the editing shell
+adds click/keyboard activation without inserting controls into the measured line.
+`KeywordEditor` uses a portal popover anchored to that paragraph; the regular
+editor decorator uses the same form. Opening/hovering adds no layout space.
+`useDocumentKeywords` patches only the selected language inside one document
+transaction and notifies the existing document event owner. Cancel leaves storage
+untouched. Settings saves and archive draft previews retain the latest saved
+keywords, so older metadata drafts cannot replace them. The settings sidebar
+links to the abstract pages instead of owning a second keyword editor.
+
 ## Citation library
 
 `ReferenceRepository` in `src/editor/storage/reference-repository.ts` owns

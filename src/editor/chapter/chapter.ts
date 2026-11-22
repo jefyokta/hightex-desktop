@@ -245,9 +245,9 @@ export class Chapter {
     const chapterName = this.getChapter();
     if (this.hasDecorator.includes(chapterName)) {
       if (chapterName == "abstract") {
-        return createElement(AbstractDecoratorID);
+        return createElement(AbstractDecoratorID, { documentId: this.getDocumentId() });
       }
-      return createElement(AbstractDecoratorEN);
+      return createElement(AbstractDecoratorEN, { documentId: this.getDocumentId() });
     }
 
     return null;

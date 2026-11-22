@@ -488,15 +488,6 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         <TableMenu editor={editor} />
         <CommentSlave />
       </div>
-      {ready && composite && (
-        <details
-          data-editor-ui
-          className="mt-2 max-w-[21cm] rounded-md border bg-card p-2 text-sm"
-        >
-          <summary className="cursor-pointer">Kata kunci</summary>
-          {chapter.getDecorator()}
-        </details>
-      )}
     </>
   );
 };

@@ -1,162 +1,28 @@
-import { Document } from "@/editor/document";
-import { Storage } from "@/editor/storage";
-import { ShouldNotified } from "@/exception/interfaces/should-notified";
-import { t } from "@/utils/lang";
+import { useState } from "react";
+import { useDocumentKeywords, type KeywordLanguage } from "@/hooks/use-document-keywords";
 import { ParsedItalic } from "@/utils/parse-italic";
-import { useEffect, useState } from "react";
+import { useAppLanguage } from "@/hooks/use-app-language";
+import { KeywordEditor } from "../keyword-editor";
+import { t } from "@/utils/lang";
 
-type KeywordLanguage = "indonesian" | "english";
+function AbstractKeyword({ documentId, language }: { documentId: string; language: KeywordLanguage }) {
+  useAppLanguage();
+  const { keywords = [], error } = useDocumentKeywords(documentId, language);
+  const [anchor, setAnchor] = useState<HTMLElement>();
+  return <>
+    <p data-tour="editor-keywords" style={{ marginTop: "1em" }}>
+      <button type="button" className="abstract-keyword-trigger" onClick={event => setAnchor(event.currentTarget)}
+        title={t("editor.keywords.edit")} aria-label={t("editor.keywords.edit")}>
+        <b>{language === "english" ? "Keywords" : "Kata Kunci"}: </b>{" "}
+        {keywords.map((keyword, index) => <span key={index}>
+          {language === "english" ? keyword : <ParsedItalic text={keyword} />}{index < keywords.length - 1 ? ", " : ""}
+        </span>)}
+      </button>
+    </p>
+    {error && <p data-editor-ui role="alert">{error}</p>}
+    {anchor && <KeywordEditor documentId={documentId} language={language} anchor={anchor} onClose={() => setAnchor(undefined)} />}
+  </>;
+}
 
-const sortKeywords = (keywords: string[]): string[] => {
-  return [...keywords].sort((a, b) =>
-    a.localeCompare(b, undefined, {
-      sensitivity: "base",
-    }),
-  );
-};
-
-const useKeywords = (language: KeywordLanguage) => {
-  const [keywords, setKeywords] = useState<string[]>([]);
-  const [draft, setDraft] = useState("");
-
-  useEffect(() => {
-    const handle = async () => {
-      if (!Document.instance) {
-        throw new ShouldNotified(t("error.document.not_created"));
-      }
-
-      const document = await Storage.instance.getDocument(Document.instance.id);
-      const keywords = sortKeywords(document?.keywords[language] ?? []);
-
-      setKeywords(keywords);
-    };
-
-    handle();
-  }, [language]);
-
-  const update = async (keywords: string[]) => {
-    if (!Document.instance) {
-      throw new ShouldNotified(t("error.document.not_created"));
-    }
-
-    const document = await Storage.instance.getDocument(Document.instance.id);
-
-    if (!document) {
-      throw new ShouldNotified(t("error.document.not_found"));
-    }
-
-    await Storage.instance.setDocument({
-      ...document,
-      keywords: {
-        ...document.keywords,
-        [language]: keywords,
-      },
-    });
-  };
-
-  const addKeyword = async (value: string) => {
-    const keyword = value.trim();
-
-    if (!keyword || keywords.includes(keyword)) {
-      setDraft("");
-      return;
-    }
-
-    if (keywords.length >= 5) {
-      throw new ShouldNotified(t("error.keyword.max_reached", { max: 5 }));
-    }
-    const nextKeywords = sortKeywords([...keywords, keyword]);
-
-    setKeywords(nextKeywords);
-    setDraft("");
-
-    await update(nextKeywords);
-  };
-
-  const removeKeyword = async (keyword: string) => {
-    const nextKeywords = sortKeywords(
-      keywords.filter((item) => item !== keyword),
-    );
-
-    setKeywords(nextKeywords);
-
-    await update(nextKeywords);
-  };
-
-  const handleKeyDown = async (
-    event: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (event.key !== "Enter" && event.key !== ",") return;
-
-    event.preventDefault();
-
-    await addKeyword(draft);
-  };
-
-  return {
-    keywords,
-    draft,
-    setDraft,
-    removeKeyword,
-    handleKeyDown,
-  };
-};
-
-const AbstractKeyword = ({
-  language,
-  label,
-  placeholder,
-}: {
-  language: KeywordLanguage;
-  label: string;
-  placeholder: string;
-}) => {
-  const { keywords, draft, setDraft, removeKeyword, handleKeyDown } =
-    useKeywords(language);
-
-  return (
-    <div data-tour="editor-keywords">
-      <b>{label}: </b>
-
-      {keywords.map((keyword, i) => (
-        <span key={keyword}>
-          {language === "indonesian" ? (
-            <ParsedItalic text={keyword} />
-          ) : (
-            keyword
-          )}{" "}
-          <button type="button" onClick={() => removeKeyword(keyword)}>
-            ×
-          </button>
-          {i < keywords.length - 1 ? ", " : ""}
-        </span>
-      ))}
-
-      {keywords.length < 5 && (
-        <input
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={handleKeyDown}
-          className="border-0 outline-0"
-          placeholder={placeholder}
-        />
-      )}
-    </div>
-  );
-};
-
-export const AbstractDecoratorID = () => (
-  <AbstractKeyword
-    language="indonesian"
-    label="Kata Kunci"
-    placeholder="Tambah kata kunci"
-  />
-);
-
-export const AbstractDecoratorEN = () => (
-  <AbstractKeyword
-    language="english"
-    label="Keyword"
-    placeholder="Add keyword"
-  />
-);
+export const AbstractDecoratorID = ({ documentId }: { documentId: string }) => <AbstractKeyword documentId={documentId} language="indonesian" />;
+export const AbstractDecoratorEN = ({ documentId }: { documentId: string }) => <AbstractKeyword documentId={documentId} language="english" />;

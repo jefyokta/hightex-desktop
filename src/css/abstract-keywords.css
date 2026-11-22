@@ -1,0 +1,18 @@
+/* Editing affordances never change the printed line's dimensions or typography. */
+.page .abstract-keyword-trigger {
+  cursor: pointer;
+}
+
+.page button.abstract-keyword-trigger {
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.page .abstract-keyword-trigger:is(:hover, :focus-visible) {
+  outline: 1px dashed #94a3b8;
+  outline-offset: 4px;
+}

@@ -728,6 +728,12 @@
     "cache_empty": "Belum ada profil Cloud tersimpan di perangkat ini. Sambungkan internet dan login untuk memuatnya."
   },
   "editor": {
+    "keywords": {
+      "edit": "Edit kata kunci",
+      "hint": "Enter atau koma untuk menambah · Maksimal 5 kata kunci",
+      "empty": "Belum ada kata kunci.",
+      "on_paper": "Edit kata kunci langsung di lembar abstrak."
+    },
     "pagination": {
       "pdf_action": "Ekspor PDF",
       "error_title": "Tata letak perlu diperiksa",

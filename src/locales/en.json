@@ -728,6 +728,12 @@
     "cache_empty": "No Cloud profile has been saved on this device yet. Connect and sign in to load it."
   },
   "editor": {
+    "keywords": {
+      "edit": "Edit keywords",
+      "hint": "Enter or comma to add · Up to 5 keywords",
+      "empty": "No keywords yet.",
+      "on_paper": "Edit keywords directly on the abstract page."
+    },
     "pagination": {
       "pdf_action": "Export PDF",
       "error_title": "Layout needs attention",

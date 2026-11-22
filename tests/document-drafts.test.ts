@@ -45,3 +45,10 @@ test("a draft for another document cannot enter the archive preview", () => {
   ).toBe(current);
   expect(previewDocumentDraft(current)).toBe(current);
 });
+
+test("settings drafts cannot overwrite keywords saved directly on the abstract", () => {
+  const stored = { ...current, keywords: { indonesian: ["Terbaru"], english: ["Latest"] } };
+  const preview = previewDocumentDraft(stored, { ...current, title: "Pending title" });
+  expect(preview.title).toBe("Pending title");
+  expect(preview.keywords).toEqual(stored.keywords);
+});

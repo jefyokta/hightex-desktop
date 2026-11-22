@@ -18,6 +18,9 @@ import {
 import type { SectionCompositionDefinition } from "../../../shared/section-layout";
 import { sameSectionComposition } from "../../../shared/section-layout";
 import "@/css/document-template.css";
+import { KeywordEditor } from "./keyword-editor";
+import { t } from "@/utils/lang";
+import { useAppLanguage } from "@/hooks/use-app-language";
 
 /** Mount only generated presentation around the existing EditorContent; never replace its state. */
 export function AbstractCompositionEditor({
@@ -31,10 +34,12 @@ export function AbstractCompositionEditor({
   enabled: boolean;
   children: ReactNode;
 }) {
+  useAppLanguage();
   const host = useRef<HTMLDivElement>(null),
     body = useRef<HTMLDivElement>(null);
   const [definition, setDefinition] = useState<SectionCompositionDefinition>();
   const [error, setError] = useState("");
+  const [keywordAnchor, setKeywordAnchor] = useState<HTMLElement>();
   useEffect(() => {
     setDefinition(undefined);
     setError("");
@@ -102,6 +107,18 @@ export function AbstractCompositionEditor({
         shell = new SectionComposition(document, definition);
         shell.body.append(body.current);
         host.current.append(shell.element);
+        const keywords = shell.element.querySelector<HTMLElement>("[data-abstract-keywords]");
+        if (keywords && !chapter.frozen) {
+          keywords.classList.add("abstract-keyword-trigger");
+          keywords.setAttribute("role", "button");
+          keywords.setAttribute("tabindex", "0");
+          keywords.setAttribute("aria-label", t("editor.keywords.edit"));
+          keywords.title = t("editor.keywords.edit");
+          keywords.onclick = () => setKeywordAnchor(keywords);
+          keywords.onkeydown = event => {
+            if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setKeywordAnchor(keywords); }
+          };
+        }
       }
       editor.view.dom.dispatchEvent(new Event("section-composition-change"));
     } catch (cause) {
@@ -110,6 +127,7 @@ export function AbstractCompositionEditor({
     return () => {
       if (host.current && body.current) host.current.prepend(body.current);
       shell?.element.remove();
+      setKeywordAnchor(undefined);
     };
   }, [definition, enabled, editor, error]);
 
@@ -127,6 +145,9 @@ export function AbstractCompositionEditor({
         </p>
       )}
       <div ref={body}>{children}</div>
+      {keywordAnchor && <KeywordEditor documentId={chapter.getDocumentId()}
+        language={chapter.getChapter() === "abstract-en" ? "english" : "indonesian"}
+        anchor={keywordAnchor} onClose={() => setKeywordAnchor(undefined)} />}
     </div>
   );
 }

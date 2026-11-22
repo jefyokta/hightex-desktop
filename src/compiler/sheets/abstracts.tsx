@@ -117,12 +117,12 @@ export const AbstractIndonesian = () => {
         className="abstract-id"
         style={{ textAlign: "justify", fontSize: "12pt", lineHeight: "1.5" }}
       ></div>
-      <p style={{ marginTop: "1em" }}>
+      <p data-abstract-keywords="indonesian" style={{ marginTop: "1em" }}>
         <b>Kata Kunci: </b>{" "}
         {keywords.indonesian.map((k, i) => (
           <React.Fragment key={i}>
             <ParsedItalic text={k} />
-            {i !== keywords.english.length - 1 && ", "}
+            {i !== keywords.indonesian.length - 1 && ", "}
           </React.Fragment>
         ))}
       </p>
@@ -258,7 +258,7 @@ export const AbstractEnglish = () => {
                     </p>
                 )} */}
       </div>
-      <p style={{ marginTop: "1em" }}>
+      <p data-abstract-keywords="english" style={{ marginTop: "1em" }}>
         <b>Keywords: </b>{" "}
         {keywords.english.map((k, i) => (
           <span key={i}>

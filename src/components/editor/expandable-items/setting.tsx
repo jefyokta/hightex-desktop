@@ -1,5 +1,5 @@
 import { FileWarning, Save } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAppLanguage } from "@/hooks/use-app-language";
@@ -7,7 +7,7 @@ import { useDocumentSettings } from "@/hooks/use-document-settings";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { openProfileInMainWindow } from "@/utils/open-profile-in-main-window";
 import { t } from "@/utils/lang";
-import { DocumentKeywordFields, DocumentMetadataFields } from "../document-settings/metadata-fields";
+import { DocumentMetadataFields } from "../document-settings/metadata-fields";
 import { FacultyOfficialFields, InternshipFields, ThesisDateFields } from "../document-settings/config-fields";
 import { WorkspaceProfileSection } from "../document-settings/workspace-profile-section";
 import { TabHeader } from "./components/tab-header";
@@ -45,7 +45,14 @@ export function Setting() {
           </p>
         )}
         <WorkspaceProfileSection profile={document.profile} onEdit={() => void openProfileInMainWindow()} />
-        <DocumentKeywordFields value={document.keywords} onChange={keywords => settings.update({ keywords })} />
+        <div className="space-y-2 rounded-xl border p-3">
+          <h3 className="text-xs font-medium">{t("editor.expandable.setting.keywords")}</h3>
+          <p className="text-xs text-muted-foreground">{t("editor.keywords.on_paper")}</p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" asChild><Link to={`/document/${id}/abstract`}>Abstrak</Link></Button>
+            <Button size="sm" variant="outline" asChild><Link to={`/document/${id}/abstract-en`}>Abstract</Link></Button>
+          </div>
+        </div>
         <FacultyOfficialFields value={document.config} disabled={academic.locked} onChange={settings.updateConfig} />
         <ThesisDateFields value={document.config} onChange={settings.updateConfig} />
         {settings.isIntern && (

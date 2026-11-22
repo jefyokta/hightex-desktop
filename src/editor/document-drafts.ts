@@ -16,6 +16,8 @@ export function previewDocumentDraft(
   return preserveCloudAcademic(current, {
     ...current,
     ...draft,
+    // Keywords are edited and saved on paper independently of settings drafts.
+    keywords: current.keywords,
     profile: current.profile,
     authorProfileMode: "workspace",
   });

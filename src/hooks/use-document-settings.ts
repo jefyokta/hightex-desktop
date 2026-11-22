@@ -9,7 +9,7 @@ import {
   resolveAuthorProfile,
 } from "@/utils/document-profile";
 
-export type DocumentSettingsPatch = Partial<Pick<HighTexDocument, "title" | "altTitle" | "keywords">>;
+export type DocumentSettingsPatch = Partial<Pick<HighTexDocument, "title" | "altTitle">>;
 
 interface SettingsDraft {
   document: HighTexDocument;
@@ -85,7 +85,10 @@ export function useDocumentSettings(documentId?: string) {
 
   const persistDraft = useCallback(async () => {
     if (!document) return;
-    const saved = await db.updateDocument({ ...document, authorProfileMode: "workspace" });
+    const saved = await db.transaction("rw", db.documents, async () => {
+      const current = await db.documents.get(document.id);
+      return db.updateDocument({ ...document, keywords: current?.keywords ?? document.keywords, authorProfileMode: "workspace" });
+    });
     const profile = await getWorkspaceAuthorProfile();
     const resolved: HighTexDocument = {
       ...saved, authorProfileMode: "workspace", profile: resolveAuthorProfile(saved, profile),
