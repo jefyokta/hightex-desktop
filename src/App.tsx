@@ -21,6 +21,7 @@ import { PrintLayout } from "./layouts/print-layout";
 
 import { Splash } from "./pages/splash";
 import { Dashboard } from "./pages/local";
+import { DashboardHome } from "./pages/dashboard-home";
 import { RemoteDocuments } from "./pages/remote";
 import { Citation } from "./pages/citation";
 import { Settings } from "./pages/settings";
@@ -147,7 +148,7 @@ function MainApplication() {
               <Route path="/shared" element={<SharingHost />} />
             </Route>
             <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<DashboardHome />} />
               <Route
                 path="/dashboard/projects/cloud"
                 element={<RemoteDocuments />}

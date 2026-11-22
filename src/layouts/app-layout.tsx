@@ -19,10 +19,14 @@ import { useOnline } from "@/hooks/use-online";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { t } from "@/utils/lang";
 import "@/css/workspace.css";
+import { SubmissionOverviewProvider, useSubmissionOverview } from "@/context/submission-overview-context";
 
-export const AppLayout = () => {
+export const AppLayout = () => <SubmissionOverviewProvider><WorkspaceLayout /></SubmissionOverviewProvider>;
+
+const WorkspaceLayout = () => {
   useAppLanguage();
   const { pathname } = useLocation();
+  const overview = useSubmissionOverview();
   const guide = useUIGuide(
     "workspace",
     pathname === "/profile" ||
@@ -106,7 +110,7 @@ export const AppLayout = () => {
                   <span className="mx-2 opacity-40">/</span>
                 </span>
                 <span className="font-medium text-foreground">
-                  {t(workspacePageLabel(pathname))}
+                  {t(pathname.startsWith("/dashboard/submissions") && overview?.result?.audience === "advisor" ? "mentoring.title" : workspacePageLabel(pathname))}
                 </span>
               </p>
             </div>

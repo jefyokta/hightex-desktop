@@ -31,6 +31,9 @@ changing either.
 
 ## Source map
 
+For submission revisions, advisor entry, source usage and shared comparison,
+see [Guidance revisions and submission comparison](./guidance-revisions.md).
+
 | Location                                                           | Responsibility                                                                             |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | `src/`                                                             | React renderer, pages, UI, editor, document compiler, localization, and renderer utilities |

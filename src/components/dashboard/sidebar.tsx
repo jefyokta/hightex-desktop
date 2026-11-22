@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { isWorkspacePageActive } from "./navigation";
 import { useWorkspaces } from "@/hooks/use-workspaces";
+import { useSubmissionOverview } from "@/context/submission-overview-context";
 
 type Props = {
   recent?: HighTexDocument[];
@@ -55,6 +56,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
   const { pathname } = useLocation();
   const language = useAppLanguage();
   const { user } = useUser();
+  const advisor = useSubmissionOverview()?.result?.audience === "advisor";
   const online = useOnline();
   const { openLogin } = useAuthModal();
   const { openLogout } = useLogoutModal();
@@ -114,6 +116,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-1 pb-6">
         <nav aria-label={t("workspace.primary")} className="space-y-1">
           <p className="workspace-eyebrow px-3 pb-2">{t("workspace.title")}</p>
+          {advisor && item("/dashboard/submissions", <UsersRound size={17} />, t("mentoring.title"))}
           {item(
             "/dashboard/projects/local",
             <Folder size={17} />,
@@ -145,7 +148,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
                     <Folder size={15} />,
                     t("workspace.cloud_documents"),
                   )}
-                  {item(
+                  {!advisor && item(
                     "/dashboard/submissions",
                     <FileText size={15} />,
                     t("workspace.submissions"),

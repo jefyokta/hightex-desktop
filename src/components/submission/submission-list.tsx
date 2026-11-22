@@ -18,10 +18,12 @@ import { SubmissionSnapshotViewer } from "./snapshot-viewer";
 import { AdvisorSubmissions } from "./advisor-submissions";
 import { StudentSubmission } from "./student-submission";
 import { useWorkspaces } from "@/hooks/use-workspaces";
+import { useSubmissionOverview } from "@/context/submission-overview-context";
 
 export const SubmissionListView = () => {
   useAppLanguage();
   const { user } = useUser();
+  const overview = useSubmissionOverview();
   const online = useOnline();
   const { state } = useWorkspaces();
   const local =
@@ -38,6 +40,14 @@ export const SubmissionListView = () => {
   const localRequest = useRef(0);
 
   useEffect(() => {
+    if (overview) {
+      if (overview.result) snapshotCache.useSession(overview.result.session);
+      else snapshotCache.clear();
+      setResult(overview.result);
+      setLoading(overview.loading);
+      setError(overview.error ? t(`submission_review.errors.${overview.error}`) : undefined);
+      return;
+    }
     let canceled = false;
     setResult(undefined);
     setError(undefined);
@@ -66,7 +76,12 @@ export const SubmissionListView = () => {
       canceled = true;
       snapshotCache.clear();
     };
-  }, [local, user, online, revision]);
+  }, [local, user, online, revision, overview?.result, overview?.loading, overview?.error]);
+
+  const refresh = () => {
+    setRevision(value => value + 1);
+    void overview?.refresh();
+  };
 
   useEffect(
     () => () => {
@@ -116,8 +131,8 @@ export const SubmissionListView = () => {
   return (
     <main className="mx-auto max-w-3xl space-y-5 pb-10">
       <PageHeader
-        title={t("submission_review.title")}
-        description={t("submission_review.description")}
+        title={t(result?.audience === "advisor" ? "mentoring.title" : "submission_review.title")}
+        description={t(result?.audience === "advisor" ? "mentoring.description" : "submission_review.description")}
         actions={
           <div className="flex items-center gap-2">
             <input
@@ -145,7 +160,7 @@ export const SubmissionListView = () => {
                 size="sm"
                 variant="outline"
                 disabled={!online || loading}
-                onClick={() => setRevision((value) => value + 1)}
+                onClick={refresh}
               >
                 <RefreshCw
                   className={`size-4 ${loading ? "animate-spin" : ""}`}
@@ -171,7 +186,7 @@ export const SubmissionListView = () => {
             fallbackHistory={
               result?.audience === "student" ? result.items : undefined
             }
-            onUpdated={() => setRevision((value) => value + 1)}
+            onUpdated={refresh}
           />
         )}
       {!user ? (
