@@ -54,7 +54,7 @@ export async function reviewConfigOwner() {
   const initial = original.get()!;
   let current = structuredClone(initial);
   const listeners = new Set<(config: ConfigShape) => void>();
-  const patches: Partial<ConfigShape>[] = [];
+  const patches: ConfigPatch[] = [];
   let configReads = 0;
   let api: ReturnType<typeof useConfig> | undefined;
   window.config = {
@@ -64,7 +64,14 @@ export async function reviewConfigOwner() {
     onChange: listener => { listeners.add(listener); return () => { listeners.delete(listener); }; },
     set: async patch => {
       patches.push(structuredClone(patch));
-      current = { ...current, ...patch, editor: { ...current.editor, ...patch.editor } };
+      current = {
+        ...current,
+        ...patch,
+        editor: { ...current.editor, ...patch.editor },
+        previewer: { ...current.previewer, ...patch.previewer },
+        export: { ...current.export, ...patch.export },
+        zotero: { ...current.zotero, ...patch.zotero },
+      };
       for (const listener of listeners) listener(current);
       return current;
     },

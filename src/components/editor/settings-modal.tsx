@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { SettingSwitch } from "@/pages/settings";
+import { EditorSettingsFields } from "@/components/settings/editor-settings-fields";
 import { Manager } from "@/editor/manager";
 import { useCurrentEditor } from "@/hooks/use-editor";
 import { PaginationFeedback } from "./pagination-feedback";
@@ -27,14 +27,10 @@ export const SettingModal: React.FC<SettingModalProps> = ({
   const { editor } = useCurrentEditor();
 
   const saveEditor = async (
-    patch: Partial<NonNullable<ConfigShape["editor"]>>,
+    patch: Partial<ConfigShape["editor"]>,
   ): Promise<void> => {
-    await saveConfig({
-      editor: {
-        ...config?.editor,
-        ...patch,
-      },
-    });
+    await saveConfig({ editor: patch });
+    if (patch.aliasHint !== undefined) Manager.app.dispatch("chapter:reload", {});
   };
 
   return (
@@ -46,58 +42,10 @@ export const SettingModal: React.FC<SettingModalProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div data-tour="editor-pagination-setting" className="space-y-2">
-            <SettingSwitch
-              label={t("settings.editor.pagination")}
-              description={t("settings.editor.pagination_description")}
-              value={config?.editor?.pagination ?? false}
-              onChange={(value) => saveEditor({ pagination: value })}
-            />
-            <PaginationFeedback editor={editor} />
-          </div>
-          <SettingSwitch
-            label={t("settings.editor.spell_check")}
-            value={config?.editor?.spellCheck ?? false}
-            onChange={(value) =>
-              saveEditor({
-                spellCheck: value,
-              })
-            }
-          />
-
-          <SettingSwitch
-            label={t("settings.editor.scrollbar")}
-            value={config?.editor?.scrollBar ?? false}
-            onChange={(value) =>
-              saveEditor({
-                scrollBar: value,
-              })
-            }
-          />
-
-          <SettingSwitch
-            label={t("settings.editor.table_resize_guides")}
-            description={t("settings.editor.table_resize_guides_description")}
-            value={config?.editor?.tableResizeGuides ?? true}
-            onChange={(value) => saveEditor({ tableResizeGuides: value })}
-          />
-
-          <SettingSwitch
-            label={
-              <>
-                {/* note for translator: alias = singkatan */}
-                <span>{t("settings.editor.alias_hints")}</span>
-              </>
-            }
-            description={t("settings.editor.alias_hints_description")}
-            value={config?.editor?.aliasHint ?? false}
-            onChange={(value) => {
-              saveEditor({
-                aliasHint: value,
-              }).then(() => {
-                Manager.app.dispatch("chapter:reload", {});
-              });
-            }}
+          <EditorSettingsFields
+            value={config?.editor}
+            onChange={saveEditor}
+            paginationFeedback={<PaginationFeedback editor={editor} />}
           />
         </CardContent>
       </Card>

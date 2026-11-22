@@ -79,11 +79,16 @@ declare global {
     };
   };
 
+  type ConfigSection = "editor" | "previewer" | "export" | "zotero";
+  type ConfigPatch = Partial<Omit<ConfigShape, ConfigSection>> & {
+    [Section in ConfigSection]?: Partial<ConfigShape[Section]>;
+  };
+
   interface ConfigAPI {
     get(): ConfigShape | null;
     ready(): Promise<ConfigShape>;
 
-    set(patch: Partial<ConfigShape>): Promise<ConfigShape>;
+    set(patch: ConfigPatch): Promise<ConfigShape>;
     reset(): Promise<ConfigShape>;
 
     key<K extends keyof ConfigShape>(key: K): Promise<ConfigShape[K]>;

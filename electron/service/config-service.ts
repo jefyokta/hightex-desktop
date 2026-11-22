@@ -60,7 +60,7 @@ export class ConfigService {
     return this.get()[key];
   }
 
-  static set(patch: Partial<ConfigShape>) {
+  static set(patch: ConfigPatch) {
     const current = this.get();
 
     const next: ConfigShape = {

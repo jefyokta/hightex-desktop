@@ -92,3 +92,18 @@ test("disabled resize guides survive partial updates and reopening saved config"
   expect(reopened.reset().editor.tableResizeGuides).toBe(true);
   expect(reopened.get().editor.tableResizeGuides).toBe(true);
 });
+
+test("section patches preserve settings owned by other controls", () => {
+  const { service } = fixture();
+  service.set({ export: { saveDialog: true, exportTimeout: 45000 } });
+  service.set({ export: { saveFolder: "/fixture/exports" } });
+  service.set({ zotero: { enabled: true, port: 23120 } });
+  service.set({ zotero: { host: "localhost" } });
+  service.set({ previewer: { scope: "full" } });
+
+  expect(service.get().export).toEqual({
+    saveDialog: true, saveFolder: "/fixture/exports", exportTimeout: 45000,
+  });
+  expect(service.get().zotero).toEqual({ enabled: true, port: 23120, host: "localhost" });
+  expect(service.get().previewer).toEqual({ scope: "full", autoUpdate: false, layoutIndicator: true });
+});

@@ -9,7 +9,7 @@ import {
 
 type ConfigContextShape = {
   config?: ConfigShape;
-  saveConfig: (config: Partial<ConfigShape>) => Promise<void>;
+  saveConfig: (config: ConfigPatch) => Promise<void>;
   resetConfig: () => Promise<void>;
 };
 
@@ -38,7 +38,7 @@ export const ConfigContextProvider: React.FC<ConfigContextProviderProps> = ({
     setConfig(next);
   }, []);
 
-  const saveConfig = useCallback(async (patch: Partial<ConfigShape>) => {
+  const saveConfig = useCallback(async (patch: ConfigPatch) => {
     // The main-process service owns merging; do not resend a stale full snapshot.
     receiveConfig(await window.config.set(patch));
   }, [receiveConfig]);

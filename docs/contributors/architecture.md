@@ -188,6 +188,25 @@ Avoid creating a second source of truth for data already owned by a service or
 database. When a component needs durable changes, call the domain API and let
 the existing event/state update path refresh consumers.
 
+### Settings and configuration
+
+`src/pages/settings.tsx` composes the settings sections under
+`src/components/settings/`. The editor modal uses the same `EditorSettingsFields`
+and `SettingSwitch` controls; it does not import the route or its licensing,
+updater, and maintenance dependencies.
+
+All preference sections read and save through `useConfig`. `ConfigPatch` describes
+partial fields within the editor, previewer, export, and Zotero sections.
+`ConfigService` merges these patches in the main process; controls must not send
+an older copy of unrelated settings, especially after awaiting a folder picker.
+The root `ConfigContextProvider` remains the sole config subscription owner.
+
+`useAppUpdater` owns the settings panel's update subscription and commands;
+`UpdaterSettings` renders its status. Global update prompts retain their existing
+listener. `useSettingsMaintenance` owns maintenance progress and pending actions,
+using the existing database and cleanup services. Data deletion waits for the
+confirmation result before touching documents.
+
 ## Editing and persistence lifecycle
 
 1. An editor window is opened for one document ID.
