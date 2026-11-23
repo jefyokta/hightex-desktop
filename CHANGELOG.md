@@ -2,37 +2,406 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.3] - 2026-11-07
+## [Unreleased]
 
-### ✨ Features
 
-- Appearing profile form in first install
-
-## [1.3.2] - 2026-11-07
 
 ### ♻️ Refactor
 
-- Move files in service folder
+
+- **files:** Centralize document save and recovery ownership
+
+- **cloud:** Separate document transfers from remote UI
+
+- **settings:** Share controls and type config section patches
+
+- **editor:** Isolate document settings drafts and fields
+
+- **comparison:** Share document diff models and presentation
+
+
+
+### ✅ Testing
+
+
+- **editor:** Keep pagination fixture window hidden
+
+
+
+### ✨ Features
+
+
+- **citations:** Search local and Zotero references and protect usage
+
+- **guidance:** Add anchored revision requests and replies
+
+- **submissions:** Compare drafts and consecutive submissions
+
+- **references:** Show citation and object usage in documents
+
+- **advisor:** Prioritize supervision in dashboard navigation
+
+
 
 ### 🐛 Bug Fixes
+
+
+- **editor:** Preserve subscript and superscript across chapter schemas
+
+- Keyword creation in pagination mode
+
+
+
+## [1.6.1] - 2026-11-21
+
+
+
+### ✅ Testing
+
+
+- **pdf:** Add opt-in single-job native print experiments
+
+
+
+### ✨ Features
+
+
+- **pdf:** Show export progress, elapsed time and cancellation
+
+- **files:** Protect source saves and preserve local drafts for recovery
+
+- **editor:** Add file save menu and recovery management UI
+
+
+
+### 🐛 Bug Fixes
+
+
+- **indexes:** Render text dot leaders and bold top-level TOC entries
+
+- **templates:** Increase approval committee spacing within one page
+
+- **splash:** Fit the full welcome screen without scrolling
+
+
+
+## [1.6.0] - 2026-11-20
+
+
+
+### ♻️ Refactor
+
+
+- Centralize application language context
+
+- Reorganize compiler and editor model
+
+
+
+### ✅ Testing
+
+
+- Update editor and PDF coverage
+
+
+
+### ✨ Features
+
+
+- Add experimental document engine and PDF export
+
+- Redesign live editor pagination
+
+- Improve lecturer cloud workspaces
+
+- Refresh application interface and navigation
+
+
+
+### 🐛 Bug Fixes
+
+
+- Avoid router error due to missing ref target
+
+
+
+### 🔧 Miscellaneous
+
+
+- Update app configuration and shared utilities
+
+- Checkpoint editor and PDF export before single-pass prototype
+
+
+
+## [1.5.0] - 2026-11-13
+
+
+
+### ✨ Features
+
+
+- Named window
+
+- Experimental pagination
+
+- Add experimental editor pagination
+
+
+
+### 🐛 Bug Fixes
+
+
+- Align table of contents and page margins
+
+- Add kaprodi signature to internship approval sheet
+
+- Correct TOC numbering and figure shortcuts
+
+- **editor:** Equation numbering
+
+
+
+### 📝 Documentation
+
+
+- Product faq
+
+- **contributor:** Add practice
+
+- Document experimental pagination
+
+
+
+### 🔧 Miscellaneous
+
+
+- Ignore local dev info
+
+
+
+## [1.4.4] - 2026-11-10
+
+
+
+## [1.4.3] - 2026-11-10
+
+
+
+### ✨ Features
+
+
+- **onboarding:** Add first-run workspace welcome
+
+- **i18n:** Localize interface and add language selection
+
+
+
+### 🐛 Bug Fixes
+
+
+- **workspaces:** Move identity into Electron and restart safely in dev
+
+
+
+### 📝 Documentation
+
+
+- Explain iframe IPC boundaries
+
+
+
+### 🔧 Miscellaneous
+
+
+- Ignore local sharing session artifacts
+
+
+
+## [1.4.2] - 2026-11-09
+
+
+
+### ✅ Testing
+
+
+- Align editor and deep-link fixtures with profile isolation
+
+
+
+### ✨ Features
+
+
+- **updater:** Add OS facade and staged macOS app replacement
+
+
+
+### 🎨 Styling
+
+
+- **workspaces:** Normalize active profile background utility
+
+
+
+### 🐛 Bug Fixes
+
+
+- **forms:** Handle empty document lists and clear stale selections
+
+- **editor:** Separate branch actions and keep dialogs within viewport
+
+- **guides:** Allow skipping unavailable steps and follow nested dialogs
+
+- **preview:** Read workspace identity from same-origin parent frames
+
+- **branches:** Exclude shared identity from merge conflict revisions
+
+- **pdf:** Freeze workspace identity for each document export
+
+- **updater:** Preserve cancellation and retry after installer failures
+
+
+
+### 📝 Documentation
+
+
+- Record release regression audit and validation limits
+
+
+
+## [1.4.1] - 2026-11-08
+
+
+
+### ✨ Features
+
+
+- Add workspace deletion
+
+
+
+### 🐛 Bug Fixes
+
+
+- Support preview without Electron preload
+
+- Keep branch guide and comparison legible
+
+
+
+### 🔧 Miscellaneous
+
+
+- Update dependencies within compatible ranges
+
+
+
+## [1.4.0] - 2026-11-08
+
+
+
+### ✨ Features
+
+
+- Add local document branches
+
+- Compare
+
+- Isolate workspace profiles
+
+- Isolate workspace profiles
+
+- Share form drafts across workspace
+
+- Add branch comparison view
+
+- Refresh migration flow and add release 1.4 guides
+
+
+
+### 🐛 Bug Fixes
+
+
+- Alias comparison emited because their document id
+
+
+
+### 📝 Documentation
+
+
+- Expand contributor architecture and design guides
+
+
+
+### 🔄 Updates
+
+
+- Move profile setting into it's page
+
+
+
+### 🔧 Miscellaneous
+
+
+- Ignore contributor planning documents
+
+
+
+## [1.3.3] - 2026-11-07
+
+
+
+### ✨ Features
+
+
+- Appearing profile form in first install
+
+
+
+## [1.3.2] - 2026-11-07
+
+
+
+### ♻️ Refactor
+
+
+- Move files in service folder
+
+
+
+### 🐛 Bug Fixes
+
 
 - Refactor lecturer directory to model
 
 - Multiple colgroups generated by pagedjs
 
+
+
 ## [1.3.1] - 2026-11-06
 
+
+
 ### ✨ Features
+
 
 - Cloud cv editor
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Profile pict endpoint and token issue
 
+
+
 ## [1.3.0] - 2026-11-05
 
+
+
 ### ✨ Features
+
 
 - Form generation
 
@@ -50,35 +419,57 @@ All notable changes to this project will be documented in this file.
 
 - Allow authenticated users to fetch lecturers from cloud
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Protocol error while imprting document
 
 - Preserve table rows and paragraphs during pagination
 
+
+
 ### 🔧 Miscellaneous
+
 
 - Prepare version 1.2.1 and update work tracking
 
+
+
 ## [1.2.1] - 2026-11-02
+
+
 
 ### 🐛 Bug Fixes
 
+
 - Invalid guides (damn u codex)
+
+
 
 ## [1.2.0] - 2026-11-02
 
+
+
 ### ♻️ Refactor
+
 
 - **main:** Server url and application.dev
 
+
+
 ### ✨ Features
+
 
 - **editor:** Improve chapter navigation, references, and alias ordering
 
 - Ui guide
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Add margin into ol that has h2 in next sibling
 
@@ -94,29 +485,50 @@ All notable changes to this project will be documented in this file.
 
 - Resize table is fixed
 
+
+
 ### 👷 CI
+
 
 - Add env variable for local server
 
+
+
 ### 🔄 Updates
+
 
 - Remodel ui
 
+
+
 ## [1.1.2] - 2026-10-28
 
+
+
 ### ✨ Features
+
 
 - Open in hightex from external app support
 
+
+
 ## [1.1.1] - 2026-10-27
+
+
 
 ### ✨ Features
 
+
 - **Breaking:** **submission:** Require explicit advisor recipients
+
+
 
 ## [1.1.0] - 2026-10-27
 
+
+
 ### ♻️ Refactor
+
 
 - **compiler:** Initialize error interception and support synchronous resolvers
 
@@ -124,13 +536,19 @@ All notable changes to this project will be documented in this file.
 
 - Citation component
 
+
+
 ### ✨ Features
+
 
 - **editor:** Add scanner navigation and configurable column resize guides
 
 - Mod+s for save
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Update aliast list lineheight into 1.5
 
@@ -146,7 +564,10 @@ All notable changes to this project will be documented in this file.
 
 - Avoid displayin an error cite
 
+
+
 ### 🔄 Updates
+
 
 - Splash
 
@@ -156,13 +577,21 @@ All notable changes to this project will be documented in this file.
 
 - Splash
 
+
+
 ### 🔧 Miscellaneous
+
 
 - Isolate independent libraries from desktop Git and tooling
 
+
+
 ## [1.0.0] - 2026-10-21
 
+
+
 ### Codex-step
+
 
 - Profile refactor
 
@@ -170,17 +599,26 @@ All notable changes to this project will be documented in this file.
 
 - Cloud documents refactor
 
+
+
 ### Updates
+
 
 - **file:** Opening .hightex file now will open a window editor for it
 
+
+
 ### Wip
+
 
 - First step moving to file based
 
 - Deeplink
 
+
+
 ### ✨ Features
+
 
 - Linking file and save in editor
 
@@ -188,7 +626,10 @@ All notable changes to this project will be documented in this file.
 
 - Login via browser
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Prevent open editor in main window
 
@@ -200,19 +641,30 @@ All notable changes to this project will be documented in this file.
 
 - Copy and paste cite
 
+
+
 ### 🔄 Updates
+
 
 - Remote page
 
+
+
 ## [0.9.0] - 2026-10-07
 
+
+
 ### ✨ Features
+
 
 - **editor:** Standalone editor's window
 
 - Cloud documents
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Prevent overwriting existing documents on import
 
@@ -224,35 +676,54 @@ All notable changes to this project will be documented in this file.
 
 - Add abstracts pages in intern sheet
 
+
+
 ### 🔄 Updates
+
 
 - Navigation behavior in editor
 
 - Add contributor
 
+
+
 ## [0.8.0] - 2026-10-01
 
+
+
 ### ✨ Features
+
 
 - **editor:** Scanner in editor
 
 - Feat(): unfigured now clickable and go to the target node when its clicked
 
+
+
 ### 🐛 Bug Fixes
+
 
 - **images:** New uploaded images using hashed name instead of a uuid name #54
 
 - Auto reload editor when config changed
 
+
+
 ### 🔄 Updates
+
 
 - Application icon updated
 
 - Temporary disable editor comment feature
 
+
+
 ## [0.7.5] - 2026-09-29
 
+
+
 ### ✨ Features
+
 
 - **editor:** Note mark
 
@@ -270,7 +741,10 @@ All notable changes to this project will be documented in this file.
 
 - **paginate:** Paginate version support multi citation
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Unsupported webp to clipboard
 
@@ -286,23 +760,39 @@ All notable changes to this project will be documented in this file.
 
 - **variable:** Prevent global symbols being overrided
 
+
+
 ### 📝 Documentation
+
 
 - Add symbol variable documentation
 
+
+
 ### 🔄 Updates
+
 
 - **paginate:** Ignoring note in pdf/previewer
 
+
+
 ## [0.7.4] - 2026-09-25
+
+
 
 ### 🐛 Bug Fixes
 
+
 - Prevent editor view being accessed before view mounted
+
+
 
 ## [0.7.3] - 2026-09-24
 
+
+
 ### ✨ Features
+
 
 - **file:** Add apis to open file/folder
 
@@ -314,7 +804,10 @@ All notable changes to this project will be documented in this file.
 
 - **docs:** Add more users docs
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Typo docorator -> decorator
 
@@ -322,31 +815,52 @@ All notable changes to this project will be documented in this file.
 
 - **document:** Increasing content's max width due to margin changes
 
+
+
 ## [0.7.2] - 2026-09-23
 
+
+
 ### ✨ Features
+
 
 - **docs:** Docs for user and contributors
 
+
+
 ### 🐛 Bug Fixes
+
 
 - **model:** Change constructor.name to tableName because we wont keep the class name on build output
 
+
+
 ## [0.7.1] - 2026-09-21
 
+
+
 ### ✨ Features
+
 
 - **editor:** Alias hint
 
 - **config:** Add export timeout option
 
+
+
 ### 🐛 Bug Fixes
+
 
 - **sqlite:** Avoid missing table name of model
 
+
+
 ## [0.7.0] - 2026-09-21
 
+
+
 ### ✨ Features
+
 
 - **editor:** Keyword creation directly in editor and placeholder
 
@@ -368,7 +882,10 @@ All notable changes to this project will be documented in this file.
 
 - **pageinate:** Cv/bibliography added
 
+
+
 ### 🐛 Bug Fixes
+
 
 - **editor:** Fix creating table from navbar button generate error
 
@@ -378,29 +895,48 @@ All notable changes to this project will be documented in this file.
 
 - Replace hardcoded error/toast strings with translation keys
 
+
+
 ### 🔄 Updates
+
 
 - **page:** Page margin updated from 3-3-4-4 to 3-3-4-3
 
 - **Breaking:** **file:** Snapshot file extension updated from htx to hts
 
+
+
 ## [0.6.1] - 2026-09-18
 
+
+
 ### ✨ Features
+
 
 - **editor:** Auto fix for deprecated nodes
 
+
+
 ### 🐛 Bug Fixes
+
 
 - H4 now has no indent and margine left
 
+
+
 ### 🔧 Miscellaneous
+
 
 - Release 0.6.1
 
+
+
 ## [0.6.0] - 2026-09-17
 
+
+
 ### ✨ Features
+
 
 - Auto dotted name ex: jepi okta mipa -> jepi okta mipa.
 
@@ -418,7 +954,10 @@ All notable changes to this project will be documented in this file.
 
 - **core:** Save tiptap content error #34
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Showing all variables when only '\' typed
 
@@ -448,7 +987,10 @@ All notable changes to this project will be documented in this file.
 
 - Unloaded katex css is fixed
 
+
+
 ### 🔄 Updates
+
 
 - Add option to show editor's scrollbar
 
@@ -464,47 +1006,89 @@ All notable changes to this project will be documented in this file.
 
 - **paginated:** Every cells in row should be a th to be a header row
 
+
+
 ## [0.5.1] - 2026-09-13
+
+
 
 ### 🔧 Miscellaneous
 
+
 - Chore():release v0.5.1
+
+
 
 ## [0.5.0] - 2026-09-13
 
+
+
 ### ✨ Features
+
 
 - **lang:** Partially support
 
+
+
 ### 🐛 Bug Fixes
+
 
 - **intern-doc:** Presentation sheet not included anymore
 
+
+
 ## [0.4.1] - 2026-08-16
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Model names is changed when its built, so we cant use grammar based on its contructor name
 
 - Including category when updating document data
 
+
+
 ### 🔧 Miscellaneous
+
 
 - Release 0.4.1
 
+
+
 ## [0.4.0] - 2026-08-11
+
+
+
+### 🔄 Updates
+
+
+- Support intern report
+
+
 
 ## [0.3.6] - 2026-07-15
 
+
+
 ## [0.3.5] - 2026-07-15
+
+
 
 ## [0.3.4] - 2026-07-15
 
+
+
 ### ✨ Features
+
 
 - Add keyboard shorcut for chapter navigating
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Remove blank pages that broke the pages measurenment in splitter feature
 
@@ -512,57 +1096,80 @@ All notable changes to this project will be documented in this file.
 
 - Chapter heading automatically update when it's scheme updated
 
-### 🔄 Updates
 
-- Support intern report
 
 ## [0.3.3] - 2026-07-10
 
+
+
 ### ✨ Features
+
 
 - Add progress text in splitter progress
 
 - Add forms page as placeholder for next update
 
+
+
 ### 🐛 Bug Fixes
 
-- Typo text status while splitter running
+
+- Typo text status  while splitter running
 
 - Split document now splitting correctly
 
+
+
 ## [0.3.2] - 2026-07-08
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Variable value didnt updated immediately in editor when updating variable
 
 - Enchant error message in splitter job
 
+
+
 ## [0.3.1] - 2026-07-08
 
-## [0.3.0] - 2026-07-08
+
 
 ### ✨ Features
+
 
 - Add watermarked pdf option
 
 - Split feature for uploading to repository
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Fixtables running when table extenstion is not registered to chapter editor
 
 - Correct typo in override local features error message
 
+
+
 ### 🔄 Updates
+
 
 - Nim/nip using identity_number instead of splitted email
 
 - Add decorator and sending error to renderer
 
+
+
 ## [0.2.0] - 2026-07-05
 
+
+
 ### ✨ Features
+
 
 - Add fix table option
 
@@ -570,102 +1177,152 @@ All notable changes to this project will be documented in this file.
 
 - Add title and highligt in editor toolbar
 
+
+
 ### 🔧 Miscellaneous
+
 
 - Update changelog
 
+
+
 ## [0.1.0] - 2026-07-03
 
+
+
 ### ✨ Features
+
 
 - Variable in editor
 
 - Create custom variables
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Import document depends on it version
 
 - Throwing error when inputing static varname instead of returning it
 
-## [0.0.14] - 2026-07-02
 
-## [0.0.11] - 2026-07-01
+
+## [0.0.15] - 2026-07-03
+
+
 
 ### 🐛 Bug Fixes
+
 
 - Catch error on application started due to no network connection
 
 - Protocol not spawned in cli mode
 
-## [0.0.12] - 2026-07-02
+
+
+## [0.0.14] - 2026-07-02
+
+
 
 ### 🐛 Bug Fixes
+
 
 - Report message, and silent pdf generation error
 
+
+
+## [0.0.11] - 2026-07-01
+
+
+
 ## [0.0.10] - 2026-06-28
+
+
 
 ## [0.0.9-beta] - 2026-06-28
 
+
+
 ## [0.0.9] - 2026-06-28
+
+
 
 ## [0.0.8] - 2026-06-28
 
+
+
 ## [0.0.7] - 2026-06-28
 
-## [0.0.6] - 2026-06-28
+
 
 ### ✨ Features
+
 
 - Add image convertion while importing
 
+
+
 ## [0.0.5] - 2026-06-26
+
+
 
 ## [0.0.4] - 2026-06-26
 
-## [0.0.3] - 2026-06-26
+
 
 ### 🐛 Bug Fixes
 
+
 - Logout modal
 
-## [0.0.2] - 2026-06-26
+
 
 ## [0.0.1] - 2026-06-25
 
-## [0.0.6-beta] - 2026-06-25
 
-## [0.0.5-beta] - 2026-06-25
-
-## [0.0.4-beta] - 2026-06-25
-
-## [0.0.3-beta] - 2026-06-25
-
-## [0.0.1-beta] - 2026-06-25
 
 ### #feat
 
+
 - Grid, a table outside figure
+
+
 
 ### Image
 
+
 - Move to webp
+
+
 
 ### Rename
 
+
 - Where builder to query builder
 
+
+
 ### ✨ Features
+
 
 - Static chapter builder added
 
 - Wip variable
 
+
+
 ### 🐛 Bug Fixes
+
 
 - Images in attachment
 
+
+
 ### 🔄 Updates
 
+
 - No more attachment in pdf file
+
+
+

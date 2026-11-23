@@ -1,0 +1,1 @@
+bunx git-cliff -o CHANGELOG.md
