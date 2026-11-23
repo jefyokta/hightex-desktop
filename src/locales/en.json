@@ -826,6 +826,7 @@
       "image_figure": "Figure image",
       "image_copy": "Copy image",
       "wrap_figure": "Wrap in figure",
+      "unwrap_figure": "Convert to plain image",
       "figure_table": "Figure table",
       "copy_reference": "Copy reference",
       "delete": "Delete",

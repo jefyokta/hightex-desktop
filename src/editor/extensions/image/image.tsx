@@ -10,6 +10,7 @@ import { ImageIsInFigure } from "@/exception/image-is-in-figure";
 import type { ChapterControlProps } from "@/editor/chapter/content-node-view";
 import {
   GalleryThumbnails,
+  Image as ImageIcon,
   Images,
   Loader2,
   Upload,
@@ -35,6 +36,7 @@ import { MISSING_IMAGE_SOURCE } from "./fallback";
 import { imageWidth } from "./size";
 import { paginationReport } from "@/editor/pagination/report-error";
 import { liveQuery } from "dexie";
+import { unwrapImageFigure } from "../image-figure/unwrap";
 
 type LoadState =
   | { status: "idle" }
@@ -107,25 +109,25 @@ export const ImageComponent: React.FC<ChapterControlProps> = ({
     const subscription = dbId.startsWith("data:")
       ? undefined
       : liveQuery(() => db.images.get(dbId)).subscribe({
-          next: (record) => {
-            if (cancelled) return;
-            try {
-              const previous = blobUrlRef.current;
-              const url = record ? URL.createObjectURL(record.blob) : null;
-              blobUrlRef.current = url;
-              if (url) setLoad({ status: "ready", blobUrl: url });
-              else
-                setLoad({
-                  status: "error",
-                  message: `Image not found (id: ${dbId})`,
-                });
-              if (previous) URL.revokeObjectURL(previous);
-            } catch (error) {
-              failed(error);
-            }
-          },
-          error: failed,
-        });
+        next: (record) => {
+          if (cancelled) return;
+          try {
+            const previous = blobUrlRef.current;
+            const url = record ? URL.createObjectURL(record.blob) : null;
+            blobUrlRef.current = url;
+            if (url) setLoad({ status: "ready", blobUrl: url });
+            else
+              setLoad({
+                status: "error",
+                message: `Image not found (id: ${dbId})`,
+              });
+            if (previous) URL.revokeObjectURL(previous);
+          } catch (error) {
+            failed(error);
+          }
+        },
+        error: failed,
+      });
     if (dbId.startsWith("data:"))
       void convertImage(dbId, documentId)
         .then((newId) => {
@@ -207,6 +209,16 @@ export const ImageComponent: React.FC<ChapterControlProps> = ({
     );
   }, [node, getPos, editor]);
 
+  const toImage = useCallback(() => {
+    const transaction = unwrapImageFigure(editor.state, getPos());
+    if (transaction) editor.view.dispatch(transaction);
+  }, [getPos, editor]);
+
+  const position = getPos();
+  const inFigure =
+    position !== undefined &&
+    editor.state.doc.resolve(position).parent.type.name === "imageFigure";
+
   const handleUpload = useCallback(
     async (file: File) => {
       const documentId: string = Document.instance!.id;
@@ -229,6 +241,8 @@ export const ImageComponent: React.FC<ChapterControlProps> = ({
           onStartResize={startResize}
           onCopy={handleCopy}
           onToFigure={toFigure}
+          onToImage={toImage}
+          inFigure={inFigure}
           onDeleteImage={handleDelete}
           onDeleteNode={deleteNode}
         />
@@ -276,6 +290,8 @@ interface ReadyViewProps {
   onStartResize: (e: RMouseEvent) => void;
   onCopy: () => void;
   onToFigure: () => void;
+  onToImage: () => void;
+  inFigure: boolean;
   onDeleteImage: () => void;
   onDeleteNode: () => void;
 }
@@ -284,6 +300,8 @@ const ReadyView: React.FC<ReadyViewProps> = ({
   onStartResize,
   onCopy,
   onToFigure,
+  onToImage,
+  inFigure,
   onDeleteImage,
   onDeleteNode,
 }) => (
@@ -302,9 +320,15 @@ const ReadyView: React.FC<ReadyViewProps> = ({
       <IconBtn tooltip={t("editor.inline.image_copy")} onClick={onCopy}>
         <Images className="w-4 h-4" />
       </IconBtn>
-      <IconBtn tooltip={t("editor.inline.wrap_figure")} onClick={onToFigure}>
-        <GalleryThumbnails className="w-4 h-4" />
-      </IconBtn>
+      {inFigure ? (
+        <IconBtn tooltip={t("editor.inline.unwrap_figure")} onClick={onToImage}>
+          <ImageIcon className="w-4 h-4" />
+        </IconBtn>
+      ) : (
+        <IconBtn tooltip={t("editor.inline.wrap_figure")} onClick={onToFigure}>
+          <GalleryThumbnails className="w-4 h-4" />
+        </IconBtn>
+      )}
       <IconBtn
         tooltip={t("editor.context_menu.delete_image")}
         variant="danger-soft"

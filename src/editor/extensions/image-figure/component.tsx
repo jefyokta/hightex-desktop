@@ -1,13 +1,16 @@
 import { useAppLanguage } from "@/hooks/use-app-language";
 import type { ChapterControlProps } from "@/editor/chapter/content-node-view";
-import { Quote, Trash } from "lucide-react";
+import { Image as ImageIcon, Quote, Trash } from "lucide-react";
 import { NodeActionButton } from "@/editor/components/node-action-button";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
+import { unwrapImageFigure } from "./unwrap";
 
 export const ImageFigure: React.FC<ChapterControlProps> = ({
   node,
   deleteNode,
+  editor,
+  getPos,
 }) => {
   useAppLanguage();
   const copy = () => {
@@ -16,6 +19,14 @@ export const ImageFigure: React.FC<ChapterControlProps> = ({
   };
 
   const items = [
+    {
+      Icon: ImageIcon,
+      onClick: () => {
+        const transaction = unwrapImageFigure(editor.state, getPos());
+        if (transaction) editor.view.dispatch(transaction);
+      },
+      label: t("editor.inline.unwrap_figure"),
+    },
     {
       Icon: Quote,
       onClick: () => {
