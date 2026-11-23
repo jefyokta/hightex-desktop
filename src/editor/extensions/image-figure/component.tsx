@@ -41,8 +41,7 @@ export const ImageFigure: React.FC<ChapterControlProps> = ({
         deleteNode();
       },
       label: t("editor.inline.delete"),
-      className:
-        "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 data-[selected='true']:bg-red-50 data-[selected='true']:dark:bg-red-950/50",
+      danger: true,
     },
   ];
 

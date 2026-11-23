@@ -30,9 +30,7 @@ import { ChapterNotFound } from "@/exception/chapter-not-found";
 import { FrameManager } from "@/frame/manager";
 import { ContextMenuPopup } from "@/components/context-menu";
 import { FindReplaceBar } from "@/components/editor/find-replace-bar";
-import { getContextMenuItems } from "@/editor/context-menu";
-import { openContextMenu } from "@/hooks/use-context-menu";
-import { Eye, TrashIcon } from "lucide-react";
+import { EditorContextMenu } from "@/editor/context-menu";
 import { FrameNotOpened } from "@/exception/frame-not-opened";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -282,6 +280,24 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
     [chapter, config?.editor.aliasHint],
   );
   const { setContent, setOpen } = useExpandableSidebar();
+  const previewNode = useCallback((uuid: string) => {
+    const frame = document.querySelector("iframe");
+    if (!frame) {
+      throw new FrameNotOpened({
+        message: t("error.frame.not.opened"),
+        description: t("error.frame.not.opened.desc"),
+        action: (
+          <Button onClick={() => {
+            setContent("previewer");
+            setOpen(true);
+          }}>
+            {t("editor.inline.open")}
+          </Button>
+        ),
+      });
+    }
+    FrameManager.sendMessage("node:clicked", { uuid, type: "node:clicked" }, frame);
+  }, [setContent, setOpen]);
   useEffect(() => {
     return FrameManager.onMessaged((m) => {
       if (m.type == "node:clicked") {
@@ -332,74 +348,17 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
           });
         }, 800);
       };
-      const onContextMenu = (e: MouseEvent) => {
-        e.preventDefault();
-
-        const target = e.target as HTMLElement | null;
-        if (!target?.id && !window.application.isDev) return;
-
-        openContextMenu(
-          e.clientX,
-          e.clientY,
-          [
-            ...(window.application.isDev
-              ? [
-                {
-                  label: "Inspect Element",
-                  onClick: () =>
-                    window.application.inspectElement(e.clientX, e.clientY),
-                },
-              ]
-              : []),
-            ...(target?.id
-              ? [
-                {
-                  label: t("editor.context_menu.delete"),
-                  danger: true,
-                  icon: <TrashIcon className="h-4 w-4" />,
-                  onClick: () => editor.commands.deleteSelection(),
-                },
-                {
-                  label: t("editor.context_menu.see_in_preview"),
-                  icon: <Eye className="h-4 w-4" />,
-                  onClick: () => {
-                    const frame = document.querySelector("iframe");
-                    if (!frame) {
-                      throw new FrameNotOpened({
-                        message: t("error.frame.not.opened"),
-                        description: t("error.frame.not.opened.desc"),
-                        action: (
-                          <Button
-                            onClick={() => {
-                              setContent("previewer");
-                              setOpen(true);
-                            }}
-                          >
-                            {t("editor.inline.open")}
-                          </Button>
-                        ),
-                      });
-                    }
-                    FrameManager.sendMessage(
-                      "node:clicked",
-                      { uuid: target.id, type: "node:clicked" },
-                      frame,
-                    );
-                  },
-                },
-              ]
-              : []),
-            ...getContextMenuItems(editor),
-          ],
-          target,
-        );
-      };
+      const contextMenu = new EditorContextMenu(editor, {
+        preview: previewNode,
+        inspect: window.application.isDev
+          ? (x, y) => window.application.inspectElement(x, y)
+          : undefined,
+      });
       const root = editor.view.dom;
       root.addEventListener("input", onInput);
-      root.addEventListener("contextmenu", onContextMenu);
       removeListeners.current = () => {
         root.removeEventListener("input", onInput);
-        root.removeEventListener("contextmenu", onContextMenu);
+        contextMenu.destroy();
       };
     },
 

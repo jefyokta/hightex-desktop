@@ -227,6 +227,17 @@ do not enable editing before the content has loaded, and do not report a
 successful flush before pending chapter writes finish. See
 [editor persistence](./editor-persistence.md) for the storage contracts.
 
+`EditorContextMenu` in `src/editor/context-menu/` owns the editor's right-click
+listener and closes its popup on document edits or disposal. The page supplies
+preview and development-inspector callbacks, then disposes the controller with
+its other editor listeners. `EditorContextTarget` resolves the clicked DOM into
+the document model, including image descendants and formatted caption text;
+menu availability must not depend on the raw event target having an HTML ID.
+Table, text and node action builders stay in separate modules. Figure conversion
+reuses `unwrapImageFigure` for both context menus and node controls; keep document
+transforms with their extension owner. Node action dropdowns use the shared UI
+portal so document typography, zoom and clipping do not style the popup.
+
 ## Import, export, and rendering
 
 Import has two responsibilities: the importer package validates and parses

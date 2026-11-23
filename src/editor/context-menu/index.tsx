@@ -1,292 +1,79 @@
-import { ContextMenuAction } from "@/hooks/use-context-menu";
-import { t } from "@/utils/lang";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
+import { TextSelection } from "@tiptap/pm/state";
+import { Eye, Trash2 } from "lucide-react";
 import {
-  Merge,
-  Split,
-  Plus,
-  Grid2x2X,
-  Heading2,
-  Heading3,
-  Heading4,
-  Type,
-  List,
-  ListOrdered,
-  CornerUpLeft,
-  CornerUpRight,
-  Sigma,
-  Trash2,
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  Wrench,
-} from "lucide-react";
+  closeContextMenu,
+  openContextMenu,
+  type ContextMenuItem,
+} from "@/hooks/use-context-menu";
+import { t } from "@/utils/lang";
+import { getContextMenuItems } from "./actions";
+import { EditorContextTarget } from "./target";
 
-export const getContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  return [
-    ...TableContextMenuItems(editor),
-    ...HeadingContextMenuItems(editor),
-    ...ListContextMenuItems(editor),
-    ...ImageContextMenuItems(editor),
-    ...FigureTableContextMenuItems(editor),
-    ...MathContextMenuItems(editor),
-    ...GridContextMenuItems(editor),
-  ];
+type ContextMenuOptions = {
+  preview: (id: string) => void;
+  inspect?: (x: number, y: number) => void;
 };
 
-const GridContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("gridCell") || editor.isActive("gridRow")) {
-    return [
-      {
-        label: t("editor.context_menu.split_cell"),
-        icon: <Split className="h-4 w-4" />,
-        onClick: () => editor.commands.splitCell(),
-        disabled: !editor.can().splitCell(),
-      },
-      {
-        label: t("editor.context_menu.align_left"),
-        icon: <AlignLeft />,
-        onClick: () => editor.commands.setCellAlignmentLeft(),
-      },
-      {
-        label: t("editor.context_menu.align_center"),
-        icon: <AlignCenter />,
-        onClick: () => editor.commands.setCellAlignmentCenter(),
-      },
-      {
-        label: t("editor.context_menu.align_right"),
-        icon: <AlignRight />,
-        onClick: () => editor.commands.setCellAlignmentRight(),
-      },
-      {
-        label: t("editor.context_menu.merge_cells"),
-        icon: <Merge className="h-4 w-4" />,
-        onClick: () => editor.commands.mergeCells(),
-        disabled: !editor.can().mergeCells(),
-      },
-      {
-        label: t("editor.context_menu.add_row_after"),
-        icon: <Plus className="h-4 w-4" />,
-        onClick: () => editor.chain().addRowAfter().run(),
-      },
-      {
-        label: t("editor.context_menu.add_column_after"),
-        icon: <Plus className="h-4 w-4" />,
-        onClick: () => editor.chain().addColumnAfter().run(),
-      },
-      {
-        label: t("editor.context_menu.delete_row"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteRow(),
-      },
-      {
-        label: t("editor.context_menu.delete_column"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteColumn(),
-      },
-      {
-        label: t("editor.context_menu.delete_grid"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteNode("grid"),
-      },
-    ];
-  }
+export class EditorContextMenu {
+  private readonly root: HTMLElement;
 
-  if (editor.isActive("grid")) {
-    return [
-      {
-        label: t("editor.context_menu.delete_grid"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteNode("grid"),
-      },
-    ];
-  }
-
-  return [];
-};
-
-const TableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("tableCell") || editor.isActive("tableRow")) {
-    return [
-      {
-        label: t("editor.context_menu.split_cell"),
-        icon: <Split className="h-4 w-4" />,
-        onClick: () => editor.commands.splitCell(),
-        disabled: !editor.can().splitCell(),
-      },
-      {
-        label: t("editor.context_menu.align_left"),
-        icon: <AlignLeft />,
-        onClick: () => editor.commands.setCellAlignmentLeft(),
-      },
-      {
-        label: t("editor.context_menu.align_center"),
-        icon: <AlignCenter />,
-        onClick: () => editor.commands.setCellAlignmentCenter(),
-      },
-      {
-        label: t("editor.context_menu.align_right"),
-        icon: <AlignRight />,
-        onClick: () => editor.commands.setCellAlignmentRight(),
-      },
-      {
-        label: t("editor.context_menu.merge_cells"),
-        icon: <Merge className="h-4 w-4" />,
-        onClick: () => editor.commands.mergeCells(),
-        disabled: !editor.can().mergeCells(),
-      },
-      {
-        label: t("editor.context_menu.add_row_after"),
-        icon: <Plus className="h-4 w-4" />,
-        onClick: () => editor.chain().addRowAfter().run(),
-      },
-      {
-        label: t("editor.context_menu.add_column_after"),
-        icon: <Plus className="h-4 w-4" />,
-        onClick: () => editor.chain().addColumnAfter().run(),
-      },
-      {
-        label: t("editor.context_menu.delete_row"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteRow(),
-      },
-      {
-        label: t("editor.context_menu.fix_table"),
-        icon: <Wrench />,
-        onClick: () => editor.commands.fixTables(),
-      },
-      {
-        label: t("editor.context_menu.delete_column"),
-        danger: true,
-        icon: <Grid2x2X className="h-4 w-4" />,
-        onClick: () => editor.commands.deleteColumn(),
-      },
-      ...(!editor.isActive("figureTable")
-        ? [
-            {
-              label: t("editor.context_menu.delete_grid"),
-              danger: true,
-              icon: <Grid2x2X className="h-4 w-4" />,
-              onClick: () => editor.commands.deleteTable(),
-            },
-          ]
-        : []),
-    ];
-  }
-
-  return [];
-};
-
-const HeadingContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("heading")) {
-    return [
-      {
-        label: t("editor.context_menu.paragraph"),
-        icon: <Type className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().setParagraph().run(),
-      },
-      {
-        label: t("editor.context_menu.heading_2"),
-        icon: <Heading2 className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().setHeading({ level: 2 }).run(),
-      },
-      {
-        label: t("editor.context_menu.heading_3"),
-        icon: <Heading3 className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().setHeading({ level: 3 }).run(),
-      },
-      {
-        label: t("editor.context_menu.heading_4"),
-        icon: <Heading4 className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().setHeading({ level: 4 }).run(),
-      },
-    ];
-  }
-
-  return [];
-};
-
-const ListContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (
-    editor.isActive("bulletList") ||
-    editor.isActive("orderedList") ||
-    editor.isActive("listItem")
+  constructor(
+    private readonly editor: Editor,
+    private readonly options: ContextMenuOptions,
   ) {
-    return [
-      {
-        label: t("editor.context_menu.outdent_item"),
-        icon: <CornerUpLeft className="h-4 w-4" />,
-        disabled: !editor.can().liftListItem("listItem"),
-        onClick: () => editor.chain().focus().liftListItem("listItem").run(),
-      },
-      {
-        label: t("editor.context_menu.indent_item"),
-        icon: <CornerUpRight className="h-4 w-4" />,
-        disabled: !editor.can().sinkListItem("listItem"),
-        onClick: () => editor.chain().focus().sinkListItem("listItem").run(),
-      },
-      {
-        label: t("editor.context_menu.toggle_bullet_list"),
-        icon: <List className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().toggleBulletList().run(),
-      },
-      {
-        label: t("editor.context_menu.toggle_ordered_list"),
-        icon: <ListOrdered className="h-4 w-4" />,
-        onClick: () => editor.chain().focus().toggleOrderedList().run(),
-      },
-    ];
+    this.root = editor.view.dom;
+    this.root.addEventListener("contextmenu", this.handle);
+    editor.on("update", this.close);
   }
 
-  return [];
-};
-
-const ImageContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("image")) {
-    return [
-      {
-        label: t("editor.context_menu.delete_image"),
-        icon: <Trash2 className="h-4 w-4" />,
-        danger: true,
-        onClick: () => editor.commands.deleteSelection(),
-      },
-    ];
+  destroy() {
+    this.root.removeEventListener("contextmenu", this.handle);
+    this.editor.off("update", this.close);
+    this.close();
   }
 
-  return [];
-};
+  private readonly close = () => closeContextMenu();
 
-const FigureTableContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("figureTable")) {
-    return [
-      {
-        label: t("editor.context_menu.delete_figure_table"),
-        icon: <Trash2 className="h-4 w-4" />,
-        danger: true,
-        onClick: () => editor.commands.deleteNode("figureTable"),
-      },
-    ];
-  }
+  private readonly handle = (event: MouseEvent) => {
+    const target = EditorContextTarget.resolve(this.editor.view, event);
+    const items: ContextMenuItem[] = [];
 
-  return [];
-};
+    if (target) {
+      target.select(this.editor);
+      const actions = getContextMenuItems(this.editor, target);
+      items.push(...actions);
+      if (items.length) items.push({ type: "separator" });
+      if (target.node.attrs.id)
+        items.push({
+          label: t("editor.context_menu.see_in_preview"),
+          icon: <Eye className="h-4 w-4" />,
+          onClick: () => this.options.preview(target.node.attrs.id),
+        });
+      if (!actions.some(action => action.danger))
+        items.push({
+          label: t("editor.context_menu.delete"),
+          icon: <Trash2 className="h-4 w-4" />,
+          danger: true,
+          onClick: () => {
+            const { selection } = this.editor.state;
+            if (selection instanceof TextSelection && !selection.empty)
+              this.editor.commands.deleteSelection();
+            else target.delete(this.editor);
+          },
+        });
+    }
 
-const MathContextMenuItems = (editor: Editor): ContextMenuAction[] => {
-  if (editor.isActive("mathBlock") || editor.isActive("mathInline")) {
-    return [
-      {
-        label: t("editor.context_menu.delete_math"),
-        icon: <Sigma className="h-4 w-4" />,
-        danger: true,
-        onClick: () => editor.commands.deleteSelection(),
-      },
-    ];
-  }
+    if (this.options.inspect) {
+      if (items.length) items.push({ type: "separator" });
+      items.push({
+        label: "Inspect Element",
+        onClick: () => this.options.inspect?.(event.clientX, event.clientY),
+      });
+    }
 
-  return [];
-};
+    if (!items.length) return;
+    event.preventDefault();
+    openContextMenu(event.clientX, event.clientY, items, target?.element);
+  };
+}
