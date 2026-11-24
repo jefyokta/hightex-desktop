@@ -4,6 +4,8 @@ import { textOf } from "@/utils/text-of";
 
 export type UsageKind = "citation" | RefKind;
 export interface UsageLocation {
+  documentId?: string;
+  documentTitle?: string;
   chapterId: string;
   chapterTitle: string;
   path: number[];
@@ -18,6 +20,8 @@ export interface ReferenceUsageEntry {
 }
 export interface UsageChapter {
   id: string;
+  documentId?: string;
+  documentTitle?: string;
   content: readonly JSONContent[];
 }
 
@@ -39,12 +43,15 @@ export function documentReferenceUsage(
   Object.keys(references).forEach(key => entry("citation", key));
 
   for (const chapter of chapters) {
-    const chapterTitle = textOf(chapter.content.find(node => node.type === "heading")) || chapter.id;
+    const chapterTitle = textOf(chapter.content.find(node => node.type === "heading"))
+      || chapter.id.split(".").slice(1).join(".") || chapter.id;
     const visit = (node: JSONContent, path: number[], context: string) => {
       const attrs = node.attrs ?? {};
       const excerpt = ["paragraph", "heading", "figcaption"].includes(node.type ?? "")
         ? textOf(node).slice(0, 200) : context;
       const location: UsageLocation = {
+        documentId: chapter.documentId,
+        documentTitle: chapter.documentTitle,
         chapterId: chapter.id, chapterTitle, path,
         nodeId: typeof attrs.id === "string" && attrs.id ? attrs.id : undefined,
         excerpt,
@@ -74,4 +81,10 @@ export function documentReferenceUsage(
     chapter.content.forEach((node, index) => visit(node, [index], ""));
   }
   return [...entries.values()];
+}
+
+export function citationUsageIndex(chapters: readonly UsageChapter[]): Map<string, UsageLocation[]> {
+  return new Map(documentReferenceUsage(chapters)
+    .filter(entry => entry.kind === "citation")
+    .map(entry => [entry.key, entry.occurrences] as const));
 }

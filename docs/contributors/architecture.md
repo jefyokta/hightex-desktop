@@ -233,10 +233,23 @@ preview and development-inspector callbacks, then disposes the controller with
 its other editor listeners. `EditorContextTarget` resolves the clicked DOM into
 the document model, including image descendants and formatted caption text;
 menu availability must not depend on the raw event target having an HTML ID.
-Table, text and node action builders stay in separate modules. Figure conversion
-reuses `unwrapImageFigure` for both context menus and node controls; keep document
+`NodeAction` is the abstract parent for node-specific actions under `actions/`.
+It implements the `ContextMenuActionProvider` contract (`supports` and `items`);
+each concrete class owns its node type and commands. `ContextMenuActions` collects
+applicable providers in registration order and accepts providers through its
+constructor. Reuse instances, but evaluate selection, target and localized labels
+for each menu opening. Figure conversion reuses `unwrapImageFigure` for both
+context menus and node controls; keep document
 transforms with their extension owner. Node action dropdowns use the shared UI
 portal so document typography, zoom and clipping do not style the popup.
+`DefaultNodeAction` supplies shared deletion and preview actions, including for
+node types without a specific handler. `nodeType: null` matches every node.
+Specific providers run before defaults; the first item for a stable action key
+wins, so `delete-node` can use a node's own deletion behavior without duplication.
+The destructive presentation flag does not decide whether defaults apply.
+The node-action dropdown's trigger stays visible while its menu is open, including when
+the pointer leaves the figure to enter the portal. Converting a figure to a
+plain image removes its caption; undo restores the original figure and caption.
 
 ## Import, export, and rendering
 

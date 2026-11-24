@@ -18,6 +18,9 @@ import { useCurrentEditor } from "@/hooks/use-editor";
 import { ReferencePickerDialog } from "@/components/citation/reference-picker-dialog";
 import { t } from "@/utils/lang";
 import { TabHeader } from "./components/tab-header";
+import { useParams } from "react-router-dom";
+import { useReferenceUsage } from "@/hooks/use-reference-usage";
+import { useScannerNavigation } from "@/hooks/use-scanner-navigation";
 
 export function Citation() {
   useAppLanguage();
@@ -27,6 +30,9 @@ export function Citation() {
   const zotero = useZoteroImport(library.importBibtex);
   const authors = useCitationAuthors(library.updateAuthors);
   const { editor } = useCurrentEditor();
+  const { id } = useParams();
+  const usage = useReferenceUsage(id);
+  const navigateUsage = useScannerNavigation();
   const [pickerOpen, setPickerOpen] = useState(false);
   const insertion = useRef<{ editor: Editor; state: EditorState }>();
 
@@ -104,7 +110,10 @@ export function Citation() {
           </div>
         )}
         {!loading && !error && filtered.length > 0 && (
-          <EditorCitationList citations={filtered} onEdit={authors.edit} />
+          <EditorCitationList citations={filtered} onEdit={authors.edit} usage={usage} onNavigateUsage={location => void navigateUsage({
+            pluginId: "reference-usage", code: "usage", message: location.excerpt, severity: "warning",
+            chapterId: location.chapterId, path: location.path, nodeId: location.nodeId,
+          })} />
         )}
       </div>
       <BibtexImportDialog form={bibtex} />

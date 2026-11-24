@@ -22,7 +22,7 @@ const figure = schema.nodes.imageFigure.create(
 );
 
 test.each([0, 1])(
-  "unwrapping from position %i preserves the image, rich caption and caption selection",
+  "unwrapping from position %i removes the caption and keeps the image; undo restores both",
   position => {
     const doc = schema.nodes.doc.create(null, [
       figure,
@@ -39,11 +39,9 @@ test.each([0, 1])(
     state.doc.check();
 
     expect(state.doc.child(0).eq(image)).toBe(true);
-    expect(state.doc.child(1).type.name).toBe("paragraph");
-    expect(state.doc.child(1).attrs.id).toBe("caption-kept");
-    expect(state.doc.child(1).content.eq(caption.content)).toBe(true);
-    expect(state.doc.child(2).textContent).toBe("After");
-    expect([state.selection.anchor, state.selection.head]).toEqual([6, 3]);
+    expect(state.doc.childCount).toBe(2);
+    expect(state.doc.child(1).eq(doc.child(1))).toBe(true);
+    expect(state.doc.textContent).toBe("After");
     expect(doc.toJSON()).toEqual(before);
 
     const unwrapped = state.doc;
@@ -52,6 +50,7 @@ test.each([0, 1])(
     expect([state.selection.anchor, state.selection.head]).toEqual([7, 4]);
     expect(redo(state, transaction => { state = state.apply(transaction); })).toBe(true);
     expect(state.doc.eq(unwrapped)).toBe(true);
+    expect(state.doc.textContent).not.toContain("Caption");
   },
 );
 
@@ -82,7 +81,7 @@ test("unwrapping inside a list preserves the surrounding list and paragraphs", (
   expect(result.doc.firstChild?.type.name).toBe("bulletList");
   expect(resultItem.child(0).eq(paragraph)).toBe(true);
   expect(resultItem.child(1).eq(image)).toBe(true);
-  expect(resultItem.child(2).content.eq(caption.content)).toBe(true);
+  expect(resultItem.childCount).toBe(2);
 });
 
 test("plain images and detached controls do not produce a transaction", () => {

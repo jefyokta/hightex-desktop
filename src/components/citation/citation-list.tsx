@@ -4,6 +4,7 @@ import type { CiteUtils } from "bibtex.js";
 import { Copy, Quote, Trash } from "lucide-react";
 import { t } from "@/utils/lang";
 import { toast } from "sonner";
+import { CitationUsage, type ReferenceUsageView } from "./citation-usage";
 
 const copyCitation = async (text: string) => {
   try {
@@ -18,11 +19,13 @@ type CitationRowProps = {
   cite: CiteUtils;
   onDelete: (id: string) => void;
   onCopy: (text: string) => void;
+  usage?: ReferenceUsageView;
 };
 
 export const CitationList = memo(function CitationList({
   cites,
   onDelete,
+  usage,
 }: Omit<CitationRowProps, "cite" | "onCopy"> & { cites: CiteUtils[] }) {
   useAppLanguage();
   return (
@@ -30,17 +33,18 @@ export const CitationList = memo(function CitationList({
       {cites.map((cite) => (
         <div
           data-tour="reference-library"
+          data-citation-key={cite.getId()}
           key={cite.getId()}
           className="px-3 py-2 transition hover:bg-muted/30"
         >
-          <CitationRow cite={cite} onDelete={onDelete} onCopy={copyCitation} />
+          <CitationRow cite={cite} onDelete={onDelete} onCopy={copyCitation} usage={usage} />
         </div>
       ))}
     </div>
   );
 });
 
-const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
+const CitationRow = ({ cite, onDelete, onCopy, usage }: CitationRowProps) => {
   const citation = useMemo(() => cite.toCite(), [cite]);
 
   return (
@@ -50,14 +54,15 @@ const CitationRow = ({ cite, onDelete, onCopy }: CitationRowProps) => {
           <Quote className="h-4 w-4 shrink-0 text-neutral-400" />
 
           <div className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-            {cite.getId()}
+            {cite.getTitle() || t("editor.expandable.citation.untitled")}
           </div>
         </div>
 
         <div className="mt-2 pl-6">
           <div className="truncate text-sm text-neutral-500 dark:text-neutral-400">
-            {cite.getTitle()}
+            {cite.toCiteA()}
           </div>
+          <CitationUsage referenceKey={cite.getId()} usage={usage} />
 
           <div className="mt-3 border-l border-neutral-200 pl-3 dark:border-neutral-800">
             <pre className="break-all whitespace-pre-wrap text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">

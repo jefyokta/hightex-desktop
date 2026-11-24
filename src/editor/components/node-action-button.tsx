@@ -1,4 +1,5 @@
 import { useAppLanguage } from "@/hooks/use-app-language";
+import { useState } from "react";
 import { GripVertical, type LucideIcon } from "lucide-react";
 import { t } from "@/utils/lang";
 import {
@@ -29,15 +30,17 @@ export const NodeActionButton: React.FC<NodeActionButtonProps> = ({
   label,
 }) => {
   useAppLanguage();
+  const [open, setOpen] = useState(false);
   if (!items.length) return null;
 
   return (
     <div
       data-editor-ui
+      data-state={open ? "open" : "closed"}
       contentEditable={false}
-      className={`absolute top-2 right-2 flex items-center justify-center z-20 ${className ?? ""}`}
+      className={`absolute top-2 right-2 flex items-center justify-center z-20 data-[state=open]:flex ${className ?? ""}`}
     >
-      <DropdownMenu modal={false}>
+      <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"

@@ -4,6 +4,7 @@ import { contentAssets } from "@/utils/content-assets";
 import { isCitationValid, parseBibtexInput } from "@/utils/citation";
 import { bibliographyWithAuthors, type CitationAuthor } from "@/utils/citation-authors";
 import { t } from "@/utils/lang";
+import type { UsageChapter } from "../document/reference-usage";
 
 export interface ReferenceUsage {
   documentId: string;
@@ -118,6 +119,21 @@ export class ReferenceRepository {
         used.set(id, usage);
       }
       return [...used.values()];
+    });
+  }
+
+  /** Read usage for list presentation without flushing editors or changing drafts. */
+  async usageChapters(documentId?: string): Promise<UsageChapter[]> {
+    return this.db.transaction("r", this.db.documents, this.db.chapters, async () => {
+      const documents = new Map((await this.db.documents.toArray())
+        .map(document => [document.id, document.title]));
+      const chapters = documentId
+        ? await this.db.chapters.where("id").startsWith(`${documentId}.`).toArray()
+        : await this.db.chapters.toArray();
+      return chapters.map(chapter => {
+        const id = chapter.id.split(".")[0];
+        return { ...chapter, documentId: id, documentTitle: documents.get(id) };
+      });
     });
   }
 

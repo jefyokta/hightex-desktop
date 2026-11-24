@@ -1,5 +1,7 @@
 {
   "usage": {
+    "count": "Occurrences: {count}",
+    "loading": "Loading reference usage…",
     "title": "Where used",
     "description": "Explore citations and references in this document.",
     "search": "Search references or objects…",

@@ -79,7 +79,7 @@ export const ExpandableSideBar = () => {
                         : "text-muted-foreground  dark:hover:text-neutral-100 hover:text-neutral-400"
                     }`}
                   >
-                    {"label" in tab ? t(tab.label) : tab.name.toLowerCase()}
+                    {tab.name.toLowerCase()}
                   </button>
                 );
               })}

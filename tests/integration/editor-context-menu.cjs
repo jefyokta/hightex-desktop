@@ -7,6 +7,7 @@ const os = require("node:os");
 const assert = require("node:assert/strict");
 
 const artifacts = mkdtempSync(path.join(os.tmpdir(), "hightex-context-menu-"));
+const hoverOnly = process.argv.includes("--hover-only");
 app.setPath("userData", artifacts);
 app.disableHardwareAcceleration();
 let vite, server, win;
@@ -112,42 +113,44 @@ app.whenReady().then(async () => {
   await execute("connectMenu();undefined");
   const before = await execute("JSON.stringify(editor.getJSON())");
 
-  await execute("editor.commands.setTextSelection({from:1,to:5});rightClick('#second-image img')");
-  await until("document.querySelector('[data-editor-context-menu]')");
-  assert(await execute("menu.getState().items.some(item=>item.label==='Ubah menjadi gambar biasa')"));
-  assert.equal(await execute("JSON.stringify(editor.getJSON())"), before, "opening a context menu preserves source");
-  await clickAction("Ubah menjadi gambar biasa");
-  await until("!document.querySelector('#second')");
-  assert(await execute("!!document.querySelector('#first') && document.querySelector('#second-image img') && document.querySelector('p#second-caption em')?.textContent==='Caption second' && document.querySelector('#before').textContent==='Keep this paragraph'"));
-  await execute("editor.commands.undo()");
-  await until("document.querySelector('#second figcaption')");
-  assert.equal(await execute("JSON.stringify(editor.getJSON())"), before);
+  if (!hoverOnly) {
+    await execute("editor.commands.setTextSelection({from:1,to:5});rightClick('#second-image img')");
+    await until("document.querySelector('[data-editor-context-menu]')");
+    assert(await execute("menu.getState().items.some(item=>item.label==='Ubah menjadi gambar biasa')"));
+    assert.equal(await execute("JSON.stringify(editor.getJSON())"), before, "opening a context menu preserves source");
+    await clickAction("Ubah menjadi gambar biasa");
+    await until("!document.querySelector('#second')");
+    assert(await execute("!!document.querySelector('#first') && document.querySelector('#second-image img') && !document.querySelector('#second-caption') && document.querySelector('#before').textContent==='Keep this paragraph'"));
+    await execute("editor.commands.undo()");
+    await until("document.querySelector('#second figcaption')");
+    assert.equal(await execute("JSON.stringify(editor.getJSON())"), before);
 
-  await execute("rightClick('#first-caption em')");
-  await until("document.querySelector('[data-editor-context-menu]')");
-  await clickAction("Ubah menjadi gambar biasa");
-  assert(await execute("!document.querySelector('#first') && !!document.querySelector('#second')"));
-  await execute("editor.commands.undo();closeMenu()");
+    await execute("rightClick('#first-caption em')");
+    await until("document.querySelector('[data-editor-context-menu]')");
+    await clickAction("Ubah menjadi gambar biasa");
+    assert(await execute("!document.querySelector('#first') && !!document.querySelector('#second')"));
+    await execute("editor.commands.undo();closeMenu()");
 
-  await execute("rightClick('#plain img')");
-  await until("document.querySelector('[data-editor-context-menu]')");
-  assert(!await execute("menu.getState().items.some(item=>item.label==='Ubah menjadi gambar biasa')"));
-  await clickAction("Hapus gambar");
-  assert(await execute("!document.querySelector('#plain') && document.querySelector('#before').textContent==='Keep this paragraph'"));
-  await execute("editor.commands.undo();closeMenu()");
+    await execute("rightClick('#plain img')");
+    await until("document.querySelector('[data-editor-context-menu]')");
+    assert(!await execute("menu.getState().items.some(item=>item.label==='Ubah menjadi gambar biasa')"));
+    await clickAction("Hapus gambar");
+    assert(await execute("!document.querySelector('#plain') && document.querySelector('#before').textContent==='Keep this paragraph'"));
+    await execute("editor.commands.undo();closeMenu()");
 
-  await execute("rightClick('#heading strong')");
-  assert(await execute("menu.getState().items.some(item=>item.label==='Heading 3')"));
-  await clickAction("Heading 3");
-  assert.equal(await execute("document.querySelector('#heading').tagName"), "H3");
-  await execute("editor.commands.undo();rightClick('#cell')");
-  assert(await execute("menu.getState().items.some(item=>item.label==='Tambah baris setelah ini')"));
-  await clickAction("Tambah baris setelah ini");
-  assert.equal(await execute("editor.getJSON().content.find(node=>node.type==='table').content.length"), 2);
-  await execute("editor.commands.undo();closeMenu();rightClick('#item-text')");
-  assert(await execute("menu.getState().items.some(item=>item.label==='Kurangi indentasi item')"));
-  await execute("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));frame()");
-  assert(!await execute("menu.getState().visible"));
+    await execute("rightClick('#heading strong')");
+    assert(await execute("menu.getState().items.some(item=>item.label==='Heading 3')"));
+    await clickAction("Heading 3");
+    assert.equal(await execute("document.querySelector('#heading').tagName"), "H3");
+    await execute("editor.commands.undo();rightClick('#cell')");
+    assert(await execute("menu.getState().items.some(item=>item.label==='Tambah baris setelah ini')"));
+    await clickAction("Tambah baris setelah ini");
+    assert.equal(await execute("editor.getJSON().content.find(node=>node.type==='table').content.length"), 2);
+    await execute("editor.commands.undo();closeMenu();rightClick('#item-text')");
+    assert(await execute("menu.getState().items.some(item=>item.label==='Kurangi indentasi item')"));
+    await execute("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));frame()");
+    assert(!await execute("menu.getState().visible"));
+  }
 
   await execute("document.querySelector('#first').scrollIntoView({block:'center'});frame()");
   const figurePoint = await execute("(()=>{const rect=document.querySelector('#first').getBoundingClientRect();return {x:Math.round(rect.left+rect.width/2),y:Math.round(rect.top+rect.height/2)}})()");
@@ -167,15 +170,47 @@ app.whenReady().then(async () => {
     return {width:menu.getBoundingClientRect().width,labelHeight:rect.height,lineHeight:parseFloat(style.lineHeight),fontSize:style.fontSize,portalled:!menu.closest('.page')};
   })()`);
   assert(geometry.portalled && geometry.width >= 256 && geometry.labelHeight <= geometry.lineHeight * 1.1, JSON.stringify(geometry));
+  const sourceBeforeHover = await execute("JSON.stringify(editor.getJSON())");
+  const menuPoint = await execute("(()=>{const rect=document.querySelector('[data-slot=dropdown-menu-content] [role=menuitem]').getBoundingClientRect();return {x:Math.round(rect.left+rect.width/2),y:Math.round(rect.top+rect.height/2)}})()");
+  win.webContents.sendInputEvent({ type: "mouseMove", ...menuPoint });
+  const hoverSamples = await execute(`(async()=>{
+    const samples=[];
+    for(let frame=0;frame<16;frame++) {
+      await new Promise(requestAnimationFrame);
+      const trigger=document.querySelector('#first button[aria-label="Aksi node"]').getBoundingClientRect();
+      const menu=document.querySelector('[data-slot=dropdown-menu-content]').getBoundingClientRect();
+      samples.push({triggerWidth:trigger.width,triggerHeight:trigger.height,x:menu.x,y:menu.y,width:menu.width,height:menu.height});
+    }
+    return samples;
+  })()`);
+  writeFileSync(path.join(artifacts, "menu-hover.json"), JSON.stringify(hoverSamples, null, 2));
+  console.log(JSON.stringify({
+    samples: hoverSamples.length,
+    anchorVisible: hoverSamples.every(sample => sample.triggerWidth > 0 && sample.triggerHeight > 0),
+    menuPositions: [...new Set(hoverSamples.map(sample => JSON.stringify([sample.x, sample.y, sample.width, sample.height])))],
+    artifacts,
+  }));
+  assert(hoverSamples.every(sample => sample.triggerWidth > 0 && sample.triggerHeight > 0), "the anchor remains visible while the pointer is inside the portalled menu");
+  assert.equal(new Set(hoverSamples.map(sample => JSON.stringify([sample.x, sample.y, sample.width, sample.height]))).size, 1, "the open menu stays in one position while hovering its items");
+  assert.equal(await execute("JSON.stringify(editor.getJSON())"), sourceBeforeHover, "menu hover preserves source");
   writeFileSync(path.join(artifacts, "figure-menu.png"), (await win.webContents.capturePage()).toPNG());
   await execute("[...document.querySelectorAll('[data-slot=dropdown-menu-content] [role=menuitem]')].find(item=>item.textContent==='Ubah menjadi gambar biasa').click()");
   await until("!document.querySelector('#first')");
-  assert(await execute("!!document.querySelector('p#first-caption em') && !!document.querySelector('#second')"));
+  assert(await execute("!document.querySelector('#first-caption') && !!document.querySelector('#first-image img') && !!document.querySelector('#second')"));
   await execute("editor.commands.undo();closeMenu()");
+  assert.equal(await execute("JSON.stringify(editor.getJSON())"), before, "undo restores the figure and its caption");
+  if (hoverOnly) {
+    await execute("rightClick('#second-caption em')");
+    await until("document.querySelector('[data-editor-context-menu]')");
+    await clickAction("Ubah menjadi gambar biasa");
+    assert(await execute("!document.querySelector('#second') && !document.querySelector('#second-caption') && !!document.querySelector('#second-image img') && !!document.querySelector('#first')"));
+    await execute("editor.commands.undo();closeMenu()");
+    assert.equal(await execute("JSON.stringify(editor.getJSON())"), before);
+  }
   await execute("(async()=>{document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await frame();handler.destroy();await rightClick('#first-image img');await frame()})()");
   assert(!await execute("menu.getState().visible"), "destroy removes the handler");
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ result: "PASS", scope: "image/caption targeting, unwrap/undo, plain image deletion, heading/list/table actions, menu layout and cleanup", geometry, artifacts }));
+  console.log(JSON.stringify({ result: "PASS", scope: hoverOnly ? "portalled menu hover stability, unwrap/undo and cleanup" : "image/caption targeting, unwrap/undo, plain image deletion, heading/list/table actions, menu layout and cleanup", geometry, artifacts }));
 }).then(async () => {
   clearTimeout(deadline); win?.destroy(); server?.close(); await vite?.close(); app.exit(0);
 }).catch(async error => {

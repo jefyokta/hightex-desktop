@@ -1,5 +1,7 @@
 {
   "usage": {
+    "count": "Dipakai {count} kali",
+    "loading": "Memuat pemakaian referensi…",
     "title": "Dipakai di mana",
     "description": "Telusuri sitasi dan rujukan pada dokumen ini.",
     "search": "Cari referensi atau objek…",

@@ -1,5 +1,4 @@
 import { ChapterTree } from "@/components/editor/expandable-items/chapter-tree";
-import { ReferenceUsage } from "@/components/editor/expandable-items/reference-usage";
 import { Citation } from "@/components/editor/expandable-items/citation";
 import { Preview } from "@/components/editor/expandable-items/preview";
 import { Setting } from "@/components/editor/expandable-items/setting";
@@ -25,11 +24,6 @@ export const tabs = {
   citation: {
     name: "Citation",
     element: <Citation />,
-  },
-  usage: {
-    name: "Where used",
-    label: "usage.title",
-    element: <ReferenceUsage />,
   },
   setting: {
     name: "Setting",

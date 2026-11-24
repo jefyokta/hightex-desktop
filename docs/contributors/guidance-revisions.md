@@ -64,10 +64,20 @@ changes have finished saving. Neither comparison modifies drafts or sync binding
 
 `documentReferenceUsage` is a pure index of grouped citations, reference targets and
 their nested occurrences. It records source paths and authored IDs and ignores
-cached numbering labels. `ReferenceUsagePanel` presents the same index for local
-editing and snapshot review. The editor tab overlays its active chapter buffer on
-the stored chapters without flushing, changing selection, or writing data. Source
-navigation reuses the scanner's existing navigation owner.
+cached numbering labels. Citation usage appears under each reference in the
+existing reference lists, rather than in a separate editor tab or usage panel.
+`CitationUsage` is shared by editor cards, the workspace library and snapshot
+reference lists; bibliographic metadata supplies the displayed title, not the
+stored reference key.
+
+`useReferenceUsage` observes one batch of chapters and document titles through
+`ReferenceRepository.usageChapters`. Editor lists count the active document and
+overlay its current chapter buffer; workspace lists cover stored workspace
+documents. Reading usage does not flush editors or write drafts. Snapshot lists
+use their own immutable chapters and bibliography, with no workspace database
+subscription. Source navigation in the editor reuses scanner navigation; snapshot
+locations open their existing read-only source viewer. The repository's separate
+deletion checks still flush and recheck usage before deleting a reference.
 
 ## Advisor entry
 

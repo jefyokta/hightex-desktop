@@ -11,9 +11,11 @@ import { useBibtexImport } from "@/hooks/use-bibtex-import";
 import { useZoteroImport } from "@/hooks/use-zotero-import";
 import { t } from "@/utils/lang";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useReferenceUsage } from "@/hooks/use-reference-usage";
 
 export const Citation = () => {
   useAppLanguage();
+  const usage = useReferenceUsage();
   const {
     citations,
     loading,
@@ -107,7 +109,7 @@ export const Citation = () => {
               )}
             </div>
           ) : (
-            <CitationList cites={filtered} onDelete={deleteCitation} />
+            <CitationList cites={filtered} onDelete={deleteCitation} usage={usage} />
           )}
         </div>
       </section>

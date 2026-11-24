@@ -1,13 +1,10 @@
 import type { Editor } from "@tiptap/core";
-import { TextSelection } from "@tiptap/pm/state";
-import { Eye, Trash2 } from "lucide-react";
 import {
   closeContextMenu,
   openContextMenu,
   type ContextMenuItem,
 } from "@/hooks/use-context-menu";
-import { t } from "@/utils/lang";
-import { getContextMenuItems } from "./actions";
+import { ContextMenuActions } from "./actions";
 import { EditorContextTarget } from "./target";
 
 type ContextMenuOptions = {
@@ -17,6 +14,7 @@ type ContextMenuOptions = {
 
 export class EditorContextMenu {
   private readonly root: HTMLElement;
+  private readonly actions = new ContextMenuActions();
 
   constructor(
     private readonly editor: Editor,
@@ -41,27 +39,8 @@ export class EditorContextMenu {
 
     if (target) {
       target.select(this.editor);
-      const actions = getContextMenuItems(this.editor, target);
+      const actions = this.actions.collect({ editor: this.editor, target, preview: this.options.preview });
       items.push(...actions);
-      if (items.length) items.push({ type: "separator" });
-      if (target.node.attrs.id)
-        items.push({
-          label: t("editor.context_menu.see_in_preview"),
-          icon: <Eye className="h-4 w-4" />,
-          onClick: () => this.options.preview(target.node.attrs.id),
-        });
-      if (!actions.some(action => action.danger))
-        items.push({
-          label: t("editor.context_menu.delete"),
-          icon: <Trash2 className="h-4 w-4" />,
-          danger: true,
-          onClick: () => {
-            const { selection } = this.editor.state;
-            if (selection instanceof TextSelection && !selection.empty)
-              this.editor.commands.deleteSelection();
-            else target.delete(this.editor);
-          },
-        });
     }
 
     if (this.options.inspect) {

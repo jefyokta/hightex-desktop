@@ -7,25 +7,29 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { formatCitationBibliography } from "@/utils/citation";
 import { t } from "@/utils/lang";
+import { CitationUsage, type ReferenceUsageView } from "./citation-usage";
+import type { UsageLocation } from "@/editor/document/reference-usage";
 
 interface Props {
   citations: CiteUtils[];
-  onEdit(citation: CiteUtils): void;
+  onEdit?(citation: CiteUtils): void;
+  usage?: ReferenceUsageView;
+  onNavigateUsage?(location: UsageLocation): void;
 }
 
 type CopyStyle = "narrative" | "parenthetical";
 
 // Keep author-form keystrokes from reformatting every bibliography entry.
-export const EditorCitationList = memo(function EditorCitationList({ citations, onEdit }: Props) {
+export const EditorCitationList = memo(function EditorCitationList({ citations, onEdit, usage, onNavigateUsage }: Props) {
   useAppLanguage();
   return (
     <div className="space-y-4">
-      {citations.map(citation => <CitationCard key={citation.getId()} citation={citation} onEdit={onEdit} />)}
+      {citations.map(citation => <CitationCard key={citation.getId()} citation={citation} onEdit={onEdit} usage={usage} onNavigateUsage={onNavigateUsage} />)}
     </div>
   );
 });
 
-function CitationCard({ citation, onEdit }: { citation: CiteUtils; onEdit: Props["onEdit"] }) {
+function CitationCard({ citation, onEdit, usage, onNavigateUsage }: Omit<Props, "citations"> & { citation: CiteUtils }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -81,10 +85,11 @@ function CitationCard({ citation, onEdit }: { citation: CiteUtils; onEdit: Props
       <div className="mt-4 rounded-xl border bg-muted/30 p-3">
         <p className="wrap-break-word whitespace-pre-wrap text-xs leading-6">{presentation.bibliography}</p>
       </div>
-      <Button type="button" variant="ghost" size="sm" onClick={() => onEdit(citation)}
+      {onEdit && <Button type="button" variant="ghost" size="sm" onClick={() => onEdit(citation)}
         className="mt-3 h-auto px-0 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground">
         <Pencil className="size-3" />{t("editor.expandable.citation.edit_authors")}
-      </Button>
+      </Button>}
+      <CitationUsage referenceKey={citation.getId()} usage={usage} onNavigate={onNavigateUsage} />
     </article>
   );
 }
