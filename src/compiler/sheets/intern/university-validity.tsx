@@ -1,5 +1,5 @@
 import { usePrintable } from "@/hooks/use-printable";
-import { ParsedItalic } from "@/utils/parse-italic";
+// import { ParsedItalic } from "@/utils/parse-italic";
 import { formatDate } from "@/utils/date";
 import { name } from "@/utils/name";
 
@@ -10,7 +10,7 @@ export const UniversityConsent = () => {
   const doc = document.getDocument();
   return (
     <section className="introduction page-break new-page">
-      <h1
+      {/* <h1
         className="chapter"
         id="univ-consent"
         style={{ textTransform: "uppercase" }}
@@ -19,7 +19,7 @@ export const UniversityConsent = () => {
       </h1>
       <h1 className="chapter">
         <ParsedItalic text={document.getDocument().title} />
-      </h1>
+      </h1> */}
 
       <div
         style={{
@@ -47,7 +47,7 @@ export const UniversityConsent = () => {
               marginTop: ".3cm",
             }}
           >
-            {profile?.name}
+            {(profile?.name)}
           </div>
           <div
             style={{
@@ -63,10 +63,67 @@ export const UniversityConsent = () => {
           Telah diperiksa dan disetujui sebagai Laporan Kerja Praktek
           <br />
           di Pekanbaru, pada tanggal{" "}
-          {formatDate(doc.config.intern?.validity ?? doc.config.validityDate)}
+          {formatDate(doc.config.intern?.validity ?? doc.config.validityDate)} <br />
+          Pembimbing Kerja Praktek
         </div>
 
-        <div
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "50pt",
+          marginBottom: "50pt"
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <span style={{ fontWeight: "bold" }}>
+              {name(profile?.advisorName)}
+            </span>
+            <br />
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP. {profile?.advisorNip}
+            </span>
+          </div>
+
+        </div>
+
+        <div style={{ textAlign: "center" }}>
+          Mengetahui,<br />
+          Ketua Program Studi Sistem Informasi <br />
+          Fakultas Sains dan Teknologi <br />
+          Unversitas Islam Negeri Sultan Syarif Kasim Riau <br />
+          Pekanbaru, pada tanggal {formatDate(doc.config.intern?.validity ?? doc.config.validityDate)}
+        </div>
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "50pt",
+          marginBottom: "50pt"
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <span style={{ fontWeight: "bold" }}>
+              {name(doc.config.kaprodi?.name)}
+            </span>
+            <br />
+            <span
+              style={{
+                fontWeight: "bold",
+                paddingTop: "1px",
+                display: "inline-block",
+              }}
+            >
+              NIP. {doc.config.kaprodi?.nip}
+            </span>
+          </div>
+
+        </div>
+        {/* <div
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -142,7 +199,7 @@ export const UniversityConsent = () => {
               NIP. {profile?.advisorNip}
             </span>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );
