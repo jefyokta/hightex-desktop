@@ -119,8 +119,8 @@ figure[data-type="figureTable"] table:not([data-type="grid"]) {
 }
 .page td,
 .tiptap th {
-  padding-left: 0.2em;
-  padding-right: 0.2em;
+  padding-left: 0.1em;
+  padding-right: 0.1em;
 }
 
 .page h2 {
@@ -632,7 +632,9 @@ img.editor-pagination-image {
   position: absolute;
   z-index: 3;
 }
-
+.page table p {
+  font-size: 10pt !important;
+}
 .page
   .editor-pagination-repeat
   figcaption.editor-pagination-repeat-caption::before {

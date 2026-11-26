@@ -134,7 +134,7 @@ const CustomTable = Table.extend({
         ? [
             columnResizing({
               handleWidth: this.options.handleWidth,
-              cellMinWidth: this.options.cellMinWidth,
+              cellMinWidth: 1,
               defaultCellMinWidth: this.options.cellMinWidth,
               lastColumnResizable: this.options.lastColumnResizable,
             }),
