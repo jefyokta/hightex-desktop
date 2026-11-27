@@ -16,7 +16,7 @@ export async function prepareDocumentExport(
   const category = structuredClone(source.category);
   const appearance = document.documentElement.className;
   const version = source.getVersion();
-  const { data, model, sourceHash } = await readExportDocument(source.id, signal);
+  const { data, model, sourceHash } = await readExportDocument(source.id, signal, version);
   return {
     data,
     model: documentSnapshotModel(

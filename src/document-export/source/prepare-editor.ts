@@ -32,7 +32,7 @@ export async function prepareEditorExport(editor: Editor, signal: AbortSignal): 
   const version = chapter.getVersion() ?? undefined;
   const images = new PageImageSnapshot(editor.view);
   const visibleText = chapterRenderedText(editor.view, 0, source.content.size);
-  const { data, model, sourceHash } = await readExportDocument(chapter.getDocumentId(), signal);
+  const { data, model, sourceHash } = await readExportDocument(chapter.getDocumentId(), signal, version);
   signal.throwIfAborted();
   const next = !editor.isDestroyed && paginationKey.getState(editor.state);
   if (
