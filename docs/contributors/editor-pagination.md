@@ -547,3 +547,13 @@ pages actually present in each output. Excluded or unresolved destinations use
 its original destinations. Malformed or incomplete split ranges are rejected
 because their page ownership cannot be trusted, without changing export's
 content-recovery policy.
+
+## Editor sidebar
+
+The sidebar contains citations, document settings and variables. Chapters and
+headings use the existing toolbar picker. The former chapter tree and iframe
+preview components, their context-menu preview action and editor frame listeners
+are removed. Guide selectors and descriptions follow the current controls.
+Legacy printable routes, PDF service, metadata types and IPC are retained for
+their remaining consumers. Release acceptance remains separate from the product
+integration and the bounded evidence recorded for it.

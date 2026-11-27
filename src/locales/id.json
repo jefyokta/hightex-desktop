@@ -1936,8 +1936,8 @@
         "description": "Pilih teks untuk memformatnya, atau tambahkan heading, tabel, gambar, dan persamaan. Tombol Simpan menyimpan file .hightex milikmu."
       },
       "chapterTree": {
-        "title": "Buka panel bab dan referensi",
-        "description": "Tombol ini membuka atau menutup panel samping. Buka panel untuk melihat tab Bab, Pratinjau, Referensi, Pengaturan dan Variabel. Langkah berikutnya menunjukkan kegunaan beberapa tab."
+        "title": "Buka panel sitasi dan dokumen",
+        "description": "Tombol ini membuka atau menutup panel samping berisi Sitasi, Pengaturan dan Variabel. Gunakan pemilih bab di toolbar untuk berpindah bab dan heading."
       }
     },
     "skip_step": "Lewati langkah",
@@ -1982,8 +1982,8 @@
         "summary": "Kenali toolbar untuk heading, format teks, tabel, gambar, dan persamaan."
       },
       "chapterTree": {
-        "name": "Panel bab dan referensi",
-        "summary": "Buka daftar bab, preview, referensi, dan pengaturan dokumen dari panel samping."
+        "name": "Panel sitasi dan dokumen",
+        "summary": "Akses sitasi, pengaturan dokumen, dan variabel dari panel samping."
       }
     },
     "editorGuides": {
@@ -2083,7 +2083,7 @@
           },
           "bibliography": {
             "title": "Daftar pustaka mengikuti sitasi yang dipakai",
-            "description": "HighTex menyusun daftar pustaka dari sitasi yang benar-benar dipakai dalam dokumen. Jika kosong, periksa apakah sitasi merujuk ke sumber yang valid. Buka preview untuk memeriksa hasilnya; daftar pustaka tidak perlu diketik manual di isi bab."
+            "description": "HighTex menyusun daftar pustaka dari sitasi yang benar-benar dipakai dalam dokumen. Jika kosong, periksa apakah sitasi merujuk ke sumber yang valid. Buka Daftar Pustaka melalui pemilih bab di toolbar; daftar pustaka tidak perlu diketik manual di isi bab."
           }
         }
       },
@@ -2132,8 +2132,8 @@
             "description": "Isi tulisan tersimpan secara lokal saat kamu menulis. Tombol Simpan atau Command/Ctrl+S menulis berkas .hightex ke lokasi penyimpanan; perhatikan status simpan pada tombol. Simpan salinan berkas ini untuk melanjutkan pekerjaan atau memindahkannya."
           },
           "preview": {
-            "title": "Periksa susunan halaman di preview",
-            "description": "Buka tab preview untuk memeriksa tata letak, nomor heading, gambar, tabel, rujukan, dan daftar pustaka. Tampilan halaman akhir mengikuti format kategori dokumen."
+            "title": "Periksa tulisan langsung di editor",
+            "description": "Periksa nomor heading, gambar, tabel, dan rujukan langsung di editor. Jika pagination aktif, periksa juga pergantian halaman saat menulis. Gunakan pemilih bab untuk membuka bagian lain."
           },
           "pdf": {
             "title": "Ekspor PDF setelah diperiksa",
@@ -2358,7 +2358,7 @@
       "navigation": {
         "jump": {
           "title": "Lompat lewat daftar bab",
-          "description": "Pilih judul bab di panel untuk langsung berpindah. Buka cabang bab untuk melihat heading dan melompat ke bagian tertentu. Pintasan angka membantu saat panel sedang ditutup.",
+          "description": "Klik nama bab di toolbar atau tekan Mod+K untuk membuka pemilih bab. Cari dan pilih bab atau heading untuk langsung menuju bagian tersebut.",
           "example": "Mod + 1 … 9 → bab utama\nMod = ⌘ di macOS, Ctrl di Windows/Linux"
         },
         "appendix": {

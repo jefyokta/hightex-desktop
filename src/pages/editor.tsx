@@ -28,14 +28,11 @@ import { EditorContentError } from "../exception/editor-content-error";
 import { Document } from "@/editor/document";
 import { Storage } from "@/editor/storage";
 import { ChapterNotFound } from "@/exception/chapter-not-found";
-import { FrameManager } from "@/frame/manager";
 import { ContextMenuPopup } from "@/components/context-menu";
 import { FindReplaceBar } from "@/components/editor/find-replace-bar";
 import { EditorContextMenu } from "@/editor/context-menu";
-import { FrameNotOpened } from "@/exception/frame-not-opened";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { TableMenu } from "@/editor/components/table-menu";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t } from "@/utils/lang";
@@ -280,39 +277,6 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
     ],
     [chapter, config?.editor.aliasHint],
   );
-  const { setContent, setOpen } = useExpandableSidebar();
-  const previewNode = useCallback((uuid: string) => {
-    const frame = document.querySelector("iframe");
-    if (!frame) {
-      throw new FrameNotOpened({
-        message: t("error.frame.not.opened"),
-        description: t("error.frame.not.opened.desc"),
-        action: (
-          <Button onClick={() => {
-            setContent("previewer");
-            setOpen(true);
-          }}>
-            {t("editor.inline.open")}
-          </Button>
-        ),
-      });
-    }
-    FrameManager.sendMessage("node:clicked", { uuid, type: "node:clicked" }, frame);
-  }, [setContent, setOpen]);
-  useEffect(() => {
-    return FrameManager.onMessaged((m) => {
-      if (m.type == "node:clicked") {
-        Manager.scrollTo(m.data.uuid);
-      }
-      if (m.type == "layout:error") {
-        throw new ShouldNotified({
-          message: t("editor.error.pagging_stopped.title"),
-          description: t("editor.error.pagging_stopped.description"),
-        });
-      }
-    });
-  }, []);
-
   const editor = useEditor({
     content: "",
     editable: false,
@@ -350,7 +314,6 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
         }, 800);
       };
       const contextMenu = new EditorContextMenu(editor, {
-        preview: previewNode,
         inspect: useIPC("application").application.isDev
           ? (x, y) => useIPC("application").application.inspectElement(x, y)
           : undefined,

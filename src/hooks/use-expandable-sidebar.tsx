@@ -1,6 +1,4 @@
-import { ChapterTree } from "@/components/editor/expandable-items/chapter-tree";
 import { Citation } from "@/components/editor/expandable-items/citation";
-import { Preview } from "@/components/editor/expandable-items/preview";
 import { Setting } from "@/components/editor/expandable-items/setting";
 import { VariableTab } from "@/components/editor/expandable-items/variables";
 import React, {
@@ -13,24 +11,16 @@ import React, {
 } from "react";
 
 export const tabs = {
-  chapterTree: {
-    name: "Chapters",
-    element: <ChapterTree />,
-  },
-  previewer: {
-    name: "previewer",
-    element: <Preview />,
-  },
   citation: {
-    name: "Citation",
+    name: "editor.expandable.citation.title",
     element: <Citation />,
   },
   setting: {
-    name: "Setting",
+    name: "editor.expandable.setting.title",
     element: <Setting />,
   },
   variabl: {
-    name: "Variable",
+    name: "editor.inline.variables_title",
     element: <VariableTab />,
   },
 } as const;
@@ -49,7 +39,7 @@ const ExpandableSideBarContext = createContext<ExpandableSidebarContextType>({
   open: false,
   setOpen: () => {},
 
-  content: "chapterTree",
+  content: "citation",
   setContent: () => {},
 });
 
@@ -58,7 +48,7 @@ export const ExpandableSideBarContextProvider: React.FC<PropsWithChildren> = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const [content, setContent] = useState<SidebarTab>("chapterTree");
+  const [content, setContent] = useState<SidebarTab>("citation");
 
   return (
     <ExpandableSideBarContext.Provider

@@ -231,9 +231,9 @@ app
       "guide must not scroll the titlebar out of view",
     );
     for (const step of [
-      "sidebar-chapters",
       "sidebar-citations",
       "sidebar-settings",
+      "sidebar-variables",
     ]) {
       await until(
         `!Array.from(document.querySelectorAll('[data-tour-panel] button')).find(button=>button.textContent.trim()==='Berikutnya')?.disabled`,

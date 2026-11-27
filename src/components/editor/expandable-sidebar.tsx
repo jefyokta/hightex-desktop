@@ -2,6 +2,7 @@ import { t } from "@/utils/lang";
 import { AnimatePresence, motion } from "motion/react";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useAppLanguage } from "@/hooks/use-app-language";
 
 import {
   SidebarTab,
@@ -10,6 +11,7 @@ import {
 } from "@/hooks/use-expandable-sidebar";
 
 export const ExpandableSideBar = () => {
+  const language = useAppLanguage();
   const { open, content, setContent, setOpen } = useExpandableSidebar();
 
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -23,7 +25,7 @@ export const ExpandableSideBar = () => {
       left: el.offsetLeft - 5,
       width: el.offsetWidth,
     });
-  }, [content, open]);
+  }, [content, open, language]);
 
   return (
     <div className="relative h-full border-r">
@@ -79,17 +81,13 @@ export const ExpandableSideBar = () => {
                         : "text-muted-foreground  dark:hover:text-neutral-100 hover:text-neutral-400"
                     }`}
                   >
-                    {tab.name.toLowerCase()}
+                    {t(tab.name)}
                   </button>
                 );
               })}
             </div>
 
-            <div
-              className={`min-h-0 flex-1 overflow-auto pt-3 ${
-                content === "previewer" ? "pb-0" : "pb-20"
-              }`}
-            >
+            <div className="min-h-0 flex-1 overflow-auto pt-3 pb-20">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={content}

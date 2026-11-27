@@ -8,7 +8,6 @@ import { ContextMenuActions } from "./actions";
 import { EditorContextTarget } from "./target";
 
 type ContextMenuOptions = {
-  preview: (id: string) => void;
   inspect?: (x: number, y: number) => void;
 };
 
@@ -39,7 +38,7 @@ export class EditorContextMenu {
 
     if (target) {
       target.select(this.editor);
-      const actions = this.actions.collect({ editor: this.editor, target, preview: this.options.preview });
+      const actions = this.actions.collect({ editor: this.editor, target });
       items.push(...actions);
     }
 

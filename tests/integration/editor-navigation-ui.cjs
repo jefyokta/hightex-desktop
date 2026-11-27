@@ -68,7 +68,7 @@ exports.run = async ({execute, until, win, artifacts}) => {
   await execute('document.getElementById("main-scroll").scrollTo({top:0,behavior:"instant"})');
   await execute('document.querySelector("[data-editor-pdf-options]").click()');
   await until('document.querySelector("[data-editor-pdf-options-panel]")');
-  assert.equal(await execute('return !!document.querySelector("[data-pagination-disable]")'),true);
+  assert.equal(await execute('return !!document.querySelector("[data-pagination-disable]")'),false);
   await win.webContents.sendInputEvent({type:'keyDown',keyCode:'ESCAPE'});
   await win.webContents.sendInputEvent({type:'keyUp',keyCode:'ESCAPE'});
   await until('!document.querySelector("[data-editor-pdf-options-panel]")');

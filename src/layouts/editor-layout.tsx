@@ -9,7 +9,6 @@ import { ParamsContextProvider } from "@/hooks/use-params";
 import { AliasSlave } from "@/slaves/alias-slave";
 import { EditorNavigatorSlave } from "@/slaves/editor-navigator";
 import { EditorFlushSlave } from "@/slaves/editor-flush";
-import { FrameSlave } from "@/slaves/frame";
 
 import { Outlet } from "react-router-dom";
 
@@ -33,7 +32,6 @@ export const EditorLayout: React.FC = () => {
           </EditorProvider>
         </GraphContextProvider>
       </EditorChrome>
-      <FrameSlave />
     </ParamsContextProvider>
   );
 };

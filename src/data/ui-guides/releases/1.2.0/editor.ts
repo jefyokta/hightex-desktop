@@ -1,7 +1,7 @@
 export const editorGuides = [
   {
     id: "chapter-navigation",
-    revision: 3,
+    revision: 4,
     name: "guide.features.chapters.name",
     summary: "guide.features.chapters.summary",
     scope: "editor",
@@ -16,19 +16,14 @@ export const editorGuides = [
         id: "chapter-jump",
         title: "guide.walkthrough.navigation.jump.title",
         description: "guide.walkthrough.navigation.jump.description",
-        selectors: ['[data-tour="editor-chapter-list"]'],
-        editor: { sidebar: "chapterTree" },
+        selectors: ['[data-chapter-picker-trigger]'],
         example: "guide.walkthrough.navigation.jump.example",
       },
       {
         id: "chapter-appendix",
         title: "guide.walkthrough.navigation.appendix.title",
         description: "guide.walkthrough.navigation.appendix.description",
-        selectors: [
-          '[data-tour="editor-chapter-appendix"]',
-          '[data-tour="editor-chapter-list"]',
-        ],
-        editor: { sidebar: "chapterTree" },
+        selectors: ['[data-chapter-picker-trigger]'],
         example: "guide.walkthrough.navigation.appendix.example",
       },
     ],
@@ -198,7 +193,7 @@ export const editorGuides = [
   },
   {
     id: "editor-citations",
-    revision: 1,
+    revision: 2,
     name: "guide.editorGuides.citations.name",
     summary: "guide.editorGuides.citations.summary",
     scope: "editor",
@@ -232,10 +227,7 @@ export const editorGuides = [
         title: "guide.editorGuides.citations.steps.bibliography.title",
         description:
           "guide.editorGuides.citations.steps.bibliography.description",
-        selectors: ['[data-tour="editor-tab-previewer"]'],
-        editor: {
-          sidebar: "chapterTree",
-        },
+        selectors: ['[data-chapter-picker-trigger]'],
       },
     ],
   },
@@ -314,7 +306,7 @@ export const editorGuides = [
   },
   {
     id: "editor-review-save",
-    revision: 1,
+    revision: 2,
     name: "guide.editorGuides.reviewSave.name",
     summary: "guide.editorGuides.reviewSave.summary",
     scope: "editor",
@@ -341,9 +333,9 @@ export const editorGuides = [
         id: "preview",
         title: "guide.editorGuides.reviewSave.steps.preview.title",
         description: "guide.editorGuides.reviewSave.steps.preview.description",
-        selectors: ['[data-tour="editor-tab-previewer"]'],
+        selectors: ['[data-tour="editor-content"]'],
         editor: {
-          sidebar: "chapterTree",
+          chapter: "normal",
         },
       },
       {
@@ -359,7 +351,7 @@ export const editorGuides = [
   },
   {
     id: "editor-sidebar",
-    revision: 2,
+    revision: 3,
     name: "guide.features.chapterTree.name",
     summary: "guide.features.chapterTree.summary",
     scope: "editor",
@@ -369,13 +361,6 @@ export const editorGuides = [
         title: "guide.steps.chapterTree.title",
         description: "guide.steps.chapterTree.description",
         selectors: ['[data-tour="editor-sidebar"]'],
-      },
-      {
-        id: "sidebar-chapters",
-        title: "guide.walkthrough.sidebar.chapters.title",
-        description: "guide.walkthrough.sidebar.chapters.description",
-        selectors: ['[data-tour="editor-chapter-list"]'],
-        editor: { sidebar: "chapterTree" },
       },
       {
         id: "sidebar-citations",
@@ -390,6 +375,13 @@ export const editorGuides = [
         description: "guide.walkthrough.sidebar.settings.description",
         selectors: ['[data-tour="editor-tab-setting"]'],
         editor: { sidebar: "setting" },
+      },
+      {
+        id: "sidebar-variables",
+        title: "guide.editorGuides.variables.steps.manage_variables.title",
+        description: "guide.editorGuides.variables.steps.manage_variables.description",
+        selectors: ['[data-tour="editor-tab-variabl"]'],
+        editor: { sidebar: "variabl" },
       },
     ],
   },

@@ -204,13 +204,10 @@ test("a dangerous custom action does not suppress unrelated global defaults", ()
   expect(actions.map(item => item.key)).toEqual(["custom-danger", "delete-node"]);
 });
 
-test("default preview uses the source ID and the supplied host callback", () => {
+test("default actions do not expose the removed preview panel", () => {
   const current = context([{ ...paragraph, attrs: { id: "paragraph-source" } }]);
-  const calls: string[] = [];
-  const actions = new ContextMenuActions().collect({ ...current, preview: id => calls.push(id) });
-  expect(actions.map(item => item.key)).toEqual(["preview-node", "delete-node"]);
-  actions[0].onClick();
-  expect(calls).toEqual(["paragraph-source"]);
+  const actions = new ContextMenuActions().collect(current);
+  expect(actions.map(item => item.key)).toEqual(["delete-node"]);
 });
 
 test("specific delete replaces only its default while additional shared actions remain", () => {

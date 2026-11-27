@@ -1936,8 +1936,8 @@
         "description": "Select text to apply formatting, add headings, tables, figures or equations. The Save button stores your .hightex file."
       },
       "chapterTree": {
-        "title": "Open your chapter sidebar",
-        "description": "This button opens or closes the side panel. Open it to see Chapters, Preview, References, Settings and Variables. The following steps explain several tabs."
+        "title": "Open citations and document tools",
+        "description": "This button opens or closes the side panel containing Citations, Settings and Variables. Use the chapter picker in the toolbar to navigate chapters and headings."
       }
     },
     "skip_step": "Skip step",
@@ -1982,8 +1982,8 @@
         "summary": "Explore the toolbar for headings, text formatting, tables, figures and equations."
       },
       "chapterTree": {
-        "name": "Chapter and reference sidebar",
-        "summary": "Open chapters, preview, references and document settings from the sidebar."
+        "name": "Citations and document sidebar",
+        "summary": "Access citations, document settings and variables from the sidebar."
       }
     },
     "editorGuides": {
@@ -2083,7 +2083,7 @@
           },
           "bibliography": {
             "title": "The bibliography follows citations you use",
-            "description": "HighTex builds the bibliography from citations actually used in the document. If it is empty, check that your citations point to valid sources. Open the preview to inspect the result; you do not need to type a bibliography manually into a chapter."
+            "description": "HighTex builds the bibliography from citations actually used in the document. If it is empty, check that your citations point to valid sources. Open Bibliography through the chapter picker in the toolbar; you do not need to type a bibliography manually into a chapter."
           }
         }
       },
@@ -2132,8 +2132,8 @@
             "description": "Your writing is stored locally as you type. Save or Command/Ctrl+S writes a .hightex file to your chosen location; watch the button status. Keep this file to continue editing or move your work."
           },
           "preview": {
-            "title": "Check the page layout in the preview",
-            "description": "Open the preview tab to inspect layout, heading numbers, figures, tables, references and bibliography. The final pages follow the document category format."
+            "title": "Review your writing in the editor",
+            "description": "Check heading numbers, figures, tables and references directly in the editor. With pagination enabled, also check page breaks while writing. Use the chapter picker to open other sections."
           },
           "pdf": {
             "title": "Export PDF after reviewing the result",
@@ -2358,7 +2358,7 @@
       "navigation": {
         "jump": {
           "title": "Jump through the chapter list",
-          "description": "Select a chapter title to jump directly to it. Expand a chapter to see its headings and jump to a section. Number shortcuts also work while the panel is closed.",
+          "description": "Click the chapter name in the toolbar or press Mod+K to open the chapter picker. Search for a chapter or heading and select it to jump directly to that section.",
           "example": "Mod + 1 … 9 → main chapter\nMod = ⌘ on macOS, Ctrl on Windows/Linux"
         },
         "appendix": {

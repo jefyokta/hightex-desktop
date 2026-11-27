@@ -5,7 +5,6 @@ import type { EditorContextTarget } from "./target";
 export interface ContextMenuContext {
   readonly editor: Editor;
   readonly target: Pick<EditorContextTarget, "node" | "find" | "delete">;
-  readonly preview?: (id: string) => void;
 }
 
 export interface NodeActionItem extends ContextMenuAction {

@@ -55,8 +55,8 @@ window.editor=new Editor({element:document.createElement('div'),extensions:Chapt
 ]}});
 const root=createRoot(document.getElementById('editor'));
 root.render(React.createElement(TooltipProvider,null,React.createElement(EditorContent,{editor}),React.createElement(ContextMenuPopup)));
-window.previews=[];window.inspections=[];
-window.connectMenu=()=>window.handler=new EditorContextMenu(editor,{preview:id=>previews.push(id)});
+window.inspections=[];
+window.connectMenu=()=>window.handler=new EditorContextMenu(editor,{});
 window.menu=useContextMenuStore;
 window.closeMenu=closeContextMenu;
 window.frame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
