@@ -99,7 +99,7 @@ exports.prepare = ({ artifacts, reproduce }) => {
               for(const type of ['start','section.before','section.after','chapter','contentRendered','index.pass','rendered','error','cancel'])engine.events.on(type,event=>{
                 archiveTrace.push({type,runId:event.runId,sequence:event.sequence,phase:event.phase,chapterId:event.chapterId,changed:event.changed,stable:event.stable,sectionId:event.sectionId,kind:event.section?.kind??event.sectionKind,stage:event.stage,pass:event.pass,pages:event.pages});
                 if(type==='rendered'){
-                  window.archiveSampling=archivePageSamples(engine.documentPages);
+                  window.archiveSampling=archivePageSamples(engine.documentPages,${process.env.HIGHTEX_CORPUS_CURRENT?'{minimumTextLength:1,preferUnique:true}':'{}'});
                   archiveSamples.push(...archiveSampling.samples);archiveCaptions.push(...archiveSampling.captions);
                 }
               });
@@ -139,6 +139,8 @@ exports.prepare = ({ artifacts, reproduce }) => {
           assert.equal(captured.portable, true);
           assert.ok(captured.sampling.contexts>0 && captured.samples.length>0, 'No editable source was sampled; native text proof would be empty');
           assert.equal(captured.samples.length,captured.sampling.textPages,'An eligible source page was not sampled');
+          if (process.env.HIGHTEX_CORPUS_CURRENT)
+            result.contexts = await require('./editor-corpus-contexts.cjs').verify({execute,until,win,artifacts,label:file.label});
           result.stage = "native-pdf";
           save();
           await execute(
@@ -248,11 +250,11 @@ exports.prepare = ({ artifacts, reproduce }) => {
           );
           result.captions = captured.captions.length;
           fs.copyFileSync(output, path.join(artifacts, file.label + ".pdf"));
-          result.stage = "passed";
+          result.stage = result.contexts?.complete === false ? "native-passed-context-failed" : "passed";
           console.log(
             "Archive engine:",
             file.label,
-            "PASS",
+            result.stage === "passed" ? "PASS" : "NATIVE PASS; CONTEXT FAILED",
             result.pages,
             "pages",
             result.samples,
@@ -267,7 +269,7 @@ exports.prepare = ({ artifacts, reproduce }) => {
           save();
           await execute(`
         if(window.archiveContext){await archiveStorage.waitForDocument(archiveContext.id);archiveContext.destroy()}
-        archiveDocument.setCurrentChapter(archiveFixture);editor.view.updateState(archiveInitialState);
+        archiveDocument.setCurrentChapter(archiveFixture);${process.env.HIGHTEX_CORPUS_CURRENT?'':'editor.view.updateState(archiveInitialState);'}
         window.archiveSnapshot=undefined;
       `).catch(() => {});
         }

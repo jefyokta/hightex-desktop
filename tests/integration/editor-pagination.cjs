@@ -266,7 +266,9 @@ const deadline = setTimeout(
     console.error("Pagination fixture deadline");
     app.exit(1);
   },
-  process.env.HIGHTEX_SINGLE_PAGINATION || process.env.HIGHTEX_PAGINATION_BASELINE || (process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)
+  process.env.HIGHTEX_CORPUS_CURRENT
+    ? 3600000
+    : process.env.HIGHTEX_SINGLE_PAGINATION || process.env.HIGHTEX_PAGINATION_BASELINE || (process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)
     ? 300000
     : process.env.HIGHTEX_PAGINATION_REDESIGN
     ? 240000
