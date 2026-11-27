@@ -12,10 +12,12 @@ import { useZoteroImport } from "@/hooks/use-zotero-import";
 import { t } from "@/utils/lang";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useReferenceUsage } from "@/hooks/use-reference-usage";
+import { useCitationCleanup } from "@/hooks/use-citation-cleanup";
 
 export const Citation = () => {
   useAppLanguage();
   const usage = useReferenceUsage();
+  const cleanup = useCitationCleanup();
   const {
     citations,
     loading,
@@ -38,6 +40,9 @@ export const Citation = () => {
         description={t("citation.subtitle")}
         actions={
           <>
+            <Button variant="outline" disabled={loading || cleanup.cleaning} onClick={() => void cleanup.deleteUnusedCitations()}>
+              {t(cleanup.cleaning ? "settings.data.unused_citations.checking" : "settings.data.unused_citations.action")}
+            </Button>
             <Button
               variant="outline"
               data-tour="reference-zotero"

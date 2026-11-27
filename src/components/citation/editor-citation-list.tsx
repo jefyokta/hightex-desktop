@@ -9,6 +9,7 @@ import { formatCitationBibliography } from "@/utils/citation";
 import { t } from "@/utils/lang";
 import { CitationUsage, type ReferenceUsageView } from "./citation-usage";
 import type { UsageLocation } from "@/editor/document/reference-usage";
+import { CitationPages } from "./citation-pages";
 
 interface Props {
   citations: CiteUtils[];
@@ -23,9 +24,11 @@ type CopyStyle = "narrative" | "parenthetical";
 export const EditorCitationList = memo(function EditorCitationList({ citations, onEdit, usage, onNavigateUsage }: Props) {
   useAppLanguage();
   return (
+    <CitationPages citations={citations}>{page => (
     <div className="space-y-4">
-      {citations.map(citation => <CitationCard key={citation.getId()} citation={citation} onEdit={onEdit} usage={usage} onNavigateUsage={onNavigateUsage} />)}
+      {page.map(citation => <CitationCard key={citation.getId()} citation={citation} onEdit={onEdit} usage={usage} onNavigateUsage={onNavigateUsage} />)}
     </div>
+    )}</CitationPages>
   );
 });
 

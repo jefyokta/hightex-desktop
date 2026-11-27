@@ -5,6 +5,7 @@ import { Copy, Quote, Trash } from "lucide-react";
 import { t } from "@/utils/lang";
 import { toast } from "sonner";
 import { CitationUsage, type ReferenceUsageView } from "./citation-usage";
+import { CitationPages } from "./citation-pages";
 
 const copyCitation = async (text: string) => {
   try {
@@ -29,8 +30,9 @@ export const CitationList = memo(function CitationList({
 }: Omit<CitationRowProps, "cite" | "onCopy"> & { cites: CiteUtils[] }) {
   useAppLanguage();
   return (
+    <CitationPages citations={cites}>{page => (
     <div className="h-full divide-y divide-muted/40 overflow-y-auto rounded-xl">
-      {cites.map((cite) => (
+      {page.map((cite) => (
         <div
           data-tour="reference-library"
           data-citation-key={cite.getId()}
@@ -41,6 +43,7 @@ export const CitationList = memo(function CitationList({
         </div>
       ))}
     </div>
+    )}</CitationPages>
   );
 });
 

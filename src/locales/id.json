@@ -1426,6 +1426,9 @@
     "ready": "Yuk, mulai pecah dokumennya"
   },
   "citation": {
+    "page_range": "{from}–{to} dari {total} sitasi",
+    "previous_page": "Sebelumnya",
+    "next_page": "Berikutnya",
     "search_hint": "Cari judul, penulis, tahun, DOI, atau key referensi",
     "local_source": "Lokal",
     "in_use": "Sitasi ini dipakai dalam dokumen dan tidak dapat dihapus.",

@@ -1426,6 +1426,9 @@
     "ready": "Let's start splitting"
   },
   "citation": {
+    "page_range": "{from}–{to} of {total} citations",
+    "previous_page": "Previous",
+    "next_page": "Next",
     "search_hint": "Search title, author, year, DOI or reference key",
     "local_source": "Local",
     "in_use": "This citation is used in a document and cannot be deleted.",
