@@ -9,11 +9,14 @@ export function paginationReport(
   context: string,
 ): ShouldReport | undefined {
   if (error instanceof ShouldReport) return error;
+  let reason = error;
+  while (reason instanceof DocumentEngineError && reason.level !== "warning")
+    reason = reason.cause;
   if (
-    error instanceof ShouldNotified ||
-    error instanceof ShouldSilent ||
-    (error instanceof Error && error.name === "AbortError") ||
-    (error instanceof DocumentEngineError && error.level === "warning")
+    reason instanceof ShouldNotified ||
+    reason instanceof ShouldSilent ||
+    (reason instanceof Error && reason.name === "AbortError") ||
+    (reason instanceof DocumentEngineError && reason.level === "warning")
   )
     return;
   const detail =

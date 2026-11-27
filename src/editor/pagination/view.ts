@@ -238,7 +238,10 @@ export class PaginationView {
       diagnostic: paginationDiagnostic(error),
     });
     const report = paginationReport(error, `Pagination editor ${chapter.getId()}`);
-    if (report) throw report.setId(`pagination-layout:${chapter.getId()}`);
+    if (report) {
+      report.setId(`pagination-layout:${chapter.getId()}`);
+      throw report;
+    }
   }
 
   destroy() {
