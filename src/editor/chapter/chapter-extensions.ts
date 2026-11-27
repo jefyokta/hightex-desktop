@@ -34,6 +34,7 @@ import { Comment } from "../extensions/comment";
 import { Note } from "../extensions/note";
 import { assertSupportedContent } from "@/utils/document-content";
 import { NodeIdentity } from "../extensions/uuid/identity-extension";
+import { ChapterClipboard } from "../extensions/clipboard";
 
 type ChapterExtensionContext = Pick<
   Chapter,
@@ -146,6 +147,7 @@ export class ChapterExtensions {
       Comment,
       Note,
       NodeIdentity,
+      ChapterClipboard,
     ];
   }
 
@@ -159,6 +161,7 @@ export class ChapterExtensions {
       SearchReplace,
       Note,
       NodeIdentity,
+      ChapterClipboard,
       ...(hasPlaceholder
         ? [Placeholder.configure({ placeholder: hasPlaceholder })]
         : []),

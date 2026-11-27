@@ -502,3 +502,24 @@ when Chromium serializes CSSOM to HTML. A fresh DOM and cached HTML can then
 have different geometry even when their serialized strings match. Keep the
 coordinate tokens intact at the shared presenter; do not hide this with a
 comparison tolerance or an independent export layout.
+
+## Clipboard continuity and source identity
+
+`ChapterClipboard` owns one native cut origin per editor. ProseMirror can collapse
+a selection spanning a list and caption into the remaining caption when cutting.
+Re-fitting that open slice at the resulting caret can create new figure wrappers
+and change the list structure. For an unchanged cut origin carrying the same
+clipboard token, `CutClipboard` restores the recorded source through an ordinary
+transaction. IDs, references and undo/redo remain with their existing owners.
+Restoration requires the exact recorded document and selection, so intervening
+edits or moved selections cannot overwrite content. Undo can return to that exact
+state and paste again. External clipboard data, copy, a new cut and view destruction
+release the bounded origin. Active composition keeps native clipboard handling.
+Identity-normalization transactions have an explicit marker and update its derived
+after-state.
+
+Schema rendering never allocates IDs. Missing source IDs are assigned by the
+editor identity owner or immutable snapshot preparation; renderHTML omits a
+missing ID instead of creating an untraceable anchor. Clipboard cut serialization
+uses `EditorView.serializeForClipboard` for the same native HTML/text formats;
+the cut token is transient and is never persisted in the document.

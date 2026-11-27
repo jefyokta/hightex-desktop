@@ -27,6 +27,6 @@ export function ensureUniqueId(
       transaction.setNodeMarkup(pos, undefined, { ...node.attrs, link });
   });
   if (transaction.docChanged)
-    editor.view.dispatch(transaction.setMeta("addToHistory", false));
+    editor.view.dispatch(transaction.setMeta("nodeIdentity:normalized", true).setMeta("addToHistory", false));
   return ids;
 }

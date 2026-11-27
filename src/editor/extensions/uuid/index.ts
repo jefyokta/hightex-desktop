@@ -27,7 +27,9 @@ export function UUIDAttributes(prefix?: string) {
 
       renderHTML(attributes: any) {
         return {
-          id: attributes.id || `${prefix ? prefix + "-" : ""}${uniqId()}`,
+          // Only the source identity owner allocates IDs. Rendering a missing ID
+          // must not create an anchor that has no corresponding source node.
+          id: attributes.id || null,
         };
       },
 
