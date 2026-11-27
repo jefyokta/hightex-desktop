@@ -27,6 +27,11 @@ import { ParsedItalic } from "@/utils/parse-italic";
 import { truncate } from "@/utils/truncate";
 import { cn } from "@/lib/utils";
 import { t } from "@/utils/lang";
+import { generateDocumentPDF } from "@/document-export/generate";
+import { paginationReport } from "@/editor/pagination/report-error";
+import { ShouldReport } from "@/exception/should-report";
+import { readSplitPlan, type SplitPlan } from "@/document-export/split-plan";
+import { SplitPages } from "@/document-export/split-pages";
 
 type MainDocument =
   | {
@@ -40,11 +45,11 @@ type MainDocument =
 
 type SplitContext = {
   original: PDFDocument;
-  splitAtPage: number;
   privatePdf: PDFDocument;
   publicPdf: PDFDocument;
-  continueAtPage: number;
-  payload?: ExportPayload;
+  plan: SplitPlan;
+  publicCopy: SplitPages;
+  privateCopy: SplitPages;
 };
 
 const sleep = (ms: number) =>
@@ -121,15 +126,14 @@ export const Splitter = () => {
     const tasks: Job[] = [];
 
     if (inputs.doc.type === "hightex") {
+      const selected = inputs.doc.document;
       tasks.push({
         name: t("split.compile_document"),
-        task: async (_, setProgress: (progress: string) => void) => {
-          //@ts-ignore
-          const { id, title } = inputs.doc.document!;
-
-          if (!id) {
+        task: async (_, setProgress: (progress: string) => void, signal: AbortSignal) => {
+          if (!selected?.id) {
             throw new Error(t("split.document_not_selected"));
           }
+          const { id, title } = selected;
 
           setProgress(
             translate("split.compiling_document", {
@@ -137,15 +141,12 @@ export const Splitter = () => {
             }),
           );
 
-          const buffer: Uint8Array = await useIPC("ipcRenderer").ipcRenderer.invoke(
-            "hightex:pdf:silent",
-            id,
-            true,
-          );
-
-          await sleep(1500);
-
-          return new File([new Uint8Array(buffer)], "document");
+          try {
+            const buffer = await generateDocumentPDF(id, signal, { watermark: true });
+            return new File([new Uint8Array(buffer)], "document.pdf", { type: "application/pdf" });
+          } catch (error) {
+            throw paginationReport(error, "Kompilasi PDF Split") ?? error;
+          }
         },
       });
     }
@@ -171,40 +172,25 @@ export const Splitter = () => {
 
         const pdf = await PDFDocument.load(await file.arrayBuffer());
 
-        const payload: SplitContext = {
-          original: pdf,
-          privatePdf: await PDFDocument.create(),
-          publicPdf: await PDFDocument.create(),
-          splitAtPage: 0,
-          continueAtPage: 0,
-        };
-
+        let plan: SplitPlan;
         try {
           setProgress(t("split.reading_metadata"));
 
-          const subject = pdf.getSubject();
-
-          if (!subject) {
-            throw new Error();
-          }
-
-          const exportPayload: ExportPayload = JSON.parse(subject);
-          const chapters = exportPayload.chapters?.slice(3);
-
-          if (!chapters?.length) {
-            throw new Error();
-          }
-
-          payload.splitAtPage = chapters[0].page;
-          payload.continueAtPage = chapters[chapters.length - 1].page;
-          payload.payload = exportPayload;
-
-          await add(pdf, payload.publicPdf, 0);
-
-          return payload;
+          plan = readSplitPlan(pdf.getSubject(), pdf.getPageCount());
         } catch {
           throw new Error(t("split.invalid_pdf"));
         }
+        const publicPdf = await PDFDocument.create(), privatePdf = await PDFDocument.create();
+        const payload: SplitContext = {
+          original: pdf,
+          privatePdf,
+          publicPdf,
+          plan,
+          publicCopy: new SplitPages(pdf, publicPdf),
+          privateCopy: new SplitPages(pdf, privatePdf),
+        };
+        await payload.publicCopy.append(Array.from({ length: plan.cover.end - plan.cover.start + 1 }, (_, index) => plan.cover.start - 1 + index));
+        return payload;
       },
     });
 
@@ -282,31 +268,18 @@ export const Splitter = () => {
       task: async (
         context: SplitContext,
         setProgress: (progress: string) => void,
+        signal: AbortSignal,
       ) => {
-        if (!context.payload?.detail) {
-          throw new Error(t("split.invalid_payload"));
-        }
-
-        const chapterKeys = Object.keys(context.payload.detail).sort();
-
-        const publicChapters = chapterKeys.filter(
-          (_, index) => index <= 2 || index >= chapterKeys.length - 2,
-        );
-
-        const privateChapters = chapterKeys.filter(
-          (_, index) => !(index <= 2 || index >= chapterKeys.length - 2),
-        );
-
         const copyRange = async (
           range: { start: number; end: number },
-          source: PDFDocument,
-          target: PDFDocument,
+          target: SplitPages,
           label: string,
         ) => {
           const total = range.end - range.start + 1;
           const pageIndexes: number[] = [];
 
           for (let page = range.start; page <= range.end; page++) {
+            signal.throwIfAborted();
             pageIndexes.push(page - 1);
 
             const current = page - range.start + 1;
@@ -323,46 +296,33 @@ export const Splitter = () => {
             await sleep(100);
           }
 
-          const copiedPages = await target.copyPages(source, pageIndexes);
-
-          for (const page of copiedPages) {
-            target.addPage(page);
-          }
+          await target.append(pageIndexes);
         };
 
         setProgress(t("split.preparing_public"));
 
-        await copyRange(
-          {
-            start: 4,
-            end: context.payload.detail[Number(publicChapters[0])].start - 1,
-          },
-          context.original,
-          context.publicPdf,
-          t("split.building_public"),
-        );
-
-        for (const key of publicChapters) {
+        for (const range of context.plan.publicRanges) {
           await copyRange(
-            context.payload.detail[Number(key)],
-            context.original,
-            context.publicPdf,
+            range,
+            context.publicCopy,
             t("split.building_public"),
           );
         }
 
         setProgress(t("split.preparing_private"));
 
-        for (const key of privateChapters) {
+        for (const range of context.plan.privateRanges) {
           await copyRange(
-            context.payload.detail[Number(key)],
-            context.original,
-            context.privatePdf,
+            range,
+            context.privateCopy,
             t("split.building_private"),
           );
         }
 
         setProgress(t("split.saving_pdf"));
+
+        context.publicCopy.finish();
+        context.privateCopy.finish();
 
         const publicPdf = await context.publicPdf.save();
         const privatePdf = await context.privatePdf.save();
@@ -374,13 +334,14 @@ export const Splitter = () => {
           "public.pdf": publicPdf,
           "private.pdf": privatePdf,
           "original.pdf": originalPdf,
-          "payload.json": strToU8(JSON.stringify(context.payload ?? {})),
+          "payload.json": strToU8(JSON.stringify(context.plan.payload)),
         });
 
         setProgress(t("split.saving_archive"));
 
         await sleep(500);
 
+        signal.throwIfAborted();
         return useIPC("file").file.save("splitted.zip", zip);
       },
     });
@@ -502,6 +463,9 @@ export const Splitter = () => {
                   </Select>
                 </div>
               )}
+              <p className="mt-4 text-sm text-muted-foreground">
+                {t("split.public_policy")}
+              </p>
             </div>
           </div>
         </div>
@@ -560,6 +524,8 @@ export const Splitter = () => {
             setError(ApplicationError.normilize(err));
 
             console.error(err);
+
+            if (err instanceof ShouldReport) throw err;
 
             if (err instanceof ShouldSilent) {
               throw new ShouldNotified(err.message);

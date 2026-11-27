@@ -523,3 +523,27 @@ editor identity owner or immutable snapshot preparation; renderHTML omits a
 missing ID instead of creating an untraceable anchor. Clipboard cut serialization
 uses `EditorView.serializeForClipboard` for the same native HTML/text formats;
 the cut token is transient and is never persisted in the document.
+
+## Split compatibility
+
+`captureDocumentPDF` accepts an editor, a read-only document context or a stored
+document ID. The ID path waits for committed storage, resolves the existing
+category and builds a snapshot context without warming or activating an editor.
+`generateDocumentPDF` owns cancellation of its experimental native byte request.
+The main service validates, prints and assembles through the existing PDF path;
+the legacy PDF service and IPC remain available.
+
+Split reads canonical section IDs and page ranges from PDF subject metadata.
+Chapters I–III and the last numbered chapter are public; intervening chapters
+are private. Other sections, including bibliography, appendices and CV, are
+public. Signed statement/consent uploads replace those named sections. The
+original validity section is retained, and the plagiarism upload is inserted
+with the signed uploads after the cover. Legacy `ExportPayload` PDFs retain
+their detail-based split path, with numerical chapter sorting.
+
+`SplitPages` detaches internal destinations while copying, then maps links to
+pages actually present in each output. Excluded or unresolved destinations use
+`#`; they must not recursively copy an excluded page. The original PDF keeps
+its original destinations. Malformed or incomplete split ranges are rejected
+because their page ownership cannot be trusted, without changing export's
+content-recovery policy.

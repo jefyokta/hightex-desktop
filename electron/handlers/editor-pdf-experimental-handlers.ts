@@ -6,7 +6,7 @@ import { Handled } from "../exception/interface/handled";
 export class EditorPDFExperimentalHandlers {
   static register() {
     const jobs = new Map<string, AbortController>();
-    for (const action of ["export", "debug"] as const) {
+    for (const action of ["export", "debug", "generate"] as const) {
       IPCMain.handle(`experimental:editor-pdf:${action}`, async (event, input: EditorPDFSnapshot, requestId: string) => {
         if (
           event.senderFrame?.processId !== event.sender.mainFrame.processId ||

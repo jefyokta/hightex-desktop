@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld("editorPDFExperimental", {
     ipcRenderer.invoke("experimental:editor-pdf:debug", snapshot, requestId),
   export: (snapshot, requestId) =>
     ipcRenderer.invoke("experimental:editor-pdf:export", snapshot, requestId),
+  generate: (snapshot, requestId) =>
+    ipcRenderer.invoke("experimental:editor-pdf:generate", snapshot, requestId),
   cancel: (requestId) =>
     ipcRenderer.invoke("experimental:editor-pdf:cancel", requestId),
   init: (request) =>

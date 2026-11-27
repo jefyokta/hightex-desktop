@@ -42,6 +42,7 @@ export const ProgressJob = ({
     if (!started) return;
 
     let cancelled = false;
+    const controller = new AbortController();
 
     const run = async () => {
       const next = jobs.map(() => "pending" as Status);
@@ -55,7 +56,7 @@ export const ProgressJob = ({
         setStatus([...next]);
 
         try {
-          res = await jobs[i].task(res, setProgress);
+          res = await jobs[i].task(res, setProgress, controller.signal);
 
           if (cancelled) return;
 
@@ -79,6 +80,7 @@ export const ProgressJob = ({
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [started]);
 

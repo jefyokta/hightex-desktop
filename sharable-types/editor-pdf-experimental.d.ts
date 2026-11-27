@@ -39,6 +39,7 @@ declare global {
   interface EditorPDFExperimentalAPI {
     onProgress(requestId: string, callback: (progress: EditorPDFProgress) => void): () => void;
     debug(snapshot: EditorPDFSnapshot, requestId: string): Promise<void>;
+    generate(snapshot: EditorPDFSnapshot, requestId: string): Promise<Uint8Array>;
     export(
       snapshot: EditorPDFSnapshot,
       requestId: string,

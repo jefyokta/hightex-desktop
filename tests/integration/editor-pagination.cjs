@@ -394,6 +394,9 @@ app
       debugTimer.unref();
     }
     await until("window.ready&&window.editor");
+    if (process.env.HIGHTEX_PAGINATION_SPLIT) {
+      await require('./editor-pagination-split.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
     if (process.env.HIGHTEX_PAGINATION_FLOW) {
       await require('./editor-pagination-flow.cjs').run({execute,until,artifacts});return;
     }

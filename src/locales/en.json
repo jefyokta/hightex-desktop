@@ -1385,6 +1385,7 @@
       "hightex": "HighTex Document",
       "select": "Select HighTex document"
     },
+    "public_policy": "For paginated PDFs, front matter, Chapters I–III, the final chapter, bibliography, appendices, and CV are public. Chapters between Chapter III and the final chapter are private.",
     "main_document_not_found": "Main document not found",
     "document_not_selected": "No document selected",
     "statement": {
