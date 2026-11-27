@@ -113,6 +113,7 @@ export class EditorPDFExperimentalService {
             planHash: snapshot.planHash,
             fingerprint: snapshot.fingerprint,
             pages: snapshot.pages,
+            hasWm: Boolean(snapshot.watermark),
           }),
         );
         const bytes = await pdf.save();

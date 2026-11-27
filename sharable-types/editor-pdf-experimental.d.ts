@@ -23,6 +23,7 @@ declare global {
     html: string;
     presentation: EditorPDFRect[][];
     fingerprint: string;
+    watermark?: string;
   }
   interface EditorPDFSnapshot extends EditorPDFContent {
     version: 3;

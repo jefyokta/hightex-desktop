@@ -210,22 +210,24 @@ export class Document {
   }
 
   private async loadSchemeFromExternal() {
-    const categories = await useIPC("hightex").hightex.categories();
+    this.category = await Document.resolveCategory(this.getDocument().category);
+    return this.category.chapters;
+  }
 
-    const doc = this.getDocument();
+  /** Resolve the same category for editing and read-only stored-document export. */
+  static async resolveCategory(categoryId: string) {
+    const categories = await useIPC("hightex").hightex.categories();
     if (categories.length == 0) {
       throw new CategoryEmpty();
     }
 
     const category =
-      categories.find((c) => c.id.toString() === doc.category) ??
-      (await useIPC("hightex").hightex.category?.(doc.category));
+      categories.find((c) => c.id.toString() === categoryId) ??
+      (await useIPC("hightex").hightex.category?.(categoryId));
     if (!category) {
-      throw new CategoryEmpty(doc.category);
+      throw new CategoryEmpty(categoryId);
     }
-    this.category = category;
-
-    return category?.chapters;
+    return category;
   }
 
   private buildChaptersFromScheme(): Chapter[] {

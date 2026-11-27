@@ -80,6 +80,19 @@ export async function installPDFSnapshot(
     document.documentElement.className = parsed.documentElement.className;
     styles.forEach((style) => document.head.append(style));
     target.replaceChildren(document.importNode(root, true));
+    if (input.watermark) {
+      const bank = document.createElement("section");
+      bank.dataset.watermarkBank = "";
+      bank.style.cssText = "position:absolute;left:-100000px;top:0";
+      for (let index = 0; index < input.pages; index++) {
+        const image = document.createElement("img");
+        image.src = input.watermark;
+        image.alt = "";
+        image.dataset.printWatermark = String(index);
+        bank.append(image);
+      }
+      target.firstElementChild!.append(bank);
+    }
     await waitForPrintImages(target, signal);
     target.getBoundingClientRect();
     await abortable(document.fonts.ready, signal);

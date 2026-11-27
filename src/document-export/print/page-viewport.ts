@@ -19,6 +19,8 @@ export function installPageViewport(
     );
   const contexts = Array.from(bank.children) as HTMLElement[],
     overlays = Array.from(chrome.children) as HTMLElement[];
+  const watermarkBank = root.querySelector<HTMLElement>("[data-watermark-bank]");
+  const watermarks = Array.from(watermarkBank?.children ?? []) as HTMLElement[];
   contexts.forEach((context, index) => {
     if (context.dataset.printContext !== String(index))
       throw Error(
@@ -40,8 +42,12 @@ export function installPageViewport(
   const baseStyle = `html,body {margin:0!important;padding:0!important;background:white!important}
     [data-print-viewport]{position:relative;overflow:hidden;margin:0;padding:0;font:12pt/1.5 "Times New Roman",serif;background:white;color:black}
     [data-print-viewport] *{break-before:auto!important;break-after:auto!important;break-inside:auto!important;orphans:1!important;widows:1!important}
-    @media print{[data-context-bank],[data-chrome-bank],[data-editor-pdf-debug-controls]{display:none!important}}
-  `;
+    @media print{[data-context-bank],[data-chrome-bank],[data-watermark-bank],[data-editor-pdf-debug-controls]{display:none!important}}
+  ` + (snapshot.watermark ? `
+    [data-print-context]{z-index:1}
+    [data-print-context] > :is(.page,.document-template-page){background:transparent!important;--editor-paper:transparent!important}
+    [data-print-watermark]{position:absolute;left:0;object-fit:cover;pointer-events:none;user-select:none;z-index:0}
+  ` : "");
   style.textContent = baseStyle;
   document.head.append(style);
   let paperSize = "";
@@ -79,6 +85,7 @@ export function installPageViewport(
         overlay.removeAttribute("style");
         chrome.append(overlay);
       }
+      for (const image of watermarks.slice(selected, selected + selectedCount)) watermarkBank?.append(image);
     }
     const height = (count - 1) * geometry.stride + geometry.height;
     const size = `${geometry.width}px ${height}px`;
@@ -91,6 +98,10 @@ export function installPageViewport(
     context.style.top =
       `${-(view.page - 1) * geometry.stride}px`;
     const chromePages = overlays.slice(index, index + count);
+    watermarks.slice(index, index + count).forEach((image, offset) => {
+      image.style.cssText = `top:${offset * geometry.stride}px;width:${geometry.width}px;height:${geometry.height}px`;
+      viewport.prepend(image);
+    });
     if (count > 1)
       chromePages.forEach((overlay, offset) => {
         overlay.style.cssText = `position:absolute;left:0;top:${offset * geometry.stride}px;width:${geometry.width}px;height:${geometry.height}px`;

@@ -12,6 +12,7 @@ export function editorPDFIdentity(input: EditorPDFSnapshot): string {
     input.html,
     input.presentation,
     input.projection,
+    ...(input.watermark ? [input.watermark] : []),
   ]);
 }
 
@@ -38,6 +39,9 @@ export function validateEditorPDFSnapshot(value: unknown): asserts value is Edit
   text(input.title, "title", 4096);
   text(input.author, "author", 4096);
   text(input.html, "html", 64 * 1024 * 1024, false);
+  if (input.watermark !== undefined &&
+      (typeof input.watermark !== "string" || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(input.watermark) || input.watermark.length > 8 * 1024 * 1024))
+    throw new EditorPDFSnapshotError("watermark", "expected an embedded JPEG background", input.watermark);
   const contexts = validateProjection(input.projection, pages);
   validatePresentation(input.presentation, contexts);
   for (const key of ["sourceHash", "planHash", "fingerprint"] as const) {
