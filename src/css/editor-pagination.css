@@ -188,6 +188,9 @@ img.editor-pagination-image {
 }
 
 .editor-pagination-furniture {
+  top: var(--editor-furniture-top);
+  left: var(--editor-furniture-left);
+  width: var(--editor-furniture-width);
   position: absolute;
   z-index: 3;
 }

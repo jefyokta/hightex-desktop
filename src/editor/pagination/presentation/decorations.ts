@@ -89,7 +89,9 @@ export function paginationFurniture(
   for (const item of items) {
     const furniture = document.createElement("div");
     furniture.className = "tiptap ProseMirror editor-pagination-furniture";
-    furniture.style.cssText = `top:${item.top}px;left:${item.left}px;width:${item.width}px`;
+    // CSSOM serializes numeric lengths with reduced precision. Preserve the plan's
+    // coordinates as tokens so cached HTML and live editor furniture paint alike.
+    furniture.style.cssText = `--editor-furniture-top:${item.top}px;--editor-furniture-left:${item.left}px;--editor-furniture-width:${item.width}px`;
     furniture.innerHTML = item.html;
     furniture
       .querySelectorAll(editorNonContentSelector)

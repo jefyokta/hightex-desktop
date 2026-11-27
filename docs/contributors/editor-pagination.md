@@ -495,3 +495,10 @@ source preservation, exact-snapshot debug export and close/cancel cleanup.
 `editor-affordances.css` and `editor-table-controls.css` own editor interaction
 styles. PDF capture freezes this same stylesheet graph. List indentation and
 table content must not acquire a second print-only implementation.
+
+Continuation furniture stores planned coordinates in CSS custom properties.
+Assigning ordinary numeric `top`, `left` and `width` properties loses precision
+when Chromium serializes CSSOM to HTML. A fresh DOM and cached HTML can then
+have different geometry even when their serialized strings match. Keep the
+coordinate tokens intact at the shared presenter; do not hide this with a
+comparison tolerance or an independent export layout.
