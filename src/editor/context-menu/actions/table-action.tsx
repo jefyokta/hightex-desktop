@@ -2,13 +2,13 @@ import type { ContextMenuContext, NodeActionItem } from "../contracts";
 import { NodeAction } from "../node-action";
 import { t } from "@/utils/lang";
 import {
-  AlignCenter, AlignLeft, AlignRight, Grid2x2X, Merge, Plus, Split, Wrench,
+  AlignCenter, AlignLeft, AlignRight, Columns3, Grid2x2X, Merge, Plus, Split, Wrench,
 } from "lucide-react";
 
 export class TableAction extends NodeAction {
   protected readonly nodeType = "table";
 
-  public items({ editor }: ContextMenuContext): NodeActionItem[] {
+  public items({ editor, target }: ContextMenuContext): NodeActionItem[] {
     const inCell = editor.isActive("tableCell") || editor.isActive("tableRow");
     const deleteTable: NodeActionItem = {
       key: "delete-node",
@@ -18,8 +18,17 @@ export class TableAction extends NodeAction {
       onClick: () => editor.commands.deleteTable(),
     };
     if (!inCell) return [deleteTable];
+    const cell = [target.find("tableCell"), target.find("tableHeader")]
+      .filter((candidate) => candidate !== null)
+      .sort((left, right) => right.position - left.position)[0];
 
     return [
+      ...(cell ? [{
+        label: t("editor.context_menu.apply_cell_width_to_all"),
+        icon: <Columns3 className="size-4" />,
+        onClick: () => editor.commands.applyCellWidthToTable(cell.position),
+        disabled: !editor.can().applyCellWidthToTable(cell.position),
+      }] : []),
       {
         label: t("editor.context_menu.split_cell"),
         icon: <Split className="size-4" />,

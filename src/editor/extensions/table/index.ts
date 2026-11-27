@@ -12,9 +12,13 @@ import { chapterTableView } from "./view";
 import { chapterColumnResizing } from "./resizing";
 import { TABLE_CELL_MIN_WIDTH, fractionalColumnWidth } from "./widths";
 import { chapterTablePresentation } from "./presentation";
+import { applyCellWidthToTable } from "./commands";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
+    chapterTable: {
+      applyCellWidthToTable: (position?: number) => ReturnType;
+    };
     tableCell: {
       setCellAlignmentLeft: () => ReturnType;
       setCellAlignmentRight: () => ReturnType;
@@ -119,6 +123,12 @@ const CustomTableHeader = TableHeader.extend({
 });
 
 const CustomTable = Table.extend({
+  addCommands(): Partial<any> {
+    return {
+      ...this.parent?.(),
+      applyCellWidthToTable,
+    };
+  },
   addNodeView() {
     return ({ node, getPos, editor }) => {
       const pos = getPos();

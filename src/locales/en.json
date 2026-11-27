@@ -1118,6 +1118,7 @@
       "see_in_preview": "See in Preview",
       "delete": "Delete",
       "split_cell": "Split cell",
+      "apply_cell_width_to_all": "Apply this cell width to all cells",
       "align_left": "Align Left",
       "align_center": "Align Center",
       "align_right": "Align Right",

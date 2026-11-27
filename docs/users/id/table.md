@@ -2,6 +2,16 @@
 
 HighTex menyediakan dua jenis tabel: **Standalone Table** dan **Figure Table**.
 
+## Menyamakan lebar sel
+
+Klik kanan sel atau header yang lebarnya ingin dipakai, lalu pilih
+**Terapkan lebar sel ini ke semua sel**. Semua kolom pada tabel tersebut akan
+memakai lebar acuan yang sama. Jika terlalu lebar, hasilnya disesuaikan agar muat
+di area isi. Perubahan dapat dibatalkan dengan Undo.
+
+Sel gabungan mempertahankan span, dengan lebar acuan dihitung per kolom.
+Pada tabel bersarang, aksi hanya berlaku pada tabel tempat sel diklik.
+
 ## Standalone Table
 
 Standalone Table adalah tabel berbentuk grid yang digunakan untuk **layouting** atau mengatur susunan konten.

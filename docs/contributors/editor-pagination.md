@@ -113,12 +113,20 @@ gesture along with its cursor/active-handle presentation.
 Escape/blur cancels the gesture; source changes and destruction release listeners.
 Snapshot rendering and ordinary fitting never write authored widths.
 
+The table context menu also applies the clicked cell's visible width to every
+logical column in that table through `applyCellWidthToTable`. Merged cells use
+their average per-column width and retain their spans. The right-click target
+selects the nearest cell/header, including nested tables; the command uses the
+same presenter, fitting rule and one-transaction column setter as resizing.
+The result stays within its own container and supports undo/redo and persistence.
+
 The bounded regression runs with:
 
 ```sh
 bun test tests/table-widths.test.ts
 env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron tests/integration/editor-table-widths.cjs
 env -u ELECTRON_RUN_AS_NODE HIGHTEX_TABLE_WIDTHS_UX=1 node_modules/.bin/electron tests/integration/editor-table-widths.cjs
+env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron tests/integration/editor-table-width-apply.cjs
 ```
 
 It covers initial/update/unset widths, 1 px columns, oversized and nested tables,
