@@ -1,4 +1,10 @@
-# Experimental editor PDF flow
+# Canonical document PDF flow
+
+Editor toolbar, workspace PDF actions and Split now use this pipeline. The
+`experimental:editor-pdf:*` namespace and existing class names are retained for
+transport compatibility. Pagination is the editor's single mode; retaining these
+names does not expose a second product paginator. Legacy PDF IPC is kept for
+remaining compatibility consumers, including the deferred cloud viewer.
 
 The renderer creates final document pages; Electron only prints the captured page
 set. The entry point is `captureDocumentPDF` in [capture.ts](../../src/document-export/capture.ts).
@@ -257,6 +263,7 @@ main-process job, and closes its hidden print window. Navigation/unmount release
 the progress listener; cancelled or obsolete jobs cannot update the next request.
 The existing atomic-file boundary remains responsible for preventing a partial PDF
 from replacing the destination.
+
 
 Run `tests/integration/editor-pagination-ui.cjs` with isolated Electron to check
 hover/selection/menu geometry and the debug-snapshot-to-native-PDF path. These

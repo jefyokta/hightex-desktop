@@ -1,4 +1,3 @@
-import { useIPC } from "@/hooks/use-ipc";
 import {
   ArrowLeftIcon,
   CircleHelp,
@@ -22,14 +21,13 @@ import {
   Loader2,
   Settings,
   GitBranch,
+  X,
 } from "lucide-react";
 
 import React, { type PropsWithChildren, useState } from "react";
 import { useCurrentEditor } from "../../hooks/use-editor";
 import { useExpandableSidebar } from "@/hooks/use-expandable-sidebar";
 import { t } from "@/utils/lang";
-import { getEditorChapter } from "@/editor/event";
-import { toast } from "sonner";
 import { createFigureTable } from "@/editor/utils/create-figure-table";
 import { ToolbarButton as Button } from "./toolbar-button";
 import { useEditorState } from "@tiptap/react";
@@ -40,6 +38,7 @@ import { SettingModal } from "./settings-modal";
 import { DocumentSaveActions } from "./document-save-actions";
 import { ChapterNavigation } from "./chapter-navigation";
 import { BranchManagerDialog } from "./branch-manager-dialog";
+import { useDocumentPDFRequest } from "@/context/document-pdf-context";
 
 export const NavBar: React.FC = () => {
   const { editor } = useCurrentEditor();
@@ -56,9 +55,6 @@ export const NavBar: React.FC = () => {
     ? activeDocument.branchName || activeDocument.title
     : undefined;
   const { setOpen, setContent } = useExpandableSidebar();
-  const [exportingPdf, setExportingPdf] = React.useState(false);
-  const [pdfProgress, setPdfProgress] = React.useState<number>(0);
-  const [pdfStatus, setPdfStatus] = React.useState<string>("");
   const [openSetting, setOpenSetting] = useState(false);
   const [openBranchDialog, setOpenBranchDialog] = useState(false);
   const state = useEditorState({
@@ -84,6 +80,7 @@ export const NavBar: React.FC = () => {
     return (
       <div className="sticky top-0 z-50 mx-auto flex w-fit items-center rounded-xl bg-white/80 p-1 backdrop-blur dark:bg-neutral-900/70">
         <ChapterNavigation />
+        <DocumentPDFToolbarButton />
         {chapter && <DocumentSaveActions editor={editor} chapter={chapter} />}
         <Button
           title={t("guide.replay")}
@@ -310,126 +307,7 @@ export const NavBar: React.FC = () => {
                     );
                   }}
                 />
-                <Button
-                  tour="editor-pdf"
-                  title={
-                    exportingPdf
-                      ? `${pdfStatus || t("editor.inline.exporting_pdf")} (${pdfProgress}%)`
-                      : t("common.export")
-                  }
-                  icon={exportingPdf ? Loader2 : DownloadCloudIcon}
-                  disabled={exportingPdf}
-                  onClick={async () => {
-                    if (exportingPdf) return;
-                    setExportingPdf(true);
-                    setPdfProgress(5);
-                    setPdfStatus(t("common.preparing_pdf"));
-                    const requestId = crypto.randomUUID();
-
-                    const docId = getEditorChapter(editor)?.getDocumentId();
-                    if (!docId) {
-                      toast.error(t("error.document.not_found"));
-                      setExportingPdf(false);
-                      return;
-                    }
-
-                    const renderProgressToast = (
-                      status: string,
-                      progress: number,
-                    ) => (
-                      <div className="flex flex-col gap-1.5 w-full min-w-60">
-                        <div className="flex justify-between items-center text-xs font-semibold">
-                          <span className="truncate pr-2">{status}</span>
-                          <span className="text-neutral-500 font-mono">
-                            {progress}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-neutral-200 dark:bg-neutral-700 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-black dark:bg-white h-full transition-all duration-300 rounded-full"
-                            style={{ width: `${Math.max(progress, 5)}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-
-                    const toastId = toast.loading(
-                      renderProgressToast(t("editor.inline.preparing_pdf"), 5),
-                    );
-
-                    const unsubscribe = useIPC("hightex").hightex.onPdfProgress(
-                      (update) => {
-                        if (update.requestId !== requestId) return;
-                        const prog = update.progress ?? 0;
-                        setPdfProgress(prog);
-                        setPdfStatus(update.status);
-
-                        toast.loading(
-                          renderProgressToast(update.status, prog),
-                          {
-                            id: toastId,
-                          },
-                        );
-                      },
-                    );
-
-                    try {
-                      const result = await useIPC("ipcRenderer").ipcRenderer.invoke(
-                        "hightex:pdf",
-                        docId,
-                        false,
-                        requestId,
-                      );
-
-                      if (result === null) {
-                        toast.dismiss(toastId);
-                        toast.info(t("editor.inline.export_cancelled"), {
-                          duration: 3000,
-                        });
-                        return;
-                      }
-
-                      toast.success(
-                        <div className="flex flex-col gap-1">
-                          <span className="font-semibold text-sm">
-                            {t("editor.inline.pdf_saved")}
-                          </span>
-                          <span className="text-xs text-neutral-500 truncate max-w-60">
-                            {result.filename}
-                          </span>
-                        </div>,
-                        {
-                          id: toastId,
-                          duration: 15000,
-                          action: {
-                            label: t("editor.inline.open_file"),
-                            onClick: () => useIPC("file").file?.openPath?.(result.path),
-                          },
-                          cancel: {
-                            label: t("editor.inline.open_folder"),
-                            onClick: () =>
-                              useIPC("file").file?.showInFolder?.(result.path),
-                          },
-                        },
-                      );
-                    } catch (error) {
-                      const msg =
-                        error instanceof Error
-                          ? error.message
-                          : t("common.export_failed");
-                      toast.error(t("common.export_failed"), {
-                        description: msg,
-                        id: toastId,
-                        duration: 8000,
-                      });
-                    } finally {
-                      unsubscribe();
-                      setExportingPdf(false);
-                      setPdfProgress(0);
-                      setPdfStatus("");
-                    }
-                  }}
-                />
+                <DocumentPDFToolbarButton />
               </ButtonGroup>
               <ButtonGroup>
                 <Button
@@ -466,6 +344,27 @@ export const NavBar: React.FC = () => {
     </>
   );
 };
+
+function DocumentPDFToolbarButton() {
+  const request = useDocumentPDFRequest();
+  return <><Button
+    tour="editor-pdf"
+    title={t(request?.busy ? "editor.inline.exporting_pdf" : "common.export")}
+    icon={request?.busy ? Loader2 : DownloadCloudIcon}
+    disabled={!request?.available || request.busy}
+    spinnable={Boolean(request?.busy)}
+    onClick={() => void request?.prepare("export")}
+  />
+    {request?.busy && <Button
+      tour="editor-pdf-cancel"
+      title={t("common.cancel")}
+      icon={X}
+      spinnable={false}
+      disabled={request.phase === "cancel"}
+      onClick={request.dismiss}
+    />}
+  </>;
+}
 
 const ButtonGroup: React.FC<PropsWithChildren & { className?: string }> = ({
   children,

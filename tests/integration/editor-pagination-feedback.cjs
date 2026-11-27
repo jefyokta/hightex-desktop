@@ -119,13 +119,12 @@ exports.runFeedback = async ({ execute, until, win }) => {
   );
   await execute("failLayout()");
   await until("document.querySelector('[data-pagination-retry]')");
-  await click("[data-pagination-disable]");
-  await until(
-    "!document.querySelector('.editor-pagination-sheet')&&!document.querySelector('[data-pagination-status]')",
-  );
+  assert.equal(await execute("return !!document.querySelector('[data-pagination-disable]')"),false);
+  await click("[data-pagination-retry]");
+  await until("layoutReady()&&!layout().error");
   assert.equal(
     await execute("return window.config.get().editor.pagination"),
-    false,
+    true,
   );
   assert.equal(
     await execute("return JSON.stringify(editor.getJSON())"),
@@ -137,7 +136,7 @@ exports.runFeedback = async ({ execute, until, win }) => {
     await execute("return feedbackBaseline"),
   );
 
-  // Report remains available with page view off; nested Escape retains Settings.
+  // Report remains available in Settings; nested Escape retains Settings.
   await execute("window.mountApplication()");
   await until(
     "window.applicationEditor?.isEditable&&document.querySelector('[data-tour=editor-settings-trigger]')",
@@ -152,20 +151,9 @@ exports.runFeedback = async ({ execute, until, win }) => {
   await until(
     "!document.querySelector('[data-pagination-feedback-copy]').disabled",
   );
-  assert(
-    (
-      await execute(
-        "return document.querySelector('[data-pagination-feedback-preview]').value",
-      )
-    ).includes("HighTex: unknown"),
-  );
-  assert(
-    (
-      await execute(
-        "return document.querySelector('[data-pagination-feedback-preview]').value",
-      )
-    ).includes("disabled"),
-  );
+  const offlinePreview = await execute("return document.querySelector('[data-pagination-feedback-preview]').value");
+  assert(offlinePreview.includes("HighTex: unknown"));
+  assert(!offlinePreview.includes("disabled"));
   await click("[data-pagination-feedback-copy]");
   await until("feedbackTest.copies.length===3");
   await execute(
@@ -180,11 +168,11 @@ exports.runFeedback = async ({ execute, until, win }) => {
   );
   assert.equal(
     await execute("return window.config.get().editor.pagination"),
-    false,
+    true,
   );
   assert.equal(await execute("return feedbackTest.reports.length"), 2);
   assert.deepEqual(await execute("return errors"), []);
   console.log(
-    "PASS: reviewed/copy-only feedback, explicit mocked send, failure/retry, duplicate guard, offline draft, nested dialogs, recovery/disable/undo; no actual reports sent.",
+    "PASS: reviewed/copy-only feedback, explicit mocked send, failure/retry, duplicate guard, offline draft, nested dialogs, recovery/undo with permanent pagination; no actual reports sent.",
   );
 };

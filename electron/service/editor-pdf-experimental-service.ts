@@ -23,10 +23,10 @@ export class EditorPDFExperimentalService {
     const snapshot = this.validatedSnapshot(input);
     this.progress({stage:"destination",pages:snapshot.pages,completedPages:0});
     const chosen = await dialog.showSaveDialog({
-      title: "Export PDF (experimental)",
+      title: "Export PDF",
       defaultPath: join(
         ConfigService.get().export.saveFolder,
-        `${snapshot.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 120)}-editor.pdf`,
+        `${snapshot.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 120)}.pdf`,
       ),
       filters: [{ name: "PDF", extensions: ["pdf"] }],
     });

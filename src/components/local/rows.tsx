@@ -30,6 +30,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ParsedItalic } from "@/utils/parse-italic";
+import { useDocumentPDF } from "@/hooks/use-document-pdf";
+import { PDFRequestStatus } from "@/components/editor/editor-pdf-experimental";
 
 export const Row = ({
   doc,
@@ -55,7 +57,9 @@ export const Row = ({
   onExport: (id: string) => Promise<boolean>;
 }) => {
   const language = useAppLanguage();
-  const [busy, setBusy] = useState(false);
+  const [actionBusy, setBusy] = useState(false);
+  const pdfRequest = useDocumentPDF(doc.id);
+  const busy = actionBusy || pdfRequest.busy;
   const [branchesOpen, setBranchesOpen] = useState(false);
   const pending = useRef(false);
   const run = async (action: () => Promise<unknown>) => {
@@ -84,46 +88,6 @@ export const Row = ({
         }).format(date)
       : t("workspace.no_activity");
 
-  const pdf = async (watermark = false) => {
-    const requestId = crypto.randomUUID();
-    const toastId = toast.loading(t("common.preparing_pdf"));
-    const off = useIPC("hightex").hightex.onPdfProgress((update) => {
-      if (update.requestId !== requestId) return;
-      toast.loading(update.status, {
-        id: toastId,
-        description: `${Math.max(0, Math.min(100, update.progress ?? 0))}%`,
-      });
-    });
-    try {
-      const result = await useIPC("ipcRenderer").ipcRenderer.invoke(
-        "hightex:pdf",
-        doc.id,
-        watermark,
-        requestId,
-      );
-      if (!result) {
-        toast.dismiss(toastId);
-        return;
-      }
-      toast.success(t("dashboard.pdf_saved"), {
-        id: toastId,
-        description: result.filename,
-        duration: 10000,
-        action: {
-          label: t("dashboard.open_file"),
-          onClick: () => useIPC("file").file?.openPath?.(result.path),
-        },
-        cancel: {
-          label: t("dashboard.open_folder"),
-          onClick: () => useIPC("file").file?.showInFolder?.(result.path),
-        },
-      });
-    } catch {
-      toast.error(t("common.export_failed"), { id: toastId });
-    } finally {
-      off();
-    }
-  };
 
   return (
     <>
@@ -214,7 +178,9 @@ export const Row = ({
                 <ArrowUpRight className="size-4 text-muted-foreground" />
               )}
             </Button>
-            <DropdownMenu>
+            {/* Export freezes document styles; this menu must not inject a modal
+                scroll-lock stylesheet while its action starts the capture. */}
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
@@ -241,11 +207,11 @@ export const Row = ({
                   <Download />
                   {t("dashboard.export_hightex")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => void run(() => pdf())}>
+                <DropdownMenuItem onSelect={() => void pdfRequest.prepare("export")}>
                   <FileText />
                   {t("dashboard.export_pdf")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => void run(() => pdf(true))}>
+                <DropdownMenuItem onSelect={() => void pdfRequest.prepare("export", { watermark: true })}>
                   <FileText />
                   {t("dashboard.export_watermark")}
                 </DropdownMenuItem>
@@ -262,6 +228,7 @@ export const Row = ({
           </div>
         )}
       </article>
+      <div className="px-4"><PDFRequestStatus request={pdfRequest} /></div>
       <Dialog open={branchesOpen} onOpenChange={setBranchesOpen}>
         <DialogContent>
           <DialogHeader>

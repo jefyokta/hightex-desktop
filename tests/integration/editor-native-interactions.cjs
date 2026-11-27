@@ -35,6 +35,9 @@ const restoreClipboard = input => execFileSync('osascript',['-l','JavaScript','-
   if(items.length)board.writeObjects($(items));
 `],{input,stdio:['pipe','ignore','pipe']});
 
+exports.readClipboard = readClipboard;
+exports.restoreClipboard = restoreClipboard;
+
 exports.run = async context => {
   const {execute,until,win,artifacts}=context;
   const report={platform:process.platform,os:os.release(),protocol:'Electron native editing commands use the macOS clipboard; trusted Chromium keyboard/mouse input. Physical OS IME candidate UI requires operator review.'};

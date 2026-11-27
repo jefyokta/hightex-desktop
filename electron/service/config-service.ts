@@ -15,7 +15,7 @@ const DEFAULT_CONFIG: ConfigShape = {
     spellCheck: false,
     preferCloudProfile: true,
     tableResizeGuides: true,
-    pagination: false,
+    pagination: true,
   },
   export: {
     saveDialog: false,
@@ -40,6 +40,7 @@ export class ConfigService {
       editor: {
         ...DEFAULT_CONFIG.editor,
         ...(saved?.editor || {}),
+        pagination: true,
       },
       previewer: {
         ...DEFAULT_CONFIG.previewer,
@@ -69,6 +70,7 @@ export class ConfigService {
       editor: {
         ...current.editor,
         ...(patch.editor || {}),
+        pagination: true,
       },
       previewer: {
         ...current.previewer,

@@ -1,4 +1,6 @@
 import type { Editor } from "@tiptap/core";
+import { DocumentPDFProvider } from "@/context/document-pdf-context";
+import { useChapterStore } from "./use-chapter";
 import {
   createContext,
   type Dispatch,
@@ -15,10 +17,13 @@ export const EditorContext = createContext<{
 
 export const EditorProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [editor, setEditor] = useState<Editor | null>(null);
+  const { chapter } = useChapterStore();
 
   return (
     <EditorContext.Provider value={{ editor, setEditor }}>
-      {children}
+      <DocumentPDFProvider source={chapter?.frozen ? chapter.document : editor}>
+        {children}
+      </DocumentPDFProvider>
     </EditorContext.Provider>
   );
 };

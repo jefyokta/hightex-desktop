@@ -3,19 +3,17 @@ import { useChapterStore } from "@/hooks/use-chapter";
 import { Cv } from "./cv";
 import { useRef, useState } from "react";
 import { useChapterScroll } from "@/hooks/use-chapter-scroll";
-import { useConfig } from "@/hooks/use-config";
 import { EditorPDFExperimental } from "../editor-pdf-experimental";
 
 export const FrozenChapter = () => {
   const { chapter } = useChapterStore();
-  const { config } = useConfig();
   const [ready, setReady] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   useChapterScroll(chapter?.getId(), ready, contentRef);
 
   return (
     <div ref={contentRef}>
-      {config?.editor.pagination && chapter && (
+      {chapter && (
         <div className="mb-3">
           <EditorPDFExperimental editor={chapter.document} disabled={!ready} />
         </div>

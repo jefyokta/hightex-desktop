@@ -65,6 +65,7 @@ declare global {
       scrollBar?: boolean;
       aliasHint?: boolean;
       tableResizeGuides?: boolean;
+      /** Retained for saved-config compatibility; the editor always paginates. */
       pagination?: boolean;
     };
     export: {

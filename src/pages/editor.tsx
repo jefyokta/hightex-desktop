@@ -252,7 +252,6 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
   navigationTargets.current = params;
   const { config } = useConfig();
   const composite = Boolean(
-    config?.editor.pagination &&
     ["abstract", "abstract-en"].includes(chapter.getChapter()),
   );
   const [ready, setReady] = useState(false);
@@ -361,8 +360,8 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
 
   useEffect(() => {
     if (ready && editor && !editor.isDestroyed)
-      editor.commands.setEditorPagination(config?.editor.pagination ?? false);
-  }, [editor, ready, config?.editor.pagination]);
+      editor.commands.setEditorPagination(true);
+  }, [editor, ready]);
 
   return (
     <>

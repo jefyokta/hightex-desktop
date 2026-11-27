@@ -10,23 +10,13 @@ interface Props {
 
 /** Shared controls for app preferences and the editor's settings modal. */
 export function EditorSettingsFields({ value, onChange, paginationFeedback }: Props) {
-  const pagination = (
-    <SettingSwitch
-      label={t("settings.editor.pagination")}
-      description={t("settings.editor.pagination_description")}
-      value={value?.pagination ?? false}
-      onChange={pagination => onChange({ pagination })}
-    />
-  );
-
   return (
     <>
-      {paginationFeedback ? (
+      {paginationFeedback && (
         <div data-tour="editor-pagination-setting" className="space-y-2">
-          {pagination}
           {paginationFeedback}
         </div>
-      ) : pagination}
+      )}
       <SettingSwitch
         label={t("settings.editor.spell_check")}
         value={value?.spellCheck ?? false}

@@ -42,7 +42,7 @@ const seenBaseline = Object.fromEntries(
   baseline.map((guide) => [guide.id, guide.revision]),
 );
 
-test("page view announcement is reserved for 1.5+ and can be dismissed without opting in", () => {
+test("page view announcement keeps its identity and acknowledges the current permanent-mode guide revision", () => {
   const old = availableGuides("1.4.4", "editor");
   expect(
     old.some((guide) => guide.id === "experimental-editor-pagination"),
@@ -58,13 +58,13 @@ test("page view announcement is reserved for 1.5+ and can be dismissed without o
     "experimental-editor-pagination",
   ]);
   expect(guideAcknowledgments(plan)).toEqual([
-    { id: "experimental-editor-pagination", revision: 1 },
+    { id: "experimental-editor-pagination", revision: 2 },
   ]);
   expect(
     guidePlan(
       status({
         currentVersion: "1.5.0",
-        seenGuides: { ...seenGuides, "experimental-editor-pagination": 1 },
+        seenGuides: { ...seenGuides, "experimental-editor-pagination": 2 },
       }),
       "editor",
     ),

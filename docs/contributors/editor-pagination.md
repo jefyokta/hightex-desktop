@@ -1,8 +1,16 @@
-# Experimental editor page view
+# Editor pagination
+
+The product uses one pagination path for the editor, toolbar PDF export,
+workspace PDF export and Split compilation. All call the canonical capture and
+native print pipeline. Pagination is always enabled, including saved settings
+from the former opt-in version; the UI no longer switches to continuous mode.
+Legacy PDF code and IPC remain for compatibility and the deferred cloud viewer.
+This integration does not turn bounded fixture results into whole-corpus or
+release acceptance.
 
 ## Composite abstract sections
 
-With experimental pagination enabled, abstract editors include their existing
+Abstract editors include their existing
 template metadata and keyword suffix around the editable body. `SectionComposition`
 owns this shell; `PaginationView` and `EditorSectionRenderer` pass it through
 the same `LayoutSnapshot` and planner. Template blocks have generated slot IDs;
@@ -15,18 +23,19 @@ Content whitespace, wrapping and ligature rules are persistent in `editor.css`.
 Do not depend on Tiptap's injected stylesheet surviving navigation: its lifetime
 follows editable views and can end while snapshot compilation remains active.
 
-Experimental snapshot version 3 carries canonical contexts and ordered physical
+Snapshot version 3 carries canonical contexts and ordered physical
 views. The print host selects a bounded run from one canonical context per native
 print. `PDFPageAssembly` crops the native strip into selectable physical pages and
 rebuilds final internal destinations. Debug still selects individual pages.
-Debug HTML uses the same frozen snapshot with page navigation. Experimental
-transport accepts canonical v3 only; the legacy PDF implementation and IPC are separate.
+Debug HTML uses the same frozen snapshot with page navigation. The retained
+experimental transport namespace accepts canonical v3 only; the legacy PDF
+implementation and IPC are separate.
 
 Every editable section now uses the canonical context renderer, with optional
 abstract composition. Capture does not reuse the active editor's plan or wrapper
 DOM. Ordinary editor NodeViews still need complete presentation and editing
 acceptance; the mixed application fixture is one bounded proof. See the
-[document engine](document-engine.md) and [experimental PDF flow](editor-pdf-experimental.md).
+[document engine](document-engine.md) and [PDF flow](editor-pdf-experimental.md).
 `PaginationView` now schedules `ChapterLayoutCompiler` with captured source and
 resolved dependencies. It publishes the frozen result's effects through a metadata
 transaction, keeping the same EditorState/history/selection owner. It does not
@@ -40,16 +49,15 @@ cache. Editing/performance coverage and whole-feature acceptance remain separate
 from that implementation; further performance/retention work is deferred to the
 next version by the user.
 
-## Original page-view behavior
+## Original page-view behavior (historical)
 
-Enable **Settings → Editor → Page view (experimental)**, either in the workspace
+The earlier implementation offered **Settings → Editor → Page view (experimental)**, either in the workspace
 settings or the editor settings dialog. The preference is local application
-configuration (`editor.pagination`) and defaults to false. It applies to the
+configuration (`editor.pagination`) and defaulted to false. It applied to the
 active editable chapter. Frozen/generated chapters retain their existing views.
 
-This is an experimental editor layout. The legacy Paged.js PDF flow remains
-separate. Experimental PDF export uses the canonical context pipeline described
-above; it has not passed the complete acceptance contract.
+The current product wiring supersedes that opt-in UI. Whole-feature verification
+still follows the complete acceptance contract.
 
 ## Layout rules
 
@@ -425,7 +433,7 @@ Run Electron fixtures sequentially: Vite still reserves its default WebSocket
 port with HMR disabled, so concurrent fixture startups can emit development
 transport errors. These are distinct from the editor/compiler audits.
 
-## Document numbering in the experimental editor
+## Document numbering in the editor
 
 The live footer uses the document engine's final numbering metadata, including
 preceding parts and appendix resets. A local chapter page index is insufficient
@@ -440,7 +448,7 @@ labels remain empty until available; a refresh can retain previous labels while
 showing pending status. A failed document render exposes an error and retry rather
 than displaying invented offsets. Export independently freezes and renders its
 current source. `documentNumbering: false` selects local diagnostic labels for
-standalone layout fixtures. This remains an optional experimental feature.
+standalone layout fixtures; product page numbering uses the full document.
 
 `PaginationOptions.sections` configures `introduction`, `content` and `appendix`.
 Both live geometry and full-document rendering use these groups. Options include
@@ -503,27 +511,6 @@ have different geometry even when their serialized strings match. Keep the
 coordinate tokens intact at the shared presenter; do not hide this with a
 comparison tolerance or an independent export layout.
 
-## Clipboard continuity and source identity
-
-`ChapterClipboard` owns one native cut origin per editor. ProseMirror can collapse
-a selection spanning a list and caption into the remaining caption when cutting.
-Re-fitting that open slice at the resulting caret can create new figure wrappers
-and change the list structure. For an unchanged cut origin carrying the same
-clipboard token, `CutClipboard` restores the recorded source through an ordinary
-transaction. IDs, references and undo/redo remain with their existing owners.
-Restoration requires the exact recorded document and selection, so intervening
-edits or moved selections cannot overwrite content. Undo can return to that exact
-state and paste again. External clipboard data, copy, a new cut and view destruction
-release the bounded origin. Active composition keeps native clipboard handling.
-Identity-normalization transactions have an explicit marker and update its derived
-after-state.
-
-Schema rendering never allocates IDs. Missing source IDs are assigned by the
-editor identity owner or immutable snapshot preparation; renderHTML omits a
-missing ID instead of creating an untraceable anchor. Clipboard cut serialization
-uses `EditorView.serializeForClipboard` for the same native HTML/text formats;
-the cut token is transient and is never persisted in the document.
-
 ## Split compatibility
 
 `captureDocumentPDF` accepts an editor, a read-only document context or a stored
@@ -557,3 +544,44 @@ are removed. Guide selectors and descriptions follow the current controls.
 Legacy printable routes, PDF service, metadata types and IPC are retained for
 their remaining consumers. Release acceptance remains separate from the product
 integration and the bounded evidence recorded for it.
+
+## Shared export lifecycle
+
+`EditorProvider` supplies one `DocumentPDFProvider` to the toolbar and page PDF
+controls. Both use the same request, progress, cancellation and error state. Frozen
+sections use their warmed read-only document context. Workspace rows use the same
+`useDocumentPDF` hook with a stored document ID and the same status component.
+The document action menu is nonmodal so starting export does not capture a
+temporary modal scroll-lock stylesheet that disappears while sections render.
+Real stylesheet changes still invalidate capture.
+
+Current and historical chapter records are selected at `readExportDocument`;
+archives continue to retain all revisions. Exporting a historical editor does
+not substitute current chapter content.
+
+Watermark export embeds the existing JPEG asset as a validated, fingerprinted
+snapshot resource. The print viewport paints it beneath each physical page and
+keeps paper wrappers transparent. Authored image pixels and content coordinates
+are preserved; the watermark does not participate in page planning. PDF subject
+metadata records `hasWm` for Split and inspection.
+
+## Clipboard continuity and source identity
+
+`ChapterClipboard` owns one native cut origin per editor. ProseMirror can collapse
+a selection spanning a list and caption into the remaining caption when cutting.
+Re-fitting that open slice at the resulting caret can create new figure wrappers
+and change the list structure. For an unchanged cut origin carrying the same
+clipboard token, `CutClipboard` restores the recorded source through an ordinary
+transaction. IDs, references and undo/redo remain with their existing owners.
+Restoration requires the exact recorded document and selection, so intervening
+edits or moved selections cannot overwrite content. Undo can return to that exact
+state and paste again. External clipboard data, copy, a new cut and view destruction
+release the bounded origin. Active composition keeps native clipboard handling.
+Identity-normalization transactions have an explicit marker and update its derived
+after-state.
+
+Schema rendering never allocates IDs. Missing source IDs are assigned by the
+editor identity owner or immutable snapshot preparation; renderHTML omits a
+missing ID instead of creating an untraceable anchor. Clipboard cut serialization
+uses `EditorView.serializeForClipboard` for the same native HTML/text formats;
+the cut token is transient and is never persisted in the document.

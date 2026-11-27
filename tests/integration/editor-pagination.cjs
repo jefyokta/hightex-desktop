@@ -73,16 +73,18 @@ import {TooltipProvider} from '/src/components/ui/tooltip.tsx';
 import {MemoryRouter,Routes,Route,useNavigate} from 'react-router-dom';
 import {Editor as ApplicationEditor} from '/src/pages/editor.tsx';
 import {EditorProvider,useCurrentEditor} from '/src/hooks/use-editor.tsx';
+import {useDocumentPDFRequest} from '/src/context/document-pdf-context.tsx';
 import {ParamsContextProvider} from '/src/hooks/use-params.tsx';
 import {ExpandableSideBarContextProvider} from '/src/hooks/use-expandable-sidebar.tsx';
+${process.env.HIGHTEX_EDITOR_SIDEBAR ? "import {ExpandableSideBar} from '/src/components/editor/expandable-sidebar.tsx';import {MultiSelectProvider} from '/src/context/multi-select-context.tsx';" : ""}
 import {ConfigContextProvider} from '/src/context/config-context.tsx';
 import '/src/App.css';import '/src/css/editor.css';import 'katex/dist/katex.css';
 ${process.env.HIGHTEX_BOUNDED_PROFILE?.startsWith('abstract-') ? "import {abstractCompositionInput} from '/tests/helpers/abstract-composition-input.tsx';window.abstractCompositionInput=abstractCompositionInput;" : ""}
 ${process.env.HIGHTEX_COMPOSITE_APP ? "import '/src/document-engine/adapters/current-category.tsx';import '/src/document-export/capture.ts';import '/src/document-export/print/install-snapshot.ts';" : ""}
 ${process.env.HIGHTEX_EDITOR_PDF_DARK ? "document.documentElement.classList.add('dark');" : ""}
-const config={language:'en',theme:'light',editor:{pagination:false},previewer:{scope:'current',autoUpdate:false,layoutIndicator:true}};
+const config={language:'en',theme:'light',editor:{pagination:true},previewer:{scope:'current',autoUpdate:false,layoutIndicator:true}};
 const configListeners=new Set();
-window.config={ready:async()=>structuredClone(config),get:()=>structuredClone(config),onChange:callback=>{configListeners.add(callback);return ()=>configListeners.delete(callback)},set:async patch=>{const editor={...config.editor,...patch.editor};Object.assign(config,patch,{editor});for(const callback of configListeners)callback(structuredClone(config));return structuredClone(config)}};
+window.config={ready:async()=>structuredClone(config),get:()=>structuredClone(config),onChange:callback=>{configListeners.add(callback);return ()=>configListeners.delete(callback)},set:async patch=>{const editor={...config.editor,...patch.editor,pagination:true};Object.assign(config,patch,{editor});for(const callback of configListeners)callback(structuredClone(config));return structuredClone(config)}};
 window.feedbackTest={reports:[],copies:[],versionCalls:0,mode:'success'};
 Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{window.feedbackTest.copies.push(text)}}});
 window.hightex={version:async()=>{window.feedbackTest.versionCalls++;if(window.feedbackTest.versionFails)throw Error('Offline version fixture');return '1.5.0'},reportError:async report=>{window.feedbackTest.reports.push(report);if(window.feedbackTest.mode==='failure')throw Error('Offline report fixture');if(window.feedbackTest.mode==='deferred')await new Promise(resolve=>window.feedbackTest.resolve=resolve)},categories:async()=>[{id:1,name:'Fixture',variant:'thesis',chapters:[{chapter:'1',title:'Introduction'}]}],cloud:{academic:{locked:async()=>false}}};
@@ -219,22 +221,24 @@ function Fixture({activeChapter=chapter,pagination=true}){
   React.createElement('div',{className:'page'+(activeChapter===chapter?'':' '+activeChapter.getHtmlClass()),style:{margin:'20px auto'}},React.createElement(EditorContent,{editor})));
 }
 const reactRoot=createRoot(document.getElementById('root'));
+window.mountCustomFixture=element=>reactRoot.render(element);
 let fixtureMount=0;
 window.mountChapterFixture=(activeChapter=chapter,pagination=true)=>{
  window.ready=false;Document.setCurrentChapter(activeChapter);
  reactRoot.render(React.createElement(React.StrictMode,null,React.createElement(TooltipProvider,null,React.createElement(MemoryRouter,null,React.createElement(Fixture,{key:++fixtureMount,activeChapter,pagination})))));
 };
 window.mountChapterFixture();
-function ApplicationProbe(){window.applicationEditor=useCurrentEditor().editor;window.navigate=useNavigate();return null}
+function ApplicationProbe(){window.applicationEditor=useCurrentEditor().editor;window.applicationPDF=useDocumentPDFRequest();window.navigate=useNavigate();return null}
+${process.env.HIGHTEX_EDITOR_SIDEBAR ? "function SidebarEditorFixture(){return React.createElement(MultiSelectProvider,null,React.createElement('div',{className:'flex h-screen w-full'},React.createElement(ExpandableSideBar),React.createElement(ApplicationEditor)))}" : ""}
 window.mountApplication=(initial='/document/fixture/1')=>reactRoot.render(
  React.createElement(ConfigContextProvider,null,
   React.createElement(TooltipProvider,null,
-   React.createElement(MemoryRouter,{initialEntries:[initial]},
+   React.createElement(MemoryRouter,{key:initial,initialEntries:[initial]},
     React.createElement(EditorProvider,null,
      React.createElement(ParamsContextProvider,null,
       React.createElement(ExpandableSideBarContextProvider,null,
        React.createElement(ApplicationProbe),
-       React.createElement(Routes,null,React.createElement(Route,{path:'/document/:id/:chapter?',element:React.createElement(ApplicationEditor)})))))))));
+       React.createElement(Routes,null,React.createElement(Route,{path:'/document/:id/:chapter?/:version?',element:React.createElement(${process.env.HIGHTEX_EDITOR_SIDEBAR ? "SidebarEditorFixture" : "ApplicationEditor"})})))))))));
 window.applicationLayout=()=>paginationKey.getState(applicationEditor.state).layout;
 window.applicationChapter=()=>getEditorChapter(applicationEditor)?.getId();
 </script>`;
@@ -262,7 +266,7 @@ const deadline = setTimeout(
     console.error("Pagination fixture deadline");
     app.exit(1);
   },
-  process.env.HIGHTEX_PAGINATION_BASELINE || (process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)
+  process.env.HIGHTEX_SINGLE_PAGINATION || process.env.HIGHTEX_PAGINATION_BASELINE || (process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)
     ? 300000
     : process.env.HIGHTEX_PAGINATION_REDESIGN
     ? 240000
@@ -394,8 +398,23 @@ app
       debugTimer.unref();
     }
     await until("window.ready&&window.editor");
+    if (process.env.HIGHTEX_NATIVE_LIST_CAPTION) {
+      await require('./editor-native-list-caption.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_SINGLE_PAGINATION) {
+      await require('./editor-single-pagination.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_EDITOR_SIDEBAR) {
+      await require('./editor-sidebar.cjs').run({execute,until,win,artifacts});return;
+    }
     if (process.env.HIGHTEX_PAGINATION_SPLIT) {
       await require('./editor-pagination-split.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_PAGINATION_HISTORY) {
+      await require('./editor-pagination-history.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
+    }
+    if (process.env.HIGHTEX_PAGINATION_READY) {
+      await require('./editor-pagination-ready.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
     }
     if (process.env.HIGHTEX_PAGINATION_FLOW) {
       await require('./editor-pagination-flow.cjs').run({execute,until,artifacts});return;
@@ -1091,23 +1110,22 @@ app
       path.join(artifacts, "pagination-light.png"),
       (await win.webContents.capturePage()).toPNG(),
     );
-    // Mount the production editor and exercise its real settings switch and
+    // Mount the production editor and exercise its permanent pagination and
     // chapter lifecycle, in addition to the isolated layout assertions above.
     await execute("window.mountApplication()");
     await until(
       "window.applicationEditor?.isEditable&&document.querySelector('#page')?.hidden===false&&document.querySelector('button[title=Settings]')",
     );
+    await until("document.querySelector('.editor-pagination-sheet')");
     assert.equal(
       await execute(
         "return !!document.querySelector('.editor-pagination-sheet')",
       ),
-      false,
+      true,
     );
     await execute("document.querySelector('button[title=Settings]').click()");
     await until("document.querySelector('[role=switch]')");
-    await execute(
-      "const label=Array.from(document.querySelectorAll('label')).find(element=>element.textContent==='Page view (experimental)');label.parentElement.parentElement.querySelector('[role=switch]').click()",
-    );
+    assert.equal(await execute("return Array.from(document.querySelectorAll('label')).some(element=>element.textContent==='Page view (experimental)')"),false);
     await until(
       "document.querySelectorAll('.editor-pagination-sheet').length>=3",
     );
@@ -1129,9 +1147,7 @@ app
       "old chapter retained page chrome",
     );
     await execute("await window.config.set({editor:{pagination:false}})");
-    await until(
-      "!document.querySelector('.editor-pagination-sheet')&&!document.querySelector('[data-pagination-status]')",
-    );
+    assert.equal(await execute("return !!document.querySelector('.editor-pagination-sheet')&&!!document.querySelector('[data-pagination-status]')"),true);
     assert.deepEqual(await execute("return errors"), []);
     console.log(
       "PASS: glyph bounds, paragraphs/lists/code, split and nested tables, merged cells, explicit breaks, zoom, selection, native input, undo, persistence, serialization and production editor lifecycle.",

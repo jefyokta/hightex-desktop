@@ -2,7 +2,7 @@ import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import type { Document } from "@/editor/document";
-import { captureDocumentPDF } from "@/document-export/capture";
+import { captureDocumentPDF, type DocumentPDFOptions } from "@/document-export/capture";
 import { paginationReport } from "@/editor/pagination/report-error";
 import { paginationDiagnostic } from "@/editor/pagination/diagnostic";
 import type { PaginationDiagnostic } from "@/types/pagination/diagnostic";
@@ -17,7 +17,7 @@ interface PDFRequest {
 }
 
 /** One owner for capture, print/debug requests, cancellation and diagnostics. */
-export function useDocumentPDF(editor: Editor | Document) {
+export function useDocumentPDF(editor: Editor | Document | string | null) {
   const [phase, setPhase] = useState<"idle" | "capture" | "export" | "debug" | "cancel">(
     "idle",
   );
@@ -70,8 +70,8 @@ export function useDocumentPDF(editor: Editor | Document) {
     };
   }, [editor, cancel]);
 
-  const prepare = async (action: "export" | "debug") => {
-    if (request.current) return;
+  const prepare = async (action: "export" | "debug", options: DocumentPDFOptions = {}) => {
+    if (!editor || request.current) return;
     const active: PDFRequest = {
       controller: new AbortController(),
       id: crypto.randomUUID(),
@@ -117,6 +117,7 @@ export function useDocumentPDF(editor: Editor | Document) {
             }
           });
         },
+        options,
       );
       active.controller.signal.throwIfAborted();
       if (request.current !== active) return;
@@ -171,7 +172,10 @@ export function useDocumentPDF(editor: Editor | Document) {
     setDiagnostics([]);
   };
   return {
+    available: Boolean(editor),
     phase, busy, error, section, sections, warnings, diagnostics, progress, elapsedMs, outcome,
     exportButton, prepare, dismiss,
   };
 }
+
+export type DocumentPDFRequest = ReturnType<typeof useDocumentPDF>;

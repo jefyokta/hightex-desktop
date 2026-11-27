@@ -6,45 +6,30 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { t } from "@/utils/lang";
 import { CodeXml, FileDown, Loader2, MoreHorizontal, SquareTerminal, X } from "lucide-react";
 import { PaginationDiagnostics } from "./pagination-diagnostics";
-import { useDocumentPDF } from "@/hooks/use-document-pdf";
+import { useDocumentPDF, type DocumentPDFRequest } from "@/hooks/use-document-pdf";
+import { useDocumentPDFRequest } from "@/context/document-pdf-context";
 
-export function EditorPDFExperimental({
-  editor,
-  disabled,
-  status,
-  options,
-}: {
+interface PDFControlsProps {
   editor: Editor | Document;
   disabled: boolean;
   status?: ReactNode;
   options?: ReactNode;
-}) {
-  const {
-    phase, busy, error, section, sections, warnings, diagnostics, progress, elapsedMs, outcome,
-    exportButton, prepare, dismiss,
-  } = useDocumentPDF(editor);
+}
+
+export function EditorPDFExperimental(props: PDFControlsProps) {
+  const shared = useDocumentPDFRequest(props.editor);
+  return shared ? <DocumentPDFControls {...props} request={shared} /> : <StandalonePDFControls {...props} />;
+}
+
+function StandalonePDFControls(props: PDFControlsProps) {
+  const request = useDocumentPDF(props.editor);
+  return <DocumentPDFControls {...props} request={request} />;
+}
+
+function DocumentPDFControls({ editor, disabled, status, options, request }: PDFControlsProps & { request: DocumentPDFRequest }) {
+  const { busy, exportButton, prepare } = request;
   const [optionsOpen, setOptionsOpen] = useState(false);
   useEffect(() => setOptionsOpen(false), [editor]);
-  const progressText = {
-    idle: "",
-    capture: sections && section
-      ? t("editor.pagination.pdf_preparing_sections", {...sections,section})
-      : section
-      ? t("editor.pagination.pdf_preparing_section", { section })
-      : t("common.preparing_pdf"),
-    export: t("editor.pagination.pdf_saving"),
-    debug: t("editor.pagination.pdf_debug_open"),
-    cancel: t("editor.pagination.pdf_cancelling"),
-  }[phase];
-  const nativeProgressText = progress ? {
-    destination: t("editor.pagination.pdf_destination"),
-    loading: t("editor.pagination.pdf_loading"),
-    printing: t("editor.pagination.pdf_printing", {completed:progress.completedPages,total:progress.pages}),
-    assembling: t("editor.pagination.pdf_assembling"),
-    writing: t("editor.pagination.pdf_writing"),
-  }[progress.stage] : undefined;
-  const seconds = Math.floor(elapsedMs / 1000);
-  const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2,"0")}`;
 
   return (
     <section className="w-full min-w-0 space-y-2" aria-busy={busy}>
@@ -107,6 +92,37 @@ export function EditorPDFExperimental({
           </Popover>
         )}
       </div>
+      <PDFRequestStatus request={request} editor={"commands" in editor ? editor : undefined} />
+    </section>
+  );
+}
+
+/** Shared progress, cancellation, diagnostics and outcome for editor and workspace exports. */
+export function PDFRequestStatus({ request, editor }: { request: DocumentPDFRequest; editor?: Editor }) {
+  const { phase, busy, error, section, sections, warnings, diagnostics, progress, elapsedMs, outcome, dismiss } = request;
+  const progressText = {
+    idle: "",
+    capture: sections && section
+      ? t("editor.pagination.pdf_preparing_sections", {...sections,section})
+      : section
+      ? t("editor.pagination.pdf_preparing_section", { section })
+      : t("common.preparing_pdf"),
+    export: t("editor.pagination.pdf_saving"),
+    debug: t("editor.pagination.pdf_debug_open"),
+    cancel: t("editor.pagination.pdf_cancelling"),
+  }[phase];
+  const nativeProgressText = progress ? {
+    destination: t("editor.pagination.pdf_destination"),
+    loading: t("editor.pagination.pdf_loading"),
+    printing: t("editor.pagination.pdf_printing", {completed:progress.completedPages,total:progress.pages}),
+    assembling: t("editor.pagination.pdf_assembling"),
+    writing: t("editor.pagination.pdf_writing"),
+  }[progress.stage] : undefined;
+  const seconds = Math.floor(elapsedMs / 1000);
+  const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2,"0")}`;
+
+
+  return <>
       {busy && (
         <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
           {phase === "debug" ? (
@@ -166,9 +182,8 @@ export function EditorPDFExperimental({
       {diagnostics.length > 0 && (
         <PaginationDiagnostics
           diagnostics={diagnostics}
-          editor={"commands" in editor ? editor : undefined}
+          editor={editor}
         />
       )}
-    </section>
-  );
+  </>;
 }

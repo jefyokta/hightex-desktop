@@ -1,4 +1,3 @@
-import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import type { Editor } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
@@ -6,18 +5,16 @@ import { paginationKey } from "@/editor/pagination";
 import { t } from "@/utils/lang";
 import { Button } from "@/components/ui/button";
 import { PaginationFeedback } from "./pagination-feedback";
-import { toast } from "sonner";
 import { EditorPDFExperimental } from "./editor-pdf-experimental";
 import { PaginationDiagnostics } from "./pagination-diagnostics";
 import type { PaginationDiagnostic } from "@/types/pagination/diagnostic";
 import { ChapterContentError } from "@/exception/chapter-content-error";
 import { useMemo } from "react";
-import { AlertCircle, Layers, Loader2, RotateCcw, Monitor } from "lucide-react";
+import { AlertCircle, Layers, Loader2, RotateCcw } from "lucide-react";
 import "@/css/pagination-controls.css";
 
 export function PaginationStatus({ editor }: { editor: Editor | null }) {
   useAppLanguage();
-  const { saveConfig } = useConfig();
   const state = useEditorState({
     editor,
     selector: ({ editor }) => {
@@ -75,7 +72,6 @@ export function PaginationStatus({ editor }: { editor: Editor | null }) {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-foreground">{t("editor.pagination.mode_title")}</span>
-                  <span className="pagination-experimental-badge">{t("editor.pagination.experimental_badge")}</span>
                 </div>
                 <span
                   className="block mt-0.5 text-[11px]"
@@ -105,7 +101,6 @@ export function PaginationStatus({ editor }: { editor: Editor | null }) {
           }
           options={
             <>
-              <p className="px-2 pb-3 leading-relaxed text-muted-foreground">{t("editor.pagination.experimental_notice")}</p>
               {(state.error || state.numbering?.error) && (
                 <Button
                   type="button"
@@ -120,21 +115,6 @@ export function PaginationStatus({ editor }: { editor: Editor | null }) {
                   <RotateCcw className="size-3.5" /> {t("editor.pagination.retry")}
                 </Button>
               )}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                data-pagination-disable
-                onClick={() => {
-                  editor?.commands.setEditorPagination(false);
-                  void saveConfig({ editor: { pagination: false } })
-                    .catch(() => {
-                      toast.error(t("editor.pagination.disable_save_failed"));
-                    });
-                }}
-              >
-                <Monitor className="size-3.5" /> {t("editor.pagination.disable")}
-              </Button>
               <PaginationFeedback editor={editor} />
             </>
           }

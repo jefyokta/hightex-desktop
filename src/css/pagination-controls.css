@@ -23,14 +23,6 @@
   background: var(--muted);
   color: var(--muted-foreground);
 }
-.pagination-experimental-badge {
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 1px 5px;
-  font-size: 9px;
-  font-weight: 500;
-  color: var(--muted-foreground);
-}
 .pagination-controls > [aria-busy] > :first-child {
   row-gap: 12px;
 }

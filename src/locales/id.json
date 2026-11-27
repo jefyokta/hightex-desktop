@@ -765,8 +765,8 @@
       "disable_save_failed": "Mode halaman dimatikan untuk bab ini, tetapi preferensinya belum tersimpan. Matikan lewat Pengaturan sebelum membuka bab lain.",
       "feedback": {
         "open": "Laporkan masalah mode halaman",
-        "issue_title": "Masalah mode halaman eksperimental",
-        "title": "Laporkan mode halaman eksperimental",
+        "issue_title": "Masalah mode halaman",
+        "title": "Laporkan masalah mode halaman",
         "description": "Jelaskan masalah dan tinjau laporan sebelum dikirim. Kamu juga bisa menyalinnya untuk dibagikan nanti.",
         "privacy": "Teks, judul, ID, lokasi file dokumen, dan screenshot tidak dilampirkan otomatis. Laporan menyertakan penjelasanmu serta informasi dasar aplikasi/browser.",
         "details": "Apa yang terjadi?",
@@ -802,7 +802,7 @@
       "pdf_completed": "PDF tersimpan · {duration}",
       "pdf_cancelled": "Ekspor dibatalkan · {duration}",
       "pdf_close_debug": "Tutup debug",
-      "pdf_export": "Ekspor PDF (eksperimental)"
+      "pdf_export": "Ekspor PDF"
     },
     "inline": {
       "table_tools": "Alat tabel",
@@ -2386,21 +2386,21 @@
     },
     "release150": {
       "pagination": {
-        "name": "Mode halaman eksperimental",
-        "summary": "Coba halaman A4 saat menulis. Awalnya nonaktif; PDF tetap mengikuti pratinjau cetak.",
+        "name": "Mode halaman",
+        "summary": "Tulis dan ekspor melalui tata letak halaman yang sama.",
         "settings": {
-          "title": "Coba mode halaman saat diperlukan",
-          "description": "Buka pengaturan editor dari toolbar untuk menemukan Mode halaman (eksperimental). Fitur ini opsional dan awalnya nonaktif. Tur ini tidak mengaktifkannya."
+          "title": "Tulis langsung di halaman",
+          "description": "Editor menampilkan halaman dokumen saat menulis. Gunakan toolbar untuk mengekspor PDF dari tata letak yang sama."
         },
         "opt_in": {
-          "title": "Halaman menulis dan PDF akhir",
-          "description": "Aktifkan mode halaman untuk mencoba, atau biarkan nonaktif. Nomor halaman dimulai dari 1 pada setiap bab yang bisa diedit. Pemenggalan PDF tetap mengikuti pratinjau cetak dan dapat berbeda dari editor.",
-          "fallback": "Buka pengaturan editor untuk mencoba Mode halaman (eksperimental). Kamu bisa membiarkannya nonaktif dan tetap menulis seperti biasa."
+          "title": "Halaman editor dan PDF",
+          "description": "Pergantian halaman dan nomor halaman mengikuti komposisi dokumen. Periksa status halaman sebelum mengekspor PDF.",
+          "fallback": "Buka bab untuk melihat halaman dokumen dan statusnya."
         },
         "feedback": {
-          "title": "Matikan atau laporkan masalah",
-          "description": "Gunakan kontrol status mode halaman untuk mematikan eksperimen atau melaporkan masalah tata letak/editing. Laporan bisa ditinjau atau disalin sebelum dikirim; isi dokumen dan screenshot tidak dilampirkan otomatis. Tombol laporan juga tersedia di pengaturan editor saat mode halaman nonaktif.",
-          "fallback": "Buka pengaturan editor untuk mengaktifkan/mematikan mode halaman atau melaporkan masalah. Tidak ada laporan otomatis; kamu tetap bisa memakai pratinjau cetak untuk PDF."
+          "title": "Laporkan masalah tata letak",
+          "description": "Gunakan laporan masalah untuk menjelaskan kendala tata letak atau editing. Tinjau atau salin draf sebelum mengirim; isi dokumen dan screenshot tidak dilampirkan otomatis.",
+          "fallback": "Laporan masalah tersedia di status halaman dan pengaturan editor. Tidak ada laporan otomatis."
         }
       }
     }
