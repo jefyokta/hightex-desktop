@@ -450,6 +450,9 @@ app
       editorPDFTest.connect(win.webContents.getURL());
       await require('./editor-native-interactions.cjs').run({execute,until,win,artifacts,editorPDFTest});return;
     }
+    if (process.env.HIGHTEX_TABLE_WIDTHS) {
+      await require('./editor-table-widths.cjs').run({execute,until,artifacts,editorPDFTest});return;
+    }
     if ((process.env.HIGHTEX_TABLE_PDF || process.env.HIGHTEX_FLOW_PDF)) {
       await require(process.env.HIGHTEX_FLOW_PDF?'./editor-flow-pdf.cjs':'./editor-table-pdf.cjs').run({execute,until,artifacts,editorPDFTest});return;
     }

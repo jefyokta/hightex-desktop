@@ -80,6 +80,7 @@ exports.run=async({execute,until,artifacts,editorPDFTest},options={})=>{
         `);
         await until('layoutReady()&&!layout().error',20000);
       }
+      if(options.beforeCapture)await options.beforeCapture({variant,mode});
       const input=await execute(`
         const {paginationKey}=await import('/src/editor/pagination/state.ts');
         const {paginationGeometry}=await import('/src/editor/pagination/options.ts');

@@ -11,6 +11,8 @@ import { tableFurniture } from "./table-furniture";
 import { tableBreaks, applyTableBreaks } from "./table-breaks";
 import { TableRows } from "./table-rows";
 import { applyFlowLayout } from "../flow/apply-flow";
+import { tableColumnWidths, TABLE_CELL_MIN_WIDTH } from "../../extensions/table/widths";
+import { tableWidthBudget } from "../../extensions/table/view";
 
 /** Read grid -> reserve furniture -> collect flow -> place nested tables and breaks. */
 export async function paginateTable(
@@ -32,6 +34,17 @@ export async function paginateTable(
   const { wrapper, table, rows, cells, headerCount, containerPos, figure } =
     source;
   const { contentHeight, stride, margins } = snapshot.geometry;
+  const requestedWidth = tableColumnWidths(node).reduce<number>(
+    (sum, width) => sum + (width ?? TABLE_CELL_MIN_WIDTH), 0,
+  );
+  if (requestedWidth > tableWidthBudget(table))
+    (layout.issues ??= []).push({
+      kind: "table",
+      key: `${snapshot.model.nodeAt(containerPos)!.attrs.id || containerPos}:columns`,
+      from: containerPos,
+      to: containerPos + snapshot.model.nodeAt(containerPos)!.nodeSize,
+      message: "Lebar kolom tabel disesuaikan secara proporsional agar muat di area isi. Lebar sumber tetap disimpan.",
+    });
   const {
     height: furnitureHeight,
     html: furnitureHTML,
@@ -227,7 +240,7 @@ export async function paginateTable(
       if (
         compact &&
         !layout.issues?.some(
-          (issue) => issue.kind === "table" && issue.from === containerPos,
+          (issue) => issue.kind === "table" && issue.from === containerPos && issue.key === String(container.attrs.id || containerPos),
         )
       )
         (layout.issues ??= []).push({

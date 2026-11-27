@@ -16,6 +16,7 @@ import { missingImage } from "../extensions/image/fallback";
 import type { SectionLayoutIdentity } from "../../../shared/section-layout";
 import { sectionDOMLocator } from "@/document-engine/layout/source-locator";
 import { chapterCodePresentationPlugins } from "../extensions/code-block";
+import { chapterTablePresentation } from "../extensions/table/presentation";
 
 /**
  * An isolated schema view for rendering captured page plans. Presentation
@@ -88,7 +89,7 @@ export class ReadOnlyChapter {
     this.view = new EditorView(this.container, {
       state: EditorState.create({
         doc: source,
-        plugins: chapterCodePresentationPlugins(source.type.schema),
+        plugins: [...chapterCodePresentationPlugins(source.type.schema), chapterTablePresentation()],
       }),
       editable: () => false,
       attributes: { class: "tiptap", "data-editor-pagination": "true" },

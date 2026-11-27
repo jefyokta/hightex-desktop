@@ -6,8 +6,12 @@ import {
 } from "@tiptap/extension-table";
 
 import { CommandProps } from "@tiptap/react";
-import { CellSelection, columnResizing, tableEditing } from "@tiptap/pm/tables";
+import type { Attributes } from "@tiptap/core";
+import { CellSelection, tableEditing } from "@tiptap/pm/tables";
 import { chapterTableView } from "./view";
+import { chapterColumnResizing } from "./resizing";
+import { TABLE_CELL_MIN_WIDTH, fractionalColumnWidth } from "./widths";
+import { chapterTablePresentation } from "./presentation";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -55,8 +59,10 @@ const TableCommands = {
 const CustomTableCell = TableCell.extend({
   // draggable:false,
   addAttributes() {
+    const parent: Attributes = this.parent!();
     return {
-      ...this.parent?.(),
+      ...parent,
+      colwidth: fractionalColumnWidth(parent.colwidth),
       align: {
         default: "left",
         parseHTML: (element) => element.style.textAlign || "left",
@@ -79,8 +85,10 @@ const CustomTableCell = TableCell.extend({
 const CustomTableHeader = TableHeader.extend({
   draggable: false,
   addAttributes() {
+    const parent: Attributes = this.parent!();
     return {
-      ...this.parent?.(),
+      ...parent,
+      colwidth: fractionalColumnWidth(parent.colwidth),
       align: {
         default: "left",
         parseHTML: (element) => element.style.textAlign || "left",
@@ -111,31 +119,21 @@ const CustomTableHeader = TableHeader.extend({
 });
 
 const CustomTable = Table.extend({
-  addCommands(): Partial<any> {
-    return {
-      ...this.parent?.(),
-    };
-  },
   addNodeView() {
     return ({ node, getPos, editor }) => {
       const pos = getPos();
       const parent =
         pos === undefined ? undefined : editor.state.doc.resolve(pos).parent;
-      return chapterTableView(
-        node,
-        parent?.type.name,
-        this.options.cellMinWidth,
-      );
+      return chapterTableView(node, parent?.type.name);
     };
   },
   addProseMirrorPlugins() {
     return [
+      chapterTablePresentation(),
       ...(this.options.resizable
         ? [
-            columnResizing({
+            chapterColumnResizing({
               handleWidth: this.options.handleWidth,
-              cellMinWidth: 1,
-              defaultCellMinWidth: this.options.cellMinWidth,
               lastColumnResizable: this.options.lastColumnResizable,
             }),
           ]
@@ -147,6 +145,7 @@ const CustomTable = Table.extend({
   },
 }).configure({
   resizable: true,
+  cellMinWidth: TABLE_CELL_MIN_WIDTH,
 });
 const CustomTableRow = TableRow.extend({});
 

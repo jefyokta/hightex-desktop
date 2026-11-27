@@ -806,6 +806,9 @@
     },
     "inline": {
       "table_tools": "Alat tabel",
+      "column_width": "Kolom {column}: {width} px",
+      "column_resize_limit": "Batas tercapai",
+      "column_resize_cancel": "Esc untuk batal",
       "add_column": "Tambah kolom",
       "add_row": "Tambah baris",
       "note": "Catatan",

@@ -84,6 +84,53 @@ paper dimensions does not establish parity with Paged.js.
 
 ## Configuration API
 
+### Table column sizing
+
+`editor/extensions/table/widths.ts` owns the 1 CSS pixel minimum and column
+fitting rules. Explicit widths that fit are retained. Automatic columns share
+the remaining container width; oversized columns fit proportionally without
+changing source attributes, fonts or images. Pagination reports that recovery
+as a table diagnostic. The enclosing cell is the width boundary for nested tables.
+
+`ChapterTableView` applies concrete columns on creation and update, clearing stale
+width/min-width styles. A shared presentation plugin refreshes parent tables
+before nested tables after source or container changes. Each editor/read-only
+view owns one ResizeObserver and disconnects it on destruction. During a resize,
+the gesture owns the preview so observer refreshes cannot overwrite it.
+
+Resizing retains ProseMirror's handle detection and decorations. The gesture
+uses visible column widths and compensates for zoom, clamps to the container,
+then commits the preview widths in one source transaction across colspan/rowspan
+owners. Automatic/fitted columns become explicit only through that user edit.
+Dragging an internal border transfers width between its two neighboring columns,
+retaining the table's width and position. The outer right edge resizes the table;
+centered tables compensate for the width change on both sides so the edge follows
+the pointer. Widths retain their fractional values, including through HTML
+serialization/parsing, rather than rounding unrelated columns during a gesture.
+The temporary feedback shows column widths, the 1 px/container limit and Escape.
+It lives outside editor content, uses `data-editor-ui`, and is removed with the
+gesture along with its cursor/active-handle presentation.
+Escape/blur cancels the gesture; source changes and destruction release listeners.
+Snapshot rendering and ordinary fitting never write authored widths.
+
+The bounded regression runs with:
+
+```sh
+bun test tests/table-widths.test.ts
+env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron tests/integration/editor-table-widths.cjs
+env -u ELECTRON_RUN_AS_NODE HIGHTEX_TABLE_WIDTHS_UX=1 node_modules/.bin/electron tests/integration/editor-table-widths.cjs
+```
+
+It covers initial/update/unset widths, 1 px columns, oversized and nested tables,
+five small native PDF cases, preview/commit, undo/redo, Escape, zoom, margin changes
+and table-node remount from stored content. It does not certify the full document
+corpus or physical OS interaction matrix.
+The UX mode checks pointer/border movement and stable table position, feedback
+cleanup and fractional HTML round trips, then prints one edited automatic table.
+It does not repeat the five static native PDF cases.
+
+### Pagination options
+
 Dimensions are millimetres; each margin defaults to 30. Header and caption
 repetition are independent and default to true:
 

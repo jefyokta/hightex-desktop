@@ -806,6 +806,9 @@
     },
     "inline": {
       "table_tools": "Table tools",
+      "column_width": "Column {column}: {width} px",
+      "column_resize_limit": "Limit reached",
+      "column_resize_cancel": "Esc to cancel",
       "add_column": "Add column",
       "add_row": "Add row",
       "note": "Note",
