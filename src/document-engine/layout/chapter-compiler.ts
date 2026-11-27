@@ -13,9 +13,6 @@ import { FlowCache } from "@/editor/pagination/flow/text-flow";
 import { applyPageGeometry } from "@/editor/pagination/options";
 import { waitForPrintImages } from "@/compiler/print-resources";
 import { waitForContentFonts } from "@/document-engine/resources/fonts";
-import { PageImageSnapshot } from "@/editor/pagination/measurement/image-snapshot";
-import { assertPageImagePlacement } from "@/editor/pagination/measurement/image-placement";
-import { PaginationImageError } from "@/exception/pagination-image-error";
 import { sha256Text } from "@/utils/sha256";
 import { abortable } from "@/utils/abortable";
 import { SectionComposition } from "../composition/section-composition";
@@ -204,30 +201,6 @@ export class ChapterLayoutCompiler {
         this.flowContext = key;
       }
       const plan = await this.paginate(chapter, input, job.signal, composition);
-      const origin = paper.getBoundingClientRect();
-      for (const [index, entry] of new PageImageSnapshot(
-        chapter.view,
-      ).entries.entries()) {
-        try {
-          if (!entry.image)
-            throw new PaginationImageError({
-              code: "pagination.image.unavailable",
-              image: index + 1,
-            });
-          assertPageImagePlacement(
-            entry.image.getBoundingClientRect(),
-            origin,
-            geometry,
-            index + 1,
-          );
-        } catch (error) {
-          if (!(error instanceof PaginationImageError)) throw error;
-          throw new PaginationImageError(
-            error.details,
-            sectionSourceLocator(source, job.identity, entry.from, entry.to),
-          );
-        }
-      }
       const mapped = sectionSourceMap(
         chapter.view,
         job.identity,

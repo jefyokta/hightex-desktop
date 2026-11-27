@@ -1,5 +1,3 @@
-import { assertEditorPDFPresentation } from "../snapshot/presentation";
-
 /** Move one canonical context into the fixed print viewport. No editor or measurement decisions. */
 export function installPageViewport(
   root: HTMLElement,
@@ -121,10 +119,8 @@ export function installPageViewport(
     viewport.remove();
   };
   window.editorPDFViewport = api;
-  // Resources and captured geometry are checked once at installation. Page selection
-  // only moves the already-owned context; it does not re-audit the whole document.
+  // The ready snapshot already owns layout. Geometry equivalence is audited by fixtures.
   try {
-    assertEditorPDFPresentation(bank, snapshot.presentation);
     select(0, snapshot.fingerprint);
     return dispose;
   } catch (error) {

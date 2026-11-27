@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { assertPageImagePlacement } from "../src/editor/pagination/measurement/image-placement";
+import { assertPageImagePlacement } from "./helpers/image-placement";
 import { PaginationImageError } from "../src/exception/pagination-image-error";
 import { paginationGeometry } from "../src/editor/pagination/options";
 

@@ -161,8 +161,8 @@ imports are outside this feature's boundary migration.
 
 Validation has explicit owners. IPC validates payload shape, size and identity;
 source preparation guards async changes to its frozen revision/resources;
-canonical rendering resolves content fallbacks and rejects misplaced source images; the print host verifies
-portable resources and stable captured presentation; main verifies the native
+canonical rendering resolves content fallbacks and plans image fitting/placement;
+the print host loads portable resources and installs the captured layout; main verifies the native
 page count and replaces the chosen file atomically. Native context selection and
 page assembly live in `printProjectedPages`; metadata and file replacement do not
 share its page loop. Main validates a snapshot
@@ -177,21 +177,27 @@ are described by size rather than copied into the message. Section continuity,
 context/page ownership, destination IDs and bounds report their exact indexed
 path. Validation stops at the first invalid dependency.
 
-The print host verifies reconstructed presentation once after fonts/images load.
+Image-boundary audits and reconstructed-box comparisons are test fixtures, not
+production export gates. `tests/helpers/image-placement.ts` and
+`tests/helpers/print-presentation.ts` own those oracles. Native export must not
+reject a compiled document because an audit rectangle exceeds a recorded page
+or differs from reference coordinates. Snapshot presentation metadata remains
+in the transport for compatibility and diagnostic comparison; it does not choose
+page breaks or decide whether native printing starts.
 Page selection only moves the selected context/chrome and checks the request's
 fingerprint/index; it does not scan all document boxes on every page. Main returns
 selection errors explicitly across executeJavaScript so Chromium's generic
 execution failure cannot hide the original message. Native print failures identify
 the physical page, section, context and local page.
 
-Image placement errors retain their domain code and expose source chapter,
-revision, node/figure/asset IDs, PM range, page and overflow. The document engine
-preserves that structured source context and its readable reason through the UI.
+Fixtures retain image overflow diagnostics with source ranges and asset IDs.
+Actual resource readiness, cancellation, source-revision ownership, transport
+structure, native failures and atomic-file handling retain their production owners.
 
 Editable sections retain their full paragraph/list/table context. Physical pages
 select a fixed viewport into that context; text is not reshaped in independent
 line fragments. `SectionViewport` strips editor UI and preserves content geometry.
-`installPageViewport` verifies the captured presentation and never replans. Debug
+`installPageViewport` installs the captured presentation and never replans. Debug
 selects one physical page. Export selects up to four consecutive views from the
 same canonical context and prints one native strip, bounded to 12,000 CSS pixels
 of paper height. These are internal batch-size limits, not content/page limits or

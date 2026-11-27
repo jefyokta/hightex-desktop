@@ -18,7 +18,7 @@ import { PageImageSnapshot } from "@/editor/pagination/measurement/image-snapsho
 import { waitForPrintImages } from "@/compiler/print-resources";
 import { PaginationImageError } from "@/exception/pagination-image-error";
 import { PaginationAnchorError } from "./anchor-error";
-import { assertPageImagePlacement } from "@/editor/pagination/measurement/image-placement";
+import { assertPageImagePlacement } from "../image-placement";
 import { freezeReadOnlyPresentation } from "@/editor/pagination/presentation/read-only-content";
 import { paginationListItems, type PaginationListItem } from "./list-items";
 

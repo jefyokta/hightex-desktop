@@ -1,6 +1,6 @@
 import { PaginationImageError } from "@/exception/pagination-image-error";
 import type { PaginationImageRect } from "@/types/pagination/image-issue";
-import type { PaginationGeometry } from "../options";
+import type { PaginationGeometry } from "../../src/editor/pagination/options";
 
 const rectData = ({
   left,
@@ -18,7 +18,7 @@ const rectData = ({
   height,
 });
 
-/** Fitting owns dimensions; projection verifies placement without resizing the source. */
+/** Fixture audit only. Production fitting/planning owns placement without a post-layout export gate. */
 export function assertPageImagePlacement(
   bounds: PaginationImageRect,
   paper: PaginationImageRect,
