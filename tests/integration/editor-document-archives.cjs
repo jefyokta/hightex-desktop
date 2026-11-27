@@ -299,15 +299,15 @@ exports.prepare = ({ artifacts, reproduce }) => {
     },
   };
 };
-async function importArchive(execute, file) {
+async function importArchive(execute, file, { forEditing = true, mode = "copy" } = {}) {
   return execute(`
           const bytes=await(await fetch('/document-test/${file.label}')).arrayBuffer();
           const importer=await archiveImporter.create(new File([bytes],'local-test.hightex'),'local-test.hightex');
           window.profile.get=async()=>({...emptyArchiveProfile(),...importer.model.profile,isCloud:false});
           window.profile.picture=async()=>importer.model.profilePicture?.bytes??false;archiveProfileInvalidate();
-          const data=await importer.import('copy');
+          const data=await importer.import(${JSON.stringify(mode)});
           const beforeEditing=new Map((await db.chapters.where('id').startsWith(data.id+'.').toArray()).map(chapter=>[chapter.id,JSON.stringify(chapter.content)]));
-          window.archiveContext=await new archiveDocument(data.id).warm({workspaceIdentity:false,forEditing:true});
+          window.archiveContext=await new archiveDocument(data.id).warm({workspaceIdentity:false,forEditing:${forEditing}});
           const identityRepairs=(await db.chapters.where('id').startsWith(data.id+'.').toArray()).filter(chapter=>beforeEditing.has(chapter.id)&&beforeEditing.get(chapter.id)!==JSON.stringify(chapter.content)).length;
           window.archiveBefore=await archiveSavedSource(data.id);window.archiveTrace=[];window.archiveSamples=[];window.archiveCaptions=[];
           return {id:data.id,category:archiveContext.category.id,variant:archiveContext.category.variant,chapters:importer.model.chapters.length,identityRepairs};

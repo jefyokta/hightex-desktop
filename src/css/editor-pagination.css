@@ -19,6 +19,29 @@
   font-feature-settings: "liga" 0;
 }
 
+/* Inline atoms and nested editable boundaries use the same wrapping with or
+   without a mounted Tiptap Editor. ReadOnlyChapter has no injected editor CSS. */
+.tiptap[data-editor-pagination="true"] [contenteditable="false"] {
+  white-space: normal;
+}
+
+.tiptap[data-editor-pagination="true"]
+  [contenteditable="false"]
+  [contenteditable="true"],
+.tiptap[data-editor-pagination="true"] pre {
+  white-space: pre-wrap;
+}
+
+/* ProseMirror's cursor separator is not authored image content. Its zero size
+   must survive after the last editable Editor removes Tiptap's injected CSS. */
+.tiptap[data-editor-pagination="true"] img.ProseMirror-separator {
+  display: inline !important;
+  border: none !important;
+  margin: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Page breaks belong to editor presentation, never to the saved chapter. */
 
 .tiptap[data-editor-pagination="true"] {

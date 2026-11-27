@@ -22,6 +22,14 @@ instance, selection and history.
 Content whitespace, wrapping and ligature rules are persistent in `editor.css`.
 Do not depend on Tiptap's injected stylesheet surviving navigation: its lifetime
 follows editable views and can end while snapshot compilation remains active.
+This includes the zero dimensions of `img.ProseMirror-separator`: ProseMirror may
+insert this cursor helper into a read-only schema view, although it has no image
+asset in the authored source. `LayoutSnapshot` excludes it from measurement, so
+its rendered size must remain zero without an editable Tiptap instance. The
+persistent pagination CSS owns its display, border, margin, width and height,
+plus nested editing-boundary and preformatted whitespace. A workspace export
+fixture must unmount its initial editable view before rendering the actual row
+menu; keeping that view alive can conceal missing shared presentation rules.
 
 Snapshot version 3 carries canonical contexts and ordered physical
 views. The print host selects a bounded run from one canonical context per native

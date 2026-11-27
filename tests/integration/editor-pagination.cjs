@@ -23,7 +23,9 @@ const documentTests = process.env.HIGHTEX_PAGINATION_DOCUMENTS
         : "./editor-pagination-documents.cjs",
     ).prepare({
       artifacts,
-      reproduce: process.env.HIGHTEX_EXPORT_PROFILE
+      reproduce: process.env.HIGHTEX_IMAGE_PLACEMENT
+        ? require("./editor-image-placement.cjs").run
+        : process.env.HIGHTEX_EXPORT_PROFILE
         ? require("./editor-export-profile.cjs").run
         : process.env.HIGHTEX_CORE_MVP
         ? require("./editor-core-mvp.cjs").run
