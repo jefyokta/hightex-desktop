@@ -1,0 +1,61 @@
+/* Imported by editor.css for both editable content and captured PDF styles. */
+
+.page ol li {
+  padding-left: 11pt;
+}
+
+.page li p {
+  text-indent: 0;
+}
+
+.page ol {
+  padding-left: 19pt;
+  list-style-position: outside;
+  list-style-type: decimal;
+}
+.page ul {
+  list-style-type: disc;
+  margin-left: 0.5em;
+}
+
+.page ol ol {
+  list-style-type: lower-alpha;
+  padding-left: 5pt;
+}
+
+.page ol ol ol {
+  list-style-type: decimal;
+  padding-left: 6pt;
+}
+
+.page ol ol ol li::marker {
+  content: counter(list-item) ") ";
+}
+
+.page ol ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+.page ol ol ol ol li::marker {
+  content: counter(list-item, lower-alpha) ") ";
+}
+
+.page li {
+  margin-left: 6pt;
+}
+
+.page ol:has(+ h2) {
+  margin-bottom: 4pt;
+}
+
+.page ol:has(+ h3) {
+  margin-bottom: 4pt;
+}
+
+.page ol:has(+ p) {
+  margin-bottom: 0.5em;
+}
+
+.page ol:has(+ h4) {
+  margin-bottom: 0.5em;
+}

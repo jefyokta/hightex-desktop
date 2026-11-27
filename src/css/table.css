@@ -1,0 +1,175 @@
+/* Table content shared by the editable editor, canonical layout and PDF. */
+
+/* Shared editable/canonical table sizing. Column widths are presentation only. */
+
+.page table.chapter-table {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.page table.chapter-table :is(td, th) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.node-grid * {
+  border: 0 !important;
+}
+
+.node-grid {
+  display: block !important;
+  font-size: 12pt !important;
+}
+
+figure[data-type="figureTable"] table:not([data-type="grid"]) {
+  margin-inline: auto;
+}
+
+.page td p {
+  text-align: left;
+}
+
+.page td,
+.tiptap th {
+  padding-left: 0.1em;
+  padding-right: 0.1em;
+}
+
+.page table {
+  max-width: 15cm !important;
+  border-bottom: 1px solid black;
+  position: relative;
+}
+
+.page figure[data-type="figureTable"] table {
+  border-collapse: collapse;
+}
+
+.page figure[data-type="figureTable"] th,
+.page figure[data-type="figureTable"] .table-header-like {
+  border-bottom: 1px solid currentColor;
+}
+
+.page table td,
+.page table th {
+  position: relative;
+}
+
+.ProseMirror th.table-header-last-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.page td {
+  overflow-wrap: anywhere;
+}
+
+.tiptap td[colspan] {
+  border-right: none;
+}
+
+.page figure[data-type="figureTable"],
+figure[data-type="figureTable"] table {
+  max-width: 100%;
+}
+
+.page th,
+.page td {
+  text-align: left;
+  min-width: 100%;
+}
+
+.page td > div {
+  width: 100%;
+}
+
+.page td:not(.table-header-like):not(thead td) {
+  vertical-align: top;
+}
+
+.tiptap td.center p,
+.tiptap th.center p {
+  text-align: center;
+}
+
+.tiptap td.left p,
+.tiptap th.left p {
+  text-align: left;
+}
+
+.tiptap td.right p,
+.tiptap th.right p {
+  text-align: right;
+}
+
+.tiptap tr:last-of-type {
+  border-bottom: 1px solid black;
+}
+
+.dark .tiptap tr:last-of-type {
+  border-bottom: 1px solid white;
+}
+
+.tiptap tr:first-of-type {
+  border-top: 1px solid black;
+}
+
+.tiptap tr:has(.table-header-like) {
+  border-bottom: 1px solid black;
+}
+
+.tiptap tr:has(th):first-of-type {
+  border-bottom: 1px solid black;
+}
+
+.dark .tiptap tr:has(th):first-of-type {
+  border-bottom: 1px solid white;
+}
+
+.dark .tiptap tr:has(.table-header-like) {
+  border-bottom: 1px solid white !important;
+}
+
+.tiptap tr:has(th[rowspan]:not([rowspan="1"])) {
+  border-bottom: 1px solid black;
+}
+
+.table-header-like {
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+
+.dark .tiptap tr:first-of-type {
+  border-top: 1px solid white;
+}
+
+.tableWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10pt;
+}
+
+.page table p {
+  font-size: 10pt !important;
+}
+
+.tiptap td[tableheaderlike="1"] {
+  border-bottom: 1px var(--border);
+}
+
+.tiptap th {
+  border-bottom: 1px solid white;
+}
+
+.page table {
+  table-layout: fixed;
+}
+
+.tiptap
+  figure[data-type="figureTable"]
+  table[data-type="table"]
+  > tbody
+  > tr:first-child
+  > td {
+  font-weight: bold;
+}

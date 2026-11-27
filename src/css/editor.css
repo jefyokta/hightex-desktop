@@ -1,89 +1,16 @@
 @import "./../assets/fonts/style.css";
 @import "./variable.css";
-.tiptap p:first-of-type::before {
-  color: #adb5bd;
-  content: attr(data-placeholder);
-  float: left;
-  height: 0;
-  pointer-events: none;
-}
-.alias {
-  position: relative;
-}
+@import "./table.css";
+@import "./list.css";
+@import "./editor-code.css";
+@import "./editor-pagination.css";
+@import "./editor-affordances.css";
+@import "./editor-table-controls.css";
 
-.alias::after {
-  content: "";
-
-  position: absolute;
-  left: 0;
-  bottom: 0;
-
-  width: 100%;
-
-  border-bottom: 1px dotted var(--muted-foreground);
-}
-
-.alias::before {
-  content: attr(data-value);
-
-  display: none;
-  text-indent: 0;
-  font-family: "Geist Variable", sans-serif;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-
-  width: max-content;
-  max-width: 240px;
-
-  padding: 4px 6px;
-
-  color: var(--popover);
-  background: var(--foreground);
-
-  border-radius: 4px;
-
-  font-size: 12px;
-  line-height: 1.4;
-  font-weight: normal;
-
-  /* white-space: normal; */
-  z-index: 1000;
-}
-
-.alias:hover::before {
-  display: block;
-}
-#page {
-  height: max-content;
-}
 figcaption {
   font-size: 12pt;
 }
 
-/* Editing affordances paint outside content; they never change its box or wrapping. */
-.page
-  .tiptap[contenteditable="true"]
-  figure[data-type="imageFigure"]:is(:hover, :focus-within)
-  .editor-image-figure-content {
-  outline: 1px solid #2563eb;
-}
-.page li {
-  margin-left: 6pt;
-}
-/* .page h4 {
-  margin-left: 1.27cm;
-} */
-.node-grid * {
-  border: 0 !important;
-}
-.node-grid {
-  display: block !important;
-  font-size: 12pt !important;
-}
-figure[data-type="figureTable"] table:not([data-type="grid"]) {
-  margin-inline: auto;
-}
 .page h1 {
   font-size: 14pt;
   font-weight: 700;
@@ -94,33 +21,14 @@ figure[data-type="figureTable"] table:not([data-type="grid"]) {
   margin-top: 10pt;
 }
 
-.page ol:has(+ h2) {
-  margin-bottom: 4pt;
-}
-.page ol:has(+ h3) {
-  margin-bottom: 4pt;
-}
-.page ol:has(+ p) {
-  margin-bottom: 0.5em;
-}
-.page ol:has(+ h4) {
-  margin-bottom: 0.5em;
-}
 .page h4 {
   text-align: justify;
 }
+
 .page h1::before {
   content: "BAB " counter(h1-counter) "\A";
   font-weight: bold;
   white-space: pre-line;
-}
-.page td p {
-  text-align: left;
-}
-.page td,
-.tiptap th {
-  padding-left: 0.1em;
-  padding-right: 0.1em;
 }
 
 .page h2 {
@@ -132,57 +40,19 @@ figure[data-type="figureTable"] table:not([data-type="grid"]) {
   counter-increment: h2-counter;
   counter-reset: h3-counter;
 }
-.page table {
-  max-width: 15cm !important;
-  border-bottom: 1px solid black;
-  position: relative;
-}
-.page figure[data-type="figureTable"] table {
-  border-collapse: collapse;
-}
-.page figure[data-type="figureTable"] th,
-.page figure[data-type="figureTable"] .table-header-like {
-  border-bottom: 1px solid currentColor;
-}
-.page table td,
-.page table th {
-  position: relative;
-}
-.ProseMirror th.table-header-last-row {
-  border-bottom: 1px solid var(--border);
-}
-.page td {
-  overflow-wrap: anywhere;
-}
-.tiptap td[colspan] {
-  border-right: none;
-}
-.selectedCell::after {
-  background: rgba(0, 0, 0, 0.07);
-  content: "";
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
-  width: 100%;
-}
-.page figure[data-type="figureTable"],
-figure[data-type="figureTable"] table {
-  max-width: 100%;
-}
+
 .page figure[data-type="figureTable"] figcaption {
   width: 15cm !important;
   text-align: center;
   counter-increment: caption-counter;
   margin-bottom: 7pt;
 }
+
 .page figure[data-type="figureTable"] figcaption::before {
   content: "Tabel " counter(h1-counter) "." counter(caption-counter) ". ";
   font-weight: bold;
 }
+
 .attachment-chapter figure[data-type="figureTable"] figcaption::before {
   content: "Tabel " counter(h1-counter, upper-alpha) "."
     counter(caption-counter) ". " !important;
@@ -194,9 +64,11 @@ figure[data-type="imageFigure"] .node-image {
   justify-content: center;
   width: 100%;
 }
+
 .tiptap figure[data-type="imageFigure"] img {
   margin-inline: auto;
 }
+
 .node-image {
   width: max-content;
 }
@@ -223,89 +95,28 @@ figure[data-type="imageFigure"] .node-image {
   display: flex;
   flex-direction: column;
 }
+
 .attachment-chapter figure[data-type="imageFigure"] figcaption::before {
   content: "Gambar " counter(h1-counter, upper-alpha) "." counter(fig-counter)
     ". " !important;
   font-weight: bold;
 }
+
 .page figure[data-type="figureTable"] {
   font-size: 10pt;
 }
-.page th,
-.page td {
-  text-align: left;
-  min-width: 100%;
-}
-.page td > div {
-  width: 100%;
-}
 
-.page td:not(.table-header-like):not(thead td) {
-  vertical-align: top;
-}
-
-.tiptap td.center p,
-.tiptap th.center p {
-  text-align: center;
-}
-.tiptap td.left p,
-.tiptap th.left p {
-  text-align: left;
-}
-.tiptap td.right p,
-.tiptap th.right p {
-  text-align: right;
-}
-
-.tiptap tr:last-of-type {
-  border-bottom: 1px solid black;
-}
 .page h4,
 .page h4 *,
 .page h4 p {
   text-indent: 0 !important;
-}
-.dark .tiptap tr:last-of-type {
-  border-bottom: 1px solid white;
-}
-.tiptap tr:first-of-type {
-  border-top: 1px solid black;
-}
-
-.tiptap tr:has(.table-header-like) {
-  border-bottom: 1px solid black;
-}
-
-.tiptap tr:has(th):first-of-type {
-  border-bottom: 1px solid black;
-}
-.dark .tiptap tr:has(th):first-of-type {
-  border-bottom: 1px solid white;
-}
-/* tr:has(th) {
-   border-bottom: 1px solid black ;
-} */
-.dark .tiptap tr:has(.table-header-like) {
-  border-bottom: 1px solid white !important;
-}
-.dark .page:not([data-pagination-surface]) .tiptap th {
-  border-color: white;
-}
-.tiptap tr:has(th[rowspan]:not([rowspan="1"])) {
-  border-bottom: 1px solid black;
-}
-.table-header-like {
-  border-bottom: 1px solid black;
-  border-top: 1px solid black;
-}
-.dark .tiptap tr:first-of-type {
-  border-top: 1px solid white;
 }
 
 .page h2::before {
   content: counter(h1-counter) "." counter(h2-counter) " ";
   font-weight: bold;
 }
+
 .page h3::before {
   content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter)
     " ";
@@ -333,16 +144,11 @@ figure[data-type="imageFigure"] .node-image {
 }
 
 /* JS owns caption identity; source and continuation copies carry the same label. */
+
 .tiptap
   figure:is([data-type="figureTable"], [data-type="imageFigure"])
   figcaption[data-label]::before {
   content: attr(data-label) " " !important;
-}
-.tableWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 10pt;
 }
 
 .page-break {
@@ -366,20 +172,6 @@ figure[data-type="imageFigure"] .node-image {
   overflow-wrap: break-word;
 }
 
-.dark .selectedCell::after {
-  content: "";
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
-  width: 100%;
-  background-color: var(--color-neutral-800);
-  opacity: 0.6;
-}
-
 .page > .tiptap {
   max-width: 15cm !important;
 }
@@ -387,45 +179,6 @@ figure[data-type="imageFigure"] .node-image {
 .tiptap {
   margin: 0;
   padding: 0;
-}
-
-.page li p {
-  text-indent: 0;
-}
-
-.page ol {
-  list-style-position: outside;
-  list-style-type: decimal;
-  margin-left: 0.5em;
-}
-
-.page ul {
-  list-style-type: disc;
-  margin-left: 0.5em;
-}
-
-.page ol {
-  list-style-type: decimal;
-}
-
-.page ol ol {
-  list-style-type: lower-alpha;
-}
-
-.page ol ol ol {
-  list-style-type: decimal;
-}
-
-.page ol ol ol li::marker {
-  content: counter(list-item) ") ";
-}
-
-.page ol ol ol ol {
-  list-style-type: lower-alpha;
-}
-
-.page ol ol ol ol li::marker {
-  content: counter(list-item, lower-alpha) ") ";
 }
 
 .page {
@@ -442,12 +195,11 @@ figure[data-type="imageFigure"] .node-image {
   position: relative;
   counter-reset: h1-counter var(--start-counter, 0);
 }
+
 .attachment-chapter {
   counter-reset: h1-counter 0 !important;
 }
-.attachment-chapter [data-editor-pagination="true"] > h1:not(:first-child) {
-  break-before: page;
-}
+
 .attachment-chapter h1::before {
   content: "LAMPIRAN " counter(h1-counter, upper-alpha) "\A" !important;
 }
@@ -456,287 +208,15 @@ figure[data-type="imageFigure"] .node-image {
   min-height: max-content;
 }
 
-/* Content metrics belong to the shared presentation, not Tiptap's temporary
-   injected style tag (which disappears when the last editable view unmounts). */
-.tiptap[data-editor-pagination="true"] {
-  position: relative;
-  overflow-wrap: break-word;
-  white-space: break-spaces;
-  font-variant-ligatures: none;
-  font-feature-settings: "liga" 0;
-}
-
-/* Page breaks belong to editor presentation, never to the saved chapter. */
-.tiptap[data-editor-pagination="true"] {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-.tiptap[data-editor-pagination="true"] :is(p, pre, blockquote) {
-  display: flow-root;
-}
-
-.tiptap[data-editor-pagination="true"] li {
-  display: flow-root list-item;
-}
-
-.tiptap[data-editor-pagination="true"] :is(td, th) {
-  vertical-align: top;
-}
-
-.tiptap[data-editor-pagination="true"] hr {
-  height: 0;
-  margin: 0;
-  border: 0;
-}
-
-.tiptap[data-editor-pagination="true"] pre code {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.tiptap[data-editor-pagination="true"] table {
-  max-width: 100% !important;
-}
-.tiptap[data-editor-pagination="true"] figure[data-type="figureTable"] {
-  display: flow-root;
-}
-.tiptap[data-editor-pagination="true"]
-  :is(td, th)
-  figure[data-type="figureTable"]
-  figcaption {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-.editor-pagination-row {
-  height: var(--editor-row-height) !important;
-}
-.editor-pagination-scaled {
-  zoom: var(--editor-atom-scale);
-}
-
-.editor-pagination-image img,
-img.editor-pagination-image {
-  width: var(--editor-image-width) !important;
-  height: auto !important;
-}
-
-.tiptap [data-editor-page-break],
-[data-section-composition-block] [data-editor-page-break] {
-  display: inline-block;
-  vertical-align: top;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 0;
-  line-height: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-.tiptap .editor-pagination-block,
-[data-section-composition-block].editor-pagination-block {
-  margin-top: calc(
-    var(--editor-original-margin, 0px) + var(--editor-break-height, 0px)
-  ) !important;
-}
-
-.page[data-paginated-editor] {
-  --editor-paper: white;
-  --editor-workspace: #f1f3f5;
-  min-height: calc(
-    var(--editor-page-count, 1) * var(--editor-page-height) +
-      (var(--editor-page-count, 1) - 1) * var(--editor-page-gap)
-  );
-  overflow: visible;
-  background: transparent !important;
-  border-radius: 0;
-  box-shadow: none !important;
-}
-
-.page[data-pagination-surface] {
-  background: white;
-  color: black;
-  padding: var(--editor-margin-top) var(--editor-margin-right)
-    var(--editor-margin-bottom) var(--editor-margin-left);
-}
-
-/* Printable table ink belongs to the shared content surface, including dark UI. */
-.page[data-pagination-surface]
-  .tiptap
-  :is(table, tr, td, th, .table-header-like) {
-  border-color: black !important;
-}
-
-.page[data-pagination-surface] :is(p, table),
-.page[data-pagination-surface] > .tiptap {
-  max-width: var(--editor-content-width) !important;
-}
-
-.page[data-pagination-surface] figure[data-type="figureTable"] figcaption {
-  width: var(--editor-content-width) !important;
-  max-width: 100%;
-}
-
-.page[data-paginated-editor] > :first-child {
-  position: relative;
-  z-index: 1;
-}
-
-.editor-pagination-sheets {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-.editor-pagination-sheet {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: var(--editor-page-height);
-  z-index: 0;
-  border-radius: 0;
-  background: var(--editor-paper);
-  outline: 1px solid rgb(0 0 0 / 10%);
-  box-shadow: 0 3px 16px rgb(0 0 0 / 7%);
-}
-
-.dark .page[data-paginated-editor] {
-  --editor-paper: var(--color-neutral-900, #171717);
-  --editor-workspace: black;
-}
-
-.editor-pagination-boundary {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  width: 100%;
-  height: calc(
-    var(--editor-margin-bottom) + var(--editor-margin-top) +
-      var(--editor-page-gap)
-  );
-  background: linear-gradient(
-    to bottom,
-    var(--editor-paper) 0 var(--editor-margin-bottom),
-    var(--editor-workspace) var(--editor-margin-bottom)
-      calc(var(--editor-margin-bottom) + var(--editor-page-gap)),
-    var(--editor-paper)
-      calc(var(--editor-margin-bottom) + var(--editor-page-gap)) 100%
-  );
-}
-
-.editor-pagination-furniture {
-  position: absolute;
-  z-index: 3;
-}
-.page table p {
-  font-size: 10pt !important;
-}
-.page
-  .editor-pagination-repeat
-  figcaption.editor-pagination-repeat-caption::before {
-  counter-increment: none !important;
-}
-.editor-pagination-repeat-caption::after {
-  content: " (Lanjutan...)";
-}
-
-.editor-pagination-number {
-  position: absolute;
-  z-index: 3;
-  font-family: "Times New Roman", serif;
-  font-size: 10pt;
-  line-height: 1;
-  color: #737373;
-}
-
-.tiptap pre {
-  background: black;
-  border-radius: 0.5rem;
-  color: white;
-  font-family: "JetBrainsMono", monospace;
-  margin: 1.5rem 0;
-  font-size: 0.8rem;
-
-  padding: 0.75rem 1rem;
-}
-
-.tiptap code {
-  background: none;
-  color: inherit;
-  font-size: 0.8rem;
-  padding: 0;
-}
-
-.page[data-table-resize-guides="true"]
-  .tiptap[contenteditable="true"]
-  :is(td, th)::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 2px;
-  background: rgba(98, 98, 245, 0.4);
-  pointer-events: none;
-}
-
-.column-resize-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 100%;
-  transform: translateX(50%);
-  cursor: col-resize;
-  z-index: 20;
-  pointer-events: auto;
-}
-.column-resize-handle::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 100%;
-  border-radius: 999px;
-  background: rgba(98, 98, 245, 0.75);
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
-    opacity 0.2s ease;
-}
-.tiptap td[tableheaderlike="1"] {
-  border-bottom: 1px var(--border);
-}
-.tiptap th {
-  border-bottom: 1px solid white;
-}
-
-.column-resize-handle:hover::before,
-.column-resize-handle.is-resizing::before,
-.page table td:hover + .column-resize-handle::before,
-.page table th:hover + .column-resize-handle::before,
-.page table td:hover ~ .column-resize-handle::before,
-.page table th:hover ~ .column-resize-handle::before {
-  background: rgba(98, 98, 245, 1);
-  transform: translateX(-50%) scaleY(1.2);
-}
 .node-refComponent .head {
   font-weight: bold;
 }
+
 .page-break {
   height: 20px;
   width: 100%;
   border-top: 1px dashed #ccc;
   margin: 10px 0;
-}
-.tiptap:focus {
-  outline: none;
 }
 
 .page cite {
@@ -744,50 +224,18 @@ img.editor-pagination-image {
   padding-inline: 2px;
 }
 
-.menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  z-index: 100;
-}
 .page h1 {
   position: relative;
 }
 
-.page .tiptap[contenteditable="true"] h1:hover::after {
-  opacity: 1;
-}
 .attachment-chapter h1::after {
   content: "" !important;
 }
-.page .tiptap[contenteditable="true"] h1::after {
-  content: "Editable, But won't affected";
-  white-space: nowrap;
-  background-color: rgba(1, 1, 1, 0.45);
-  border-radius: 5px;
-  color: white;
-  position: absolute;
-  text-align: center;
-  z-index: 555;
-  opacity: 0;
-  transition:
-    opacity 200ms ease-in-out,
-    transform 200ms ease-in-out;
-  pointer-events: none;
-  height: max-content;
-  font-size: 12px;
-  font-family: var(--font-mono, system-ui);
-  right: 50%;
-  padding: 0 0.4em;
-  top: -5px;
-}
-.page table {
-  table-layout: fixed;
-}
+
 .static-chapter :is(h1, h2, h3)::before {
   content: "" !important;
 }
+
 .static-chapter h1 {
   text-transform: uppercase;
 }
@@ -795,46 +243,11 @@ img.editor-pagination-image {
 .abstract-en {
   font-style: italic !important;
 }
+
 .abstract p {
   text-indent: 0 !important;
 }
+
 .calendar * {
   border: 0 !important;
-}
-
-/* Find & Replace – Search Highlights */
-.search-highlight {
-  background-color: #fde68a;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.3);
-}
-
-.search-highlight-active {
-  background-color: #fb923c;
-  color: white;
-  border-radius: 2px;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.4);
-}
-
-:is(.dark) .search-highlight {
-  background-color: #854d0e;
-  box-shadow: 0 0 0 1px rgba(133, 77, 14, 0.4);
-}
-
-:is(.dark) .search-highlight-active {
-  background-color: #ea580c;
-  color: white;
-  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.5);
-}
-/* Editor controls are overlays; shared content DOM alone determines page geometry. */
-.tiptap [data-editor-node-controls] > * {
-  pointer-events: auto;
-}
-.tiptap
-  figure[data-type="figureTable"]
-  table[data-type="table"]
-  > tbody
-  > tr:first-child
-  > td {
-  font-weight: bold;
 }

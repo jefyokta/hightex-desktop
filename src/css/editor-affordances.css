@@ -1,0 +1,138 @@
+/* Editor UI paints outside content without changing wrapping or box metrics. */
+
+.tiptap p:first-of-type::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.page
+  .tiptap[contenteditable="true"]
+  figure[data-type="imageFigure"]:is(:hover, :focus-within)
+  .editor-image-figure-content {
+  outline: 1px solid #2563eb;
+}
+
+.page .tiptap[contenteditable="true"] h1:hover::after {
+  opacity: 1;
+}
+
+.page .tiptap[contenteditable="true"] h1::after {
+  content: "Editable, But won't affected";
+  white-space: nowrap;
+  background-color: rgba(1, 1, 1, 0.45);
+  border-radius: 5px;
+  color: white;
+  position: absolute;
+  text-align: center;
+  z-index: 555;
+  opacity: 0;
+  transition:
+    opacity 200ms ease-in-out,
+    transform 200ms ease-in-out;
+  pointer-events: none;
+  height: max-content;
+  font-size: 12px;
+  font-family: var(--font-mono, system-ui);
+  right: 50%;
+  padding: 0 0.4em;
+  top: -5px;
+}
+
+.alias {
+  position: relative;
+}
+
+.alias::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  bottom: 0;
+
+  width: 100%;
+
+  border-bottom: 1px dotted var(--muted-foreground);
+}
+
+.alias::before {
+  content: attr(data-value);
+
+  display: none;
+  text-indent: 0;
+  font-family: "Geist Variable", sans-serif;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+
+  width: max-content;
+  max-width: 240px;
+
+  padding: 4px 6px;
+
+  color: var(--popover);
+  background: var(--foreground);
+
+  border-radius: 4px;
+
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: normal;
+
+  /* white-space: normal; */
+  z-index: 1000;
+}
+
+.alias:hover::before {
+  display: block;
+}
+
+#page {
+  height: max-content;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+.menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+/* Find & Replace – Search Highlights */
+
+.search-highlight {
+  background-color: #fde68a;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.3);
+}
+
+.search-highlight-active {
+  background-color: #fb923c;
+  color: white;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.4);
+}
+
+:is(.dark) .search-highlight {
+  background-color: #854d0e;
+  box-shadow: 0 0 0 1px rgba(133, 77, 14, 0.4);
+}
+
+:is(.dark) .search-highlight-active {
+  background-color: #ea580c;
+  color: white;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.5);
+}
+
+/* Editor controls are overlays; shared content DOM alone determines page geometry. */
+
+.tiptap [data-editor-node-controls] > * {
+  pointer-events: auto;
+}

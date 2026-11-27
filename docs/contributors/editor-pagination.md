@@ -432,3 +432,11 @@ cleanup. The PDF service owns validation, PDF metadata and atomic saving.
 `captureEditorChapterPDF` belongs to tests/helpers; product capture has one entry.
 Run `tests/integration/editor-pagination-ui.cjs` for hover/selection/menu geometry,
 source preservation, exact-snapshot debug export and close/cancel cleanup.
+
+## Shared styles and serialized geometry
+
+`editor.css` imports the shared content rules in `table.css`, `list.css` and
+`editor-code.css`. Pagination effects belong to `editor-pagination.css`;
+`editor-affordances.css` and `editor-table-controls.css` own editor interaction
+styles. PDF capture freezes this same stylesheet graph. List indentation and
+table content must not acquire a second print-only implementation.
