@@ -418,6 +418,8 @@ figure thead td {
 .foreword li p,
 .presentation li p {
   text-indent: 0;
+  padding-left: 8pt;
+
 }
 
 .content ol,
@@ -426,6 +428,8 @@ figure thead td {
   list-style-position: outside;
   list-style-type: decimal;
   margin-left: 0.5em;
+  padding-left: 16pt ;
+
 }
 
 .content ul,
