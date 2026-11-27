@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { exportCloudArtifact } from "./academic-data";
 import type { CloudCommit } from "./documents";
@@ -20,7 +21,7 @@ export async function uploadCloudDocument(
   await ensureCurrent();
   const artifact = await exportCloudArtifact(documentId, session, current?.document_id ?? null);
   await ensureCurrent();
-  const result = await window.hightex.cloud.push({
+  const result = await useIPC("hightex").hightex.cloud.push({
     sessionId: session.sessionId,
     file: artifact.file,
     document: { ...artifact.document, profile: undefined },

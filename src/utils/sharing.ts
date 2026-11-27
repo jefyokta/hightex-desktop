@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { truncate } from "@/utils/truncate";
 import { confirm } from "./confirm";
 import { ask } from "./ask";
@@ -106,10 +107,10 @@ export const parseInvitationCode = (code: string) => {
 export const connectToHost = async (invdCode: string) => {
   const data = parseInvitationCode(invdCode);
   const { code = "", ssid, host, sharingId } = data;
-  const scanned = await window.sharing.wifi.scan();
+  const scanned = await useIPC("sharing").sharing.wifi.scan();
   const reachable = scanned.some((s) => s.ssid == ssid);
   if (!reachable) throw new Error("Host Network is not reachable");
-  const currentNetwork = await window.sharing.wifi.current();
+  const currentNetwork = await useIPC("sharing").sharing.wifi.current();
   if (currentNetwork && currentNetwork?.ssid == ssid) {
     await checkForHostServer(host, sharingId);
     return { ip: data.ip, port: data.host.split(":")[1], code };
@@ -125,7 +126,7 @@ export const connectToHost = async (invdCode: string) => {
     true,
   );
   if (typeof pass == "undefined") throw new Error("Canceled");
-  const connetion = await window.sharing.wifi.connect(ssid, pass);
+  const connetion = await useIPC("sharing").sharing.wifi.connect(ssid, pass);
   if (!connetion.changed) throw new Error("Failed to connect");
   await checkForHostServer(host, sharingId);
   return { ip: data.ip, port: data.host.split(":")[1], code };

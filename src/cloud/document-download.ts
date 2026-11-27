@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { CloudError } from "@/exception/cloud-error";
 import { Exporter } from "@/utils/htx/exporter";
@@ -47,7 +48,7 @@ async function backupLocalDraft(
   if (await draftRevision(current) !== await draftRevision(before)) {
     throw new CloudError("local_changed");
   }
-  await window.hightex.cloud.backup(session.sessionId, backup.file);
+  await useIPC("hightex").hightex.cloud.backup(session.sessionId, backup.file);
 }
 
 async function attachAcademicSource(
@@ -56,7 +57,7 @@ async function attachAcademicSource(
   before: DraftState,
 ) {
   const { session, serverDocumentId } = request;
-  const academic = await window.hightex.cloud.academic.load({
+  const academic = await useIPC("hightex").hightex.cloud.academic.load({
     sessionId: session.sessionId,
     serverDocumentId,
   });
@@ -78,7 +79,7 @@ export async function downloadCloudDocument(
 ): Promise<CloudDownloadResult> {
   const { session, serverDocumentId, localDocumentId, categories, target } = request;
   const db = HighTexDB.getInstance();
-  const result = await window.hightex.cloud.pull({
+  const result = await useIPC("hightex").hightex.cloud.pull({
     sessionId: session.sessionId,
     serverDocumentId,
     sha256: "sha256" in target ? target.sha256 : undefined,
@@ -88,7 +89,7 @@ export async function downloadCloudDocument(
 
   const prepared = await prepareCloudDraft(result.file, localDocumentId, categories);
   const before = await captureDraft(db, localDocumentId);
-  if (await window.editor.has(localDocumentId)) throw new CloudError("editor_open");
+  if (await useIPC("editor").editor.has(localDocumentId)) throw new CloudError("editor_open");
   if (before.document) {
     if (!await interaction.confirmReplacement(before.document)) return { status: "cancelled" };
     await backupLocalDraft(request, before, interaction);
@@ -101,12 +102,12 @@ export async function downloadCloudDocument(
   }
 
   await interaction.ensureCurrent();
-  if (await window.editor.has(localDocumentId)) throw new CloudError("editor_open");
+  if (await useIPC("editor").editor.has(localDocumentId)) throw new CloudError("editor_open");
   await installCloudDraft(db, prepared, before);
   try {
     await interaction.ensureCurrent();
     if (target.kind === "latest") {
-      await window.hightex.cloud.accept({
+      await useIPC("hightex").hightex.cloud.accept({
         sessionId: session.sessionId,
         downloadId: result.downloadId,
         localDocumentId,

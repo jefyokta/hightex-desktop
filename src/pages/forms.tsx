@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   useEffect,
@@ -246,7 +247,7 @@ function FormWorkspace({
     setBusy(true);
     setMessage("");
     try {
-      const result = await window.formPrint.export(input);
+      const result = await useIPC("formPrint").formPrint.export(input);
       if (result) setMessage(t("forms.zip_saved", { path: result.path }));
     } catch (error) {
       setMessage(
@@ -428,7 +429,7 @@ export function Forms() {
     setError(false);
     const refreshProfile = () => {
       setProfileFailed(false);
-      void window.profile
+      void useIPC("profile").profile
         ?.get()
         .then((profile) => {
           if (active) setProfile(profile);
@@ -439,8 +440,8 @@ export function Forms() {
     };
     refreshProfile();
     window.addEventListener("focus", refreshProfile);
-    const offProfile = window.profile.onChange?.(refreshProfile);
-    const offSession = window.session?.onChange?.(refreshProfile);
+    const offProfile = useIPC("profile").profile.onChange?.(refreshProfile);
+    const offSession = useIPC("session").session?.onChange?.(refreshProfile);
     const subscription = liveQuery(() =>
       HighTexDB.getMainDocuments(),
     ).subscribe({

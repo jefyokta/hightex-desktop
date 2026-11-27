@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { useState } from "react";
@@ -84,7 +85,7 @@ export function WorkspaceProfiles() {
   const createWorkspace = () =>
     run(async () => {
       const previousIds = new Set(state.profiles.map((profile) => profile.id));
-      const next = await window.workspaces.create({ name, type });
+      const next = await useIPC("workspaces").workspaces.create({ name, type });
       const created = next.profiles.find(
         (profile) => !previousIds.has(profile.id),
       );
@@ -94,13 +95,13 @@ export function WorkspaceProfiles() {
       setType("local");
       setCreateOpen(false);
       if (type === "cloud" && created)
-        await window.workspaces.switch(created.id);
+        await useIPC("workspaces").workspaces.switch(created.id);
     });
 
   const renameWorkspace = () =>
     run(async () => {
       if (!renameId) return;
-      setState(await window.workspaces.rename(renameId, renameName));
+      setState(await useIPC("workspaces").workspaces.rename(renameId, renameName));
       window.dispatchEvent(new Event("workspaces:changed"));
       setRenameId(undefined);
     });
@@ -108,7 +109,7 @@ export function WorkspaceProfiles() {
   const deleteWorkspace = () =>
     run(async () => {
       if (!deleteId) return;
-      setState(await window.workspaces.delete(deleteId));
+      setState(await useIPC("workspaces").workspaces.delete(deleteId));
       window.dispatchEvent(new Event("workspaces:changed"));
       setDeleteId(undefined);
     });
@@ -117,15 +118,15 @@ export function WorkspaceProfiles() {
     run(async () => {
       if (profile.id !== state.activeId) {
         if (profile.type === "local" && !profile.pendingCloudBinding) {
-          const next = await window.workspaces.beginCloudBinding(profile.id);
+          const next = await useIPC("workspaces").workspaces.beginCloudBinding(profile.id);
           setState(next);
           window.dispatchEvent(new Event("workspaces:changed"));
         }
-        await window.workspaces.switch(profile.id);
+        await useIPC("workspaces").workspaces.switch(profile.id);
         return;
       }
       if (profile.type === "local" && !profile.pendingCloudBinding) {
-        setState(await window.workspaces.beginCloudBinding(profile.id));
+        setState(await useIPC("workspaces").workspaces.beginCloudBinding(profile.id));
         window.dispatchEvent(new Event("workspaces:changed"));
       }
       openLogin();
@@ -133,8 +134,8 @@ export function WorkspaceProfiles() {
 
   const cancelConnection = (profile: WorkspaceProfile) =>
     run(async () => {
-      if (profile.id === state.activeId) await window.session.browser.cancel();
-      setState(await window.workspaces.cancelCloudBinding(profile.id));
+      if (profile.id === state.activeId) await useIPC("session").session.browser.cancel();
+      setState(await useIPC("workspaces").workspaces.cancelCloudBinding(profile.id));
       window.dispatchEvent(new Event("workspaces:changed"));
       if (profile.id === state.activeId) closeLogin();
     });
@@ -237,7 +238,7 @@ export function WorkspaceProfiles() {
                       variant="outline"
                       disabled={busy}
                       onClick={() =>
-                        void run(() => window.workspaces.switch(profile.id))
+                        void run(() => useIPC("workspaces").workspaces.switch(profile.id))
                       }
                     >
                       <ArrowRightLeft />

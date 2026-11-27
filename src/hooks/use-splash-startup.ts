@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef, useState } from "react";
 import { CategoryEmpty } from "@/exception/categories-empty";
 
@@ -15,8 +16,8 @@ export function useSplashStartup(online: boolean) {
   useEffect(() => {
     let active = true;
     metadata.current ??= Promise.all([
-      window.hightex.version().catch(() => ""),
-      window.hightex.categories(),
+      useIPC("hightex").hightex.version().catch(() => ""),
+      useIPC("hightex").hightex.categories(),
     ]);
     void metadata.current
       .then(([value, categories]) => {
@@ -41,13 +42,13 @@ export function useSplashStartup(online: boolean) {
     }
     setPhase("preparing");
     setProgress(0);
-    const unsubscribe = window.hightex.onPrefetchProgress((data) => {
+    const unsubscribe = useIPC("hightex").hightex.onPrefetchProgress((data) => {
       if (!active || !Number.isFinite(data.progress)) return;
       setProgress(Math.max(0, Math.min(100, data.progress ?? 0)));
     });
     // Reuse the same request when StrictMode replays the mount effect.
     preparation.current ??= Promise.resolve().then(() =>
-      window.hightex.prefetch(),
+      useIPC("hightex").hightex.prefetch(),
     );
     void preparation.current
       .then((success) => {

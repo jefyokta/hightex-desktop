@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   ArrowUpRight,
@@ -86,7 +87,7 @@ export const Row = ({
   const pdf = async (watermark = false) => {
     const requestId = crypto.randomUUID();
     const toastId = toast.loading(t("common.preparing_pdf"));
-    const off = window.hightex.onPdfProgress((update) => {
+    const off = useIPC("hightex").hightex.onPdfProgress((update) => {
       if (update.requestId !== requestId) return;
       toast.loading(update.status, {
         id: toastId,
@@ -94,7 +95,7 @@ export const Row = ({
       });
     });
     try {
-      const result = await window.ipcRenderer.invoke(
+      const result = await useIPC("ipcRenderer").ipcRenderer.invoke(
         "hightex:pdf",
         doc.id,
         watermark,
@@ -110,11 +111,11 @@ export const Row = ({
         duration: 10000,
         action: {
           label: t("dashboard.open_file"),
-          onClick: () => window.file?.openPath?.(result.path),
+          onClick: () => useIPC("file").file?.openPath?.(result.path),
         },
         cancel: {
           label: t("dashboard.open_folder"),
-          onClick: () => window.file?.showInFolder?.(result.path),
+          onClick: () => useIPC("file").file?.showInFolder?.(result.path),
         },
       });
     } catch {
@@ -150,7 +151,7 @@ export const Row = ({
             onClick={() =>
               selectMode
                 ? onSelect()
-                : void run(() => window.editor.open(doc.id, doc.file))
+                : void run(() => useIPC("editor").editor.open(doc.id, doc.file))
             }
             data-tour="document-open"
             title={doc.title}
@@ -204,7 +205,7 @@ export const Row = ({
               aria-label={t("dashboard.open_document", { title: doc.title })}
               title={t("dashboard.open")}
               onClick={() =>
-                void run(() => window.editor.open(doc.id, doc.file))
+                void run(() => useIPC("editor").editor.open(doc.id, doc.file))
               }
             >
               {busy ? (
@@ -288,7 +289,7 @@ export const Row = ({
                   disabled={busy || disabled}
                   onClick={() => {
                     setBranchesOpen(false);
-                    void run(() => window.editor.open(branch.id, branch.file));
+                    void run(() => useIPC("editor").editor.open(branch.id, branch.file));
                   }}
                 >
                   {t("dashboard.open")}

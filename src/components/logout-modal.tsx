@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
 import { useState } from "react";
@@ -13,7 +14,7 @@ export const LogoutModal = () => {
     setLoading(true);
 
     try {
-      const result = await window.session.logout();
+      const result = await useIPC("session").session.logout();
       if (!result.revoked) toast.warning(t("desktop_auth.logout_unconfirmed"));
       closeLogout();
     } finally {

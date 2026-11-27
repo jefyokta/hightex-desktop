@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import type { MouseEvent } from "react";
 import { ArrowUpRight, GitFork, Star } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +10,7 @@ const repository = "https://github.com/jefyokta/hightex-desktop";
 export function GitHubSupport() {
   const openRepository = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    void window.file.openExternal(repository).catch(() => {
+    void useIPC("file").file.openExternal(repository).catch(() => {
       toast.error(t("splash.github.open_failed"));
     });
   };

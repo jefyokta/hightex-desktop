@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import React, { useState } from "react";
 import { toast } from "sonner";
 // import { useAuthModal } from "@/context/auth-modal-context";
@@ -15,7 +16,7 @@ function ReportIssueAction({ description }: { description: string }) {
   const report = async () => {
     try {
       setSending(true);
-      await window.hightex.reportError({
+      await useIPC("hightex").hightex.reportError({
         title: t("error.report.unexpected_error"),
         description,
       });
@@ -40,7 +41,7 @@ function ReportIssueAction({ description }: { description: string }) {
             try {
               await navigator.clipboard.writeText(formatted);
               toast.success(t("error.report.copied"));
-              await window.file.openPath(
+              await useIPC("file").file.openPath(
                 "https://github.com/jefyokta/hightex-desktop/issues/new",
               );
             } catch {

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { Folder, Monitor, Moon, Sun } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,7 @@ export function EditorPreferences() {
 export function ExportPreferences() {
   const { config, saveConfig } = useConfig();
   const chooseFolder = async () => {
-    const saveFolder = await window.dialog.selectFolder();
+    const saveFolder = await useIPC("dialog").dialog.selectFolder();
     if (saveFolder) await saveConfig({ export: { saveFolder } });
   };
 

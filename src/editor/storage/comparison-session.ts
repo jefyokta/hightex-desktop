@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { HighTexDB } from "./hightex-db";
 import { compareDocumentBranch } from "./document-comparison";
 import { observeDocumentSources as observeComparisonSources } from "./document-source-observer";
@@ -14,7 +15,7 @@ export async function openDocumentComparison(
   if (!branch?.parentId) throw Error("Document is not a branch");
   const ids = [branch.parentId, branchId];
   // Existing windows flush their own bound, ready editor. No new editor or file save.
-  await Promise.all(ids.map((id) => window.editor?.flush?.(id)));
+  await Promise.all(ids.map((id) => useIPC("editor").editor?.flush?.(id)));
   signal.throwIfAborted();
   const observer = observeComparisonSources(ids, onChange, signal);
   try {

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { ApplicationError } from "@/exception/interfaces/application-error";
 
 export function printChannel(event: "payload" | "error", documentId: string) {
@@ -8,7 +9,7 @@ export function printChannel(event: "payload" | "error", documentId: string) {
 }
 
 export function reportPrintError(documentId: string, error: unknown) {
-  window.ipcRenderer?.send(
+  useIPC("ipcRenderer").ipcRenderer?.send(
     printChannel("error", documentId),
     ApplicationError.normilize(error),
   );

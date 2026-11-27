@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import { sha256Bytes } from "../src/utils/sha256";
+import { loadIPCModule } from "./helpers/load-source";
 
 function fixture(initialImages: unknown[] = []) {
   const flushed: string[] = [];
@@ -63,6 +64,7 @@ function fixture(initialImages: unknown[] = []) {
       session: { onChange: () => () => removed++ },
     },
   };
+  modules["@/hooks/use-ipc"] = loadIPCModule({ window: sandbox.window });
   const imageModule = { ...sandbox, exports: {} };
   vm.runInNewContext(
     ts.transpileModule(

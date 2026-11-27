@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 
 interface ZoteroSearchState {
@@ -23,7 +24,7 @@ export function useZoteroSearch(query: string, config?: ConfigShape["zotero"], e
     const { host, port } = config;
     const timer = setTimeout(() => {
       setState({ query: text, scope, items: [], loading: true, unavailable: false });
-      void window.zotero.searchItems(host, port, text).then(items => {
+      void useIPC("zotero").zotero.searchItems(host, port, text).then(items => {
         if (current) setState({ query: text, scope, items, loading: false, unavailable: false });
       }).catch(() => {
         if (current) setState({ query: text, scope, items: [], loading: false, unavailable: true });

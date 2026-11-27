@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { confirm } from "@/utils/confirm";
@@ -11,7 +12,7 @@ export function UpdaterStatusListener() {
   const installPromptOpen = useRef(false);
   const downloadPromptOpen = useRef(false);
   useEffect(() => {
-    const api = window.updater;
+    const api = useIPC("updater").updater;
     if (!api) return;
     const download = async () => {
       try {

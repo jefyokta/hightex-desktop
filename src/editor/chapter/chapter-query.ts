@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../storage/hightex-db";
 import { Chapter } from "./chapter";
@@ -68,7 +69,7 @@ export class ChapterQuery {
 
     if (!doc) return;
 
-    const categories = await window.hightex.categories();
+    const categories = await useIPC("hightex").hightex.categories();
 
     const category = categories.find((c) => {
       return c.id == Number(doc.category);

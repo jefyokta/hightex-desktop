@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useCurrentEditor } from "@/hooks/use-editor";
@@ -20,7 +21,7 @@ export const EditorFlushSlave = () => {
       !id ||
       !chapter?.document?.ready ||
       initialized.current === id ||
-      !window.editor?.ready
+      !useIPC("editor").editor?.ready
     )
       return;
     const bound = editor ? getEditorChapter(editor) : undefined;
@@ -38,7 +39,7 @@ export const EditorFlushSlave = () => {
         ? await documentFiles.initialized(id, buffer)
         : undefined;
       await documentSaving.start(id, buffer);
-      await window.editor.ready(buffer, source);
+      await useIPC("editor").editor.ready(buffer, source);
     })().catch((error) => {
       initialized.current = undefined;
       console.error("Could not initialize archive tracking", error);
@@ -46,7 +47,7 @@ export const EditorFlushSlave = () => {
   }, [id, chapter, editor]);
   useEffect(() => () => documentSaving.stop(), [id]);
   useEffect(() => {
-    const off = window.editor?.onCloseState?.((locked) => {
+    const off = useIPC("editor").editor?.onCloseState?.((locked) => {
       document.body.inert = locked;
     });
     return () => {
@@ -55,13 +56,13 @@ export const EditorFlushSlave = () => {
     };
   }, []);
   useEffect(() => {
-    return window.editor?.onFlush?.((request, documentId, archive) => {
+    return useIPC("editor").editor?.onFlush?.((request, documentId, archive) => {
       void (async () => {
         try {
           if (id !== documentId) throw new Error("Editor document changed");
           if (!archive) {
             await flushDocumentChanges(documentId, editor, chapter);
-            window.editor.completeFlush(request);
+            useIPC("editor").editor.completeFlush(request);
             return;
           }
           const captured = await captureDocumentArchive(documentId, editor, chapter);
@@ -74,9 +75,9 @@ export const EditorFlushSlave = () => {
             if (result.status === "saved") snapshot.filePath = result.filePath;
             if (result.status === "failed") throw Error(result.error.detail);
           }
-          window.editor.completeFlush(request, undefined, snapshot);
+          useIPC("editor").editor.completeFlush(request, undefined, snapshot);
         } catch (error) {
-          window.editor.completeFlush(
+          useIPC("editor").editor.completeFlush(
             request,
             error instanceof Error ? error.message : String(error),
           );

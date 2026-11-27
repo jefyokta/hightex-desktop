@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { Table } from "dexie";
 import type { JSONContent } from "@tiptap/core";
 import { HighTexDB } from "../storage/hightex-db";
@@ -209,7 +210,7 @@ export class Document {
   }
 
   private async loadSchemeFromExternal() {
-    const categories = await window.hightex.categories();
+    const categories = await useIPC("hightex").hightex.categories();
 
     const doc = this.getDocument();
     if (categories.length == 0) {
@@ -218,7 +219,7 @@ export class Document {
 
     const category =
       categories.find((c) => c.id.toString() === doc.category) ??
-      (await window.hightex.category?.(doc.category));
+      (await useIPC("hightex").hightex.category?.(doc.category));
     if (!category) {
       throw new CategoryEmpty(doc.category);
     }

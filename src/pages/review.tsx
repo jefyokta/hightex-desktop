@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/hooks/use-user";
@@ -43,13 +44,13 @@ export const Review = () => {
     setAccessDenied(false);
     if (local || !user || !online || !documentId || !submissionId) return;
     const load = async () => {
-      const context = await window.hightex.submission.context();
+      const context = await useIPC("hightex").hightex.submission.context();
       if (canceled) return;
       if (!context.ok) {
         setError(t(`submission_review.errors.${context.error.code}`));
         return;
       }
-      const detail = await window.hightex.submission.detail({
+      const detail = await useIPC("hightex").hightex.submission.detail({
         sessionId: context.data.sessionId,
         documentId,
         submissionId,
@@ -64,7 +65,7 @@ export const Review = () => {
         setError(t("submission_review.archive_purged"));
         return;
       }
-      const response = await window.hightex.submission.file({
+      const response = await useIPC("hightex").hightex.submission.file({
         sessionId: context.data.sessionId,
         documentId,
         submissionId,
@@ -86,7 +87,7 @@ export const Review = () => {
           sha256: download.sha256,
         }));
       if (canceled) return;
-      const current = await window.hightex.submission.context();
+      const current = await useIPC("hightex").hightex.submission.context();
       if (canceled) return;
       if (
         !current.ok ||

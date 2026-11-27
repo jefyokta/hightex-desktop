@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import {
   useEffect,
   useLayoutEffect,
@@ -88,8 +89,8 @@ export function AbstractCompositionEditor({
       invalidateWorkspaceAuthorProfile();
       void refresh();
     };
-    const offProfile = window.profile?.onChange?.(identityChanged),
-      offSession = window.session?.onChange?.(identityChanged);
+    const offProfile = useIPC("profile").profile?.onChange?.(identityChanged),
+      offSession = useIPC("session").session?.onChange?.(identityChanged);
     return () => {
       alive = false;
       generation++;

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { ArrowUpRight, Coffee } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,8 @@ import { t } from "@/utils/lang";
 export function DonateButton() {
   const openDonation = async () => {
     try {
-      const url = await window.hightex.serverUrl("/support-us");
-      await window.file.openExternal(url);
+      const url = await useIPC("hightex").hightex.serverUrl("/support-us");
+      await useIPC("file").file.openExternal(url);
     } catch {
       toast.error(t("splash.donate.open_failed"));
     }

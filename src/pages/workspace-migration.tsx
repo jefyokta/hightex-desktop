@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { Disclosure } from "@/components/ui/disclosure";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -42,7 +43,7 @@ export function WorkspaceMigrationPage({
 
   useEffect(() => {
     if (target) return;
-    return window.workspaces.onMigrationProgress?.((update) => {
+    return useIPC("workspaces").workspaces.onMigrationProgress?.((update) => {
       setProgress((previous) => ({
         ...previous,
         [update.profileId]: update.status,
@@ -56,14 +57,14 @@ export function WorkspaceMigrationPage({
       const db = HighTexDB.getInstance();
       await db.open();
       if (target) {
-        const snapshot = await window.workspaces.migrationTarget();
+        const snapshot = await useIPC("workspaces").workspaces.migrationTarget();
         await restoreWorkspaceData(db, snapshot);
         const hash = await workspaceSnapshotHash(
           await captureWorkspaceData(db),
         );
-        await window.workspaces.migrationVerified(hash);
+        await useIPC("workspaces").workspaces.migrationVerified(hash);
       } else {
-        return window.workspaces.migrationPreview(
+        return useIPC("workspaces").workspaces.migrationPreview(
           await captureWorkspaceData(db),
         );
       }
@@ -76,7 +77,7 @@ export function WorkspaceMigrationPage({
         if (!alive) return;
         setError(cause instanceof Error ? cause.message : String(cause));
         if (target)
-          void window.workspaces.migrationVerified("failed").catch(() => {});
+          void useIPC("workspaces").workspaces.migrationVerified("failed").catch(() => {});
       });
     return () => {
       alive = false;
@@ -107,7 +108,7 @@ export function WorkspaceMigrationPage({
     setError("");
     setProgress({});
     try {
-      await window.workspaces.migrate(resolutions);
+      await useIPC("workspaces").workspaces.migrate(resolutions);
       setComplete(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CloudError } from "@/exception/cloud-error";
@@ -35,7 +36,7 @@ export function useRemoteDocuments(online: boolean) {
 
   const isCurrent = useCallback(async (session: CloudSession) => {
     if (!alive.current) return false;
-    return (await window.hightex.cloud.context()).sessionId === session.sessionId;
+    return (await useIPC("hightex").hightex.cloud.context()).sessionId === session.sessionId;
   }, []);
 
   const ensureCurrent = async (session: CloudSession) => {
@@ -142,7 +143,7 @@ export function useRemoteDocuments(online: boolean) {
     if (!snapshot || !selectedDocument || !loaded) return;
     await run({ kind: "push", force }, async () => {
       if (isIntern) throw new CloudError("kp_unsupported");
-      if (await window.editor.has(selectedId)) throw new CloudError("editor_open");
+      if (await useIPC("editor").editor.has(selectedId)) throw new CloudError("editor_open");
       const replace = Boolean(current && !isLinked);
       if (force && !current) return;
       if ((force || replace) && !await confirm({

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { Manager } from "../../manager";
 import { documentDrafts } from "../../document-drafts";
 import { observeDocumentSources } from "../../storage/document-source-observer";
@@ -108,7 +109,7 @@ export class DocumentSaving {
     this.update({ saving: true, error: undefined });
     let result: DocumentSaveResult | undefined;
     try {
-      result = await window.editor.save(archive.buffer, archive.fileName, mode);
+      result = await useIPC("editor").editor.save(archive.buffer, archive.fileName, mode);
       await this.applyResult(archive, result);
       return result;
     } catch (error) {
@@ -152,7 +153,7 @@ export class DocumentSaving {
     try {
       await this.editingChapter?.flush();
       await documentDrafts.get(archive.document.id)?.commit();
-      await window.editor.reloadSource();
+      await useIPC("editor").editor.reloadSource();
     } catch (error) {
       document.body.inert = wasInert;
       throw error;

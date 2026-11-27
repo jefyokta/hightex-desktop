@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import type { ImportedHighTexV2 } from "@hightex/importer";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { HighTexImportError } from "@/exception/hightex-import";
@@ -52,7 +53,7 @@ export class HighTexImporter {
 
   /** Opening an existing document must not replace a running editor's draft. */
   async open(): Promise<void> {
-    await window.editor.open(this.actualDocumentId, this.filePath);
+    await useIPC("editor").editor.open(this.actualDocumentId, this.filePath);
   }
 
   async import(mode: ImportMode = "overwrite"): Promise<HighTexDocument> {
@@ -62,7 +63,7 @@ export class HighTexImporter {
         mode === "copy" ? crypto.randomUUID() : this.actualDocumentId;
       const before =
         mode === "copy" ? await captureDraft(db, documentId) : this.before;
-      const categories = await window.hightex.categories();
+      const categories = await useIPC("hightex").hightex.categories();
       const prepared = await prepareDraftImport(
         this.model,
         documentId,

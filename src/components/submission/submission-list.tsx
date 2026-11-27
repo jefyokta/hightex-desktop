@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
@@ -57,7 +58,7 @@ export const SubmissionListView = () => {
       return;
     }
     setLoading(true);
-    void window.hightex.submission
+    void useIPC("hightex").hightex.submission
       .list()
       .then((response) => {
         if (canceled) return;

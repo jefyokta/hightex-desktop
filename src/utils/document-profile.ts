@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { readAuthorProfile } from "@hightex/importer";
 import {
   resolveAuthorProfile,
@@ -50,14 +51,8 @@ export const invalidateWorkspaceAuthorProfile = () => {
 };
 
 const getProfileWindow = (): Window => {
-  if (window.profile) return window;
-  // Preview frames have no Electron preload. Same-origin access keeps the
-  // profile scoped to the editor's host; a different origin cannot read it.
-  try {
-    if (window.parent !== window && window.parent.profile) return window.parent;
-  } catch {
-    // Cross-origin parents cannot provide this workspace's identity.
-  }
+  const host = useIPC("profile");
+  if (host.profile) return host;
   throw Error("Workspace profile API is not available.");
 };
 

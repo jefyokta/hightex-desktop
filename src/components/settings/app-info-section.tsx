@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import licenseText from "../../../LICENSE?raw";
 import copyrightNotice from "../../../COPYRIGHT?raw";
@@ -13,7 +14,7 @@ import { UpdaterSettings } from "./updater-settings";
 export function AppInfoSection() {
   const [licenseOpen, setLicenseOpen] = useState(false);
   const [version, setVersion] = useState<string | null>(null);
-  useEffect(() => { void window.hightex.version().then(setVersion); }, []);
+  useEffect(() => { void useIPC("hightex").hightex.version().then(setVersion); }, []);
 
   return (
     <Card>
@@ -80,7 +81,7 @@ export function AppInfoSection() {
                 variant="outline"
                 onClick={() =>
                   executeInteractively(() =>
-                    window.file.openExternal(
+                    useIPC("file").file.openExternal(
                       "https://github.com/jefyokta/hightex-desktop",
                     ),
                   )

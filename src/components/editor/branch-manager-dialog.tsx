@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import { GitBranch, GitCompare, GitMerge, Trash2 } from "lucide-react";
@@ -79,7 +80,7 @@ export function BranchManagerDialog({
     try {
       await flushCurrent();
       onOpenChange(false);
-      await window.editor.open(document.id, document.file);
+      await useIPC("editor").editor.open(document.id, document.file);
     } catch (error) {
       console.error("Could not switch document branch", error);
       toast.error(t("editor.branches.switch_failed"));
@@ -98,7 +99,7 @@ export function BranchManagerDialog({
       toast.success(t("editor.branches.created", { name: branch.branchName }));
       if (openBranch) {
         try {
-          await window.editor.open(branch.id, branch.file);
+          await useIPC("editor").editor.open(branch.id, branch.file);
           onOpenChange(false);
         } catch (error) {
           console.error("Branch created but could not open its editor", error);
@@ -152,7 +153,7 @@ export function BranchManagerDialog({
       await Promise.all(
         [mainId, branch.id]
           .filter((id): id is string => !!id && id !== chapter.getDocumentId())
-          .map((id) => window.editor.flush(id)),
+          .map((id) => useIPC("editor").editor.flush(id)),
       );
       setCompareBranchId(branch.id);
     } catch (error) {

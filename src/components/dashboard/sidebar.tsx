@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   ChevronDown,
@@ -206,7 +207,7 @@ export const Sidebar = ({ recent = [], onNavigate, onGuide }: Props) => {
                     key={doc.id}
                     title={doc.title}
                     onClick={() => {
-                      window.editor.open(doc.id, doc.file);
+                      useIPC("editor").editor.open(doc.id, doc.file);
                       onNavigate?.();
                     }}
                     className="group flex w-full gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"

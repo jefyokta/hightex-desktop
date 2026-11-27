@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { CloudError } from "@/exception/cloud-error";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { Exporter } from "@/utils/htx/exporter";
@@ -25,11 +26,11 @@ export const exportCloudArtifact = async (
       document.cloudAcademic.serverDocumentId !== serverDocumentId)
   )
     throw new CloudError("academic_scope");
-  const academic = await window.hightex.cloud.academic.load({
+  const academic = await useIPC("hightex").hightex.cloud.academic.load({
     sessionId: session.sessionId,
     serverDocumentId,
   });
-  if ((await window.hightex.cloud.context()).sessionId !== session.sessionId)
+  if ((await useIPC("hightex").hightex.cloud.context()).sessionId !== session.sessionId)
     throw new CloudError("session_changed");
   return { ...(await new Exporter(id).exportForPush(academic)), academic };
 };
@@ -37,7 +38,7 @@ export const exportCloudArtifact = async (
 /** Only a bound working document is refreshed. Review/archive readers never call this. */
 export const refreshCloudAcademic = async (
   id: string,
-  api = window.hightex,
+  api = useIPC("hightex").hightex,
 ) => {
   const db = HighTexDB.getInstance();
   const document = await db.documents.get(id);

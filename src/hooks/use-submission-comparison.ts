@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import type { DocumentComparison } from "@/editor/storage/document-comparison";
 import { previousSubmission, compareSubmissionSnapshots } from "@/review/submission-comparison";
@@ -17,19 +18,19 @@ export function useSubmissionComparison(snapshot: SnapshotReadModel, open: boole
     setResult(undefined);
     const load = async () => {
       const [detail, history] = await Promise.all([
-        window.hightex.submission.detail(input), window.hightex.submission.history(input),
+        useIPC("hightex").hightex.submission.detail(input), useIPC("hightex").hightex.submission.history(input),
       ]);
       if (!detail.ok) throw Error(t(`submission_review.errors.${detail.error.code}`));
       if (!history.ok) throw Error(t(`submission_review.errors.${history.error.code}`));
       const previous = previousSubmission(detail.data.submission, history.data.items);
       if (!previous) throw Error(t("mentoring.no_previous"));
       if (previous.snapshotPurgedAt) throw Error(t("mentoring.previous_purged"));
-      const downloaded = await window.hightex.submission.file({ ...input, submissionId: previous.id });
+      const downloaded = await useIPC("hightex").hightex.submission.file({ ...input, submissionId: previous.id });
       if (!downloaded.ok) throw Error(t(`submission_review.errors.${downloaded.error.code}`));
       const comparison = await compareSubmissionSnapshots(downloaded.data, {
         ...source, file: snapshot.originalFile(),
       });
-      const current = await window.hightex.submission.context();
+      const current = await useIPC("hightex").hightex.submission.context();
       if (!current.ok || current.data.sessionId !== source.session.sessionId) throw Error(t("submission_review.errors.session_changed"));
       if (active) setResult({ comparison, previous });
     };

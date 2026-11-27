@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 export class CommentStorage {
   private set: Set<CommentEntity>;
 
@@ -14,7 +15,7 @@ export class CommentStorage {
   }
 
   static async create(snapshotId: string) {
-    const snap = await window.hightex.snapshot.get(snapshotId);
+    const snap = await useIPC("hightex").hightex.snapshot.get(snapshotId);
     const comments = snap?.comments || [];
 
     for (const comment of comments) {

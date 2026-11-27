@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useState } from "react";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { documentDrafts } from "@/editor/document-drafts";
@@ -33,7 +34,7 @@ export function useDocumentSettings(documentId?: string) {
       const status = await refreshCloudAcademic(documentId);
       const stored = await db.documents.get(documentId);
       if (!stored || !mounted) return;
-      const available = await window.hightex.categories();
+      const available = await useIPC("hightex").hightex.categories();
       if (!mounted) return;
       const profile = await getWorkspaceAuthorProfile();
       if (!mounted) return;
@@ -64,10 +65,10 @@ export function useDocumentSettings(documentId?: string) {
     };
 
     void load();
-    const offProfile = window.profile.onChange?.(refreshProfile);
-    const offSession = window.session.onChange?.(refreshProfile);
-    const offCategories = window.hightex.onCategoriesChanged?.(() => {
-      void window.hightex.categories().then(categories => {
+    const offProfile = useIPC("profile").profile.onChange?.(refreshProfile);
+    const offSession = useIPC("session").session.onChange?.(refreshProfile);
+    const offCategories = useIPC("hightex").hightex.onCategoriesChanged?.(() => {
+      void useIPC("hightex").hightex.categories().then(categories => {
         if (mounted) setCategories(categories);
       }).catch(error => console.error("Could not reload categories", error));
     });

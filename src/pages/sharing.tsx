@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useEffect, useState } from "react";
@@ -62,7 +63,7 @@ export const Present = () => {
   useEffect(() => {
     let mounted = true;
 
-    window.sharing
+    useIPC("sharing").sharing
       .info()
       .then((info) => {
         if (!mounted) return;
@@ -95,7 +96,7 @@ export const Present = () => {
       return;
     }
 
-    window.hightex
+    useIPC("hightex").hightex
       .categories()
       .then(setCategories)
       .catch(() => setCategories([]));
@@ -119,8 +120,8 @@ export const Present = () => {
         <SharingInfo
           session={activeSession}
           onClose={async () => {
-            await window.sharing.stop();
-            setActiveSession(await window.sharing.info());
+            await useIPC("sharing").sharing.stop();
+            setActiveSession(await useIPC("sharing").sharing.info());
           }}
         />
       </div>
@@ -215,7 +216,7 @@ const ShareDocument = ({
     try {
       setLoading(true);
 
-      const snapshot = await window.sharing.html(document.id);
+      const snapshot = await useIPC("sharing").sharing.html(document.id);
       const imgs = await HighTexDB.getInstance()
         .images.where("documentId")
         .equals(document.id)
@@ -227,7 +228,7 @@ const ShareDocument = ({
         }),
       );
 
-      const res = await window.sharing.start({
+      const res = await useIPC("sharing").sharing.start({
         type,
         snapshot,
         images,
@@ -237,7 +238,7 @@ const ShareDocument = ({
         throw new ShouldNotifiedWithNativeComponent(res.message);
       }
 
-      const info = await window.sharing.info();
+      const info = await useIPC("sharing").sharing.info();
 
       if (info) {
         onStarted(info);

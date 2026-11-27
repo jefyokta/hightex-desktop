@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { HighTexDB } from "../../storage/hightex-db";
 import { HighTexImporter } from "@/utils/import-v2";
 import { Exporter } from "@/utils/htx/exporter";
@@ -67,7 +68,7 @@ export class DocumentFileSource {
     try {
       const db = HighTexDB.getInstance();
       const stored = await db.documents.get(documentId);
-      const path = await window.editor.locateSource();
+      const path = await useIPC("editor").editor.locateSource();
       if (!path) return;
       await this.bind(documentId, path);
       // Reconnecting a file must not mark unsaved edits as saved.
@@ -90,12 +91,12 @@ export class DocumentFileSource {
   private async readSource(documentId: string) {
     const db = HighTexDB.getInstance();
     const stored = await db.documents.get(documentId);
-    const path = await window.editor.sourceFile(documentId, stored?.file);
+    const path = await useIPC("editor").editor.sourceFile(documentId, stored?.file);
     if (!path) return;
 
     let bytes: Uint8Array<ArrayBuffer>;
     try {
-      bytes = new Uint8Array(await window.hightex.readFile(path));
+      bytes = new Uint8Array(await useIPC("hightex").hightex.readFile(path));
     } catch (error) {
       if (!stored) throw error;
       this.unavailable.add(documentId);
@@ -136,7 +137,7 @@ export class DocumentFileSource {
       description: recovery.title,
       action: {
         label: t("open_file.open_recovery"),
-        onClick: () => window.editor.open(recovery.id),
+        onClick: () => useIPC("editor").editor.open(recovery.id),
       },
     });
   }

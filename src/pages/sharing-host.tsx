@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { CommentResolver } from "@/compiler/resolver/comment-resolver";
 import { ContextMenuResolver } from "@/compiler/resolver/context-menu-resolver";
 import { SelectionResolver } from "@/compiler/resolver/selection-resolver";
@@ -16,7 +17,7 @@ export const SharingHost = () => {
 
     (async () => {
       try {
-        const info = await window.sharing.info();
+        const info = await useIPC("sharing").sharing.info();
         if (disposed) return;
 
         if (!info) {
@@ -26,7 +27,7 @@ export const SharingHost = () => {
         await connectHost(info.port, info.hostToken);
         if (disposed) return;
 
-        const snapshot = await window.sharing.getSnapshot();
+        const snapshot = await useIPC("sharing").sharing.getSnapshot();
         if (disposed) return;
 
         const doc = new DOMParser().parseFromString(snapshot.html, "text/html");

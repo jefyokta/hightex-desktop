@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
@@ -59,7 +60,7 @@ export function PaginationFeedback({ editor }: { editor: Editor | null }) {
   useEffect(() => {
     if (!open) return;
     let active = true;
-    void window.hightex.version().then(
+    void useIPC("hightex").hightex.version().then(
       (version) => {
         if (!active) return;
         setDiagnostics(
@@ -88,7 +89,7 @@ export function PaginationFeedback({ editor }: { editor: Editor | null }) {
     setSending(true);
     setNotice(undefined);
     try {
-      await window.hightex.reportError({
+      await useIPC("hightex").hightex.reportError({
         title: t("editor.pagination.feedback.issue_title"),
         description: report,
       });

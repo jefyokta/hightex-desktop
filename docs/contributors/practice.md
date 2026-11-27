@@ -27,6 +27,8 @@ patterns. In practice, that means:
 - Keep renderer logic in `src/` and privileged operations in `electron/`.
 - Use the preload bridge and typed window APIs rather than reaching into Electron
   internals from the renderer.
+- Resolve renderer preload APIs through `useIPC("namespace")` from
+  `hooks/use-ipc`; this stateless resolver is also callable from non-React code.
 - Put persistence and system access in the correct service or main-process layer.
 - Reuse existing UI primitives, stores, hooks, and utilities before creating new
   ones.

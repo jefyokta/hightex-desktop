@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef, useState } from "react";
 import type { CreateRevision, GuidanceList, GuidanceRevision, GuidanceTarget, RevisionAction, RevisionAnchor, UpdateRevision } from "../../shared/guidance-contract";
 import { t } from "@/utils/lang";
@@ -41,7 +42,7 @@ export function useGuidanceRevisions(target?: GuidanceTarget, onAccessDenied?: (
 
   const load = async (request: number) => {
     if (!target) return false;
-    const result = await window.hightex.submission.revisions.list(target);
+    const result = await useIPC("hightex").hightex.submission.revisions.list(target);
     if (result.ok && isCurrent(request) && scope === key && pending) {
       const confirmed = pending.kind === "create"
         ? result.data.items.some(item => item.id === pending.input.id)
@@ -75,8 +76,8 @@ export function useGuidanceRevisions(target?: GuidanceTarget, onAccessDenied?: (
       if (!write) return await load(request);
       setPending(write);
       const result = write.kind === "create"
-        ? await window.hightex.submission.revisions.create(write.input)
-        : await window.hightex.submission.revisions.update(write.input);
+        ? await useIPC("hightex").hightex.submission.revisions.create(write.input)
+        : await useIPC("hightex").hightex.submission.revisions.update(write.input);
       const success = accept(result, request);
       const rejected = !result.ok && (["state_changed", "forbidden", "not_authenticated", "session_changed", "not_found"].includes(result.error.code) || result.error.status === 422);
       if (success) confirm(write);

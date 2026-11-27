@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import type { Document } from "@/editor/document";
@@ -35,7 +36,7 @@ export function useDocumentPDF(editor: Editor | Document) {
     const active = request.current;
     if (!active) return;
     active.controller.abort();
-    void window.editorPDFExperimental.cancel(active.id).catch((error) => {
+    void useIPC("editorPDFExperimental").editorPDFExperimental.cancel(active.id).catch((error) => {
       const report = paginationReport(
         error,
         "Membatalkan ekspor PDF experimental",
@@ -120,10 +121,10 @@ export function useDocumentPDF(editor: Editor | Document) {
       active.controller.signal.throwIfAborted();
       if (request.current !== active) return;
       setPhase(action);
-      active.unsubscribe = window.editorPDFExperimental.onProgress(active.id, value => {
+      active.unsubscribe = useIPC("editorPDFExperimental").editorPDFExperimental.onProgress(active.id, value => {
         if (request.current === active && !active.controller.signal.aborted) setProgress(value);
       });
-      const result = await window.editorPDFExperimental[action](
+      const result = await useIPC("editorPDFExperimental").editorPDFExperimental[action](
         snapshot,
         active.id,
       );
@@ -135,7 +136,7 @@ export function useDocumentPDF(editor: Editor | Document) {
           description: result.filename,
           action: {
             label: t("editor.inline.open_file"),
-            onClick: () => window.file.openPath(result.path),
+            onClick: () => useIPC("file").file.openPath(result.path),
           },
         });
       } else if (action === "export") setOutcome("cancelled");

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { t } from "@/utils/lang";
 import { MainProcessError } from "@/exception/interfaces/main-process-error";
 import { ApplicationError } from "../../exception/interfaces/application-error";
@@ -91,9 +92,8 @@ class App {
 
       callback(normalize(event.reason));
     };
-    if ("ipcRenderer" in window) {
-      window.ipcRenderer.on("error", onMainError);
-    }
+    const ipc = useIPC("ipcRenderer").ipcRenderer;
+    ipc?.on("error", onMainError);
 
     window.addEventListener("error", onError);
 
@@ -101,9 +101,7 @@ class App {
 
     return () => {
       window.removeEventListener("error", onError);
-      if ("ipcRenderer" in window) {
-        window.ipcRenderer.off("error", onMainError);
-      }
+      ipc?.off("error", onMainError);
 
       window.removeEventListener("unhandledrejection", onUnhandledRejection);
     };

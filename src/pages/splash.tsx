@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -45,7 +46,7 @@ export const Splash = () => {
   const logout = async () => {
     setLoggingOut(true);
     try {
-      const result = await window.session.logout();
+      const result = await useIPC("session").session.logout();
       if (!result.revoked) toast.warning(t("desktop_auth.logout_unconfirmed"));
     } finally {
       setLoggingOut(false);

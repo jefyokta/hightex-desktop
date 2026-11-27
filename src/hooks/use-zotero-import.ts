@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useConfig } from "./use-config";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -45,7 +46,7 @@ export function useZoteroImport(
     }
     setLoading(true);
     try {
-      const result = await window.zotero.testConnection(host, port);
+      const result = await useIPC("zotero").zotero.testConnection(host, port);
       if (!result?.connected) {
         setConnected(false);
         throw new ShouldNotified({
@@ -72,7 +73,7 @@ export function useZoteroImport(
     const { host, port } = zotero;
     setLoading(true);
     try {
-      const references = await window.zotero.listItems(host, port, 100);
+      const references = await useIPC("zotero").zotero.listItems(host, port, 100);
       setItems(references || []);
       clear();
       if (!references?.length) {
@@ -121,7 +122,7 @@ export function useZoteroImport(
     try {
       const payloads = await Promise.all(
         selectedItems.map((item) =>
-          window.zotero.exportBibtex(host, port, item.key),
+          useIPC("zotero").zotero.exportBibtex(host, port, item.key),
         ),
       );
       const count = await importBibtex(payloads.filter(Boolean).join("\n\n"));

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { getCloudErrorCode } from "../../../sharable-types/cloud-error";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -55,24 +56,24 @@ export const StudentSubmission = ({
   const assertCurrent = async (context: CloudSession) => {
     if (
       !alive.current ||
-      (await window.hightex.cloud.context()).sessionId !== context.sessionId
+      (await useIPC("hightex").hightex.cloud.context()).sessionId !== context.sessionId
     )
       throw new Error("submission_error:session_changed");
   };
   const load = useCallback(async () => {
     setLoaded(false);
-    const context = await window.hightex.cloud.context();
+    const context = await useIPC("hightex").hightex.cloud.context();
     const [list, local, available, pending] = await Promise.all([
-      window.hightex.cloud.list(context.sessionId),
+      useIPC("hightex").hightex.cloud.list(context.sessionId),
       HighTexDB.getMainDocuments(),
-      window.hightex.categories(),
-      window.hightex.submission.workflow.pending(context.sessionId),
+      useIPC("hightex").hightex.categories(),
+      useIPC("hightex").hightex.submission.workflow.pending(context.sessionId),
     ]);
     const mapped = Object.fromEntries(
       await Promise.all(
         local.map(async (doc) => [
           doc.id,
-          await window.hightex.cloud.binding(context.sessionId, doc.id),
+          await useIPC("hightex").hightex.cloud.binding(context.sessionId, doc.id),
         ]),
       ),
     );
@@ -80,9 +81,9 @@ export const StudentSubmission = ({
     let items: SubmissionSummary[] = [];
     let targets: SubmissionRecipient[] = [];
     if (latest) {
-      const review = await window.hightex.submission.context();
+      const review = await useIPC("hightex").hightex.submission.context();
       if (!review.ok) throw new Error(`submission_error:${review.error.code}`);
-      const response = await window.hightex.submission.history({
+      const response = await useIPC("hightex").hightex.submission.history({
         sessionId: review.data.sessionId,
         documentId: latest.document_id,
       });
@@ -91,7 +92,7 @@ export const StudentSubmission = ({
       if (response.data.ownerId !== context.accountId)
         throw new Error("submission_error:forbidden");
       items = response.data.items;
-      const availableRecipients = await window.hightex.submission.recipients({
+      const availableRecipients = await useIPC("hightex").hightex.submission.recipients({
         sessionId: review.data.sessionId,
       });
       if (!availableRecipients.ok)
@@ -211,7 +212,7 @@ export const StudentSubmission = ({
       )
         return;
       if (kp) throw new Error("submission_error:kp_unsupported");
-      if (await window.editor.has(selectedDoc.id))
+      if (await useIPC("editor").editor.has(selectedDoc.id))
         throw new Error("submission_error:editor_open");
       if (
         !(await confirm({
@@ -221,7 +222,7 @@ export const StudentSubmission = ({
       )
         return;
       await assertCurrent(session);
-      if (await window.editor.has(selectedDoc.id))
+      if (await useIPC("editor").editor.has(selectedDoc.id))
         throw new Error("submission_error:editor_open");
       const artifact = await exportCloudArtifact(
         selectedDoc.id,
@@ -239,7 +240,7 @@ export const StudentSubmission = ({
       )
         throw new Error("submission_error:invalid_document");
       await assertCurrent(session);
-      const prepared = await window.hightex.submission.workflow.prepare({
+      const prepared = await useIPC("hightex").hightex.submission.workflow.prepare({
         recipientId: recipient.id,
         sessionId: session.sessionId,
         file: artifact.file,
@@ -256,7 +257,7 @@ export const StudentSubmission = ({
         serverDocumentId: prepared.documentId,
       });
       setTask("submit");
-      const result = await window.hightex.submission.workflow.submit(
+      const result = await useIPC("hightex").hightex.submission.workflow.submit(
         session.sessionId,
       );
       await assertCurrent(session);
@@ -269,8 +270,8 @@ export const StudentSubmission = ({
       if (!session) return;
       await assertCurrent(session);
       const result = check
-        ? await window.hightex.submission.workflow.reconcile(session.sessionId)
-        : await window.hightex.submission.workflow.submit(session.sessionId);
+        ? await useIPC("hightex").hightex.submission.workflow.reconcile(session.sessionId)
+        : await useIPC("hightex").hightex.submission.workflow.submit(session.sessionId);
       await assertCurrent(session);
       setAttempt(result);
       await load();
@@ -287,7 +288,7 @@ export const StudentSubmission = ({
       )
         return;
       await assertCurrent(session);
-      await window.hightex.submission.workflow.discard(session.sessionId);
+      await useIPC("hightex").hightex.submission.workflow.discard(session.sessionId);
       await load();
     });
 

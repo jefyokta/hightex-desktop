@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, Users } from "lucide-react";
@@ -27,7 +28,7 @@ export const AdvisorSubmissions = ({ revision = 0 }: { revision?: number }) => {
     setError(undefined);
     setLoading(true);
     setOpening(false);
-    void window.hightex.submission.advisor
+    void useIPC("hightex").hightex.submission.advisor
       .directory()
       .then((response) => {
         if (generation !== request.current) return;
@@ -57,7 +58,7 @@ export const AdvisorSubmissions = ({ revision = 0 }: { revision?: number }) => {
     setHistory(undefined);
     setDocumentId(target);
     try {
-      const response = await window.hightex.submission.advisor.history({
+      const response = await useIPC("hightex").hightex.submission.advisor.history({
         sessionId: directory.session.sessionId,
         studentId,
         documentId: target.trim(),

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Editor } from "@tiptap/core";
 import type { Chapter } from "@/editor/chapter";
@@ -63,7 +64,7 @@ export function useSaveDocument(editor: Editor | null, chapter: Chapter | null) 
   const reveal = async () => {
     if (!state.path) return;
     try {
-      await window.file.showInFolder(state.path);
+      await useIPC("file").file.showInFolder(state.path);
     } catch (error) {
       toast.error(t("editor.save.reveal_failed"), {
         description: error instanceof Error ? error.message : String(error),

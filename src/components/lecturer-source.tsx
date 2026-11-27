@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { t } from "@/utils/lang";
 
 export function LecturerSourceLabel({ source }: { source: LecturerSource }) {
@@ -26,7 +27,7 @@ export function LecturerSourceLabel({ source }: { source: LecturerSource }) {
           className="block break-all text-xs text-muted-foreground underline-offset-2 hover:underline"
           onClick={(event) => {
             event.preventDefault();
-            void window.file.openExternal(source.url);
+            void useIPC("file").file.openExternal(source.url);
           }}
         >
           {source.url}

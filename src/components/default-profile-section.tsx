@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { InfoIcon } from "lucide-react";
 import {
@@ -66,7 +67,7 @@ export function DefaultProfileSection({
         committee: {},
       });
       try {
-        const prof = await window.profile.get();
+        const prof = await useIPC("profile").profile.get();
         if (!mounted) return;
         const loaded: Omit<Profile, "cv"> = {
           name: prof?.name ?? "",
@@ -94,8 +95,8 @@ export function DefaultProfileSection({
     try {
       setSaving(true);
       const updated = { ...profile };
-      await window.profile.set(updated);
-      await window.hightex.onboarding.acknowledgeProfileSetup();
+      await useIPC("profile").profile.set(updated);
+      await useIPC("hightex").hightex.onboarding.acknowledgeProfileSetup();
       window.dispatchEvent(new Event("hightex:onboarding-changed"));
       setProfile(updated);
       setOriginal(JSON.stringify(updated));

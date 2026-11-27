@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { t, type LocaleKey } from "@/utils/lang";
@@ -66,7 +67,7 @@ export function useReferencePicker({ query, zotero, onChoose }: ReferencePickerO
     setBusy(true);
     const token = request.current;
     try {
-      const bib = await window.zotero.exportBibtex(zotero.host, zotero.port, result.key);
+      const bib = await useIPC("zotero").zotero.exportBibtex(zotero.host, zotero.port, result.key);
       if (request.current !== token) return;
 
       const imported = await repository.importBibtex(bib, { reuseEquivalent: true });

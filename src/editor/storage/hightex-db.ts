@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { CloudError } from "@/exception/cloud-error";
 import { defaulBib } from "@/data/default-bib";
 import Dexie, { Table } from "dexie";
@@ -166,9 +167,9 @@ export class HighTexDB extends Dexie {
     await collect(documentId);
     const ids = [...descendants, documentId];
 
-    if ("editor" in window) {
+    if ("editor" in useIPC("editor")) {
       for (const id of ids) {
-        if (await window.editor.has(id)) {
+        if (await useIPC("editor").editor.has(id)) {
           throw new ShouldNotified({
             message: "Cannot delete document while it is being edited",
             description: "Please close the document and its branches first.",

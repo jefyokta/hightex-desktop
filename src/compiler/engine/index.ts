@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import * as Paged from "pagedjs";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { EnginePipeline } from "./engine-pipeline";
@@ -307,7 +308,7 @@ export class Engine {
     (window as any).__hightexExportPayload = payload;
 
     try {
-      window.ipcRenderer.send(
+      useIPC("ipcRenderer").ipcRenderer.send(
         printChannel("payload", this.parser.document.id),
         payload,
       );

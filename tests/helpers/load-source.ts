@@ -3,7 +3,7 @@ import vm from "node:vm";
 import ts from "typescript";
 
 /** Isolate Electron source under explicit host dependencies without global module mocks. */
-export function loadSource<T>(file: URL, modules: Record<string, unknown>): T {
+export function loadSource<T>(file: URL, modules: Record<string, unknown>, host: Record<string, unknown> = {}): T {
   const sandbox = {
     exports: {} as T,
     require: (name: string) => {
@@ -15,6 +15,7 @@ export function loadSource<T>(file: URL, modules: Record<string, unknown>): T {
     Date,
     structuredClone,
     AbortController,
+    ...host,
   };
   vm.runInNewContext(
     ts.transpileModule(readFileSync(file, "utf8"), {
@@ -27,4 +28,11 @@ export function loadSource<T>(file: URL, modules: Record<string, unknown>): T {
     sandbox,
   );
   return sandbox.exports;
+}
+
+/** Run the real resolver against the same explicit window as the isolated renderer source. */
+export function loadIPCModule(host: Record<string, unknown> = {}) {
+  return loadSource<typeof import("../../src/hooks/use-ipc")>(
+    new URL("../../src/hooks/use-ipc.ts", import.meta.url), {}, host,
+  );
 }

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ export function CategorySection() {
     setUpdating(true);
     setResult(null);
     try {
-      await window.hightex.refreshCategories();
+      await useIPC("hightex").hightex.refreshCategories();
       setResult("success");
     } catch {
       setResult("failed");

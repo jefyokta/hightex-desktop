@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ProfileCVPage } from "@/components/profile-cv-page";
@@ -36,8 +37,8 @@ export const Cv = ({ onReady }: { onReady?: (ready: boolean) => void }) => {
       });
     };
     refresh();
-    const offProfile = window.profile.onChange?.(refresh);
-    const offSession = window.session.onChange?.(refresh);
+    const offProfile = useIPC("profile").profile.onChange?.(refresh);
+    const offSession = useIPC("session").session.onChange?.(refresh);
 
     return () => {
       mounted = false;

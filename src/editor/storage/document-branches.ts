@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { HighTexDB } from "./hightex-db";
 import { Manager } from "@/editor/manager";
 import { ShouldNotified } from "@/exception/interfaces/should-notified";
@@ -163,7 +164,7 @@ export async function createDocumentBranch(
   const model = readImportModel(buffer);
   const id = crypto.randomUUID();
   const before = await captureDraft(db, id);
-  const categories = await window.hightex.categories();
+  const categories = await useIPC("hightex").hightex.categories();
   const prepared = await prepareDraftImport(
     model,
     id,
@@ -199,7 +200,7 @@ export async function mergeDocumentBranch(branchId: string) {
       description: t("editor.branches.source_missing_description"),
     });
   }
-  if ("editor" in window && (await window.editor.has(main.id))) {
+  if ("editor" in useIPC("editor") && (await useIPC("editor").editor.has(main.id))) {
     throw new ShouldNotified({
       message: t("editor.branches.close_main"),
       description: t("editor.branches.close_main_description"),
@@ -220,7 +221,7 @@ export async function mergeDocumentBranch(branchId: string) {
   const branchArchive = await new Exporter(branch.id).buildExport();
   const model = readImportModel(branchArchive.buffer);
   const before = await captureDraft(db, main.id);
-  const categories = await window.hightex.categories();
+  const categories = await useIPC("hightex").hightex.categories();
   const prepared = await prepareDraftImport(
     model,
     main.id,

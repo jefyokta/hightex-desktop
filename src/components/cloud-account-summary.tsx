@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { LoginGate } from "./login-gate";
 import { Button } from "./ui/button";
@@ -28,7 +29,7 @@ export function CloudAccountSummary() {
     let alive = true;
     setFailed(false);
     const refreshProfile = () => {
-      void window.profile
+      void useIPC("profile").profile
         .get()
         .then((value) => {
           if (alive) setProfile(value);
@@ -36,9 +37,9 @@ export function CloudAccountSummary() {
         .catch(() => undefined);
     };
     refreshProfile();
-    const offProfile = window.profile.onChange?.(refreshProfile);
+    const offProfile = useIPC("profile").profile.onChange?.(refreshProfile);
     window.addEventListener("focus", refreshProfile);
-    void window.profile
+    void useIPC("profile").profile
       .cachedCloud()
       .then((value) => {
         if (alive) setCached(value);
@@ -47,7 +48,7 @@ export function CloudAccountSummary() {
         if (alive) setFailed(true);
       });
     if (online && userId)
-      void window.account
+      void useIPC("account").account
         .load()
         .then((result) => {
           if (!alive) return;
@@ -144,7 +145,7 @@ export function CloudAccountSummary() {
             size="sm"
             disabled={!online || !userId}
             onClick={() => {
-              void window.account
+              void useIPC("account").account
                 .settings(data.session.sessionId)
                 .then((result) => {
                   if (!result.ok)

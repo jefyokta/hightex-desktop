@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { liveQuery } from "dexie";
 import { HighTexDB } from "./hightex-db";
 import { contentAssets } from "@/utils/content-assets";
@@ -143,8 +144,8 @@ export function observeDocumentSources(
     },
     error: failed,
   });
-  const offProfile = window.profile?.onChange?.(changed);
-  const offSession = window.session?.onChange?.(changed);
+  const offProfile = useIPC("profile").profile?.onChange?.(changed);
+  const offSession = useIPC("session").session?.onChange?.(changed);
   const stop = () => {
     if (stopped) return;
     stopped = true;

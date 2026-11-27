@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { enUS, id as indonesian } from "date-fns/locale";
@@ -12,7 +13,7 @@ import { ShouldNotified } from "@/exception/interfaces/should-notified";
 import { t, getCurrentLanguage } from "@/utils/lang";
 
 const loadSnapshots = async () => {
-  return (await window.ipcRenderer.invoke("snapshots")) as SnapshotEntity[];
+  return (await useIPC("ipcRenderer").ipcRenderer.invoke("snapshots")) as SnapshotEntity[];
 };
 
 const formatRelativeDate = (value: Date | string | null | undefined) => {
@@ -84,7 +85,7 @@ export const Snapshot = () => {
     setDeletingId(snapshot.id);
 
     try {
-      const deleted = await window.ipcRenderer.invoke(
+      const deleted = await useIPC("ipcRenderer").ipcRenderer.invoke(
         "snapshot:delete",
         snapshot.id,
       );

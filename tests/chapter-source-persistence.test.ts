@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { loadSource } from "./helpers/load-source";
+import { loadSource, loadIPCModule } from "./helpers/load-source";
 import type { JSONContent } from "@tiptap/core";
 
 function fixture() {
@@ -8,6 +8,7 @@ function fixture() {
     typeof import("../src/editor/chapter/chapter-query")
   >(new URL("../src/editor/chapter/chapter-query.ts", import.meta.url), {
     "../storage/hightex-db": { HighTexDB: {} },
+    "@/hooks/use-ipc": loadIPCModule(),
   });
   const { Chapter } = loadSource<
     typeof import("../src/editor/chapter/chapter")

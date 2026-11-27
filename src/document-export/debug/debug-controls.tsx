@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bug, ChevronDown, ChevronLeft, ChevronRight, FileDown, Loader2, MousePointer2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export function EditorPDFDebugControls({ snapshot }: { snapshot: EditorPDFSnapsh
     const id = request.current;
     request.current = undefined;
     setBusy(false);
-    if (id) void window.editorPDFExperimental.cancel(id).catch(failed);
+    if (id) void useIPC("editorPDFExperimental").editorPDFExperimental.cancel(id).catch(failed);
   };
   useEffect(() => () => {
     // The main-process sender lifecycle owns cancellation when this window closes.
@@ -78,7 +79,7 @@ export function EditorPDFDebugControls({ snapshot }: { snapshot: EditorPDFSnapsh
     setError(undefined);
     setSaved(undefined);
     try {
-      const result = await window.editorPDFExperimental.export(snapshot, id);
+      const result = await useIPC("editorPDFExperimental").editorPDFExperimental.export(snapshot, id);
       if (request.current === id && result) setSaved(result);
     } catch (error) {
       if (request.current === id) failed(error);
@@ -94,7 +95,7 @@ export function EditorPDFDebugControls({ snapshot }: { snapshot: EditorPDFSnapsh
       const canvas = document.querySelector("[data-editor-pdf-debug-surface]")!,
         paper = canvas.querySelector("[data-print-viewport]")!;
       const clip = canvas.getBoundingClientRect(), box = paper.getBoundingClientRect();
-      window.application.inspectElement(
+      useIPC("application").application.inspectElement(
         Math.round((Math.max(clip.left, box.left) + Math.min(clip.right, box.right)) / 2),
         Math.round((Math.max(clip.top, box.top) + Math.min(clip.bottom, box.bottom)) / 2),
       );
@@ -148,7 +149,7 @@ export function EditorPDFDebugControls({ snapshot }: { snapshot: EditorPDFSnapsh
         </nav>
         {saved && <div role="status" className="debug-notice">
           <span>Tersimpan: {saved.filename}</span>
-          <Button type="button" variant="outline" onClick={() => void window.file.openPath(saved.path).catch(failed)}>Buka PDF</Button>
+          <Button type="button" variant="outline" onClick={() => void useIPC("file").file.openPath(saved.path).catch(failed)}>Buka PDF</Button>
         </div>}
         {error && <div role="alert" className="debug-error"><p>{error.detail}</p>{error.report?.action}</div>}
         <Collapsible className="debug-identity">

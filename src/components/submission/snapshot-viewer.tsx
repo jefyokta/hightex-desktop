@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import type { RevisionAnchor } from "../../../shared/guidance-contract";
@@ -67,7 +68,7 @@ export const SubmissionSnapshotViewer = ({
     const target =
       window.location.origin === "null" ? "*" : window.location.origin;
     const initialize = async () => {
-      const categories = await window.hightex.categories();
+      const categories = await useIPC("hightex").hightex.categories();
       if (!active) return;
       frameRef.current?.contentWindow?.postMessage(
         {
@@ -144,7 +145,7 @@ export const SubmissionSnapshotViewer = ({
         snapshot.source.kind === "submission"
           ? `submission-${snapshot.source.submissionId}.hightex`
           : "document.hightex";
-      await window.ipcRenderer.invoke(
+      await useIPC("ipcRenderer").ipcRenderer.invoke(
         "hightex:export",
         snapshot.originalFile(),
         name,
@@ -161,7 +162,7 @@ export const SubmissionSnapshotViewer = ({
     savingRef.current = true;
     setSaving(true);
     try {
-      await window.hightex.submission.pdf({
+      await useIPC("hightex").hightex.submission.pdf({
         file: snapshot.originalFile(),
         source: snapshot.source,
         documentId: snapshot.document.id,

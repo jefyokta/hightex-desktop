@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FullDocument } from "@/components/printable";
@@ -18,7 +19,7 @@ export const SubmissionPrint = () => {
   const onError = useCallback(
     (error: unknown) => {
       if (pdf && request) {
-        window.snapshotPrint.error(
+        useIPC("snapshotPrint").snapshotPrint.error(
           request,
           error instanceof Error ? error.message : "preview_failed",
         );
@@ -94,7 +95,7 @@ export const SubmissionPrint = () => {
               );
               if (!active) return;
               const profile = resolveDocumentProfile(snapshot.document);
-              window.snapshotPrint.result(request, {
+              useIPC("snapshotPrint").snapshotPrint.result(request, {
                 documentId: snapshot.document.id,
                 sha256: snapshot.sha256,
                 title: snapshot.document.title,
@@ -129,7 +130,7 @@ export const SubmissionPrint = () => {
     };
     window.addEventListener("message", listener);
     if (pdf)
-      void window.snapshotPrint.init(request).then(initialize).catch(onError);
+      void useIPC("snapshotPrint").snapshotPrint.init(request).then(initialize).catch(onError);
     else
       window.parent.postMessage(
         { type: "snapshot:preview:ready", request },

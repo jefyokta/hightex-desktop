@@ -28,7 +28,7 @@ type ConfigContextProviderProps = {
 export const ConfigContextProvider: React.FC<ConfigContextProviderProps> = ({
   children,
 }) => {
-  const win = useIPC()
+  const win = useIPC("config");
   const [config, setConfig] = useState<ConfigShape | undefined>(() => {
     const initial = win.config.get();
     if (initial) setCurrentLanguage(initial.language);

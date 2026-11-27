@@ -9,7 +9,7 @@ services and persistent data.
 
 | Layer                | Location                                                               | Responsibility                                                        |
 | -------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Renderer caller      | `src/`                                                                 | Uses a narrow `window.*` API and handles its result.                  |
+| Renderer caller      | `src/`                                                                 | Resolves a named API through `useIPC` and handles its result.         |
 | Renderer API type    | `src/types/global.d.ts` and related shared types                       | Describes request, response, and event callback contracts.            |
 | Preload bridge       | `electron/preload/index.ts`                                            | Exposes renderer methods with `contextBridge` and forwards IPC calls. |
 | Main-process handler | `electron/handlers/`, `electron/workspaces/`, or another owning module | Validates and executes the operation using main-process services.     |
@@ -18,6 +18,31 @@ Prefer adding a named, typed API method to the relevant `window.*` namespace.
 The preload currently also exposes a generic `window.ipcRenderer` compatibility
 surface; do not add new renderer features that depend on arbitrary channel
 access when a named API can express the operation.
+
+All renderer consumers use the shared resolver, including services and callbacks:
+
+```ts
+import { useIPC } from "@/hooks/use-ipc";
+
+const api = useIPC("zotero").zotero;
+const items = await api.listItems(host, port);
+```
+
+`useIPC` is a stateless resolver without React hooks. It prefers a namespace on
+the current window, then its accessible same-origin immediate parent. It returns
+the local window when neither provides that namespace, preserving existing
+missing-API/retry behavior. It does not create a bridge or authorize IPC requests.
+Resolve each namespace explicitly so a frame's partial snapshot adapters retain
+their local ownership. Keep DOM events, locations and frame messages on the
+window that owns them. Raw channel listeners must retain their resolved API for
+both registration and cleanup; resolving again during cleanup could select a
+different namespace after a late bridge is installed.
+
+Snapshot preview code defines its `hightex` and `ipcRenderer` adapters on the
+local frame. Those definitions are providers, and must remain local rather than
+writing through a resolver to a host workspace. `tests/ipc-boundary.test.ts`
+checks renderer preload reads against the exposed namespaces and permits those
+two local definitions explicitly.
 
 Global `Window` declarations do not guarantee that these APIs exist in every
 runtime context. Preview iframes have separate windows and may have no preload

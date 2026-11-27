@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { CiteUtils } from "bibtex.js";
 import { HighTexDB } from "./hightex-db";
 import { contentAssets } from "@/utils/content-assets";
@@ -96,7 +97,7 @@ export class ReferenceRepository {
 
   /** Flush current chapter buffers without committing settings or exporting archives. */
   private async flushEditors() {
-    const editor = typeof window === "undefined" ? undefined : window.editor;
+    const editor = typeof window === "undefined" ? undefined : useIPC("editor").editor;
     if (!editor) return;
     const ids = await this.db.documents.toCollection().primaryKeys();
     await Promise.all(ids.map(async id => {

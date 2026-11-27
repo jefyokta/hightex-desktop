@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import type { Editor } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { ReactRenderer } from "@tiptap/react";
@@ -27,7 +28,7 @@ export function citationSuggestion(editor: Editor, char: "@" | "#") {
       let active = false;
       const propsFor = (props: SuggestionProps<never, string>): ReferencePickerProps => ({
         query: props.query,
-        zotero: window.config.get()?.zotero,
+        zotero: useIPC("config").config.get()?.zotero,
         onDismiss() {
           exitSuggestion(editor.view, key);
           editor.commands.focus();

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useSyncExternalStore } from "react";
 
 type State = LecturerDirectoryState & { loading: boolean };
@@ -12,7 +13,7 @@ const publish = (next: LecturerDirectoryState) => {
 
 export async function loadLecturerDirectory(): Promise<void> {
   try {
-    const api = window.hightex.lecturers;
+    const api = useIPC("hightex").hightex.lecturers;
     publish(api ? await api.list() : { data: [], error: "storage" });
   } catch (e) {
     console.error(e);
@@ -26,19 +27,19 @@ export async function loadLecturerDirectory(): Promise<void> {
 export async function saveLecturer(input: LecturerDirectoryInput) {
   // Finish the initial read before publishing a mutation's newer state.
   if (bootstrap) await bootstrap;
-  const result = await window.hightex.lecturers.save(input);
+  const result = await useIPC("hightex").hightex.lecturers.save(input);
   publish({ data: result.data });
   return result.entry;
 }
 
 export async function removeLecturer(id: string) {
   if (bootstrap) await bootstrap;
-  publish(await window.hightex.lecturers.remove(id));
+  publish(await useIPC("hightex").hightex.lecturers.remove(id));
 }
 
 export async function importLecturers(data: unknown, filename?: string) {
   if (bootstrap) await bootstrap;
-  const result = await window.hightex.lecturers.import(data, filename);
+  const result = await useIPC("hightex").hightex.lecturers.import(data, filename);
   publish({ data: result.data });
   return result;
 }
@@ -48,7 +49,7 @@ export function fetchCloudLecturers(): Promise<LecturerCloudResult> {
   cloudJob = (async (): Promise<LecturerCloudResult> => {
     if (bootstrap) await bootstrap;
     try {
-      const result = await window.hightex.lecturers.fetchCloud();
+      const result = await useIPC("hightex").hightex.lecturers.fetchCloud();
       if (result.ok) publish({ data: result.result.data });
       return result;
     } catch {

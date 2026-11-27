@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStrictContext } from "@/lib/get-strict-context";
@@ -30,18 +31,7 @@ const getPrintableApi = () => {
     return undefined;
   }
 
-  if (window.hightex) {
-    return window.hightex;
-  }
-
-  if (window.parent !== window) {
-    const parentWindow = window.parent as Window & {
-      hightex?: Window["hightex"];
-    };
-    return parentWindow.hightex;
-  }
-
-  return undefined;
+  return useIPC("hightex").hightex;
 };
 
 const waitForPrintableApi = async () => {
@@ -50,7 +40,7 @@ const waitForPrintableApi = async () => {
     return api;
   }
 
-  return new Promise<typeof window.hightex>((resolve, reject) => {
+  return new Promise<Window["hightex"]>((resolve, reject) => {
     const interval = window.setInterval(() => {
       const nextApi = getPrintableApi();
       if (nextApi) {

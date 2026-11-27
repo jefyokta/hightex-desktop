@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { guidePlan, guideAcknowledgments } from "@/data/ui-guides";
@@ -25,10 +26,10 @@ export function useUIGuide(
 
   useEffect(() => {
     let alive = true;
-    const api = window.hightex.onboarding;
+    const api = useIPC("hightex").hightex.onboarding;
     if (!api) return;
     const refresh = () =>
-      void Promise.all([api.status(), window.workspaces.state()])
+      void Promise.all([api.status(), useIPC("workspaces").workspaces.state()])
         .then(([value, workspaces]) => {
           if (!alive) return;
           setStatus(value);
@@ -87,8 +88,8 @@ export function useUIGuide(
     if (saving.current) return;
     try {
       const [value, workspaces] = await Promise.all([
-        window.hightex.onboarding.status(),
-        window.workspaces.state(),
+        useIPC("hightex").hightex.onboarding.status(),
+        useIPC("workspaces").workspaces.state(),
       ]);
       setStatus(value);
       const workspaceType = workspaces.profiles.find(
@@ -133,7 +134,7 @@ export function useUIGuide(
     setSession(null);
     try {
       if (acknowledgments.length)
-        setStatus(await window.hightex.onboarding.acknowledge(acknowledgments));
+        setStatus(await useIPC("hightex").hightex.onboarding.acknowledge(acknowledgments));
     } catch {
       toast.error(t("guide.save_failed"));
     } finally {

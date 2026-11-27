@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useConfig } from "@/hooks/use-config";
 import { Manager } from "@/editor/manager";
 import { useEffect, useRef, useState } from "react";
@@ -225,7 +226,7 @@ export const Preview = () => {
               setScrollY(win.scrollY);
             });
             if (!win.hightex) {
-              win.hightex = window.hightex;
+              win.hightex = useIPC("hightex").hightex;
             }
             win.inFrame = true;
             win.current = Document.current!;

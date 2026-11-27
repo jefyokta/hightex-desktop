@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/utils/lang";
@@ -6,7 +7,7 @@ export function useAppUpdater() {
   const [status, setStatus] = useState<UpdaterStatus | null>(null);
   const [checking, setChecking] = useState(false);
 
-  useEffect(() => window.updater?.onStatus(next => {
+  useEffect(() => useIPC("updater").updater?.onStatus(next => {
     setStatus(next);
     if (next.status !== "checking" && next.status !== "downloading") setChecking(false);
   }), []);
@@ -14,18 +15,18 @@ export function useAppUpdater() {
   const check = async () => {
     setChecking(true);
     try {
-      await window.updater?.check();
+      await useIPC("updater").updater?.check();
     } finally {
       setChecking(false);
     }
   };
 
   const download = async () => {
-    await window.updater?.download();
+    await useIPC("updater").updater?.download();
   };
 
   const install = async () => {
-    const result = await window.updater?.install();
+    const result = await useIPC("updater").updater?.install();
     if (result && !result.ok && !result.cancelled) {
       toast.error(result.message || t("settings.updater.install_failed"));
     }

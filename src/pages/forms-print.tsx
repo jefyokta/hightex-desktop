@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FormDocument } from "@/components/forms/form-document";
 import {
@@ -57,7 +58,7 @@ export function FormsPrint() {
     };
     window.addEventListener("message", listener);
     if (pdf) {
-      void window.formPrint
+      void useIPC("formPrint").formPrint
         .init(request)
         .then((input) => {
           if (active)
@@ -72,7 +73,7 @@ export function FormsPrint() {
           if (active) {
             const message = String(reason);
             setError(message);
-            window.formPrint.error(request, message);
+            useIPC("formPrint").formPrint.error(request, message);
           }
         });
     } else
@@ -149,7 +150,7 @@ export function FormsPrint() {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       );
       if (!active) return;
-      if (pdf) window.formPrint.ready(request, payload.index);
+      if (pdf) useIPC("formPrint").formPrint.ready(request, payload.index);
       else
         window.parent.postMessage(
           {
@@ -164,7 +165,7 @@ export function FormsPrint() {
       if (!active) return;
       const message = reason instanceof Error ? reason.message : String(reason);
       setError(message);
-      if (pdf) window.formPrint.error(request, message);
+      if (pdf) useIPC("formPrint").formPrint.error(request, message);
       else
         window.parent.postMessage(
           { type: "forms:error", request, message },

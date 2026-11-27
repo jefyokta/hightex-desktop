@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { confirm } from "@/utils/confirm";
@@ -59,14 +60,14 @@ export const SubmissionReviewResult = ({
     setState(next);
   };
   const load = async (request: number) => {
-    const context = await window.hightex.submission.context();
+    const context = await useIPC("hightex").hightex.submission.context();
     if (generation.current !== request) return;
     if (!context.ok) {
       current.current = undefined;
       setState(undefined);
       return showError(context.error.code);
     }
-    const response = await window.hightex.submission.advisor.state({
+    const response = await useIPC("hightex").hightex.submission.advisor.state({
       sessionId: context.data.sessionId,
       documentId,
       submissionId,
@@ -126,7 +127,7 @@ export const SubmissionReviewResult = ({
       )
         return;
       if (generation.current !== request) return;
-      const response = await window.hightex.submission.advisor.action({
+      const response = await useIPC("hightex").hightex.submission.advisor.action({
         sessionId: selected.session.sessionId,
         documentId,
         submissionId,

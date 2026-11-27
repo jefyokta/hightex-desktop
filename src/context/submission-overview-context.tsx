@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useOnline } from "@/hooks/use-online";
@@ -29,7 +30,7 @@ export function SubmissionOverviewProvider({ children }: { children: ReactNode }
     let active = true;
     setLoading(true);
     const workspaceId = workspace!.id;
-    void window.hightex.submission.list().then(result => { if (active) setReceived({ workspaceId, result }); })
+    void useIPC("hightex").hightex.submission.list().then(result => { if (active) setReceived({ workspaceId, result }); })
       .catch(() => { if (active) setReceived({ workspaceId, result: { ok: false, error: { code: "request_failed" } } }); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };

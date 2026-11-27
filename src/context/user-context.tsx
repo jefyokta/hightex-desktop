@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 
 type UserContextType = {
@@ -15,12 +16,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const revision = useRef(0);
   const refresh = useCallback(async () => {
     const request = ++revision.current;
-    const res = await window.session.user();
+    const res = await useIPC("session").session.user();
     if (request === revision.current) setUser(res || false);
   }, []);
 
   useEffect(() => {
-    const unsubscribe = window.session.onChange?.((u: User | false) => {
+    const unsubscribe = useIPC("session").session.onChange?.((u: User | false) => {
       revision.current += 1;
       setUser(u);
     });

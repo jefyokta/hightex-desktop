@@ -56,8 +56,9 @@ import { getWorkspaceAuthorProfile } from "@/utils/document-profile";
 const profile = await getWorkspaceAuthorProfile();
 ```
 
-The helper prefers the current window's profile API, then checks the immediate
-same-origin parent. It reports a missing API when neither is available, caches
+The helper delegates window selection to `useIPC("profile")`, which prefers
+the current window's profile API, then checks the immediate same-origin parent.
+It reports a missing API when neither is available, caches
 concurrent reads, invalidates on profile/session changes, and releases parent
 subscriptions when the frame unloads. Reuse this behavior instead of adding
 another parent lookup or an unrelated default identity.
@@ -66,16 +67,18 @@ Submitted snapshots must keep their recorded author profile. Do not use the
 live workspace helper to replace snapshot data. See
 `src/pages/submission-print.tsx` for the snapshot preview path.
 
-### Editor document previews
+### Legacy printable frames
 
-`src/components/editor/expandable-items/preview.tsx` explicitly forwards
-`hightex` into the preview window during `onLoad`. It also sets preview data
-such as `current` and `cites`. Forwarding `hightex` does not supply `profile`,
-`config`, `file`, `session`, or the rest of the preload namespaces.
+The editor sidebar no longer embeds the legacy preview iframe. Chapter navigation
+uses the toolbar picker, and paginated content is presented in the editor itself.
+Legacy printable routes still exist for their remaining consumers. Passing
+`hightex` into an embedded frame does not supply `profile`, `config`, `file`,
+`session`, or the rest of the preload namespaces.
 
-`src/hooks/use-printable.tsx` resolves the printable `hightex` API from the
-current window or parent, with a bounded wait if it is not yet available.
-This is specific to that printable flow, not a universal API resolver.
+`src/hooks/use-printable.tsx` resolves the printable API through
+`useIPC("hightex")`, with a bounded wait if it is not yet available. The wait
+belongs to that printable flow; namespace selection is shared by all renderer
+callers. Snapshot-local adapters take precedence over parent workspace APIs.
 
 Do not depend on an `onLoad` assignment being ready during the child's module
 evaluation or initial effects: child scripts can execute before the parent's

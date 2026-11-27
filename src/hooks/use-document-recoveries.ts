@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useRef, useState } from "react";
 import { liveQuery } from "dexie";
 import { toast } from "sonner";
@@ -43,10 +44,10 @@ export function useDocumentRecoveries(sourceDocumentId?: string, enabled = true)
     }
   };
 
-  const open = (id: string) => run(id, () => window.editor.open(id));
+  const open = (id: string) => run(id, () => useIPC("editor").editor.open(id));
   const remove = (id: string) => run(id, () => Manager.deleteDocument(id));
   const saveCopy = (id: string) => run(id, async () => {
-    if (await window.editor.has(id)) await window.editor.flush(id);
+    if (await useIPC("editor").editor.has(id)) await useIPC("editor").editor.flush(id);
     const result = await new Exporter(id).export({ showDialog: true });
     if (!result.canceled) toast.success(t("recovery.exported"));
   });

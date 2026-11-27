@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { useBeforeUnload, useBlocker } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,9 @@ export function useProfileDraft() {
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    void window.application.setProfileDraftBusy(busy).catch(console.error);
+    void useIPC("application").application.setProfileDraftBusy(busy).catch(console.error);
     return () => {
-      void window.application.setProfileDraftBusy(false).catch(console.error);
+      void useIPC("application").application.setProfileDraftBusy(false).catch(console.error);
     };
   }, [busy]);
   const blocker = useBlocker(

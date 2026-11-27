@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ export function LocalCVEditor({
     let alive = true;
     setLoading(true);
     setFailed(false);
-    void Promise.all([window.profile.get(), window.profile.picture()])
+    void Promise.all([useIPC("profile").profile.get(), useIPC("profile").profile.picture()])
       .then(([profile, bytes]) => {
         if (!alive) return;
         const html = sanitizeCvHtml(profile.cv);
@@ -63,9 +64,9 @@ export function LocalCVEditor({
   const save = async () => {
     setBusy(true);
     try {
-      await window.profile.set({ cv: sanitizeCvHtml(cv) });
+      await useIPC("profile").profile.set({ cv: sanitizeCvHtml(cv) });
       if (pictureChanged)
-        await window.profile.setPicture(
+        await useIPC("profile").profile.setPicture(
           picture ? new Uint8Array(await picture.arrayBuffer()) : null,
         );
       setOriginal(cv);

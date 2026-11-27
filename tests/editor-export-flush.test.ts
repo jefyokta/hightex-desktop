@@ -4,15 +4,17 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import en from "../src/locales/en.json";
+import { loadIPCModule } from "./helpers/load-source";
 
 function loadSource<T>(
   file: string,
   modules: Record<string, unknown>,
   extra = {},
 ): T {
+  const ipc = loadIPCModule(extra);
   const sandbox = {
     exports: {} as T,
-    require: (name: string) => modules[name],
+    require: (name: string) => name === "@/hooks/use-ipc" ? ipc : modules[name],
     Error,
     setTimeout,
     clearTimeout,

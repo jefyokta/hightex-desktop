@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import {
   useCallback,
@@ -37,7 +38,7 @@ export const Dashboard = () => {
     setError(false);
     const [docs, types] = await Promise.allSettled([
       db.documents.toArray(),
-      window.hightex.categories(),
+      useIPC("hightex").hightex.categories(),
     ]);
     if (!alive.current || request !== revision.current) return;
     if (docs.status === "fulfilled") setDocuments(docs.value);
@@ -50,7 +51,7 @@ export const Dashboard = () => {
   useEffect(() => {
     alive.current = true;
     void load();
-    const offCategories = window.hightex.onCategoriesChanged?.(
+    const offCategories = useIPC("hightex").hightex.onCategoriesChanged?.(
       () => void load(),
     );
     // Imports and recovery copies are committed by another editor window.
@@ -74,8 +75,8 @@ export const Dashboard = () => {
     );
     if (!category) throw Error("Unavailable category");
     const [profile, picture] = await Promise.all([
-      window.profile.get(),
-      window.profile.picture(),
+      useIPC("profile").profile.get(),
+      useIPC("profile").profile.picture(),
     ]);
     const doc: HighTexDocument = {
       ...metadata,
@@ -107,7 +108,7 @@ export const Dashboard = () => {
     Manager.app.dispatch("document:updated", { document: doc });
     toast.success(t("dashboard.created"));
     try {
-      await window.editor.open(doc.id);
+      await useIPC("editor").editor.open(doc.id);
     } catch {
       toast.error(t("dashboard.open_failed"));
     }
@@ -120,7 +121,7 @@ export const Dashboard = () => {
     try {
       const importer = await HighTexImporter.create(
         file,
-        await window.file.getPath(file),
+        await useIPC("file").file.getPath(file),
       );
       await importer.open();
     } finally {

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useChapterTarget } from "@/hooks/use-chapter-target";
 import React, {
   useCallback,
@@ -96,8 +97,8 @@ export const Editor: React.FC = () => {
     const refreshIdentity = () => {
       void Document.instance?.refreshWorkspaceIdentity();
     };
-    const offProfile = window.profile.onChange?.(refreshIdentity);
-    const offSession = window.session.onChange?.(refreshIdentity);
+    const offProfile = useIPC("profile").profile.onChange?.(refreshIdentity);
+    const offSession = useIPC("session").session.onChange?.(refreshIdentity);
     return () => {
       offProfile?.();
       offSession?.();
@@ -350,8 +351,8 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
       };
       const contextMenu = new EditorContextMenu(editor, {
         preview: previewNode,
-        inspect: window.application.isDev
-          ? (x, y) => window.application.inspectElement(x, y)
+        inspect: useIPC("application").application.isDev
+          ? (x, y) => useIPC("application").application.inspectElement(x, y)
           : undefined,
       });
       const root = editor.view.dom;
@@ -373,7 +374,7 @@ const EditorComponent = ({ chapter }: { chapter: Chapter }) => {
       setLoadFailed(true);
       console.log(props.editor.getJSON(), props.error);
       props.editor.setEditable(false);
-      await window.hightex.saveContentError({
+      await useIPC("hightex").hightex.saveContentError({
         content: props.editor.getJSON(),
         fileName: `${chapter.document.id}-${chapter.getId()}.json`,
       });

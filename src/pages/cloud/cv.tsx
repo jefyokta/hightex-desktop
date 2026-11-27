@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LoaderCircle, RefreshCw, Save } from "lucide-react";
 import { LoginGate } from "@/components/login-gate";
@@ -71,8 +72,8 @@ const CloudCVForm = ({ onDirtyChange, onBusyChange }: DraftCallbacks) => {
   const loadCache = useCallback(async (current: IsCurrent) => {
     try {
       const [profile, bytes] = await Promise.all([
-        window.profile.cachedCloud(),
-        window.profile.picture(),
+        useIPC("profile").profile.cachedCloud(),
+        useIPC("profile").profile.picture(),
       ]);
       if (!current()) return;
       setCached(
@@ -133,7 +134,7 @@ const CloudCVForm = ({ onDirtyChange, onBusyChange }: DraftCallbacks) => {
 
   const loadPicture = useCallback(
     async (sessionId: string, current: IsCurrent) => {
-      const response = await window.account.picture(sessionId);
+      const response = await useIPC("account").account.picture(sessionId);
 
       if (!current()) return;
       if (!response.ok) {
@@ -153,7 +154,7 @@ const CloudCVForm = ({ onDirtyChange, onBusyChange }: DraftCallbacks) => {
 
   const load = useCallback(
     async (current: IsCurrent, preserveDraft = false) => {
-      const response = await window.account.load();
+      const response = await useIPC("account").account.load();
       if (!current()) return;
       if (!response.ok) {
         showError(response);
@@ -204,7 +205,7 @@ const CloudCVForm = ({ onDirtyChange, onBusyChange }: DraftCallbacks) => {
           }
         : undefined;
       if (!current()) return;
-      const response = await window.account.update({
+      const response = await useIPC("account").account.update({
         sessionId: data.session.sessionId,
         ...(cv !== (data.cv ?? "") ? { cv: sanitizeCvHtml(cv) } : {}),
         ...(image ? { image } : {}),
@@ -321,7 +322,7 @@ const CloudCVForm = ({ onDirtyChange, onBusyChange }: DraftCallbacks) => {
                 disabled={busy || !online || !userId}
                 onClick={() =>
                   void run(async (current) => {
-                    const response = await window.account.settings(
+                    const response = await useIPC("account").account.settings(
                       data.session.sessionId,
                     );
                     if (current() && !response.ok) showError(response);

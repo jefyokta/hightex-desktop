@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useConfig } from "@/hooks/use-config";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { useEffect, useRef, useState } from "react";
@@ -37,10 +38,10 @@ export function WorkspaceWelcomeDialog() {
   const operation = useRef(false);
 
   useEffect(() => {
-    if (!workspaceId || window.application?.editorDocumentId) return;
+    if (!workspaceId || useIPC("application").application?.editorDocumentId) return;
     let alive = true;
     const refresh = () => {
-      void window.hightex.onboarding
+      void useIPC("hightex").hightex.onboarding
         .status()
         .then((status) => {
           if (alive) setInstallation({ workspaceId, status });
@@ -68,7 +69,7 @@ export function WorkspaceWelcomeDialog() {
     state?.migrationComplete &&
     workspace &&
     mainPage &&
-    !window.application?.editorDocumentId &&
+    !useIPC("application").application?.editorDocumentId &&
     !waitingForLogin &&
     !loginOpen &&
     installation?.workspaceId === workspace.id &&
@@ -94,7 +95,7 @@ export function WorkspaceWelcomeDialog() {
     operation.current = true;
     setSaving(true);
     try {
-      const status = await window.hightex.onboarding.acknowledgeProfileSetup();
+      const status = await useIPC("hightex").hightex.onboarding.acknowledgeProfileSetup();
       setInstallation({ workspaceId, status });
       if (editProfile) navigate("/profile");
       window.dispatchEvent(new Event("hightex:onboarding-changed"));

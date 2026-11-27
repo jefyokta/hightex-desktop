@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { FileText, FileUp, Library } from "lucide-react";
@@ -136,7 +137,7 @@ export const Splitter = () => {
             }),
           );
 
-          const buffer: Uint8Array = await window.ipcRenderer.invoke(
+          const buffer: Uint8Array = await useIPC("ipcRenderer").ipcRenderer.invoke(
             "hightex:pdf:silent",
             id,
             true,
@@ -380,7 +381,7 @@ export const Splitter = () => {
 
         await sleep(500);
 
-        return window.file.save("splitted.zip", zip);
+        return useIPC("file").file.save("splitted.zip", zip);
       },
     });
 

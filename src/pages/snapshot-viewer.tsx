@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useAppLanguage } from "@/hooks/use-app-language";
 import { ShouldNavigated } from "@/exception/interfaces/should-navigated";
 import { formatDistanceToNow } from "date-fns";
@@ -62,7 +63,7 @@ export const SnapshotViewer = () => {
 
     let cancelled = false;
 
-    window.ipcRenderer
+    useIPC("ipcRenderer").ipcRenderer
       .invoke("snapshot:view", id)
       .then(async (r: ArrayBuffer) => {
         if (cancelled) return;
@@ -71,7 +72,7 @@ export const SnapshotViewer = () => {
 
         const snap: SnapshotEntity & {
           comments: CommentEntity[];
-        } = await window.ipcRenderer.invoke("snapshot", id);
+        } = await useIPC("ipcRenderer").ipcRenderer.invoke("snapshot", id);
 
         if (cancelled) return;
 

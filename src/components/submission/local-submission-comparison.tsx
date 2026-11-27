@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useEffect, useState } from "react";
 import { Exporter } from "@/utils/htx/exporter";
 import { readSnapshot } from "@/review/snapshot-reader";
@@ -24,10 +25,10 @@ export function LocalSubmissionComparison({ open, onOpenChange, documentId, prev
     setError(undefined);
     const load = async () => {
       if (previous.snapshotPurgedAt) throw Error(t("mentoring.previous_purged"));
-      if (await window.editor.has(documentId)) throw Error(t("submission_student.errors.editor_open"));
-      const context = await window.hightex.submission.context();
+      if (await useIPC("editor").editor.has(documentId)) throw Error(t("submission_student.errors.editor_open"));
+      const context = await useIPC("hightex").hightex.submission.context();
       if (!context.ok) throw Error(t(`submission_review.errors.${context.error.code}`));
-      const file = await window.hightex.submission.file({ sessionId: context.data.sessionId, documentId: previous.documentId, submissionId: previous.id });
+      const file = await useIPC("hightex").hightex.submission.file({ sessionId: context.data.sessionId, documentId: previous.documentId, submissionId: previous.id });
       if (!file.ok) throw Error(t(`submission_review.errors.${file.error.code}`));
       const local = await new Exporter(documentId).buildExport();
       const [before, after] = await Promise.all([
@@ -36,7 +37,7 @@ export function LocalSubmissionComparison({ open, onOpenChange, documentId, prev
       ]);
       const [mainModel, branchModel] = await Promise.all([before.renderModel(), after.renderModel()]);
       const result = await compareDocumentModels(mainModel, branchModel);
-      const current = await window.hightex.submission.context();
+      const current = await useIPC("hightex").hightex.submission.context();
       if (!current.ok || current.data.sessionId !== context.data.sessionId) throw Error(t("submission_review.errors.session_changed"));
       if (active) setComparison(result);
     };

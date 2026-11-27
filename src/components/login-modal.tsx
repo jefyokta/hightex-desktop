@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { Modal } from "./modal";
@@ -35,7 +36,7 @@ export const LoginModal = () => {
     let active = true;
     const check = async () => {
       try {
-        const next = await window.session.browser.status();
+        const next = await useIPC("session").session.browser.status();
         if (!active) return;
         setBrowser(next);
         if (next.status === "authenticated") completeLogin();
@@ -59,14 +60,14 @@ export const LoginModal = () => {
     setError(undefined);
     try {
       if (kind === "cancel") {
-        await window.session.browser.cancel();
+        await useIPC("session").session.browser.cancel();
         setBrowser({ status: "idle" });
         return;
       }
       const result =
         kind === "browser"
-          ? await window.session.browser.start()
-          : await window.session.signIn(email, password);
+          ? await useIPC("session").session.browser.start()
+          : await useIPC("session").session.signIn(email, password);
       if (request !== generation.current) return;
       if (!result.ok) setError(t(`desktop_auth.errors.${result.error}`));
       else if (kind === "direct") {

@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { HighTexDB } from "@/editor/storage/hightex-db";
 import { HighTexExportError } from "@/exception/hightex-export";
 import { Schema } from "./schema";
@@ -34,10 +35,10 @@ export class Exporter {
       );
     }
 
-    const configExport = window.config.get()?.export;
+    const configExport = useIPC("config").config.get()?.export;
     const fileName = `${document.title.replace(/[^a-zA-Z0-9-_. ]/g, "-")}.${this.options.ext}`;
 
-    return await window.ipcRenderer.invoke("hightex:export", buffer, fileName, {
+    return await useIPC("ipcRenderer").ipcRenderer.invoke("hightex:export", buffer, fileName, {
       showDialog: options.showDialog ?? configExport?.saveDialog ?? false,
       defaultFolder: configExport?.saveFolder,
     });

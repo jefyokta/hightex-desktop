@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { Disclosure } from "@/components/ui/disclosure";
 import { type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
@@ -276,7 +277,7 @@ export function FormInputs({
                 variant="ghost"
                 size="sm"
                 onClick={() =>
-                  window.editor.open(selectedDocument.id, selectedDocument.file)
+                  useIPC("editor").editor.open(selectedDocument.id, selectedDocument.file)
                 }
               >
                 {t("forms.data_open_document")}

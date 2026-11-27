@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import {
   ArrowLeftIcon,
   CircleHelp,
@@ -356,7 +357,7 @@ export const NavBar: React.FC = () => {
                       renderProgressToast(t("editor.inline.preparing_pdf"), 5),
                     );
 
-                    const unsubscribe = window.hightex.onPdfProgress(
+                    const unsubscribe = useIPC("hightex").hightex.onPdfProgress(
                       (update) => {
                         if (update.requestId !== requestId) return;
                         const prog = update.progress ?? 0;
@@ -373,7 +374,7 @@ export const NavBar: React.FC = () => {
                     );
 
                     try {
-                      const result = await window.ipcRenderer.invoke(
+                      const result = await useIPC("ipcRenderer").ipcRenderer.invoke(
                         "hightex:pdf",
                         docId,
                         false,
@@ -402,12 +403,12 @@ export const NavBar: React.FC = () => {
                           duration: 15000,
                           action: {
                             label: t("editor.inline.open_file"),
-                            onClick: () => window.file?.openPath?.(result.path),
+                            onClick: () => useIPC("file").file?.openPath?.(result.path),
                           },
                           cancel: {
                             label: t("editor.inline.open_folder"),
                             onClick: () =>
-                              window.file?.showInFolder?.(result.path),
+                              useIPC("file").file?.showInFolder?.(result.path),
                           },
                         },
                       );

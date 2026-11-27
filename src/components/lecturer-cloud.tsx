@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CloudDownload, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ function LecturerWebDownload() {
         onClick={() => {
           setBusy(true);
           setFailed(false);
-          void window.hightex.lecturers
+          void useIPC("hightex").hightex.lecturers
             .openWebDownload()
             .catch(() => setFailed(true))
             .finally(() => setBusy(false));

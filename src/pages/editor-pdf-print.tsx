@@ -1,3 +1,4 @@
+import { useIPC } from "@/hooks/use-ipc";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { installPDFSnapshot } from "@/document-export/print/install-snapshot";
 const EditorPDFDebugControls = lazy(() => import("@/document-export/debug/debug-controls").then(module => ({ default: module.EditorPDFDebugControls })));
@@ -14,7 +15,7 @@ export function EditorPDFPrint() {
     const task = new AbortController();
     let dispose: (() => void) | undefined;
     void (async () => {
-      const snapshot = await window.editorPDFExperimental.init(request);
+      const snapshot = await useIPC("editorPDFExperimental").editorPDFExperimental.init(request);
       task.signal.throwIfAborted();
       dispose = await installPDFSnapshot(root.current!, snapshot, task.signal);
       task.signal.throwIfAborted();
@@ -28,14 +29,14 @@ export function EditorPDFPrint() {
           });
       }
       setSnapshot(snapshot);
-      window.editorPDFExperimental.ready(
+      useIPC("editorPDFExperimental").editorPDFExperimental.ready(
         request,
         snapshot.fingerprint,
         snapshot.pages,
       );
     })().catch((error) => {
       if (!task.signal.aborted)
-        window.editorPDFExperimental.error(
+        useIPC("editorPDFExperimental").editorPDFExperimental.error(
           request,
           error instanceof Error ? error.message : String(error),
         );
