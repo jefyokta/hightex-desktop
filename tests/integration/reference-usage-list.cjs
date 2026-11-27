@@ -9,7 +9,7 @@ const artifacts = mkdtempSync(path.join(os.tmpdir(), "hightex-reference-usage-")
 app.setPath("userData", artifacts);
 app.disableHardwareAcceleration();
 let vite, server, win;
-const deadline = setTimeout(() => { console.error("Usage fixture deadline"); app.exit(1); }, 60000);
+const deadline = setTimeout(() => { console.error("Usage fixture deadline"); app.exit(1); }, process.env.HIGHTEX_REFERENCE_GROWTH ? 180000 : 60000);
 deadline.unref();
 const key = "local_a_internal_cite31";
 const html = `<!doctype html><html><body style="padding:24px"><div id="root"></div><script type="module">
@@ -92,6 +92,9 @@ app.whenReady().then(async () => {
     resolve: { alias: { "@": path.join(project, "src") } }, server: { middlewareMode: true, hmr: false }, logLevel: "error" });
   server = createServer(async (request, response) => {
     if (request.url === "/") { response.setHeader("content-type", "text/html"); response.end(await vite.transformIndexHtml("/", html)); }
+    else if (process.env.HIGHTEX_IPC_FRAMES && request.url === "/ipc-frame") {
+      response.setHeader("content-type", "text/html");response.end(await vite.transformIndexHtml("/ipc-frame",require('./ipc-frames.cjs').html));
+    }
     else vite.middlewares(request, response, () => { response.writeHead(404); response.end(); });
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -99,6 +102,18 @@ app.whenReady().then(async () => {
   const errors = [];
   win.webContents.on("console-message", event => { if (event.level === "error") { errors.push(event.message); console.error(event.message); } });
   await win.loadURL(`http://127.0.0.1:${server.address().port}/`);
+  if (process.env.HIGHTEX_IPC_FRAMES) {
+    await require('./ipc-frames.cjs').run({execute,until,win,artifacts,errors});
+    return;
+  }
+  if (process.env.HIGHTEX_REFERENCE_GROWTH) {
+    await require('./reference-growth.cjs').run({execute,until,win,artifacts,errors,key});
+    return;
+  }
+  if (process.env.HIGHTEX_ZOTERO_METADATA) {
+    await require('./zotero-metadata.cjs').run({execute,until,win,artifacts,errors});
+    return;
+  }
   await until(`window.ready && document.querySelector(${JSON.stringify(count(3))})`);
   assert(!await execute("window.sidebarTabs.includes('usage')"));
   assert(!await execute(`document.body.innerText.includes(${JSON.stringify(key)})`));
