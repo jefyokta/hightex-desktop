@@ -8,6 +8,7 @@ import { contentAssets } from "@/utils/content-assets";
 import { toWebPBlob } from "@/utils/images-to-webp";
 import Dexie from "dexie";
 import { migrateDocumentCommittee } from "@/utils/document-committee";
+import { ReferenceRepository } from "@/editor/storage/reference-repository";
 
 export interface DraftState {
   document?: HighTexDocument;
@@ -280,8 +281,17 @@ export const installDraft = async (
       expected
     )
       throw new CloudError("local_changed");
+    const references = await new ReferenceRepository(db).importDocument(id, prepared.references);
+    const rewrite = (node: JSONContent): JSONContent => ({
+      ...node,
+      ...(node.type === "cite" && typeof node.attrs?.cite === "string" ? {
+        attrs: { ...node.attrs, cite: node.attrs.cite.split("|").map(key => references.keys.get(key) ?? key).join("|") },
+      } : {}),
+      ...(node.content ? { content: node.content.map(rewrite) } : {}),
+    });
+    prepared.state.chapters = prepared.state.chapters.map(chapter => ({ ...chapter, content: chapter.content.map(rewrite) }));
+    prepared.references = references.records;
     await replace(db, id, prepared.state);
-    await db.cite.bulkPut(prepared.references);
   });
 };
 

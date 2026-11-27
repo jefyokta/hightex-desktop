@@ -83,11 +83,24 @@ inline Zotero selection may reuse an existing key only when the parsed publicati
 metadata is equivalent, excluding citation identifiers and parser provenance.
 Matching a DOI alone does not establish equivalence or rewrite existing records.
 
+Archive installation uses `ReferenceRepository.importDocument` inside the draft's
+write transaction. It reuses a document-owned record only for byte-identical
+BibTeX and remaps incoming citation keys, including nested/grouped citations,
+before replacing chapters. Duplicate archive entries share that record. An archive
+hash changing after Save must not allocate a new copy of every bibliography entry.
+Different documents and recovery copies keep their own records; conflicting keys
+never overwrite another publication. This rule does not merge explicit library
+imports or discard previously stored references.
+
 `useReferenceCatalog` subscribes to those reads with Dexie `liveQuery` and builds
 the shared search index. The dashboard, sidebar and pickers update after reference
 writes without a second manual reload path. Failed parsing exposes a retryable
 load error and leaves stored records intact. Reading never deletes malformed
 references. `useCitationLibrary` owns library actions and their user feedback.
+`CitationPages` limits both workspace and editor library lists to 50 rows per
+page; search still indexes the complete catalog. Existing unused-reference cleanup
+is available from the library as well as Settings. It requires confirmation and
+checks every stored chapter, including historical versions and recovery documents.
 
 Before usage checks or deletion, the repository flushes open document chapter
 buffers through the existing editor bridge. Usage includes grouped citations and
@@ -126,6 +139,13 @@ across the renderer and preload API.
 requests and response handling. Connection probes return their existing status
 payload; item/search/BibTeX requests retain their HTTP or network failures. The
 service accepts a fetch adapter for isolated checks without a running Zotero server.
+`parseZoteroItems` validates the unknown HTTP payload before IPC: publications
+need an exportable key, titles may be empty, and optional text/creator fields
+must have their declared shape. Notes, attachments and annotations do not enter
+the publication picker. Untitled publications remain selectable using their key;
+the exported BibTeX still passes through the existing citation validation. Search
+normalizes absent/non-text metadata to empty search fields and supports numeric
+years without modifying the underlying records.
 
 `useCitationAuthors` owns the author-editing interaction. Its conversion helpers
 in `utils/citation-authors.ts` handle person and organization names, preserving

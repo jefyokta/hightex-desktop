@@ -45,6 +45,33 @@ export class ReferenceRepository {
     return (await this.db.cite.bulkGet([...keys])).filter((record): record is CiteRecord => record !== undefined);
   }
 
+  /** Archive/copy/recovery imports preserve publication bytes and reuse this document's records. */
+  async importDocument(documentId: string, incoming: readonly CiteRecord[]) {
+    return this.db.transaction("rw", this.db.cite, async () => {
+      const owned = await this.db.cite.where("documentId").equals(documentId).toArray();
+      const byBib = new Map<string, CiteRecord>();
+      for (const record of owned) if (!byBib.has(record.bib)) byBib.set(record.bib, record);
+      const keys = new Map<string, string>();
+      const records = new Map<string, CiteRecord>();
+      const additions = new Map<string, CiteRecord>();
+      for (const input of incoming) {
+        let record = byBib.get(input.bib);
+        if (!record) {
+          let key = input.key;
+          for (let suffix = 1; additions.has(key) || await this.db.cite.get(key); suffix++)
+            key = `${input.key}_${suffix}`;
+          record = { key, bib: input.bib, documentId };
+          byBib.set(input.bib, record);
+          additions.set(key, record);
+        }
+        keys.set(input.key, record.key);
+        records.set(record.key, record);
+      }
+      await this.db.cite.bulkPut([...additions.values()]);
+      return { keys, records: [...records.values()] };
+    });
+  }
+
   async importBibtex(
     content: string,
     { reuseEquivalent = false }: ReferenceImportOptions = {},

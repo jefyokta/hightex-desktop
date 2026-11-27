@@ -140,3 +140,45 @@ test("concurrent imports reserve unique keys in the same transaction", async () 
   expect(imported.flatMap(result => result.records.map(record => record.key)).sort()).toEqual(["source", "source_1"]);
   expect(await db.cite.count()).toBe(2);
 });
+
+test("document imports reuse exact bibliography within one owner without changing other references", async () => {
+  const bib = "@book{original,title={Preserved publication}}";
+  await db.cite.bulkPut([
+    { key: "existing", documentId: "a", bib },
+    { key: "global", bib },
+    { key: "collision", documentId: "b", bib: "Other publication" },
+  ]);
+  const imported = await references.importDocument("a", [
+    { key: "archive-v2-first", bib },
+    { key: "archive-v2-duplicate", bib },
+    { key: "collision", bib: "@book{changed,title={Changed publication}}" },
+  ]);
+  expect([...imported.keys]).toEqual([
+    ["archive-v2-first", "existing"], ["archive-v2-duplicate", "existing"], ["collision", "collision_1"],
+  ]);
+  expect(imported.records.map(record => record.key)).toEqual(["existing", "collision_1"]);
+  expect(await db.cite.count()).toBe(4);
+  expect((await db.cite.get("collision"))?.bib).toBe("Other publication");
+  expect((await db.cite.get("global"))?.documentId).toBeUndefined();
+  const next = await references.importDocument("a", [{ key: "third-archive", bib }]);
+  expect(next.keys.get("third-archive")).toBe("existing");
+  expect(await db.cite.count()).toBe(4);
+});
+
+test("document reference imports roll back with their draft and serialize concurrent imports", async () => {
+  const bib = "@book{source,title={Atomic reference}}";
+  await expect(Promise.resolve(db.transaction("rw", db.cite, async () => {
+    await references.importDocument("a", [{ key: "rolled-back", bib }]);
+    throw Error("draft rejected");
+  }))).rejects.toThrow("draft rejected");
+  expect(await db.cite.count()).toBe(0);
+  const imported = await Promise.all([
+    references.importDocument("a", [{ key: "first-archive", bib }]),
+    references.importDocument("a", [{ key: "second-archive", bib }]),
+  ]);
+  expect(imported[0].records[0].key).toBe(imported[1].records[0].key);
+  expect(await db.cite.count()).toBe(1);
+  await references.importDocument("recovery", [{ key: "recovery-archive", bib }]);
+  expect(await db.cite.count()).toBe(2);
+  expect((await db.cite.where("documentId").equals("a").first())?.bib).toBe(bib);
+});

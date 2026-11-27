@@ -184,6 +184,49 @@ describe("file-backed opening", () => {
     expect((await db.chapters.get(`${id}.1`))?.content[0].content?.[0].text).toBe("From disk");
   });
 
+  test("reference count stays bounded across repeated file open and save round trips", async () => {
+    const bib = "@book{roundtrip,title={Roundtrip reference},author={Writer},year={2026}}";
+    await db.cite.put({ key: "roundtrip", bib });
+    const id = await storedFile();
+    await db.chapters.put({ id: `${id}.1`, content: [{ type: "paragraph", content: [
+      { type: "cite", attrs: { cite: "roundtrip" } },
+    ] }] });
+    source = (await new Exporter(id).buildExport()).buffer;
+    for (let iteration = 0; iteration < 5; iteration++) {
+      const files = new DocumentFileSource();
+      await files.saved(id, source);
+      await files.load(id);
+      source = (await new Exporter(id).buildExport()).buffer;
+      await files.saved(id, source);
+      expect(await db.cite.count()).toBe(2);
+      const chapter = await db.chapters.get(`${id}.1`);
+      const key = chapter!.content[0].content![0].attrs!.cite;
+      expect((await db.cite.get(key))?.bib).toBe(bib);
+    }
+    expect(await db.documents.count()).toBe(1);
+  });
+
+  test("recovery retains citation bytes when a reopened source has a different bibliography", async () => {
+    const id = await storedFile();
+    const diskBib = "@book{disk,title={From disk}}", draftBib = "@book{draft,title={Unsaved bibliography}}";
+    await db.cite.put({ key: "disk-reference", documentId: id, bib: diskBib });
+    await db.chapters.put({ id: `${id}.1`, content: [{ type: "paragraph", content: [{ type: "cite", attrs: { cite: "disk-reference" } }] }] });
+    source = (await new Exporter(id).buildExport()).buffer;
+    const files = new DocumentFileSource();await files.saved(id, source);
+    await db.cite.update("disk-reference", { bib: draftBib });
+    await files.load(id);
+    const recovery = (await db.documents.toArray()).find(document => document.recovery)!;
+    const recovered = parseHighTexV2((await new Exporter(recovery.id).buildExport()).buffer);
+    const restored = parseHighTexV2((await new Exporter(id).buildExport()).buffer);
+    const recoveryCite = recovered.chapters.find(chapter => chapter.id === "1")!.content[0].content![0].attrs!.cite;
+    const restoredCite = restored.chapters.find(chapter => chapter.id === "1")!.content[0].content![0].attrs!.cite;
+    if (typeof recoveryCite !== "string" || typeof restoredCite !== "string")
+      throw Error("Expected citation keys in both recovered and restored chapters");
+    expect(recovered.references[recoveryCite]).toBe(draftBib);
+    expect(restored.references[restoredCite]).toBe(diskBib);
+    expect((await db.cite.get("disk-reference"))?.bib).toBe(draftBib);
+  });
+
   test("a missing file keeps the draft and cannot mark unsaved content as clean", async () => {
     const id = await storedFile();
     const files = new DocumentFileSource();
