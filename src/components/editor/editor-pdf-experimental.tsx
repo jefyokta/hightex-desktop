@@ -4,8 +4,9 @@ import type { Document } from "@/editor/document";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { t } from "@/utils/lang";
-import { CodeXml, FileDown, Loader2, MoreHorizontal, SquareTerminal, X } from "lucide-react";
-import { PaginationDiagnostics } from "./pagination-diagnostics";
+import { CodeXml, FileDown, Loader2, MoreHorizontal } from "lucide-react";
+import { PDFRequestStatus } from "./pdf-request-status";
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useDocumentPDF, type DocumentPDFRequest } from "@/hooks/use-document-pdf";
 import { useDocumentPDFRequest } from "@/context/document-pdf-context";
 
@@ -27,6 +28,7 @@ function StandalonePDFControls(props: PDFControlsProps) {
 }
 
 function DocumentPDFControls({ editor, disabled, status, options, request }: PDFControlsProps & { request: DocumentPDFRequest }) {
+  useAppLanguage();
   const { busy, exportButton, prepare } = request;
   const [optionsOpen, setOptionsOpen] = useState(false);
   useEffect(() => setOptionsOpen(false), [editor]);
@@ -48,8 +50,8 @@ function DocumentPDFControls({ editor, disabled, status, options, request }: PDF
           disabled={disabled || busy}
           onClick={() => void prepare("export")}
         >
-          <FileDown className="size-4" />
-          {t("editor.pagination.pdf_action")}
+          {busy ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : <FileDown className="size-4" />}
+          {t(busy ? "editor.pagination.pdf_in_progress" : "editor.pagination.pdf_action")}
         </Button>
 
         {(options || import.meta.env.DEV) && (
@@ -95,95 +97,4 @@ function DocumentPDFControls({ editor, disabled, status, options, request }: PDF
       <PDFRequestStatus request={request} editor={"commands" in editor ? editor : undefined} />
     </section>
   );
-}
-
-/** Shared progress, cancellation, diagnostics and outcome for editor and workspace exports. */
-export function PDFRequestStatus({ request, editor }: { request: DocumentPDFRequest; editor?: Editor }) {
-  const { phase, busy, error, section, sections, warnings, diagnostics, progress, elapsedMs, outcome, dismiss } = request;
-  const progressText = {
-    idle: "",
-    capture: sections && section
-      ? t("editor.pagination.pdf_preparing_sections", {...sections,section})
-      : section
-      ? t("editor.pagination.pdf_preparing_section", { section })
-      : t("common.preparing_pdf"),
-    export: t("editor.pagination.pdf_saving"),
-    debug: t("editor.pagination.pdf_debug_open"),
-    cancel: t("editor.pagination.pdf_cancelling"),
-  }[phase];
-  const nativeProgressText = progress ? {
-    destination: t("editor.pagination.pdf_destination"),
-    loading: t("editor.pagination.pdf_loading"),
-    printing: t("editor.pagination.pdf_printing", {completed:progress.completedPages,total:progress.pages}),
-    assembling: t("editor.pagination.pdf_assembling"),
-    writing: t("editor.pagination.pdf_writing"),
-  }[progress.stage] : undefined;
-  const seconds = Math.floor(elapsedMs / 1000);
-  const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2,"0")}`;
-
-
-  return <>
-      {busy && (
-        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
-          {phase === "debug" ? (
-            <SquareTerminal className="size-4 shrink-0" />
-          ) : (
-            <Loader2 className="size-4 shrink-0 animate-spin" />
-          )}
-          <span
-            role="status"
-            data-editor-pdf-progress
-            data-editor-pdf-phase={phase}
-            className="min-w-0 flex-1 break-words"
-          >
-            {phase === "export" ? nativeProgressText ?? progressText : progressText}
-          </span>
-          <span role="timer" aria-live="off" data-editor-pdf-elapsed className="shrink-0 tabular-nums text-muted-foreground">
-            {t("editor.pagination.pdf_elapsed", {duration})}
-          </span>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            data-editor-pdf-cancel
-            disabled={phase === "cancel"}
-            onClick={dismiss}
-          >
-            <X className="size-3" />
-            {phase === "debug"
-              ? t("editor.pagination.pdf_close_debug")
-              : t("common.cancel")}
-          </Button>
-        </div>
-      )}
-      {!busy && outcome && !error && (
-        <p role="status" data-editor-pdf-completed={outcome} className="text-xs text-muted-foreground">
-          {t(outcome === "saved" ? "editor.pagination.pdf_completed" : "editor.pagination.pdf_cancelled", {duration})}
-        </p>
-      )}
-      {error && (
-        <p
-          role="alert"
-          data-editor-pdf-error
-          className="whitespace-pre-wrap break-words rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs leading-relaxed text-destructive"
-        >
-          {error}
-        </p>
-      )}
-      {warnings > 0 && !error && (
-        <p
-          role="status"
-          data-editor-pdf-warning
-          className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-relaxed"
-        >
-          {t("editor.pagination.pdf_missing_references", { count: warnings })}
-        </p>
-      )}
-      {diagnostics.length > 0 && (
-        <PaginationDiagnostics
-          diagnostics={diagnostics}
-          editor={editor}
-        />
-      )}
-  </>;
 }

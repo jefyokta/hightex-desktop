@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { ParsedItalic } from "@/utils/parse-italic";
 import { useDocumentPDF } from "@/hooks/use-document-pdf";
-import { PDFRequestStatus } from "@/components/editor/editor-pdf-experimental";
+import { PDFRequestStatus } from "@/components/editor/pdf-request-status";
 
 export const Row = ({
   doc,
@@ -188,6 +188,7 @@ export const Row = ({
                   size="icon"
                   disabled={busy || disabled}
                   data-tour="document-actions"
+                  ref={pdfRequest.exportButton}
                   aria-label={t("dashboard.document_actions", {
                     title: doc.title,
                   })}
@@ -228,7 +229,7 @@ export const Row = ({
           </div>
         )}
       </article>
-      <div className="px-4"><PDFRequestStatus request={pdfRequest} /></div>
+      <div className="px-4 sm:px-5"><PDFRequestStatus request={pdfRequest} /></div>
       <Dialog open={branchesOpen} onOpenChange={setBranchesOpen}>
         <DialogContent>
           <DialogHeader>

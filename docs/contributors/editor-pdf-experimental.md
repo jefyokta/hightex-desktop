@@ -270,6 +270,13 @@ the progress listener; cancelled or obsolete jobs cannot update the next request
 The existing atomic-file boundary remains responsible for preventing a partial PDF
 from replacing the destination.
 
+`PDFRequestStatus` is the shared, non-modal export card for editor and workspace.
+It shows layout, PDF creation and save stages; its meter uses section/page counts
+only within the current stage. The saved filename and open action remain until
+dismissed. Errors show a brief message with collapsible details, while additional
+diagnostics retain source navigation. Retry captures the current source using the
+previous request's options, including watermark. The request hook owns that state;
+the card does not start another export lifecycle or inject capture-time modal CSS.
 
 Run `tests/integration/editor-pagination-ui.cjs` with isolated Electron to check
 hover/selection/menu geometry and the debug-snapshot-to-native-PDF path. These

@@ -30,6 +30,8 @@ export function useDocumentPDF(editor: Editor | Document | string | null) {
   const [progress, setProgress] = useState<EditorPDFProgress>();
   const [elapsedMs, setElapsedMs] = useState(0);
   const [outcome, setOutcome] = useState<"saved" | "cancelled">();
+  const [savedFile, setSavedFile] = useState<{ path: string; filename: string }>();
+  const lastRequest = useRef<{ action: "export" | "debug"; options: DocumentPDFOptions }>({ action: "export", options: {} });
   const exportButton = useRef<HTMLButtonElement>(null);
   const request = useRef<PDFRequest>();
   const cancel = useCallback(() => {
@@ -63,6 +65,8 @@ export function useDocumentPDF(editor: Editor | Document | string | null) {
     setProgress(undefined);
     setElapsedMs(0);
     setOutcome(undefined);
+    setSavedFile(undefined);
+    lastRequest.current = { action: "export", options: {} };
     return () => {
       request.current?.unsubscribe?.();
       cancel();
@@ -72,6 +76,7 @@ export function useDocumentPDF(editor: Editor | Document | string | null) {
 
   const prepare = async (action: "export" | "debug", options: DocumentPDFOptions = {}) => {
     if (!editor || request.current) return;
+    lastRequest.current = { action, options };
     const active: PDFRequest = {
       controller: new AbortController(),
       id: crypto.randomUUID(),
@@ -87,6 +92,7 @@ export function useDocumentPDF(editor: Editor | Document | string | null) {
     setProgress(undefined);
     setElapsedMs(0);
     setOutcome(undefined);
+    setSavedFile(undefined);
     try {
       const snapshot = await captureDocumentPDF(
         editor,
@@ -132,6 +138,7 @@ export function useDocumentPDF(editor: Editor | Document | string | null) {
       if (request.current !== active || active.controller.signal.aborted)
         return;
       if (result) {
+        setSavedFile(result);
         setOutcome("saved");
         toast.success(t("editor.inline.pdf_saved"), {
           description: result.filename,
@@ -171,10 +178,28 @@ export function useDocumentPDF(editor: Editor | Document | string | null) {
     setWarnings(0);
     setDiagnostics([]);
   };
+  const clear = () => {
+    if (request.current) return;
+    setError("");
+    setOutcome(undefined);
+    setSavedFile(undefined);
+    setWarnings(0);
+    setDiagnostics([]);
+    requestAnimationFrame(() => exportButton.current?.focus());
+  };
+  const openFile = async () => {
+    if (!savedFile) return;
+    try {
+      await useIPC("file").file.openPath(savedFile.path);
+    } catch {
+      toast.error(t("editor.pagination.pdf_open_failed"));
+    }
+  };
   return {
     available: Boolean(editor),
     phase, busy, error, section, sections, warnings, diagnostics, progress, elapsedMs, outcome,
-    exportButton, prepare, dismiss,
+    savedFile, exportButton, prepare, dismiss, clear, openFile,
+    retry: () => prepare(lastRequest.current.action, lastRequest.current.options),
   };
 }
 
