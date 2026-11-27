@@ -47,7 +47,7 @@ export function useReferencePicker({ query, zotero, onChoose }: ReferencePickerO
     ...remote.items.map(item => ({
       source: "zotero" as const,
       key: item.key,
-      title: item.title,
+      title: item.title || item.key,
       description: `Zotero · ${item.date ?? ""}`,
     })),
   ], [search, query, remote.items, language]);

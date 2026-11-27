@@ -1,3 +1,5 @@
+import type { ZoteroCreator, ZoteroItem } from "../../shared/zotero-contract";
+
 const buildZoteroUrl = (
   host: string,
   port: number,
@@ -50,20 +52,37 @@ export const buildZoteroTestUrl = (host: string, port: number) => {
   });
 };
 
-export const parseZoteroItems = (payload: any) => {
-  if (!Array.isArray(payload)) {
-    return [];
-  }
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+const text = (value: unknown) => typeof value === "string" ? value : undefined;
+const childTypes = new Set(["attachment", "note", "annotation"]);
 
-  return payload
-    .filter((item) => item?.data && item.data.itemType !== "attachment")
-    .map((item) => ({
-      key: item.data.key,
-      title: item.data.title,
-      itemType: item.data.itemType,
-      creators: item.data.creators,
-      date: item.data.date,
-      url: item.data.url,
-      doi: item.data.DOI,
-    }));
+/** HTTP data is optional metadata, not a guarantee that every Zotero item is a publication. */
+export const parseZoteroItems = (payload: unknown): ZoteroItem[] => {
+  if (!Array.isArray(payload)) return [];
+  return payload.flatMap((entry): ZoteroItem[] => {
+    if (!isRecord(entry) || !isRecord(entry.data)) return [];
+    const data = entry.data;
+    if (typeof data.itemType === "string" && childTypes.has(data.itemType)) return [];
+    const key = text(data.key)?.trim() || text(entry.key)?.trim();
+    // Selecting/exporting an item requires an actual Zotero key.
+    if (!key) return [];
+    const item: ZoteroItem = { key, title: text(data.title) ?? "" };
+    for (const [field, source] of [["itemType", "itemType"], ["date", "date"], ["url", "url"], ["doi", "DOI"]] as const) {
+      const value = text(data[source]);
+      if (value !== undefined) item[field] = value;
+    }
+    if (Array.isArray(data.creators)) {
+      item.creators = data.creators.flatMap((value): ZoteroCreator[] => {
+        if (!isRecord(value)) return [];
+        const creator: ZoteroCreator = { creatorType: text(value.creatorType) ?? "" };
+        for (const field of ["firstName", "lastName", "name"] as const) {
+          const name = text(value[field]);
+          if (name !== undefined) creator[field] = name;
+        }
+        return creator.firstName || creator.lastName || creator.name ? [creator] : [];
+      });
+    }
+    return [item];
+  });
 };

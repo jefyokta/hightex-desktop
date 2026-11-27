@@ -8,7 +8,11 @@ export interface CitationSearchFields {
   doi: string;
 }
 
-const normalize = (value: string) => value.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+const normalize = (value: unknown) => {
+  const text = typeof value === "string" ? value
+    : typeof value === "number" && Number.isFinite(value) ? String(value) : "";
+  return text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+};
 
 /** Index bibliographic fields once, then rank tokens across fields instead of raw JSON. */
 export function citationSearchFields(citation: CiteUtils): CitationSearchFields {
@@ -38,7 +42,7 @@ export function createCitationSearch<T>(values: readonly T[], fields: (value: T)
       key: normalize(source.key),
       title: normalize(source.title),
       authors: normalize(source.authors),
-      year: source.year,
+      year: normalize(source.year),
       doi: normalize(source.doi).replace(/^https?:\/\/(?:dx\.)?doi\.org\//, ""),
     };
   });

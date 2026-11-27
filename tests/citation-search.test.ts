@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { CiteUtils } from "bibtex.js";
-import { citationSearchFields, createCitationSearch } from "../src/utils/citation-search";
+import { citationSearchFields, createCitationSearch, type CitationSearchFields } from "../src/utils/citation-search";
 import { buildZoteroSearchUrl } from "../electron/utilities/zotero";
 
 test("reference search combines bibliographic fields and ignores accents", () => {
@@ -28,4 +28,13 @@ test("Zotero search sends encoded multi-field queries independently of the initi
   expect(url.searchParams.get("q")).toBe("García & 2026");
   expect(url.searchParams.get("qmode")).toBe("everything");
   expect(url.searchParams.get("limit")).toBe("40");
+});
+
+test("reference search tolerates absent metadata and numeric years without changing records", () => {
+  const item = { key: "missing-title", title: undefined, authors: null, year: 2026, doi: undefined };
+  const search = createCitationSearch([item], value => value as unknown as CitationSearchFields);
+  expect(search("missing-title 2026")).toEqual([item]);
+  expect(search("")).toEqual([item]);
+  expect(search("unrelated")).toEqual([]);
+  expect(item.title).toBeUndefined();
 });
